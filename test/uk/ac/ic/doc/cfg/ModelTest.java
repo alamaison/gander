@@ -7,43 +7,30 @@ import java.io.File;
 import java.net.URL;
 import java.util.Map;
 
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
+import uk.ac.ic.doc.cfg.model.Class;
 import uk.ac.ic.doc.cfg.model.Module;
 import uk.ac.ic.doc.cfg.model.Package;
 
 public class ModelTest {
 
-	// private static final int COPY_BUFFER_SIZE = 1024;
+	private static final String PACKAGE_STRUCTURE_PROJ = "python_test_code/package_structure";
 
-	@BeforeClass
-	public static void setUpBeforeClass() throws Exception {
-	}
+	private static final String MODULE_STRUCTURE_PROJ = "python_test_code/model_structure";
 
-	@AfterClass
-	public static void tearDownAfterClass() throws Exception {
-	}
-
-	// private void copy(InputStream from, OutputStream out) throws IOException
-	// {
-	//		
-	// byte[] buffer = new byte[COPY_BUFFER_SIZE];
-	// int len;
-	// while ((len = from.read(buffer)) > 0) {
-	// out.write(buffer);
-	// }
-	// }
-
-	@Test
-	public void testGetTopLevelPackages() throws Throwable {
-		URL topLevel = getClass().getResource(
-				"python_test_code/model_structure");
+	private Model createTestModel(String projectPath) throws Throwable {
+		URL topLevel = getClass().getResource(projectPath);
 
 		File topLevelDirectory = new File(topLevel.toURI());
 
 		Model model = new Model(topLevelDirectory);
+		return model;
+	}
+
+	@Test
+	public void testGetTopLevelPackages() throws Throwable {
+		Model model = createTestModel(PACKAGE_STRUCTURE_PROJ);
 		Map<String, Package> packages = model.getTopLevelPackage()
 				.getPackages();
 		assertEquals(1, packages.size());
@@ -53,16 +40,20 @@ public class ModelTest {
 
 	@Test
 	public void testGetTopLevelModules() throws Throwable {
-		URL topLevel = getClass().getResource(
-				"python_test_code/model_structure");
-
-		File topLevelDirectory = new File(topLevel.toURI());
-
-		Model model = new Model(topLevelDirectory);
+		Model model = createTestModel(PACKAGE_STRUCTURE_PROJ);
 		Map<String, Module> modules = model.getTopLevelPackage().getModules();
 		assertEquals(2, modules.size());
 		assertTrue(modules.containsKey("my_module1"));
 		assertTrue(modules.containsKey("my_module2"));
+	}
+
+	@Test
+	public void testGetClasses() throws Throwable {
+		Model model = createTestModel(MODULE_STRUCTURE_PROJ);
+		Map<String, Class> classes = model.getTopLevelPackage().getPackages()
+				.get("my_package").getModules().get("my_module").getClasses();
+		assertEquals(1, classes.size());
+		assertTrue(classes.containsKey("my_class"));
 	}
 
 }

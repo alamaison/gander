@@ -4,6 +4,8 @@ import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -12,12 +14,14 @@ import org.python.pydev.parser.grammar26.PythonGrammar26;
 import org.python.pydev.parser.jython.CharStream;
 import org.python.pydev.parser.jython.FastCharStream;
 import org.python.pydev.parser.jython.ParseException;
-import org.python.pydev.parser.jython.SimpleNode;
+import org.python.pydev.parser.jython.ast.ClassDef;
+import org.python.pydev.parser.jython.ast.NameTok;
+import org.python.pydev.parser.jython.ast.stmtType;
 
 public class Module implements IModelElement {
 
 	private String name;
-	private SimpleNode module;
+	private org.python.pydev.parser.jython.ast.Module module;
 
 	private static final Pattern MODULE_NAME_PATTERN = Pattern
 			.compile("(.*)\\.py");
@@ -33,9 +37,10 @@ public class Module implements IModelElement {
 			CharStream stream = new FastCharStream(fileToString(module)
 					.toCharArray());
 			IGrammar grammar = new PythonGrammar26(stream);
-			this.module = grammar.file_input();
+			this.module = (org.python.pydev.parser.jython.ast.Module) grammar
+					.file_input();
 		} else {
-			this.module = new SimpleNode();
+			this.module = new org.python.pydev.parser.jython.ast.Module(null);
 		}
 	}
 
@@ -81,5 +86,18 @@ public class Module implements IModelElement {
 		if (m.matches())
 			return m.group(MODULE_NAME_MATCHING_GROUP);
 		return null;
+	}
+
+	public Map<String, Class> getClasses() {
+		
+		Map<String, Class> classes = new HashMap<String, Class>();
+		for (stmtType n : module.body) {
+			if (n instanceof ClassDef) {
+				Class cls = new Class((ClassDef)n);
+				classes.put(cls.getName(), cls);
+			}
+		}
+		
+		return classes;
 	}
 }
