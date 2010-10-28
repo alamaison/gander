@@ -10,6 +10,7 @@ import java.util.Map;
 import org.junit.Test;
 
 import uk.ac.ic.doc.cfg.model.Class;
+import uk.ac.ic.doc.cfg.model.Function;
 import uk.ac.ic.doc.cfg.model.Method;
 import uk.ac.ic.doc.cfg.model.Module;
 import uk.ac.ic.doc.cfg.model.Package;
@@ -65,6 +66,15 @@ public class ModelTest {
 				.get("my_class").getMethods();
 		assertEquals(1, methods.size());
 		assertTrue(methods.containsKey("my_method_empty"));
+	}
+
+	@Test
+	public void testGetFunctions() throws Throwable {
+		Model model = createTestModel(MODULE_STRUCTURE_PROJ);
+		Map<String, Function> functions = model.getTopLevelPackage().getPackages()
+				.get("my_package").getModules().get("my_module").getFunctions();
+		assertEquals(1, functions.size());
+		assertTrue(functions.containsKey("my_free_function"));
 	}
 
 }

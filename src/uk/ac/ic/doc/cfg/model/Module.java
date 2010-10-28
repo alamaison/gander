@@ -15,6 +15,7 @@ import org.python.pydev.parser.jython.CharStream;
 import org.python.pydev.parser.jython.FastCharStream;
 import org.python.pydev.parser.jython.ParseException;
 import org.python.pydev.parser.jython.ast.ClassDef;
+import org.python.pydev.parser.jython.ast.FunctionDef;
 import org.python.pydev.parser.jython.ast.stmtType;
 
 public class Module implements IModelElement {
@@ -60,7 +61,7 @@ public class Module implements IModelElement {
 		BufferedInputStream f = null;
 		try {
 			f = new BufferedInputStream(new FileInputStream(file));
-			f.read(buffer);
+				f.read(buffer);
 		} finally {
 			if (f != null)
 				try {
@@ -90,13 +91,26 @@ public class Module implements IModelElement {
 	public Map<String, Class> getClasses() {
 		
 		Map<String, Class> classes = new HashMap<String, Class>();
-		for (stmtType n : module.body) {
-			if (n instanceof ClassDef) {
-				Class cls = new Class((ClassDef)n);
+		for (stmtType stmt : module.body) {
+			if (stmt instanceof ClassDef) {
+				Class cls = new Class((ClassDef)stmt);
 				classes.put(cls.getName(), cls);
 			}
 		}
 		
 		return classes;
+	}
+
+	public Map<String, Function> getFunctions() {
+		
+		Map<String, Function> functions = new HashMap<String, Function>();
+		for (stmtType stmt : module.body) {
+			if (stmt instanceof FunctionDef) {
+				Function function = new Function((FunctionDef)stmt);
+				functions.put(function.getName(), function);
+			}
+		}
+		
+		return functions;
 	}
 }
