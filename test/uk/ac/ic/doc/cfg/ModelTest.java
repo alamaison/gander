@@ -10,6 +10,7 @@ import java.util.Map;
 import org.junit.Test;
 
 import uk.ac.ic.doc.cfg.model.Class;
+import uk.ac.ic.doc.cfg.model.Method;
 import uk.ac.ic.doc.cfg.model.Module;
 import uk.ac.ic.doc.cfg.model.Package;
 
@@ -52,8 +53,18 @@ public class ModelTest {
 		Model model = createTestModel(MODULE_STRUCTURE_PROJ);
 		Map<String, Class> classes = model.getTopLevelPackage().getPackages()
 				.get("my_package").getModules().get("my_module").getClasses();
-		assertEquals(1, classes.size());
-		assertTrue(classes.containsKey("my_class"));
+		assertEquals(2, classes.size());
+		assertTrue(classes.containsKey("my_class_empty"));
+	}
+
+	@Test
+	public void testGetMethods() throws Throwable {
+		Model model = createTestModel(MODULE_STRUCTURE_PROJ);
+		Map<String, Method> methods = model.getTopLevelPackage().getPackages()
+				.get("my_package").getModules().get("my_module").getClasses()
+				.get("my_class").getMethods();
+		assertEquals(1, methods.size());
+		assertTrue(methods.containsKey("my_method_empty"));
 	}
 
 }

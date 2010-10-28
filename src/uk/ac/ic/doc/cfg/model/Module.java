@@ -15,7 +15,6 @@ import org.python.pydev.parser.jython.CharStream;
 import org.python.pydev.parser.jython.FastCharStream;
 import org.python.pydev.parser.jython.ParseException;
 import org.python.pydev.parser.jython.ast.ClassDef;
-import org.python.pydev.parser.jython.ast.NameTok;
 import org.python.pydev.parser.jython.ast.stmtType;
 
 public class Module implements IModelElement {
