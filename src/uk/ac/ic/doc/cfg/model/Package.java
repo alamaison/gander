@@ -55,7 +55,7 @@ public class Package implements IModelElement {
 
 		for (File f : directory.listFiles()) {
 			String name = Module.moduleNameFromFile(f);
-			if (name.equals(PACKAGE_TAG_NAME))
+			if (name != null && name.equals(PACKAGE_TAG_NAME))
 				return true;
 		}
 

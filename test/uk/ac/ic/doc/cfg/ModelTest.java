@@ -71,10 +71,10 @@ public class ModelTest {
 	@Test
 	public void testGetFunctions() throws Throwable {
 		Model model = createTestModel(MODULE_STRUCTURE_PROJ);
-		Map<String, Function> functions = model.getTopLevelPackage().getPackages()
-				.get("my_package").getModules().get("my_module").getFunctions();
+		Map<String, Function> functions = model.getTopLevelPackage()
+				.getPackages().get("my_package").getModules().get("my_module")
+				.getFunctions();
 		assertEquals(1, functions.size());
 		assertTrue(functions.containsKey("my_free_function"));
 	}
-
 }
