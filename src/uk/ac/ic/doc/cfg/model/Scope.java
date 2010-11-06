@@ -10,7 +10,7 @@ public abstract class Scope extends VisitorBase {
 	
 	private BasicBlock block = null;
 	
-	protected abstract void finish();
+	protected void finish() {}
 	
 	protected void addToCurrentBlock(stmtType stmt) {
 		if (block == null)
