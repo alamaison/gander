@@ -2,14 +2,13 @@ package uk.ac.ic.doc.cfg.model;
 
 import org.python.pydev.parser.jython.SimpleNode;
 import org.python.pydev.parser.jython.ast.Assign;
+import org.python.pydev.parser.jython.ast.Call;
 import org.python.pydev.parser.jython.ast.Expr;
 import org.python.pydev.parser.jython.ast.VisitorBase;
 
 public abstract class Scope extends VisitorBase {
 	
 	private BasicBlock block = null;
-	
-	protected void finish() {}
 	
 	protected void addToCurrentBlock(SimpleNode node) {
 		if (block == null)
@@ -22,14 +21,22 @@ public abstract class Scope extends VisitorBase {
 	@Override
 	public Object visitAssign(Assign node) throws Exception {
 		addToCurrentBlock(node);
-		return super.visitAssign(node);
+		return null;
 	}
 
 	@Override
 	public Object visitExpr(Expr node) throws Exception {
 		addToCurrentBlock(node.value);
-		return super.visitExpr(node);
+		return null;
 	}
+
+	@Override
+	public Object visitCall(Call node) throws Exception {
+		addToCurrentBlock(node);
+		// TODO Make CallScope that handles exceptions killing the basic block
+		return null;
+	}
+
 
 	@Override
 	public void traverse(SimpleNode node) throws Exception {

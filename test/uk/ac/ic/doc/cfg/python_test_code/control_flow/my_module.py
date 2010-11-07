@@ -27,3 +27,14 @@ def my_fun_if_else_fallthru():
 	else:
 		d()
 	e()
+
+def my_fun_while():
+	a()
+	while b():
+		c()
+		
+def my_fun_while_fallthru():
+	a()
+	while b():
+		c()
+	d()

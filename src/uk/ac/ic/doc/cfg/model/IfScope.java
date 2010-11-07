@@ -23,12 +23,14 @@ public class IfScope extends Scope {
 		// in a 'suite' node in the AST, it doesn't call visitSuite on the
 		// visitor.
 		
-//        if (node.test != null){
-//            node.test.accept(this);
-//        }
-		parent.addToCurrentBlock(node.test);
+		setCurrentBlock(this.parent.getCurrentBlock());
+		
+        if (node.test != null){
+            node.test.accept(this);
+        }
+        
 		if (node.orelse == null) {
-			parent.fallthrough(parent.getCurrentBlock());
+			parent.fallthrough(getCurrentBlock());
 		}
         
         if (node.body != null) {

@@ -5,6 +5,7 @@ import java.util.Queue;
 
 import org.python.pydev.parser.jython.ast.FunctionDef;
 import org.python.pydev.parser.jython.ast.If;
+import org.python.pydev.parser.jython.ast.While;
 
 public class FunctionDefScope extends Scope {
 	
@@ -39,7 +40,19 @@ public class FunctionDefScope extends Scope {
 	@Override
 	public Object visitIf(If node) throws Exception {
 		IfScope scope = new IfScope(node, this);
+		processFallthrough();
+		return null;
+	}
 
+	@Override
+	public Object visitWhile(While node) throws Exception {
+		WhileScope scope = new WhileScope(node, this);
+		processFallthrough();
+		return null;
+	}
+	
+	private void processFallthrough() {
+		
 		// Blocks may (will?) be waiting for fall-through after processing a branch
 		// or a loop.  If so, we must start a new basic block and link the
 		// fall-through blocks to it.
@@ -52,7 +65,6 @@ public class FunctionDefScope extends Scope {
 			fallthroughQueue.clear();
 			setCurrentBlock(nextBlock);
 		}
-		return null;
 	}
 
 	protected void linkAfterCurrent(BasicBlock successor) {

@@ -240,9 +240,9 @@ public class CfgTest {
 			block2IsIfBody = true;
 		assertFalse("Only one statement expected in Block 2", nodes.hasNext());
 
-		// Block 2 links the the END if it is the fallthrough block
+		// Block 2 links to the END if it is the fallthrough block
 		if (block2IsIfBody)
-			assertTrue("Doesn't link to END", block2.getOutSet().contains(end));
+			assertFalse("Doesn't link to END", block2.getOutSet().contains(end));
 		// Either way it should only have one successor
 		assertEquals("Too many successors", 1, block2.getOutSet().size());
 
@@ -331,11 +331,119 @@ public class CfgTest {
 		BasicBlock block4 = block2.getOutSet().iterator().next();
 		assertEquals("Blocks 2 and 3 must point at the same fallthru block",
 				block4, block3.getOutSet().iterator().next());
-		
+
 		nodes = block4.iterator();
 		assertFunctionNamed("e", nodes.next());
 		assertFalse("Only one statement expected in Block 4", nodes.hasNext());
+
+		assertTrue("Fallthru must link to END", block4.getOutSet()
+				.contains(end));
+	}
+
+	@Test
+	public void testWhile() throws Throwable {
+		initialiseGraph("my_fun_while");
+
+		// Block 1
+		BasicBlock block1 = start.getOutSet().iterator().next();
+		Iterator<SimpleNode> nodes = block1.iterator();
+		assertFunctionNamed("a", nodes.next()); // a()
+		assertFalse("Only one statements expected in Block 1", nodes.hasNext());
+
+		// Block 1 links to while-test block
+		assertEquals("Must be only one successor", 1, block1.getOutSet().size());
+		assertFalse("Successor must not be END",
+				block1.getOutSet().contains(end));
+
+		// Block 2
+		BasicBlock block2 = block1.getOutSet().iterator().next();
+		nodes = block2.iterator();
+		assertFunctionNamed("b", nodes.next()); // b()
+		assertFalse("Only one statements expected in Block 2", nodes.hasNext());
+
+		// Block 2 links to while-body and END
+		assertEquals("Wrong number of successors", 2, block2.getOutSet().size());
+		assertTrue("Must link to END", block2.getOutSet().contains(end));
+
+		// Block3
+		BasicBlock block3 = null;
+		for (BasicBlock b : block2.getOutSet()) { // find non-END successor
+			if (b != end) {
+				block3 = b;
+				break;
+			}
+		}
+		assertTrue("No non-END successor to Block 2", block2 != null);
+
+		nodes = block3.iterator();
+		assertFunctionNamed("c", nodes.next()); // c()
+		assertFalse("Only one statement expected in Block 3", nodes.hasNext());
+
+		// Block 3 links only to while-test
+		assertTrue("Doesn't link back to while-test (Block 2)", block3
+				.getOutSet().contains(block2));
+		assertEquals("Too many successors", 1, block3.getOutSet().size());
+	}
+
+	@Test
+	public void testWhileFallthru() throws Throwable {
+		initialiseGraph("my_fun_while_fallthru");
+
+		// Block 1
+		BasicBlock block1 = start.getOutSet().iterator().next();
+		Iterator<SimpleNode> nodes = block1.iterator();
+		assertFunctionNamed("a", nodes.next()); // a()
+		assertFalse("Only one statements expected in Block 1", nodes.hasNext());
+
+		// Block 1 links to while-test block
+		assertEquals("Must be only one successor", 1, block1.getOutSet().size());
+		assertFalse("Successor must not be END",
+				block1.getOutSet().contains(end));
+
+		// Block 2
+		BasicBlock block2 = block1.getOutSet().iterator().next();
+		nodes = block2.iterator();
+		assertFunctionNamed("b", nodes.next()); // b()
+		assertFalse("Only one statements expected in Block 2", nodes.hasNext());
+
+		// Block 2 links to while-body and fallthru
+		assertEquals("Wrong number of successors", 2, block2.getOutSet().size());
+		assertFalse("Must not link to END", block2.getOutSet().contains(end));
 		
-		assertTrue("Fallthru must link to END", block4.getOutSet().contains(end));
+		Iterator<BasicBlock> block2Successors = block2.getOutSet().iterator();
+
+		// Block3
+		// May be while-body or fallthru - we don't yet know which
+		BasicBlock block3 = block2Successors.next();
+		nodes = block3.iterator();
+		SimpleNode node = nodes.next();
+		assertTrue(
+				// c() or d()
+				"Neither 'c()' nor 'c()' found: doesn't match either block",
+				isFunctionNamed("c", node) || isFunctionNamed("d", node));
+		assertEquals("Too many successors", 1, block3.getOutSet().size());
+
+		boolean block3IsFallthru = isFunctionNamed("d", node);
+		if (block3IsFallthru) {
+			assertTrue("Must link to END", block3.getOutSet().contains(end));
+		} else {
+			assertTrue("Must link to while-test",
+					block3.getOutSet().contains(block2));
+		}
+
+		// Block4
+		BasicBlock block4 = block2Successors.next();
+		assertEquals("Too many successors", 1, block4.getOutSet().size());
+		nodes = block4.iterator();
+		if (block3IsFallthru) {
+			assertFunctionNamed("c", nodes.next());
+			assertTrue("Must link to while-test",
+					block4.getOutSet().contains(block2));
+		} else {
+			assertFunctionNamed("d", nodes.next());
+			assertTrue("Must link to END", block4.getOutSet().contains(end));
+		}
+
+		assertFalse("Only one statement expected in Block 4", nodes.hasNext());
 	}
 }
