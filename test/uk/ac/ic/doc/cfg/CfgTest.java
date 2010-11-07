@@ -89,7 +89,7 @@ public class CfgTest {
 			} else if (i == 1) {
 				// y.m()
 				Call call = (Call) node;
-				
+
 				Attribute attr = (Attribute) call.func;
 				Name objectName = (Name) attr.value;
 				assertEquals("y", objectName.id);
@@ -169,10 +169,11 @@ public class CfgTest {
 
 		nodes = block2.iterator();
 		SimpleNode node = nodes.next();
-		assertTrue( // c() or d()
+		assertTrue(
+				// c() or d()
 				"Neither 'c()' nor 'c()' found: doesn't match either branch",
 				isFunctionNamed("c", node) || isFunctionNamed("d", node));
-		
+
 		boolean block2IsThenBranch = false;
 		if (isFunctionNamed("c", node))
 			block2IsThenBranch = true;
@@ -196,9 +197,145 @@ public class CfgTest {
 		else
 			assertFunctionNamed("c", node);
 		assertFalse("Only one statement expected in Block 3", nodes.hasNext());
-		
+
 		// Block 3 links only to END
 		assertTrue("Doesn't link to END", block3.getOutSet().contains(end));
 		assertEquals("Too many successors", 1, block3.getOutSet().size());
+	}
+
+	@Test
+	public void testIfFallthru() throws Throwable {
+		initialiseGraph("my_fun_if_fallthru");
+
+		// Block 1
+		BasicBlock block1 = start.getOutSet().iterator().next();
+		Iterator<SimpleNode> nodes = block1.iterator();
+		assertFunctionNamed("a", nodes.next()); // a()
+		assertFunctionNamed("b", nodes.next()); // if b():
+		assertFalse("Only two statements expected in Block 1", nodes.hasNext());
+
+		// Block 1 links to body of if-stmt and fallthrough block
+		assertFalse("Block 1 must not link to END", block1.getOutSet()
+				.contains(end));
+		assertEquals("Wrong number of successors", 2, block1.getOutSet().size());
+
+		// Block 2
+		// use first successor - we don't know (care) whether this
+		// is the 'then' block or the fallthrough but it should not be END
+		Iterator<BasicBlock> block1Successors = block1.getOutSet().iterator();
+		BasicBlock block2 = block1Successors.next();
+		assertTrue("Block 1 has no successors", block2 != null);
+		assertNotSame(end, block2);
+
+		nodes = block2.iterator();
+		SimpleNode node = nodes.next();
+		assertTrue(
+				// c() or d()
+				"Neither 'c()' nor 'c()' found: doesn't match either "
+						+ "the if-body or the fallthough block.",
+				isFunctionNamed("c", node) || isFunctionNamed("d", node));
+
+		boolean block2IsIfBody = false;
+		if (isFunctionNamed("c", node))
+			block2IsIfBody = true;
+		assertFalse("Only one statement expected in Block 2", nodes.hasNext());
+
+		// Block 2 links the the END if it is the fallthrough block
+		if (block2IsIfBody)
+			assertTrue("Doesn't link to END", block2.getOutSet().contains(end));
+		// Either way it should only have one successor
+		assertEquals("Too many successors", 1, block2.getOutSet().size());
+
+		// Block 3
+		// Use whichever successor we didn't use as Block 2 - we don't
+		// know (care) whether this is the if-body or the fallthrough block
+		// but we do care that whatever it is, it must be the *other* one.
+		BasicBlock block3 = block1Successors.next();
+		assertTrue("Couldn't find other branch branch", block3 != null);
+
+		nodes = block3.iterator();
+		node = nodes.next();
+		if (block2IsIfBody) {
+			// we are looking all the fallthru block
+			assertFunctionNamed("d", node);
+			assertTrue("Fallthru block must link to END", block3.getOutSet()
+					.contains(end));
+		} else {
+			assertFunctionNamed("c", node);
+			assertTrue("If-body must link to fallthru block", block3
+					.getOutSet().contains(block2));
+		}
+		assertFalse("Only one statement expected in Block 3", nodes.hasNext());
+		assertEquals("Too many successors", 1, block3.getOutSet().size());
+	}
+
+	@Test
+	public void testIfElseFallthru() throws Throwable {
+		initialiseGraph("my_fun_if_else_fallthru");
+
+		// Block 1
+		BasicBlock block1 = start.getOutSet().iterator().next();
+		Iterator<SimpleNode> nodes = block1.iterator();
+		assertFunctionNamed("a", nodes.next()); // a()
+		assertFunctionNamed("b", nodes.next()); // if b():
+		assertFalse("Only two statements expected in Block 1", nodes.hasNext());
+
+		// Block 1 must not link to END - it has to get there either via
+		// 'then' or 'else'
+		assertFalse("Block 1 must not link to END", block1.getOutSet()
+				.contains(end));
+		assertEquals("Wrong number of successors", 2, block1.getOutSet().size());
+
+		// Block 2
+		// use first successor - we don't know (care) whether this is the
+		// 'then' or the 'else' branch
+		Iterator<BasicBlock> block1Successors = block1.getOutSet().iterator();
+		BasicBlock block2 = block1Successors.next();
+		assertTrue("Block 1 has no successors", block2 != null);
+
+		nodes = block2.iterator();
+		SimpleNode node = nodes.next();
+		assertTrue(
+				// c() or d()
+				"Neither 'c()' nor 'c()' found: doesn't match either branch",
+				isFunctionNamed("c", node) || isFunctionNamed("d", node));
+
+		boolean block2IsThenBranch = false;
+		if (isFunctionNamed("c", node))
+			block2IsThenBranch = true;
+		assertFalse("Only one statement expected in Block 2", nodes.hasNext());
+
+		// Block 3
+		// use whichever successor we didn't use as Block 2 - we don't
+		// know (care) whether this is the 'then' or the 'else' branch but we
+		// do care that whatever it is, it must be the *other* one.
+		BasicBlock block3 = block1Successors.next();
+		assertTrue("Couldn't find other branch branch", block3 != null);
+
+		nodes = block3.iterator();
+		node = nodes.next();
+		if (block2IsThenBranch)
+			assertFunctionNamed("d", node);
+		else
+			assertFunctionNamed("c", node);
+		assertFalse("Only one statement expected in Block 3", nodes.hasNext());
+
+		// Block 4
+		// Should be the fallthrough block
+
+		// Block 2 and Block 3 should only link to the fallthru (Block 4)
+		assertEquals("Block 2 has too many successors", 1, block2.getOutSet()
+				.size());
+		assertEquals("Block 3 has too many successors", 1, block3.getOutSet()
+				.size());
+		BasicBlock block4 = block2.getOutSet().iterator().next();
+		assertEquals("Blocks 2 and 3 must point at the same fallthru block",
+				block4, block3.getOutSet().iterator().next());
+		
+		nodes = block4.iterator();
+		assertFunctionNamed("e", nodes.next());
+		assertFalse("Only one statement expected in Block 4", nodes.hasNext());
+		
+		assertTrue("Fallthru must link to END", block4.getOutSet().contains(end));
 	}
 }

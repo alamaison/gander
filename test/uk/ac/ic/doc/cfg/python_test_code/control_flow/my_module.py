@@ -19,3 +19,11 @@ def my_fun_if_fallthru():
 	if b():
 		c()
 	d()
+
+def my_fun_if_else_fallthru():
+	a()
+	if b():
+		c()
+	else:
+		d()
+	e()
