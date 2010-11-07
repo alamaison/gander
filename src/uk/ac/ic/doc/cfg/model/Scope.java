@@ -15,6 +15,8 @@ public abstract class Scope extends VisitorBase {
 	protected void addToCurrentBlock(stmtType stmt) {
 		if (block == null)
 			block = new BasicBlock();
+		
+		assert getCurrentBlock().getOutSet().size() == 0;
 		getCurrentBlock().addStatement(stmt);
 	}
 

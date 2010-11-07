@@ -7,6 +7,7 @@ import static org.junit.Assert.assertTrue;
 
 import java.io.File;
 import java.net.URL;
+import java.util.Iterator;
 import java.util.Set;
 
 import org.junit.Test;
@@ -39,7 +40,8 @@ public class CfgTest {
 		return model;
 	}
 
-	public void initialiseGraph(String testFuncName) throws Throwable, Exception {
+	public void initialiseGraph(String testFuncName) throws Throwable,
+			Exception {
 		Model model = createTestModel(CONTROL_FLOW_PROJ);
 		Function function = model.getTopLevelPackage().getModules()
 				.get("my_module").getFunctions().get(testFuncName);
@@ -60,7 +62,7 @@ public class CfgTest {
 	@Test
 	public void testSimpleControlFlow() throws Throwable {
 		initialiseGraph("my_fun");
-		
+
 		// Block 1
 		BasicBlock block = start.getOutSet().iterator().next();
 		int i = 0;
@@ -101,7 +103,7 @@ public class CfgTest {
 	@Test
 	public void testIfControlFlow() throws Throwable {
 		initialiseGraph("my_fun_if");
-		
+
 		// Block 1
 		BasicBlock block1 = start.getOutSet().iterator().next();
 		int i = 0;
@@ -170,7 +172,7 @@ public class CfgTest {
 	@Test
 	public void testIfElse() throws Throwable {
 		initialiseGraph("my_fun_if_else");
-		
+
 		// Block 1
 		BasicBlock block1 = start.getOutSet().iterator().next();
 		int i1 = 0;
@@ -197,24 +199,21 @@ public class CfgTest {
 		}
 		assertEquals(2, i1); // two statements expected in 1st block
 
-		// Block 1 links to both branches of if-stmt and END
-		assertTrue("Doesn't link to END", block1.getOutSet().contains(end));
-		assertEquals("Wrong number of successors", 3, block1.getOutSet().size());
+		// Block 1 must not link to END - it has to get there either via
+		// 'then' or 'else'
+		assertTrue("Block 1 must not link to END", !block1.getOutSet()
+				.contains(end));
+		assertEquals("Wrong number of successors", 2, block1.getOutSet().size());
 
 		// Block 2
-		BasicBlock block2 = null;
-		// find first non-END successor - we don't know (care) whether this
-		// is the 'then' or the 'else' branch
-		for (BasicBlock b : block1.getOutSet()) {
-			if (b != end) {
-				block2 = b;
-				break;
-			}
-		}
-		assertTrue("No non-END successor to Block 1", block2 != null);
+		// use first successor - we don't know (care) whether this is the 
+		// 'then' or the 'else' branch
+		Iterator<BasicBlock> block1Successors = block1.getOutSet().iterator();
+		BasicBlock block2 = block1Successors.next();
+		assertTrue("Block 1 has no successors", block2 != null);
 
 		int i2 = 0;
-		boolean block1IsThenBranch = false;
+		boolean block2IsThenBranch = false;
 		for (stmtType stmt : block2) {
 			if (i2 == 0) {
 				// y.m() or z.m()
@@ -227,8 +226,8 @@ public class CfgTest {
 						"Neither 'y' nor 'z' found: doesn't match either branch",
 						objectName.id.equals("y") || objectName.id.equals("z"));
 				if (objectName.id.equals("y"))
-					block1IsThenBranch = true;
-				
+					block2IsThenBranch = true;
+
 				NameTok methodName = (NameTok) attr.attr;
 				assertEquals("m", methodName.id);
 			} else {
@@ -244,16 +243,10 @@ public class CfgTest {
 		assertEquals("Too many successors", 1, block2.getOutSet().size());
 
 		// Block 3
-		BasicBlock block3 = null;
-		// find whichever non-END successor we didn't use as Block 2 - we don't
+		// use whichever successor we didn't use as Block 2 - we don't
 		// know (care) whether this is the 'then' or the 'else' branch but we
 		// do care that whatever it is, it must be the *other* one.
-		for (BasicBlock b : block1.getOutSet()) {
-			if (b != end && b != block2) {
-				block3 = b;
-				break;
-			}
-		}
+		BasicBlock block3 = block1Successors.next();
 		assertTrue("Couldn't find other branch branch", block3 != null);
 
 		int i3 = 0;
@@ -265,7 +258,7 @@ public class CfgTest {
 
 				Attribute attr = (Attribute) call.func;
 				Name objectName = (Name) attr.value;
-				if (block1IsThenBranch)
+				if (block2IsThenBranch)
 					assertEquals("z", objectName.id);
 				else
 					assertEquals("y", objectName.id);

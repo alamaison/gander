@@ -1,73 +1,66 @@
 package uk.ac.ic.doc.cfg.model;
 
-import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.Queue;
 
-import org.python.pydev.parser.jython.SimpleNode;
 import org.python.pydev.parser.jython.ast.FunctionDef;
 import org.python.pydev.parser.jython.ast.If;
 
 public class FunctionDefScope extends Scope {
 	
 	private BasicBlock start = new BasicBlock();
-	private BasicBlock end = new BasicBlock();
+	private BasicBlock end;
 
-	ArrayList<BasicBlock> waitingFallthroughBlocks = new ArrayList<BasicBlock>();
+	Queue<BasicBlock> fallthroughQueue = new LinkedList<BasicBlock>();
 	
 	public FunctionDefScope(FunctionDef node) throws Exception {
 		super();
+		BasicBlock block = new BasicBlock();
+		start.link(block);
+		setCurrentBlock(block);
+		
 		node.accept(this);
-		start.link(getCurrentBlock());
 	}
 	
 	@Override
 	public Object visitFunctionDef(FunctionDef node) throws Exception {
 		Object ret = super.visitFunctionDef(node);
-		finish();
+		
+		if (getCurrentBlock().isEmpty()) {
+			end = getCurrentBlock();
+		} else {
+			end = new BasicBlock();
+			linkAfterCurrent(end);
+		}
+		
 		return ret;
 	}
 
 	@Override
 	public Object visitIf(If node) throws Exception {
-		addToCurrentBlock(node);
 		IfScope scope = new IfScope(node, this);
 
-		return null;
-	}
-	
-	@Override
-	public void traverse(SimpleNode node) throws Exception {
-		// Blocks may be waiting for fall-through after processing a branch
+		// Blocks may (will?) be waiting for fall-through after processing a branch
 		// or a loop.  If so, we must start a new basic block and link the
 		// fall-through blocks to it.
-		if (waitingFallthroughBlocks.size() > 0) {
+		assert fallthroughQueue.size() > 0;
+		if (fallthroughQueue.size() > 0) {
 			BasicBlock nextBlock = new BasicBlock();
-			linkAfterCurrent(nextBlock);
-			setCurrentBlock(nextBlock);
-			for (BasicBlock b : waitingFallthroughBlocks) {
-				b.link(getCurrentBlock());
-				waitingFallthroughBlocks.remove(b);
+			for (BasicBlock b : fallthroughQueue) {
+				b.link(nextBlock);
 			}
+			fallthroughQueue.clear();
+			setCurrentBlock(nextBlock);
 		}
-		
-		super.traverse(node);
+		return null;
 	}
 
 	protected void linkAfterCurrent(BasicBlock successor) {
 		getCurrentBlock().link(successor);
 	}
 	
-	protected void linkFallthrough(BasicBlock predecessor) {
-		waitingFallthroughBlocks.add(predecessor);
-	}
-	
-	@Override
-	protected void finish() {
-		// Any remaining fall-through blocks can only go to function END
-		for (BasicBlock b : waitingFallthroughBlocks) {
-			b.link(end);
-		}
-		
-		getCurrentBlock().link(end);
+	protected void fallthrough(BasicBlock predecessor) {
+		fallthroughQueue.add(predecessor);
 	}
 
 	public BasicBlock getStart() {

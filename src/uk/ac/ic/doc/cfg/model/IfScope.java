@@ -26,6 +26,10 @@ public class IfScope extends Scope {
 //        if (node.test != null){
 //            node.test.accept(this);
 //        }
+		parent.addToCurrentBlock(node);
+		if (node.orelse == null) {
+			parent.fallthrough(parent.getCurrentBlock());
+		}
         
         if (node.body != null) {
         	thenBlock = new BasicBlock();
@@ -45,10 +49,10 @@ public class IfScope extends Scope {
         }
         
 		parent.linkAfterCurrent(thenBlock);
-		parent.linkFallthrough(thenBlock);
+		parent.fallthrough(thenBlock);
 		if (elseBlock != null) {
 			parent.linkAfterCurrent(elseBlock);
-			parent.linkFallthrough(elseBlock);
+			parent.fallthrough(elseBlock);
 		}
 		
 		return null;

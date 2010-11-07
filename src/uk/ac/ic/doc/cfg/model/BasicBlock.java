@@ -42,4 +42,8 @@ public class BasicBlock implements Iterable<stmtType> {
 		this.statements.add(stmt);
 			
 	}
+
+	public boolean isEmpty() {
+		return statements.size() == 0;
+	}
 }
