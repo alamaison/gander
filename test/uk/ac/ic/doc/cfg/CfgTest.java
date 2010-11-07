@@ -11,15 +11,13 @@ import java.util.Iterator;
 import java.util.Set;
 
 import org.junit.Test;
+import org.python.pydev.parser.jython.SimpleNode;
 import org.python.pydev.parser.jython.ast.Assign;
 import org.python.pydev.parser.jython.ast.Attribute;
 import org.python.pydev.parser.jython.ast.Call;
-import org.python.pydev.parser.jython.ast.Expr;
-import org.python.pydev.parser.jython.ast.If;
 import org.python.pydev.parser.jython.ast.Name;
 import org.python.pydev.parser.jython.ast.NameTok;
 import org.python.pydev.parser.jython.ast.Num;
-import org.python.pydev.parser.jython.ast.stmtType;
 
 import uk.ac.ic.doc.cfg.model.BasicBlock;
 import uk.ac.ic.doc.cfg.model.Cfg;
@@ -59,6 +57,18 @@ public class CfgTest {
 		assertNotSame("START node indistinguishable from END", start, end);
 	}
 
+	private static boolean isFunctionNamed(String name, SimpleNode node) {
+		Call call = (Call) node;
+		Name funcName = (Name) call.func;
+		return funcName.id.equals(name);
+	}
+
+	private static void assertFunctionNamed(String name, SimpleNode node) {
+		Call call = (Call) node;
+		Name funcName = (Name) call.func;
+		assertEquals("Function name doesn't match", name, funcName.id);
+	}
+
 	@Test
 	public void testSimpleControlFlow() throws Throwable {
 		initialiseGraph("my_fun");
@@ -66,7 +76,7 @@ public class CfgTest {
 		// Block 1
 		BasicBlock block = start.getOutSet().iterator().next();
 		int i = 0;
-		for (stmtType node : block) {
+		for (SimpleNode node : block) {
 			if (i == 0) {
 				// x = 3
 				Assign ass = (Assign) node;
@@ -78,9 +88,8 @@ public class CfgTest {
 				assertTrue(name.id.equals("x"));
 			} else if (i == 1) {
 				// y.m()
-				Expr expr = (Expr) node;
-				Call call = (Call) expr.value;
-
+				Call call = (Call) node;
+				
 				Attribute attr = (Attribute) call.func;
 				Name objectName = (Name) attr.value;
 				assertEquals("y", objectName.id);
@@ -106,29 +115,10 @@ public class CfgTest {
 
 		// Block 1
 		BasicBlock block1 = start.getOutSet().iterator().next();
-		int i = 0;
-		for (stmtType stmt : block1) {
-			if (i == 0) {
-				// x = 3
-				Assign ass = (Assign) stmt;
-				Num num = (Num) ass.value;
-				assertTrue(num.num.equals("3"));
-
-				assertEquals(1, ass.targets.length);
-				Name name = (Name) ass.targets[0];
-				assertTrue(name.id.equals("x"));
-			} else if (i == 1) {
-				// if True:
-				If cond = (If) stmt;
-				Name constTrue = (Name) cond.test;
-				assertTrue(constTrue.id.equals("True"));
-			} else {
-				assertTrue("Too many statements", false);
-			}
-
-			i++;
-		}
-		assertEquals(2, i); // two statements expected in 1st block
+		Iterator<SimpleNode> nodes = block1.iterator();
+		assertFunctionNamed("a", nodes.next()); // a()
+		assertFunctionNamed("b", nodes.next()); // if b():
+		assertFalse("Only two statements expected in Block 1", nodes.hasNext());
 
 		// Block 1 links to next block (if-stmt body) and END
 		assertTrue("Doesn't link to END", block1.getOutSet().contains(end));
@@ -144,25 +134,9 @@ public class CfgTest {
 		}
 		assertTrue("No non-END successor to Block 1", block2 != null);
 
-		int i2 = 0;
-		for (stmtType stmt : block2) {
-			if (i2 == 0) {
-				// y.m()
-				Expr expr = (Expr) stmt;
-				Call call = (Call) expr.value;
-
-				Attribute attr = (Attribute) call.func;
-				Name objectName = (Name) attr.value;
-				assertEquals("y", objectName.id);
-				NameTok methodName = (NameTok) attr.attr;
-				assertEquals("m", methodName.id);
-			} else {
-				assertTrue(false);
-			}
-
-			i2++;
-		}
-		assertEquals(1, i2); // one statement expected in 2nd block
+		nodes = block2.iterator();
+		assertFunctionNamed("c", nodes.next()); // c()
+		assertFalse("Only one statement expected in Block 2", nodes.hasNext());
 
 		// Block 2 links only to END
 		assertTrue("Doesn't link to END", block2.getOutSet().contains(end));
@@ -175,29 +149,10 @@ public class CfgTest {
 
 		// Block 1
 		BasicBlock block1 = start.getOutSet().iterator().next();
-		int i1 = 0;
-		for (stmtType stmt : block1) {
-			if (i1 == 0) {
-				// x = 3
-				Assign ass = (Assign) stmt;
-				Num num = (Num) ass.value;
-				assertTrue(num.num.equals("3"));
-
-				assertEquals(1, ass.targets.length);
-				Name name = (Name) ass.targets[0];
-				assertTrue(name.id.equals("x"));
-			} else if (i1 == 1) {
-				// if True:
-				If cond = (If) stmt;
-				Name constTrue = (Name) cond.test;
-				assertTrue(constTrue.id.equals("True"));
-			} else {
-				assertTrue("Too many statements", false);
-			}
-
-			i1++;
-		}
-		assertEquals(2, i1); // two statements expected in 1st block
+		Iterator<SimpleNode> nodes = block1.iterator();
+		assertFunctionNamed("a", nodes.next()); // a()
+		assertFunctionNamed("b", nodes.next()); // if b():
+		assertFalse("Only two statements expected in Block 1", nodes.hasNext());
 
 		// Block 1 must not link to END - it has to get there either via
 		// 'then' or 'else'
@@ -206,37 +161,22 @@ public class CfgTest {
 		assertEquals("Wrong number of successors", 2, block1.getOutSet().size());
 
 		// Block 2
-		// use first successor - we don't know (care) whether this is the 
+		// use first successor - we don't know (care) whether this is the
 		// 'then' or the 'else' branch
 		Iterator<BasicBlock> block1Successors = block1.getOutSet().iterator();
 		BasicBlock block2 = block1Successors.next();
 		assertTrue("Block 1 has no successors", block2 != null);
 
-		int i2 = 0;
+		nodes = block2.iterator();
+		SimpleNode node = nodes.next();
+		assertTrue( // c() or d()
+				"Neither 'c()' nor 'c()' found: doesn't match either branch",
+				isFunctionNamed("c", node) || isFunctionNamed("d", node));
+		
 		boolean block2IsThenBranch = false;
-		for (stmtType stmt : block2) {
-			if (i2 == 0) {
-				// y.m() or z.m()
-				Expr expr = (Expr) stmt;
-				Call call = (Call) expr.value;
-
-				Attribute attr = (Attribute) call.func;
-				Name objectName = (Name) attr.value;
-				assertTrue(
-						"Neither 'y' nor 'z' found: doesn't match either branch",
-						objectName.id.equals("y") || objectName.id.equals("z"));
-				if (objectName.id.equals("y"))
-					block2IsThenBranch = true;
-
-				NameTok methodName = (NameTok) attr.attr;
-				assertEquals("m", methodName.id);
-			} else {
-				assertTrue(false);
-			}
-
-			i2++;
-		}
-		assertEquals(1, i2); // one statement expected in 2nd block
+		if (isFunctionNamed("c", node))
+			block2IsThenBranch = true;
+		assertFalse("Only one statement expected in Block 2", nodes.hasNext());
 
 		// Block 2 links only to END
 		assertTrue("Doesn't link to END", block2.getOutSet().contains(end));
@@ -249,30 +189,14 @@ public class CfgTest {
 		BasicBlock block3 = block1Successors.next();
 		assertTrue("Couldn't find other branch branch", block3 != null);
 
-		int i3 = 0;
-		for (stmtType stmt : block3) {
-			if (i3 == 0) {
-				// y.m() or z.m()
-				Expr expr = (Expr) stmt;
-				Call call = (Call) expr.value;
-
-				Attribute attr = (Attribute) call.func;
-				Name objectName = (Name) attr.value;
-				if (block2IsThenBranch)
-					assertEquals("z", objectName.id);
-				else
-					assertEquals("y", objectName.id);
-
-				NameTok methodName = (NameTok) attr.attr;
-				assertEquals("m", methodName.id);
-			} else {
-				assertTrue(false);
-			}
-
-			i3++;
-		}
-		assertEquals(1, i3); // one statement expected in 3rd block
-
+		nodes = block3.iterator();
+		node = nodes.next();
+		if (block2IsThenBranch)
+			assertFunctionNamed("d", node);
+		else
+			assertFunctionNamed("c", node);
+		assertFalse("Only one statement expected in Block 3", nodes.hasNext());
+		
 		// Block 3 links only to END
 		assertTrue("Doesn't link to END", block3.getOutSet().contains(end));
 		assertEquals("Too many successors", 1, block3.getOutSet().size());

@@ -26,7 +26,7 @@ public class IfScope extends Scope {
 //        if (node.test != null){
 //            node.test.accept(this);
 //        }
-		parent.addToCurrentBlock(node);
+		parent.addToCurrentBlock(node.test);
 		if (node.orelse == null) {
 			parent.fallthrough(parent.getCurrentBlock());
 		}

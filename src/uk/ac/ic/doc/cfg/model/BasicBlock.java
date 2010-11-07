@@ -7,26 +7,26 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 
-import org.python.pydev.parser.jython.ast.stmtType;
+import org.python.pydev.parser.jython.SimpleNode;
 
-public class BasicBlock implements Iterable<stmtType> {
-	public ArrayList<stmtType> statements;
+public class BasicBlock implements Iterable<SimpleNode> {
+	public ArrayList<SimpleNode> statements;
 
 	private Set<BasicBlock> out = new HashSet<BasicBlock>();
 	
 	BasicBlock() {
-		this.statements = new ArrayList<stmtType>();
+		this.statements = new ArrayList<SimpleNode>();
 	}
 	
-	BasicBlock(Collection<? extends stmtType> stmts) {
-		this.statements = new ArrayList<stmtType>(statements);
+	BasicBlock(Collection<? extends SimpleNode> stmts) {
+		this.statements = new ArrayList<SimpleNode>(statements);
 	}
 
-	public BasicBlock(stmtType[] stmts) {
-		this.statements = new ArrayList<stmtType>(Arrays.asList(stmts));
+	public BasicBlock(SimpleNode[] stmts) {
+		this.statements = new ArrayList<SimpleNode>(Arrays.asList(stmts));
 	}
 
-	public Iterator<stmtType> iterator() {
+	public Iterator<SimpleNode> iterator() {
 		return statements.iterator();
 	}
 
@@ -38,7 +38,7 @@ public class BasicBlock implements Iterable<stmtType> {
 		out.add(successor);
 	}
 	
-	public void addStatement(stmtType stmt) {
+	public void addStatement(SimpleNode stmt) {
 		this.statements.add(stmt);
 			
 	}

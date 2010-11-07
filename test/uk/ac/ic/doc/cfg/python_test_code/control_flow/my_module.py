@@ -3,13 +3,19 @@ def my_fun():
 	y.m()
 
 def my_fun_if():
-	x = 3
-	if True:
-		y.m()
+	a()
+	if b():
+		c()
 
 def my_fun_if_else():
-	x = 3
-	if True:
-		y.m()
+	a()
+	if b():
+		c()
 	else:
-		z.m()
+		d()
+
+def my_fun_if_fallthru():
+	a()
+	if b():
+		c()
+	d()

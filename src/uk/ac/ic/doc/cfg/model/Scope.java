@@ -4,7 +4,6 @@ import org.python.pydev.parser.jython.SimpleNode;
 import org.python.pydev.parser.jython.ast.Assign;
 import org.python.pydev.parser.jython.ast.Expr;
 import org.python.pydev.parser.jython.ast.VisitorBase;
-import org.python.pydev.parser.jython.ast.stmtType;
 
 public abstract class Scope extends VisitorBase {
 	
@@ -12,12 +11,12 @@ public abstract class Scope extends VisitorBase {
 	
 	protected void finish() {}
 	
-	protected void addToCurrentBlock(stmtType stmt) {
+	protected void addToCurrentBlock(SimpleNode node) {
 		if (block == null)
 			block = new BasicBlock();
 		
 		assert getCurrentBlock().getOutSet().size() == 0;
-		getCurrentBlock().addStatement(stmt);
+		getCurrentBlock().addStatement(node);
 	}
 
 	@Override
@@ -28,7 +27,7 @@ public abstract class Scope extends VisitorBase {
 
 	@Override
 	public Object visitExpr(Expr node) throws Exception {
-		addToCurrentBlock(node);
+		addToCurrentBlock(node.value);
 		return super.visitExpr(node);
 	}
 
