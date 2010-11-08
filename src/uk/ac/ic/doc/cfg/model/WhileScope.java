@@ -45,7 +45,9 @@ public class WhileScope extends Scope {
         
         return null;
 	}
-	
-	
 
+	@Override
+	protected void fallthrough(BasicBlock block) {
+		parent.fallthrough(block);
+	}
 }

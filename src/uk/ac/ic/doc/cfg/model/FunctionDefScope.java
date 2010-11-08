@@ -66,10 +66,6 @@ public class FunctionDefScope extends Scope {
 			setCurrentBlock(nextBlock);
 		}
 	}
-
-	protected void linkAfterCurrent(BasicBlock successor) {
-		getCurrentBlock().link(successor);
-	}
 	
 	protected void fallthrough(BasicBlock predecessor) {
 		fallthroughQueue.add(predecessor);

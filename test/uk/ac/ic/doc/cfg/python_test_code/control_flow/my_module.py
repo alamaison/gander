@@ -38,3 +38,11 @@ def my_fun_while_fallthru():
 	while b():
 		c()
 	d()
+
+def my_fun_nested_if():
+	a()
+	if b():
+		if c():
+			d()
+	e()
+
