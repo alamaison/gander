@@ -245,4 +245,28 @@ public class DominationTest {
 				{ "a", "END" }, { "b", "END" }, { "e", "END" } };
 		checkDomination(dominators);
 	}
+
+	@Test
+	public void testDomWhile() throws Throwable {
+		initialise("dom_while");
+		String[][] dominators = {
+				{ "a", "b" }, { "a", "c" }, { "a", "d" },
+				{ "b", "c" }, { "b", "d" },
+				{ "a", "END" }, { "b", "END" }, { "d", "END" } };
+		checkDomination(dominators);
+	}
+
+	@Test
+	public void testDomNested() throws Throwable {
+		initialise("dom_nested");
+		String[][] dominators = {
+				{ "a", "b" }, { "a", "c" }, { "a", "d" },
+				{ "a", "e" }, { "a", "f" }, { "a", "g" }, { "a", "h" },
+				{ "b", "c" }, { "b", "d" }, { "b", "e" }, { "b", "f" },
+				{ "b", "g" }, { "b", "h" },
+				{ "c", "d" }, { "c", "d" }, { "c", "e" }, { "c", "f" },
+				{ "d", "e" }, { "d", "f" },
+				{ "a", "END" }, { "b", "END" }, { "h", "END" } };
+		checkDomination(dominators);
+	}
 }

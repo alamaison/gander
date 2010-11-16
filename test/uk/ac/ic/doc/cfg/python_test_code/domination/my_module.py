@@ -27,3 +27,20 @@ def dom_if_else_fallthru():
 	else:
 		d()
 	e()
+
+def dom_while():
+	a()
+	while b():
+		c()
+	d()
+	
+def dom_nested():
+	a()
+	if b():
+		c()
+		while d():
+			e()
+		f()
+	else:
+		g()
+	h()
