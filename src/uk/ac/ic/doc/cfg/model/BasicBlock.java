@@ -13,6 +13,7 @@ public class BasicBlock implements Iterable<SimpleNode> {
 	public ArrayList<SimpleNode> statements;
 
 	private Set<BasicBlock> out = new HashSet<BasicBlock>();
+	private Set<BasicBlock> predecessors = new HashSet<BasicBlock>();
 	
 	BasicBlock() {
 		this.statements = new ArrayList<SimpleNode>();
@@ -33,9 +34,17 @@ public class BasicBlock implements Iterable<SimpleNode> {
 	public Set<BasicBlock> getOutSet() {
 		return out;
 	}
+	
+	public Set<BasicBlock> getPredecessors() {
+		return predecessors;
+	}
+	
+	public boolean isStart() { return getPredecessors().isEmpty(); }
+	public boolean isEnd() { return getOutSet().isEmpty(); }
 
 	public void link(BasicBlock successor) {
 		out.add(successor);
+		successor.predecessors.add(this);
 	}
 	
 	public void addStatement(SimpleNode stmt) {
@@ -46,4 +55,18 @@ public class BasicBlock implements Iterable<SimpleNode> {
 	public boolean isEmpty() {
 		return statements.size() == 0;
 	}
+
+	@Override
+	public String toString() {
+		String message;
+		if (isStart())
+			message = "START";
+		else if (isEnd())
+			message = "END";
+		else
+			message = statements.toString();
+			
+		return super.toString() + " " + message; 
+	}
+	
 }
