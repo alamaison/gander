@@ -6,6 +6,10 @@ def my_fun_if():
 	a()
 	if b():
 		c()
+		
+def my_fun_if_immediate():
+	if a():
+		b()
 
 def my_fun_if_else():
 	a()
@@ -32,6 +36,10 @@ def my_fun_while():
 	a()
 	while b():
 		c()
+
+def my_fun_while_immediate():
+	while a():
+		b()
 		
 def my_fun_while_fallthru():
 	a()

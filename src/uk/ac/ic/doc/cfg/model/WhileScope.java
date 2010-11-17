@@ -15,7 +15,14 @@ public class WhileScope extends Scope {
 	@Override
 	public Object visitWhile(While node) throws Exception {
 		
-		BasicBlock testBlock = new BasicBlock();
+		boolean isParentEmpty = parent.getCurrentBlock().isEmpty();
+		
+		BasicBlock testBlock;
+		if (isParentEmpty)
+			testBlock = parent.getCurrentBlock();
+		else
+			testBlock = new BasicBlock();
+		
 		BasicBlock bodyBlock = new BasicBlock();
 		
 		setCurrentBlock(testBlock);
@@ -38,7 +45,9 @@ public class WhileScope extends Scope {
 //            node.orelse.accept(this);
 //        }
         
-        parent.linkAfterCurrent(testBlock);
+        if (!isParentEmpty)
+        	parent.linkAfterCurrent(testBlock);
+
         testBlock.link(bodyBlock);
         bodyBlock.link(testBlock);
         parent.fallthrough(testBlock);

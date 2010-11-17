@@ -144,6 +144,39 @@ public class CfgTest {
 	}
 
 	@Test
+	public void testIfImmediate() throws Throwable {
+		initialiseGraph("my_fun_if_immediate");
+
+		// Block 1
+		BasicBlock block1 = start.getOutSet().iterator().next();
+		Iterator<SimpleNode> nodes = block1.iterator();
+		assertFunctionNamed("a", nodes.next()); // if a():
+		assertFalse("Only one statement expected in Block 1", nodes.hasNext());
+
+		// Block 1 links to next block (if-stmt body) and END
+		assertTrue("Doesn't link to END", block1.getOutSet().contains(end));
+		assertEquals("Wrong number of successors", 2, block1.getOutSet().size());
+
+		// Block 2
+		BasicBlock block2 = null;
+		for (BasicBlock b : block1.getOutSet()) { // find non-END successor
+			if (b != end) {
+				block2 = b;
+				break;
+			}
+		}
+		assertTrue("No non-END successor to Block 1", block2 != null);
+
+		nodes = block2.iterator();
+		assertFunctionNamed("b", nodes.next()); // b()
+		assertFalse("Only one statement expected in Block 2", nodes.hasNext());
+
+		// Block 2 links only to END
+		assertTrue("Doesn't link to END", block2.getOutSet().contains(end));
+		assertEquals("Too many successors", 1, block2.getOutSet().size());
+	}
+
+	@Test
 	public void testIfElse() throws Throwable {
 		initialiseGraph("my_fun_if_else");
 
@@ -383,6 +416,40 @@ public class CfgTest {
 		assertTrue("Doesn't link back to while-test (Block 2)", block3
 				.getOutSet().contains(block2));
 		assertEquals("Too many successors", 1, block3.getOutSet().size());
+	}
+
+	@Test
+	public void testWhileImmediate() throws Throwable {
+		initialiseGraph("my_fun_while_immediate");
+
+		// Block 1
+		BasicBlock block1 = start.getOutSet().iterator().next();
+		Iterator<SimpleNode> nodes = block1.iterator();
+		assertFunctionNamed("a", nodes.next()); // a()
+		assertFalse("Only one statements expected in Block 1", nodes.hasNext());
+
+		// Block 1 links to while-body and END
+		assertEquals("Wrong number of successors", 2, block1.getOutSet().size());
+		assertTrue("Must link to END", block1.getOutSet().contains(end));
+
+		// Block3
+		BasicBlock block2 = null;
+		for (BasicBlock b : block1.getOutSet()) { // find non-END successor
+			if (b != end) {
+				block2 = b;
+				break;
+			}
+		}
+		assertTrue("No non-END successor to Block 1", block1 != null);
+
+		nodes = block2.iterator();
+		assertFunctionNamed("b", nodes.next()); // b()
+		assertFalse("Only one statement expected in Block 2", nodes.hasNext());
+
+		// Block 2 links only to while-test
+		assertTrue("Doesn't link back to while-test (Block 1)", block2
+				.getOutSet().contains(block1));
+		assertEquals("Too many successors", 1, block2.getOutSet().size());
 	}
 
 	@Test
