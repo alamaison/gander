@@ -59,9 +59,9 @@ public class BasicBlock implements Iterable<SimpleNode> {
 	@Override
 	public String toString() {
 		String message;
-		if (isStart())
+		if (statements.isEmpty() && isStart())
 			message = "START";
-		else if (isEnd())
+		else if (statements.isEmpty() && isEnd())
 			message = "END";
 		else
 			message = statements.toString();

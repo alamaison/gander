@@ -44,3 +44,10 @@ def dom_nested():
 	else:
 		g()
 	h()
+
+def dom_nested_while_if():
+	while a():
+		b()
+		if c():
+			d()
+		e()

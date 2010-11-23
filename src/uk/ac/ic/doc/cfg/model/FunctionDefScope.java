@@ -1,80 +1,65 @@
 package uk.ac.ic.doc.cfg.model;
 
-import java.util.LinkedList;
-import java.util.Queue;
+import java.util.HashSet;
+import java.util.Set;
 
 import org.python.pydev.parser.jython.ast.FunctionDef;
-import org.python.pydev.parser.jython.ast.If;
-import org.python.pydev.parser.jython.ast.While;
 
-public class FunctionDefScope extends Scope {
-	
-	private BasicBlock start = new BasicBlock();
+public class FunctionDefScope extends CodeScope {
+
+	private BasicBlock start;
 	private BasicBlock end;
+	private FunctionDef node;
+	private Set<BasicBlock> blocks = new HashSet<BasicBlock>();
 
-	Queue<BasicBlock> fallthroughQueue = new LinkedList<BasicBlock>();
-	
 	public FunctionDefScope(FunctionDef node) throws Exception {
 		super();
-		BasicBlock block = new BasicBlock();
+		this.node = node;
+		start = newBlock();
+		BasicBlock block = newBlock();
 		start.link(block);
 		setCurrentBlock(block);
-		
-		node.accept(this);
 	}
-	
+
+	protected BasicBlock newBlock() {
+		BasicBlock b = new BasicBlock();
+		blocks.add(b);
+		return b;
+	}
+
+	public Set<BasicBlock> getBlocks() {
+		return blocks;
+	}
+
+	public void process() throws Exception {
+		node.traverse(this);
+	}
+
 	@Override
-	public Object visitFunctionDef(FunctionDef node) throws Exception {
-		Object ret = super.visitFunctionDef(node);
-		
+	protected void end() {
+
 		if (getCurrentBlock().isEmpty()) {
 			end = getCurrentBlock();
 		} else {
-			end = new BasicBlock();
-			linkAfterCurrent(end);
+			end = newBlock();
 		}
-		
-		return ret;
-	}
 
-	@Override
-	public Object visitIf(If node) throws Exception {
-		IfScope scope = new IfScope(node, this);
-		processFallthrough();
-		return null;
-	}
-
-	@Override
-	public Object visitWhile(While node) throws Exception {
-		WhileScope scope = new WhileScope(node, this);
-		processFallthrough();
-		return null;
-	}
-	
-	private void processFallthrough() {
+		for (BasicBlock b : fallthroughQueue) {
+			b.link(end);
+		}
+		fallthroughQueue.clear();
 		
-		// Blocks may (will?) be waiting for fall-through after processing a branch
-		// or a loop.  If so, we must start a new basic block and link the
-		// fall-through blocks to it.
-		assert fallthroughQueue.size() > 0;
-		if (fallthroughQueue.size() > 0) {
-			BasicBlock nextBlock = new BasicBlock();
-			for (BasicBlock b : fallthroughQueue) {
-				b.link(nextBlock);
+		for (BasicBlock b : blocks) {
+			if (b.getOutSet().isEmpty() && b != end) {
+				b.link(end);
 			}
-			fallthroughQueue.clear();
-			setCurrentBlock(nextBlock);
 		}
-	}
-	
-	protected void fallthrough(BasicBlock predecessor) {
-		fallthroughQueue.add(predecessor);
 	}
 
 	public BasicBlock getStart() {
 		return start;
 	}
-	
+
 	public BasicBlock getEnd() {
 		return end;
 	}

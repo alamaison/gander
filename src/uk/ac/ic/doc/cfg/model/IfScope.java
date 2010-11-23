@@ -2,78 +2,58 @@ package uk.ac.ic.doc.cfg.model;
 
 import org.python.pydev.parser.jython.ast.If;
 
-public class IfScope extends Scope {
+public class IfScope extends ScopeWithParent {
 
-	private BasicBlock thenBlock = null;
-	private BasicBlock elseBlock = null;
-	
-	private boolean nesting = false;
-	
-	private Scope parent;
-		
+	private BasicBlock thenBlock;
+	private BasicBlock elseBlock;
+	private If node;
+
 	public IfScope(If node, Scope parent) throws Exception {
-		super();
-		this.parent = parent;
-		node.accept(this);
+		super(parent);
+		this.node = node;
 	}
 
 	@Override
-	public Object visitIf(If node) throws Exception {
-		
-		if (nesting) {
-			IfScope scope = new IfScope(node, this);
+	protected void process() throws Exception {
+
+		// This code is take from If.traverse rather than allowing it to
+		// traverse itself as I can't think of a way to distinguish
+		// which branch we are in. Although the else branch is held
+		// in a 'suite' node in the AST, it doesn't call visitSuite on the
+		// visitor.
+
+		if (node.test != null) {
+			node.test.accept(this);
 		}
-		else
-		{
-			nesting = true;
-			
-			// This code is take from If.traverse rather than allowing it to
-			// traverse itself as I can't think of a way to distinguish
-			// which branch we are in.  Although the else branch is held
-			// in a 'suite' node in the AST, it doesn't call visitSuite on the
-			// visitor.
-			
-			setCurrentBlock(this.parent.getCurrentBlock());
-			
-	        if (node.test != null){
-	            node.test.accept(this);
-	        }
-	        
-			if (node.orelse == null) {
-				parent.fallthrough(getCurrentBlock());
-			}
-	        
-	        if (node.body != null) {
-	        	thenBlock = new BasicBlock();
-	        	setCurrentBlock(thenBlock);
-	        	
-	            for (int i = 0; i < node.body.length; i++) {
-	                if (node.body[i] != null){
-	                    node.body[i].accept(this);
-	                }
-	            }
-	        }
-	        
-	        if (node.orelse != null){
-				elseBlock = new BasicBlock();
-				setCurrentBlock(elseBlock);
-	            node.orelse.accept(this);
-	        }
-	        
+
+		if (node.orelse == null) {
+			parent.fallthrough(getCurrentBlock());
+		}
+
+		if (node.body != null) {
+			thenBlock = newBlock();
 			parent.linkAfterCurrent(thenBlock);
-			parent.fallthrough(thenBlock);
-			if (elseBlock != null) {
-				parent.linkAfterCurrent(elseBlock);
-				parent.fallthrough(elseBlock);
+			
+			setCurrentBlock(thenBlock);
+			
+			for (int i = 0; i < node.body.length; i++) {
+				if (node.body[i] != null) {
+					node.body[i].accept(this);
+				}
 			}
+			
+			parent.fallthrough(getCurrentBlock());
 		}
-		
-		return null;
-	}
 
-	@Override
-	public void fallthrough(BasicBlock block) {
-		parent.fallthrough(block);
+		if (node.orelse != null) {
+			elseBlock = newBlock();
+			parent.linkAfterCurrent(elseBlock);
+			
+			setCurrentBlock(elseBlock);
+			
+			node.orelse.accept(this);
+			
+			parent.fallthrough(getCurrentBlock());
+		}
 	}
-
 }

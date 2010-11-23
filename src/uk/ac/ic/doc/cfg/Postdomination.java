@@ -6,15 +6,14 @@ import java.util.Set;
 
 import uk.ac.ic.doc.cfg.model.BasicBlock;
 
-public class Domination extends AbstractDomination {
+public class Postdomination extends AbstractDomination {
 
-
-	public Domination(Set<BasicBlock> blocks, BasicBlock entry) {
+	public Postdomination(Set<BasicBlock> blocks, BasicBlock entry) {
 		super(blocks, entry);
 	}
 
 	protected Set<BasicBlock> findPredecessorDoms(BasicBlock block) {
-		Iterator<BasicBlock> preds = block.getPredecessors().iterator();
+		Iterator<BasicBlock> preds = block.getOutSet().iterator();
 		if (!preds.hasNext())
 			return new HashSet<BasicBlock>();
 

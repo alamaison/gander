@@ -1,9 +1,6 @@
 package uk.ac.ic.doc.cfg.model;
 
 import org.python.pydev.parser.jython.SimpleNode;
-import org.python.pydev.parser.jython.ast.Assign;
-import org.python.pydev.parser.jython.ast.Call;
-import org.python.pydev.parser.jython.ast.Expr;
 import org.python.pydev.parser.jython.ast.VisitorBase;
 
 public abstract class Scope extends VisitorBase {
@@ -12,37 +9,22 @@ public abstract class Scope extends VisitorBase {
 	
 	protected void addToCurrentBlock(SimpleNode node) {
 		if (block == null)
-			block = new BasicBlock();
+			block = newBlock();
 		
 		assert getCurrentBlock().getOutSet().size() == 0;
 		getCurrentBlock().addStatement(node);
 	}
 
 	@Override
-	public Object visitAssign(Assign node) throws Exception {
-		addToCurrentBlock(node);
-		return null;
-	}
-
-	@Override
-	public Object visitExpr(Expr node) throws Exception {
-		addToCurrentBlock(node.value);
-		return null;
-	}
-
-	@Override
-	public Object visitCall(Call node) throws Exception {
-		addToCurrentBlock(node);
-		// TODO Make CallScope that handles exceptions killing the basic block
-		return null;
-	}
-
-
-	@Override
 	public void traverse(SimpleNode node) throws Exception {
 		node.traverse(this);
 	}
 
+	protected abstract void process() throws Exception;
+	protected abstract void end();
+
+	protected abstract BasicBlock newBlock();
+	
 	@Override
 	protected Object unhandled_node(SimpleNode node) throws Exception {
 		// TODO Auto-generated method stub
@@ -62,5 +44,6 @@ public abstract class Scope extends VisitorBase {
 	protected void linkAfterCurrent(BasicBlock successor) {
 		getCurrentBlock().link(successor);
 	}
+
 
 }

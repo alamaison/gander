@@ -275,7 +275,7 @@ public class CfgTest {
 
 		// Block 2 links to the END if it is the fallthrough block
 		if (block2IsIfBody)
-			assertFalse("Doesn't link to END", block2.getOutSet().contains(end));
+			assertFalse("Mustn't link to END", block2.getOutSet().contains(end));
 		// Either way it should only have one successor
 		assertEquals("Too many successors", 1, block2.getOutSet().size());
 
