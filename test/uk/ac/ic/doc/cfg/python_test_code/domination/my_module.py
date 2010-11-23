@@ -51,3 +51,21 @@ def dom_nested_while_if():
 		if c():
 			d()
 		e()
+
+def dom_nested_while_if_break():
+	while a():
+		b()
+		if c():
+			d()
+			break
+		e()
+
+def dom_nested_while_if_break_else():
+	while a():
+		b()
+		if c():
+			d()
+			break
+		else:
+			e()
+		f()

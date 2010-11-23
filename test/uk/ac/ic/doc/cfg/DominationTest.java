@@ -392,4 +392,31 @@ public class DominationTest {
 		checkPostdomination(postdominators);
 	}
 
+	@Test
+	public void testDomNestedWhileIfBreak() throws Throwable {
+		initialise("dom_nested_while_if_break");
+
+		String[][] dominators = { { "a", "b" }, { "a", "c" }, { "a", "d" },
+				{ "a", "e" }, { "b", "c" }, { "b", "d" }, { "b", "e" },
+				{ "c", "d" }, { "c", "e" }, { "a", "END" } };
+		checkDomination(dominators);
+
+		String[][] postdominators = { { "a", "b" }, { "a", "c" }, { "a", "d" },
+				{ "a", "e" }, { "c", "b" }, { "a", "START" } };
+		checkPostdomination(postdominators);
+	}
+
+	@Test
+	public void testDomNestedWhileIfBreakElse() throws Throwable {
+		initialise("dom_nested_while_if_break");
+
+		String[][] dominators = { { "a", "b" }, { "a", "c" }, { "a", "d" },
+				{ "a", "e" }, { "a", "f" }, { "b", "c" }, { "b", "d" },
+				{ "a", "END" } };
+		checkDomination(dominators);
+
+		String[][] postdominators = { { "c", "b" }, { "a", "e" }, { "a", "f" },
+				{ "a", "START" } };
+		checkPostdomination(postdominators);
+	}
 }
