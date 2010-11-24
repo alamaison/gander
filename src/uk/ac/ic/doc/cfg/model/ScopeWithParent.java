@@ -10,8 +10,13 @@ public abstract class ScopeWithParent extends CodeScope {
 	}
 	
 	protected void cascadeFallthruUpwards() {
-		for (BasicBlock fallBlock : fallthroughQueue)
-			parent.fallthrough(fallBlock);
+		for (BasicBlock b : fallthroughQueue)
+			parent.fallthrough(b);
+	}
+	
+	protected void cascadeBreakoutUpwards() {
+		for (BasicBlock b : breakoutQueue)
+			parent.breakout(b);
 	}
 
 	@Override
@@ -19,6 +24,7 @@ public abstract class ScopeWithParent extends CodeScope {
 		// Any remaining fallthrough blocks should be cascaded up to the
 		// parent who will tie off the loose ends.
 		cascadeFallthruUpwards();
+		cascadeBreakoutUpwards();
 	}
 	
 	@Override

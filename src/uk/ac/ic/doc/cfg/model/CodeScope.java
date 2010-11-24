@@ -4,6 +4,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.python.pydev.parser.jython.ast.Assign;
+import org.python.pydev.parser.jython.ast.Break;
 import org.python.pydev.parser.jython.ast.Call;
 import org.python.pydev.parser.jython.ast.Expr;
 import org.python.pydev.parser.jython.ast.FunctionDef;
@@ -13,6 +14,7 @@ import org.python.pydev.parser.jython.ast.While;
 public abstract class CodeScope extends Scope {
 
 	Set<BasicBlock> fallthroughQueue = new HashSet<BasicBlock>();
+	Set<BasicBlock> breakoutQueue = new HashSet<BasicBlock>();
 
 	public CodeScope() {
 		super();
@@ -74,10 +76,20 @@ public abstract class CodeScope extends Scope {
 	}
 
 	@Override
+	public Object visitBreak(Break node) throws Exception {
+		delegateScope(new BreakScope(node, this));
+		return null;
+	}
+
+	@Override
 	protected void end() {}
 	
 	protected void fallthrough(BasicBlock predecessor) {
 		fallthroughQueue.add(predecessor);
+	}
+	
+	protected void breakout(BasicBlock predecessor) {
+		breakoutQueue.add(predecessor);
 	}
 
 }

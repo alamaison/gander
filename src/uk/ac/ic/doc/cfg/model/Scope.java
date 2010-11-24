@@ -40,6 +40,7 @@ public abstract class Scope extends VisitorBase {
 	}
 
 	protected abstract void fallthrough(BasicBlock block);
+	protected abstract void breakout(BasicBlock block);
 
 	protected void linkAfterCurrent(BasicBlock successor) {
 		getCurrentBlock().link(successor);

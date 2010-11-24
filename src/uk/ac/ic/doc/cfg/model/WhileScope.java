@@ -47,6 +47,10 @@ public class WhileScope extends ScopeWithParent {
 
 		// linkAfterCurrent(testBlock);
 		// parent.fallthrough(getCurrentBlock());
+		
+		for (BasicBlock b : breakoutQueue) {
+			parent.fallthrough(b);
+		}
 
 		if (fallthroughQueue.isEmpty()) {
 			getCurrentBlock().link(testBlock);
