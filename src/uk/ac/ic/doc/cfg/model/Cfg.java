@@ -13,7 +13,6 @@ public class Cfg {
 		FunctionDef func = (FunctionDef) ast;
 		scope = new FunctionDefScope(func);
 		scope.process();
-		scope.end();
 	}
 
 	public BasicBlock getStart() {

@@ -36,12 +36,9 @@ public abstract class CodeScope extends Scope {
 		}
 	}
 
-	protected void delegateScope(Scope scope) throws Exception {
-
+	private void delegateScope(Scope scope) throws Exception {
 		knitFallthrough();
-		scope.begin();
 		scope.process();
-		scope.end();
 	}
 
 	@Override
@@ -84,10 +81,6 @@ public abstract class CodeScope extends Scope {
 	public Object visitBreak(Break node) throws Exception {
 		delegateScope(new BreakScope(node, this));
 		return null;
-	}
-
-	@Override
-	protected void end() {
 	}
 
 	protected void fallthrough(BasicBlock predecessor) {

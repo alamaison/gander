@@ -33,14 +33,6 @@ public class FunctionDefScope extends CodeScope {
 
 	public void process() throws Exception {
 		node.traverse(this);
-	}
-
-	@Override
-	protected void begin() {
-	}
-
-	@Override
-	protected void end() {
 
 		if (getCurrentBlock().isEmpty()) {
 			end = getCurrentBlock();
@@ -54,7 +46,7 @@ public class FunctionDefScope extends CodeScope {
 		fallthroughQueue.clear();
 		
 		for (BasicBlock b : blocks) {
-			if (b.getOutSet().isEmpty() && b != end) {
+			if (b.getSuccessors().isEmpty() && b != end) {
 				b.link(end);
 			}
 		}

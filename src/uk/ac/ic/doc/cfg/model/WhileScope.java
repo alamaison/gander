@@ -12,7 +12,7 @@ public class WhileScope extends ScopeWithParent {
 	}
 
 	@Override
-	protected void process() throws Exception {
+	protected void doProcess() throws Exception {
 		boolean isParentEmpty = parent.getCurrentBlock().isEmpty();
 
 		BasicBlock testBlock;
@@ -29,7 +29,8 @@ public class WhileScope extends ScopeWithParent {
 		node.test.accept(this);
 
 		if (node.body != null) {
-			delegateScope(new BlockScope(node.body, this));
+			BlockScope scope = new BlockScope(node.body, this);
+			scope.process();
 		}
 
 		// TODO Handle Python while loops that have 'else' clauses!

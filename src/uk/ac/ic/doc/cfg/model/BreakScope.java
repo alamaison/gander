@@ -9,7 +9,7 @@ public class BreakScope extends ScopeWithParent {
 	}
 
 	@Override
-	protected void process() throws Exception {
+	protected void doProcess() throws Exception {
 		parent.breakout(getCurrentBlock());
 	}
 

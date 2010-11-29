@@ -222,7 +222,7 @@ public class DominationTest {
 	private BasicBlock findEndBlock(Set<BasicBlock> blocks) {
 		BasicBlock end = null;
 		for (BasicBlock block : blocks) {
-			if (block.getOutSet().isEmpty()) {
+			if (block.getSuccessors().isEmpty()) {
 				assertTrue("Multiple END blocks found", end == null);
 				end = block;
 			}

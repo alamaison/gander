@@ -31,7 +31,7 @@ public class BasicBlock implements Iterable<SimpleNode> {
 		return statements.iterator();
 	}
 
-	public Set<BasicBlock> getOutSet() {
+	public Set<BasicBlock> getSuccessors() {
 		return out;
 	}
 	
@@ -40,7 +40,7 @@ public class BasicBlock implements Iterable<SimpleNode> {
 	}
 	
 	public boolean isStart() { return getPredecessors().isEmpty(); }
-	public boolean isEnd() { return getOutSet().isEmpty(); }
+	public boolean isEnd() { return getSuccessors().isEmpty(); }
 
 	public void link(BasicBlock successor) {
 		out.add(successor);

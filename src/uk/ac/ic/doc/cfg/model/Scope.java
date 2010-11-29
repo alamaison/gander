@@ -12,9 +12,7 @@ public abstract class Scope extends VisitorBase {
 		node.traverse(this);
 	}
 
-	protected abstract void begin();
 	protected abstract void process() throws Exception;
-	protected abstract void end();
 
 	protected abstract BasicBlock newBlock();
 

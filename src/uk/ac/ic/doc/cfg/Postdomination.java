@@ -13,7 +13,7 @@ public class Postdomination extends AbstractDomination {
 	}
 
 	protected Set<BasicBlock> findPredecessorDoms(BasicBlock block) {
-		Iterator<BasicBlock> preds = block.getOutSet().iterator();
+		Iterator<BasicBlock> preds = block.getSuccessors().iterator();
 		if (!preds.hasNext())
 			return new HashSet<BasicBlock>();
 

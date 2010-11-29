@@ -17,7 +17,7 @@ public class BlockScope extends ScopeWithParent {
 	}
 
 	@Override
-	protected void process() throws Exception {
+	protected void doProcess() throws Exception {
 		for (int i = 0; i < nodes.length; i++) {
 			if (nodes[i] != null) {
 				nodes[i].accept(this);

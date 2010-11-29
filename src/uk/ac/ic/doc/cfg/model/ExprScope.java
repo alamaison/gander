@@ -12,7 +12,7 @@ public class ExprScope extends ScopeWithParent {
 	}
 
 	@Override
-	protected void process() throws Exception {
+	protected void doProcess() throws Exception {
 		addToCurrentBlock(node.value);
 	}
 }
