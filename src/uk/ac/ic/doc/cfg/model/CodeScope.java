@@ -13,18 +13,19 @@ import org.python.pydev.parser.jython.ast.While;
 
 public abstract class CodeScope extends Scope {
 
-	Set<BasicBlock> fallthroughQueue = new HashSet<BasicBlock>();
-	Set<BasicBlock> breakoutQueue = new HashSet<BasicBlock>();
+	protected Set<BasicBlock> fallthroughQueue = new HashSet<BasicBlock>();
+	protected Set<BasicBlock> breakoutQueue = new HashSet<BasicBlock>();
 
 	public CodeScope() {
 		super();
 	}
-	
-	private void delegateScope(Scope scope) throws Exception {
-		
-		// Blocks may be waiting for fall-through after processing a branch
-		// or a loop.  If so, we must start a new basic block and link the
-		// fall-through blocks to it.
+
+	/**
+	 * Blocks may be waiting for fall-through after processing a branch or a
+	 * loop. If so, we must start a new basic block and link the fall-through
+	 * blocks to it.
+	 */
+	private void knitFallthrough() {
 		if (fallthroughQueue.size() > 0) {
 			BasicBlock nextBlock = newBlock();
 			for (BasicBlock b : fallthroughQueue) {
@@ -33,8 +34,12 @@ public abstract class CodeScope extends Scope {
 			fallthroughQueue.clear();
 			setCurrentBlock(nextBlock);
 		}
-		
-		scope.setCurrentBlock(getCurrentBlock());
+	}
+
+	protected void delegateScope(Scope scope) throws Exception {
+
+		knitFallthrough();
+		scope.begin();
 		scope.process();
 		scope.end();
 	}
@@ -68,7 +73,7 @@ public abstract class CodeScope extends Scope {
 		delegateScope(new CallScope(node, this));
 		return null;
 	}
-	
+
 	@Override
 	public Object visitFunctionDef(FunctionDef node) throws Exception {
 		delegateScope(new FunctionDefScope(node));
@@ -82,14 +87,15 @@ public abstract class CodeScope extends Scope {
 	}
 
 	@Override
-	protected void end() {}
-	
+	protected void end() {
+	}
+
 	protected void fallthrough(BasicBlock predecessor) {
+		assert predecessor != null;
 		fallthroughQueue.add(predecessor);
 	}
-	
+
 	protected void breakout(BasicBlock predecessor) {
 		breakoutQueue.add(predecessor);
 	}
-
 }

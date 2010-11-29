@@ -77,6 +77,14 @@ def dom_nested_whiles_break():
 			d()
 			break
 
+def dom_nested_whiles_if_break():
+	while a():
+		b()
+		while c():
+			d()
+			if e():
+				break
+
 def dom_nested_whiles_break_fall():
 	while a():
 		b()
@@ -84,3 +92,19 @@ def dom_nested_whiles_break_fall():
 			d()
 			break
 	e()
+
+def dom_nested_ifs_break():
+	while a():
+		if b():
+			if c():
+				break
+			d()
+	e()
+	
+def dom_if_else_break():
+	while a():
+		if b():
+			c()
+		else:
+			break
+	d()

@@ -4,8 +4,6 @@ import org.python.pydev.parser.jython.ast.If;
 
 public class IfScope extends ScopeWithParent {
 
-	private BasicBlock thenBlock;
-	private BasicBlock elseBlock;
 	private If node;
 
 	public IfScope(If node, Scope parent) throws Exception {
@@ -16,44 +14,47 @@ public class IfScope extends ScopeWithParent {
 	@Override
 	protected void process() throws Exception {
 
-		// This code is take from If.traverse rather than allowing it to
-		// traverse itself as I can't think of a way to distinguish
-		// which branch we are in. Although the else branch is held
-		// in a 'suite' node in the AST, it doesn't call visitSuite on the
-		// visitor.
-
-		if (node.test != null) {
-			node.test.accept(this);
-		}
-
-		if (node.orelse == null) {
-			parent.fallthrough(getCurrentBlock());
-		}
-
+		BasicBlock testBlock = getCurrentBlock();
+		
+		node.test.accept(this);
+		
 		if (node.body != null) {
-			thenBlock = newBlock();
-			parent.linkAfterCurrent(thenBlock);
-			
-			setCurrentBlock(thenBlock);
-			
-			for (int i = 0; i < node.body.length; i++) {
-				if (node.body[i] != null) {
-					node.body[i].accept(this);
-				}
+			BlockScope scope = new BlockScope(node.body, this);
+			delegateScope(scope);
+
+			// When no else branch, control falls through directly from the test
+			// block
+			if (node.orelse == null) {
+				assert getCurrentBlock() != null;
+				parent.fallthrough(getCurrentBlock());
 			}
 			
-			parent.fallthrough(getCurrentBlock());
+			cascadeBreakoutUpwards();
+			cascadeFallthruUpwards();
 		}
 
 		if (node.orelse != null) {
-			elseBlock = newBlock();
-			parent.linkAfterCurrent(elseBlock);
+			delegateScope(new BlockScope(node.orelse.body, this));
 			
-			setCurrentBlock(elseBlock);
-			
-			node.orelse.accept(this);
-			
-			parent.fallthrough(getCurrentBlock());
+			cascadeBreakoutUpwards();
+			cascadeFallthruUpwards();
 		}
+		
+		parent.setCurrentBlock(testBlock);
+	}
+
+	@Override
+	protected void cascadeBreakoutUpwards() {
+		for (BasicBlock b : breakoutQueue) {
+			if (b == null) {
+				// break appears as first statement in block
+				// link from our test block instead of body (which doesn't
+				// exist)
+				parent.breakout(getCurrentBlock());
+			} else {
+				parent.breakout(b);
+			}
+		}
+		breakoutQueue.clear();
 	}
 }

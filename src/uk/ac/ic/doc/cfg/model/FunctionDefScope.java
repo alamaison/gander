@@ -36,6 +36,10 @@ public class FunctionDefScope extends CodeScope {
 	}
 
 	@Override
+	protected void begin() {
+	}
+
+	@Override
 	protected void end() {
 
 		if (getCurrentBlock().isEmpty()) {

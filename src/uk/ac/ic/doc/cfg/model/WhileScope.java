@@ -18,26 +18,18 @@ public class WhileScope extends ScopeWithParent {
 		BasicBlock testBlock;
 		if (isParentEmpty)
 			testBlock = parent.getCurrentBlock();
-		else
+		else {
 			testBlock = newBlock();
+			parent.linkAfterCurrent(testBlock);
+		}
 		parent.fallthrough(testBlock);
-		
+
 		setCurrentBlock(testBlock);
 
-		if (node.test != null) {
-			node.test.accept(this);
-		}
-
-		BasicBlock bodyBlock = newBlock();
-		testBlock.link(bodyBlock);
-		setCurrentBlock(bodyBlock);
+		node.test.accept(this);
 
 		if (node.body != null) {
-			for (int i = 0; i < node.body.length; i++) {
-				if (node.body[i] != null) {
-					node.body[i].accept(this);
-				}
-			}
+			delegateScope(new BlockScope(node.body, this));
 		}
 
 		// TODO Handle Python while loops that have 'else' clauses!
@@ -45,21 +37,17 @@ public class WhileScope extends ScopeWithParent {
 		// node.orelse.accept(this);
 		// }
 
-		// linkAfterCurrent(testBlock);
-		// parent.fallthrough(getCurrentBlock());
-		
+		// breaks in the while loop fall through to whatever is after the
+		// loop rather than passing through the test first
 		for (BasicBlock b : breakoutQueue) {
 			parent.fallthrough(b);
 		}
+		breakoutQueue.clear();
 
-		if (fallthroughQueue.isEmpty()) {
-			getCurrentBlock().link(testBlock);
-		} else {
-			for (BasicBlock b : fallthroughQueue)
-				b.link(testBlock);
-		}
-
-		if (!isParentEmpty)
-			parent.linkAfterCurrent(testBlock);
+		for (BasicBlock b : fallthroughQueue)
+			b.link(testBlock);
+		fallthroughQueue.clear();
+		
+		parent.setCurrentBlock(testBlock);
 	}
 }

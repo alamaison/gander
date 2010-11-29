@@ -103,7 +103,7 @@ public class DominationTest {
 			AbstractDomination dominationTest, String tag) {
 
 		Set<BasicBlock> domBlocks = new HashSet<BasicBlock>(); // for non-dom
-																// test
+		// test
 
 		// Check dominators. Each dominator block should link to its
 		// expected submissive blocks but no other
@@ -413,7 +413,7 @@ public class DominationTest {
 		String[][] dominators = { { "a", "b" }, { "a", "c" }, { "a", "d" },
 				{ "a", "e" }, { "a", "f" }, { "b", "c" }, { "b", "d" },
 				{ "b", "e" }, { "b", "f" }, { "c", "d" }, { "c", "e" },
-				{ "c", "f" }, { "a", "END" } };
+				{ "c", "f" }, { "e", "f" }, { "a", "END" } };
 		checkDomination(dominators);
 
 		String[][] postdominators = { { "c", "b" }, { "a", "e" }, { "a", "f" },
@@ -429,7 +429,22 @@ public class DominationTest {
 				{ "b", "c" }, { "b", "d" }, { "c", "d" }, { "a", "END" } };
 		checkDomination(dominators);
 
-		String[][] postdominators = { { "c", "b" }, { "a", "START" } };
+		String[][] postdominators = { { "a", "b" }, { "a", "c" }, { "a", "d" },
+				{ "c", "b" }, { "a", "START" } };
+		checkPostdomination(postdominators);
+	}
+
+	@Test
+	public void testDomNestedWhilesIfBreak() throws Throwable {
+		initialise("dom_nested_whiles_if_break");
+
+		String[][] dominators = { { "a", "b" }, { "a", "c" }, { "a", "d" },
+				{ "a", "e" }, { "b", "c" }, { "b", "d" }, { "b", "e" },
+				{ "c", "d" }, { "c", "e" }, { "d", "e" }, { "a", "END" } };
+		checkDomination(dominators);
+
+		String[][] postdominators = { { "a", "b" }, { "a", "c" }, { "a", "d" },
+				{ "a", "e" }, { "c", "b" }, { "e", "d" }, { "a", "START" } };
 		checkPostdomination(postdominators);
 	}
 
@@ -442,8 +457,36 @@ public class DominationTest {
 				{ "a", "END" }, { "e", "END" } };
 		checkDomination(dominators);
 
-		String[][] postdominators = { { "c", "b" }, { "e", "a" }, { "e", "b" },
+		String[][] postdominators = { { "a", "b" }, { "a", "c" }, { "a", "d" },
+				{ "c", "b" }, { "e", "a" }, { "e", "b" }, { "e", "c" },
+				{ "e", "d" }, { "a", "START" }, { "e", "START" } };
+		checkPostdomination(postdominators);
+	}
+
+	@Test
+	public void testDomNestedIfsBreak() throws Throwable {
+		initialise("dom_nested_ifs_break");
+
+		String[][] dominators = { { "a", "b" }, { "a", "c" }, { "a", "d" },
+				{ "a", "e" }, { "b", "c" }, { "b", "d" }, { "c", "d" },
+				{ "a", "END" }, { "e", "END" } };
+		checkDomination(dominators);
+
+		String[][] postdominators = { { "a", "d" }, { "e", "a" }, { "e", "b" },
 				{ "e", "c" }, { "e", "d" }, { "a", "START" }, { "e", "START" } };
+		checkPostdomination(postdominators);
+	}
+
+	@Test
+	public void testDomIfElseBreak() throws Throwable {
+		initialise("dom_if_else_break");
+
+		String[][] dominators = { { "a", "b" }, { "a", "c" }, { "a", "d" },
+				{ "b", "c" }, { "a", "END" }, { "d", "END" } };
+		checkDomination(dominators);
+
+		String[][] postdominators = { { "a", "c" }, { "d", "a" }, { "d", "b" },
+				{ "d", "c" }, { "a", "START" }, { "d", "START" } };
 		checkPostdomination(postdominators);
 	}
 }
