@@ -13,15 +13,9 @@ public class WhileScope extends ScopeWithParent {
 
 	@Override
 	protected void doProcess() throws Exception {
-		boolean isParentEmpty = parent.getCurrentBlock().isEmpty();
 
-		BasicBlock testBlock;
-		if (isParentEmpty)
-			testBlock = parent.getCurrentBlock();
-		else {
-			testBlock = newBlock();
-			parent.linkAfterCurrent(testBlock);
-		}
+		BasicBlock testBlock = newBlock();
+		parent.linkAfterCurrent(testBlock);
 		parent.fallthrough(testBlock);
 
 		setCurrentBlock(testBlock);
@@ -32,6 +26,10 @@ public class WhileScope extends ScopeWithParent {
 			BlockScope scope = new BlockScope(node.body, this);
 			scope.process();
 		}
+
+		for (BasicBlock b : fallthroughQueue)
+			b.link(testBlock);
+		fallthroughQueue.clear();
 
 		// TODO Handle Python while loops that have 'else' clauses!
 		// if (node.orelse != null){
@@ -45,10 +43,6 @@ public class WhileScope extends ScopeWithParent {
 		}
 		breakoutQueue.clear();
 
-		for (BasicBlock b : fallthroughQueue)
-			b.link(testBlock);
-		fallthroughQueue.clear();
-		
-		parent.setCurrentBlock(testBlock);
+		parent.tail(null);
 	}
 }

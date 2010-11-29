@@ -15,6 +15,7 @@ public class CallScope extends ScopeWithParent {
 	@Override
 	protected void doProcess() throws Exception {
 		addToCurrentBlock(node);
+		parent.tail(getCurrentBlock());
 	}
 
 }

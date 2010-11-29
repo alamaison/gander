@@ -14,6 +14,7 @@ public class AssignScope extends ScopeWithParent {
 	@Override
 	protected void doProcess() throws Exception {
 		addToCurrentBlock(node);
+		parent.tail(getCurrentBlock());
 	}
 }
 	

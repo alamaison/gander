@@ -16,23 +16,13 @@ public class FunctionDefScope extends CodeScope {
 		super();
 		this.node = node;
 		start = newBlock();
-		BasicBlock block = newBlock();
-		start.link(block);
-		setCurrentBlock(block);
-	}
-
-	protected BasicBlock newBlock() {
-		BasicBlock b = new BasicBlock();
-		blocks.add(b);
-		return b;
-	}
-
-	public Set<BasicBlock> getBlocks() {
-		return blocks;
+		setCurrentBlock(start);
 	}
 
 	public void process() throws Exception {
-		node.traverse(this);
+		
+		BlockScope scope = new BlockScope(node.body, this);
+		scope.process();
 
 		if (getCurrentBlock().isEmpty()) {
 			end = getCurrentBlock();
@@ -45,11 +35,21 @@ public class FunctionDefScope extends CodeScope {
 		}
 		fallthroughQueue.clear();
 		
-		for (BasicBlock b : blocks) {
-			if (b.getSuccessors().isEmpty() && b != end) {
-				b.link(end);
-			}
-		}
+//		for (BasicBlock b : blocks) {
+//			if (b.getSuccessors().isEmpty() && b != end) {
+//				b.link(end);
+//			}
+//		}
+	}
+
+	protected BasicBlock newBlock() {
+		BasicBlock b = new BasicBlock();
+		blocks.add(b);
+		return b;
+	}
+
+	public Set<BasicBlock> getBlocks() {
+		return blocks;
 	}
 
 	public BasicBlock getStart() {

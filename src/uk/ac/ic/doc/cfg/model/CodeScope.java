@@ -15,6 +15,7 @@ public abstract class CodeScope extends Scope {
 
 	protected Set<BasicBlock> fallthroughQueue = new HashSet<BasicBlock>();
 	protected Set<BasicBlock> breakoutQueue = new HashSet<BasicBlock>();
+	protected BasicBlock tail;
 
 	public CodeScope() {
 		super();
@@ -83,12 +84,19 @@ public abstract class CodeScope extends Scope {
 		return null;
 	}
 
+	@Override
 	protected void fallthrough(BasicBlock predecessor) {
 		assert predecessor != null;
 		fallthroughQueue.add(predecessor);
 	}
 
+	@Override
 	protected void breakout(BasicBlock predecessor) {
 		breakoutQueue.add(predecessor);
+	}
+
+	@Override
+	protected void tail(BasicBlock block) {
+		this.tail = block;
 	}
 }

@@ -14,27 +14,19 @@ public class IfScope extends ScopeWithParent {
 	@Override
 	protected void doProcess() throws Exception {
 
-		BasicBlock testBlock = getCurrentBlock();
-		
 		node.test.accept(this);
-		
-		if (node.body != null) {
-			BlockScope scope = new BlockScope(node.body, this);
-			scope.process();
 
-			// When no else branch, control falls through directly from the test
-			// block
-			if (node.orelse == null) {
-				assert getCurrentBlock() != null;
-				fallthrough(getCurrentBlock());
-			}
-		}
+		BlockScope scope = new BlockScope(node.body, this);
+		scope.process();
 
 		if (node.orelse != null) {
-			BlockScope scope = new BlockScope(node.orelse.body, this);
+			scope = new BlockScope(node.orelse.body, this);
 			scope.process();
+			parent.tail(null);
+		} else {
+			// When no else branch, control falls through directly from the test
+			// block
+			parent.fallthrough(getCurrentBlock());
 		}
-		
-		parent.setCurrentBlock(testBlock);
 	}
 }

@@ -31,7 +31,6 @@ public class BlockScope extends ScopeWithParent {
 		// They each call tail() on their parent (us) and we use that to
 		// add the fallthrough on their behalf.
 
-		BasicBlock tail = getCurrentBlock();
 		if (tail != null && !breakoutQueue.contains(tail))
 			parent.fallthrough(tail);
 	}
