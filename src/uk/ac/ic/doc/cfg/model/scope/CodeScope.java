@@ -1,4 +1,4 @@
-package uk.ac.ic.doc.cfg.model;
+package uk.ac.ic.doc.cfg.model.scope;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -10,6 +10,8 @@ import org.python.pydev.parser.jython.ast.Expr;
 import org.python.pydev.parser.jython.ast.FunctionDef;
 import org.python.pydev.parser.jython.ast.If;
 import org.python.pydev.parser.jython.ast.While;
+
+import uk.ac.ic.doc.cfg.model.BasicBlock;
 
 public abstract class CodeScope extends Scope {
 

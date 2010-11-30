@@ -1,4 +1,4 @@
-package uk.ac.ic.doc.cfg.model;
+package uk.ac.ic.doc.cfg.model.scope;
 
 import org.python.pydev.parser.jython.ast.Break;
 

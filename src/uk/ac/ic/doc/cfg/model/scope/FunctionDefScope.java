@@ -1,9 +1,11 @@
-package uk.ac.ic.doc.cfg.model;
+package uk.ac.ic.doc.cfg.model.scope;
 
 import java.util.HashSet;
 import java.util.Set;
 
 import org.python.pydev.parser.jython.ast.FunctionDef;
+
+import uk.ac.ic.doc.cfg.model.BasicBlock;
 
 public class FunctionDefScope extends CodeScope {
 
@@ -21,7 +23,7 @@ public class FunctionDefScope extends CodeScope {
 
 	public void process() throws Exception {
 		
-		BlockScope scope = new BlockScope(node.body, this);
+		BodyScope scope = new BodyScope(node.body, this);
 		scope.process();
 
 		if (getCurrentBlock().isEmpty()) {
@@ -34,12 +36,6 @@ public class FunctionDefScope extends CodeScope {
 			b.link(end);
 		}
 		fallthroughQueue.clear();
-		
-//		for (BasicBlock b : blocks) {
-//			if (b.getSuccessors().isEmpty() && b != end) {
-//				b.link(end);
-//			}
-//		}
 	}
 
 	protected BasicBlock newBlock() {

@@ -1,12 +1,12 @@
-package uk.ac.ic.doc.cfg.model;
+package uk.ac.ic.doc.cfg.model.scope;
 
 import org.python.pydev.parser.jython.SimpleNode;
 
-public class BlockScope extends ScopeWithParent {
+public class BodyScope extends ScopeWithParent {
 
 	private SimpleNode[] nodes;
 
-	public BlockScope(SimpleNode[] nodes, Scope parent) {
+	public BodyScope(SimpleNode[] nodes, Scope parent) {
 		super(parent);
 		this.nodes = nodes;
 	}

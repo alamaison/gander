@@ -1,6 +1,8 @@
-package uk.ac.ic.doc.cfg.model;
+package uk.ac.ic.doc.cfg.model.scope;
 
 import org.python.pydev.parser.jython.ast.While;
+
+import uk.ac.ic.doc.cfg.model.BasicBlock;
 
 public class WhileScope extends ScopeWithParent {
 
@@ -23,7 +25,7 @@ public class WhileScope extends ScopeWithParent {
 		node.test.accept(this);
 
 		if (node.body != null) {
-			BlockScope scope = new BlockScope(node.body, this);
+			BodyScope scope = new BodyScope(node.body, this);
 			scope.process();
 		}
 

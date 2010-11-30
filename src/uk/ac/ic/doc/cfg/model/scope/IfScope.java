@@ -1,4 +1,4 @@
-package uk.ac.ic.doc.cfg.model;
+package uk.ac.ic.doc.cfg.model.scope;
 
 import org.python.pydev.parser.jython.ast.If;
 
@@ -16,11 +16,11 @@ public class IfScope extends ScopeWithParent {
 
 		node.test.accept(this);
 
-		BlockScope scope = new BlockScope(node.body, this);
+		BodyScope scope = new BodyScope(node.body, this);
 		scope.process();
 
 		if (node.orelse != null) {
-			scope = new BlockScope(node.orelse.body, this);
+			scope = new BodyScope(node.orelse.body, this);
 			scope.process();
 			parent.tail(null);
 		} else {

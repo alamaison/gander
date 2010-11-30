@@ -1,6 +1,8 @@
-package uk.ac.ic.doc.cfg.model;
+package uk.ac.ic.doc.cfg.model.scope;
 
 import org.python.pydev.parser.jython.SimpleNode;
+
+import uk.ac.ic.doc.cfg.model.BasicBlock;
 
 public abstract class ScopeWithParent extends CodeScope {
 

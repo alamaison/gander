@@ -1,7 +1,9 @@
-package uk.ac.ic.doc.cfg.model;
+package uk.ac.ic.doc.cfg.model.scope;
 
 import org.python.pydev.parser.jython.SimpleNode;
 import org.python.pydev.parser.jython.ast.VisitorBase;
+
+import uk.ac.ic.doc.cfg.model.BasicBlock;
 
 public abstract class Scope extends VisitorBase {
 

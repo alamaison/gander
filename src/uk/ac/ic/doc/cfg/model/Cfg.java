@@ -5,6 +5,8 @@ import java.util.Set;
 import org.python.pydev.parser.jython.SimpleNode;
 import org.python.pydev.parser.jython.ast.FunctionDef;
 
+import uk.ac.ic.doc.cfg.model.scope.FunctionDefScope;
+
 public class Cfg {
 
 	private FunctionDefScope scope;

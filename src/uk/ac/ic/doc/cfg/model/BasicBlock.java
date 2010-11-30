@@ -15,7 +15,7 @@ public class BasicBlock implements Iterable<SimpleNode> {
 	private Set<BasicBlock> out = new HashSet<BasicBlock>();
 	private Set<BasicBlock> predecessors = new HashSet<BasicBlock>();
 	
-	BasicBlock() {
+	public BasicBlock() {
 		this.statements = new ArrayList<SimpleNode>();
 	}
 	
