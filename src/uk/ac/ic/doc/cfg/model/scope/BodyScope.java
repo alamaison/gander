@@ -23,51 +23,39 @@ public class BodyScope extends ScopeWithParent {
 
 		for (int i = 0; i < nodes.length; i++) {
 
-			boolean knitNewBlock = false;
-
-			// If there are more statements in this body and the statement we
-			// just processed had multiple escape edges, the processing of the
-			// next statement must start at a new basic block and the
-			// fallthrough escape edges must link to it.
-			if (lastStatement.isEndOfBlock()) {
+			// A statement the generated multiple internal or external links
+			// forces us to close the current basic block. We signal this to the
+			// next processor by setting the block to null. The processor will
+			// create a new block if necessary.
+			if (lastStatement.isEndOfBlock())
 				setCurrentBlock(null);
-				knitNewBlock = true;
-			}
 
 			previousStatement = lastStatement;
 			lastStatement = (ScopeExits) nodes[i].accept(this);
 
 			// The first statement that actually contributes a basic
 			// block is the root block for this body
-			if (bodyRoot == null) {
+			if (bodyRoot == null)
 				bodyRoot = lastStatement.getRoot();
-			}
-
-			// It's possible we didn't have a current block. If so, we pretend
-			// we did for the rest of the processing
-			if (getCurrentBlock() == null) {
-				setCurrentBlock(lastStatement.getRoot());
-			}
-
-			// if the previous statement ended the block, the subscope will have
-			// created a new block which we then set as our current block
-			assert !previousStatement.isEndOfBlock()
-					|| getCurrentBlock() == lastStatement.getRoot();
 
 			// The statement processor may have added to the current basic block
 			// or it may have started a new one. We can detect this by comparing
 			// the root it returns with the current block. If they don't match
 			// then the processor started a new basic block. In this case we
 			// must link the current block to the new root.
-			if (knitNewBlock || getCurrentBlock() != lastStatement.getRoot()) {
+			if (getCurrentBlock() != lastStatement.getRoot()) {
 				previousStatement.linkFallThroughsTo(lastStatement);
 				setCurrentBlock(lastStatement.getRoot());
-				knitNewBlock = false;
 			}
 
 			// Union all statements' breakouts as we don't process them at this
 			// level
 			body.getBreakoutQueue().addAll(lastStatement.getBreakoutQueue());
+
+			// It's possible we didn't have a current block. If so, we pretend
+			// we did for the next loop
+			if (getCurrentBlock() == null)
+				setCurrentBlock(lastStatement.getRoot());
 		}
 
 		// Only push up last statement's fallthroughs as the others are

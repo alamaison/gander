@@ -24,7 +24,6 @@ public class ScopeExits {
 	}
 
 	public void linkFallThroughsTo(BasicBlock successor) {
-		assert !isEmpty();
 		for (BasicBlock fallBlock : fallthroughQueue)
 			fallBlock.link(successor);
 	}
