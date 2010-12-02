@@ -39,6 +39,8 @@ public abstract class ScopeWithParent extends CodeScope {
 	@Override
 	protected final ScopeExits process() throws Exception {
 		ScopeExits exits = doProcess();
+		assert exits.exitSize() > 0;
+		
 		Set<BasicBlock> filteredBreakouts = new HashSet<BasicBlock>();
 		
 		for (BasicBlock b : exits.getBreakoutQueue()) {

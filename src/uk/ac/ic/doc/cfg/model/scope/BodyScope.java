@@ -30,9 +30,7 @@ public class BodyScope extends ScopeWithParent {
 			if (lastStatement.isEndOfBlock()) {
 				BasicBlock nextBlock = newBlock();
 				setCurrentBlock(nextBlock);
-				for (BasicBlock b : lastStatement.getFallthroughQueue()) {
-					b.link(nextBlock);
-				}
+				lastStatement.linkFallThroughsTo(nextBlock);
 			}
 
 			previousStatement = lastStatement;
@@ -54,10 +52,8 @@ public class BodyScope extends ScopeWithParent {
 			// must link the current block to the new root.
 			if (getCurrentBlock() != lastStatement.getRoot()) {
 				assert previousStatement.getFallthroughQueue().size() == 1;
-				for (BasicBlock b : previousStatement.getFallthroughQueue()) {
-					b.link(lastStatement.getRoot());
-				}
-
+				
+				previousStatement.linkFallThroughsTo(lastStatement);
 				setCurrentBlock(lastStatement.getRoot());
 			}
 			

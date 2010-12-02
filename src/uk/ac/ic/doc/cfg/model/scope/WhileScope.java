@@ -32,14 +32,11 @@ public class WhileScope extends ScopeWithParent {
 
 		// link the test block to the then body and the fallthrough
 		assert condition.getFallthroughQueue().size() == 1;
-		for (BasicBlock b : condition.getFallthroughQueue()) {
-			b.link(body.getRoot());
-			exits.fallthrough(b);
-		}
+		condition.linkFallThroughsTo(body);
+		exits.inheritFallthroughsFrom(condition);
 
 		// link the body back to the condition
-		for (BasicBlock b : body.getFallthroughQueue())
-			b.link(condition.getRoot());
+		body.linkFallThroughsTo(condition);
 
 		// TODO Handle Python while loops that have 'else' clauses!
 		// if (node.orelse != null){
@@ -48,9 +45,7 @@ public class WhileScope extends ScopeWithParent {
 
 		// breaks in the while loop fall through to whatever is after the
 		// loop rather than passing through the test first
-		for (BasicBlock b : body.getBreakoutQueue()) {
-			exits.fallthrough(b);
-		}
+		exits.convertBreakoutsToFallthroughs(body);
 
 		exits.setRoot(condition.getRoot());
 		return exits;

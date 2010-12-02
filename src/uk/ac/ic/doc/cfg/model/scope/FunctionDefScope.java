@@ -23,17 +23,17 @@ public class FunctionDefScope extends CodeScope {
 		
 		BodyScope scope = new BodyScope(node.body, null, this);
 		
-		ScopeExits state = scope.process();
+		ScopeExits body = scope.process();
 		
 		start = newBlock();
-		if (state.getRoot() != null) {
-			start.link(state.getRoot());
-		}
-
+		if (!body.isEmpty())
+			start.link(body.getRoot());
+	
 		end = newBlock();
-		for (BasicBlock b : state.getFallthroughQueue()) {
-			b.link(end);
-		}
+		if (!body.isEmpty())
+			body.linkFallThroughsTo(end);
+		else
+			start.link(end);
 		
 		return new ScopeExits();
 	}
