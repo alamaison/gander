@@ -8,30 +8,38 @@ public class WhileScope extends ScopeWithParent {
 
 	private While node;
 
-	public WhileScope(While node, CodeScope parent) throws Exception {
-		super(parent);
+	public WhileScope(While node, BasicBlock root, CodeScope parent)
+			throws Exception {
+		super(parent, root);
 		this.node = node;
 	}
 
 	@Override
-	protected void doProcess() throws Exception {
+	protected ScopeExits doProcess() throws Exception {
+
+		ScopeExits exits = new ScopeExits();
+
+		// while
 
 		BasicBlock testBlock = newBlock();
-		parent.linkAfterCurrent(testBlock);
-		parent.fallthrough(testBlock);
-
 		setCurrentBlock(testBlock);
+		ScopeExits condition = (ScopeExits) node.test.accept(this);
 
-		node.test.accept(this);
+		// body
 
-		if (node.body != null) {
-			BodyScope scope = new BodyScope(node.body, this);
-			scope.process();
+		BodyScope scope = new BodyScope(node.body, null, this);
+		ScopeExits body = scope.process();
+
+		// link the test block to the then body and the fallthrough
+		assert condition.getFallthroughQueue().size() == 1;
+		for (BasicBlock b : condition.getFallthroughQueue()) {
+			b.link(body.getRoot());
+			exits.fallthrough(b);
 		}
 
-		for (BasicBlock b : fallthroughQueue)
-			b.link(testBlock);
-		fallthroughQueue.clear();
+		// link the body back to the condition
+		for (BasicBlock b : body.getFallthroughQueue())
+			b.link(condition.getRoot());
 
 		// TODO Handle Python while loops that have 'else' clauses!
 		// if (node.orelse != null){
@@ -40,11 +48,11 @@ public class WhileScope extends ScopeWithParent {
 
 		// breaks in the while loop fall through to whatever is after the
 		// loop rather than passing through the test first
-		for (BasicBlock b : breakoutQueue) {
-			parent.fallthrough(b);
+		for (BasicBlock b : body.getBreakoutQueue()) {
+			exits.fallthrough(b);
 		}
-		breakoutQueue.clear();
 
-		parent.tail(null);
+		exits.setRoot(condition.getRoot());
+		return exits;
 	}
 }

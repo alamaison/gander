@@ -1,5 +1,8 @@
 package uk.ac.ic.doc.cfg.model.scope;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import org.python.pydev.parser.jython.SimpleNode;
 
 import uk.ac.ic.doc.cfg.model.BasicBlock;
@@ -11,7 +14,6 @@ public abstract class ScopeWithParent extends CodeScope {
 	protected void addToCurrentBlock(SimpleNode node) {
 		if (getCurrentBlock() == null) {
 			BasicBlock nextBlock = newBlock();
-			parent.linkAfterCurrent(nextBlock);
 			setCurrentBlock(nextBlock);
 		}
 
@@ -19,63 +21,43 @@ public abstract class ScopeWithParent extends CodeScope {
 		getCurrentBlock().addStatement(node);
 	}
 
-	@Override
 	protected void linkAfterCurrent(BasicBlock successor) {
 		BasicBlock current = getCurrentBlock();
 		if (current == null) {
 			setCurrentBlock(successor);
-			parent.linkAfterCurrent(successor);
 		} else {
 			current.link(successor);
 		}
 	}
 
-	public ScopeWithParent(Scope parent) {
+	public ScopeWithParent(Scope parent, BasicBlock root) {
+		super();
+		setCurrentBlock(root);
 		this.parent = parent;
 	}
 
-	protected final void cascadeFallthruUpwards() {
-		for (BasicBlock b : fallthroughQueue)
-			parent.fallthrough(b);
-		fallthroughQueue.clear();
-	}
-
-	protected final void cascadeBreakoutUpwards() {
-		for (BasicBlock b : breakoutQueue) {
+	@Override
+	protected final ScopeExits process() throws Exception {
+		ScopeExits exits = doProcess();
+		Set<BasicBlock> filteredBreakouts = new HashSet<BasicBlock>();
+		
+		for (BasicBlock b : exits.getBreakoutQueue()) {
 			if (b == null) {
 				// break appears as first statement in block.
-				// link from our current block (which should be an if/loop test
+				// link from statement's root (which should be an if/loop test
 				// block) instead of body (which doesn't exist)
-				parent.breakout(getCurrentBlock());
+				filteredBreakouts.add(exits.getRoot());
 			} else {
-				parent.breakout(b);
+				filteredBreakouts.add(b);
 			}
 		}
-		breakoutQueue.clear();
+		
+		exits.setBreakoutQueue(filteredBreakouts);
+		
+		return exits;
 	}
 
-	protected void begin() {
-		// This has to be here because Java generics don't allow delayed
-		// construction (e.g. "new T") so delegateScope can't call the
-		// constructor *after* changing the parent's current block.
-		setCurrentBlock(parent.getCurrentBlock());
-	}
-
-	@Override
-	protected final void process() throws Exception {
-		begin();
-		doProcess();
-		end();
-	}
-
-	protected abstract void doProcess() throws Exception;
-
-	protected void end() {
-		// Any remaining fallthrough blocks should be cascaded up to the
-		// parent who will tie off the loose ends.
-		cascadeFallthruUpwards();
-		cascadeBreakoutUpwards();
-	}
+	protected abstract ScopeExits doProcess() throws Exception;
 
 	@Override
 	protected BasicBlock newBlock() {

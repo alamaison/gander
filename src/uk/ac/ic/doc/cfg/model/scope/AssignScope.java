@@ -2,19 +2,24 @@ package uk.ac.ic.doc.cfg.model.scope;
 
 import org.python.pydev.parser.jython.ast.Assign;
 
+import uk.ac.ic.doc.cfg.model.BasicBlock;
+
 public class AssignScope extends ScopeWithParent {
 
 	private Assign node;
 
-	public AssignScope(Assign node, Scope parent) {
-		super(parent);
+	public AssignScope(Assign node, BasicBlock root, Scope parent) {
+		super(parent, root);
 		this.node = node;
 	}
 
 	@Override
-	protected void doProcess() throws Exception {
+	protected ScopeExits doProcess() throws Exception {
 		addToCurrentBlock(node);
-		parent.tail(getCurrentBlock());
+		ScopeExits exits = new ScopeExits();
+		exits.setRoot(getCurrentBlock());
+		exits.fallthrough(getCurrentBlock());
+		return exits;
 	}
 }
 	

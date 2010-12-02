@@ -17,25 +17,25 @@ public class FunctionDefScope extends CodeScope {
 	public FunctionDefScope(FunctionDef node) throws Exception {
 		super();
 		this.node = node;
-		start = newBlock();
-		setCurrentBlock(start);
 	}
 
-	public void process() throws Exception {
+	public ScopeExits process() throws Exception {
 		
-		BodyScope scope = new BodyScope(node.body, this);
-		scope.process();
-
-		if (getCurrentBlock().isEmpty()) {
-			end = getCurrentBlock();
-		} else {
-			end = newBlock();
+		BodyScope scope = new BodyScope(node.body, null, this);
+		
+		ScopeExits state = scope.process();
+		
+		start = newBlock();
+		if (state.getRoot() != null) {
+			start.link(state.getRoot());
 		}
 
-		for (BasicBlock b : fallthroughQueue) {
+		end = newBlock();
+		for (BasicBlock b : state.getFallthroughQueue()) {
 			b.link(end);
 		}
-		fallthroughQueue.clear();
+		
+		return new ScopeExits();
 	}
 
 	protected BasicBlock newBlock() {
