@@ -38,6 +38,9 @@ public class WhileScope extends ScopeWithParent {
 		// link the body back to the condition
 		body.linkFallThroughsTo(condition);
 
+		// continues in the while loop link back to the condition
+		body.linkContinuesTo(condition);
+		
 		// TODO Handle Python while loops that have 'else' clauses!
 		// if (node.orelse != null){
 		// node.orelse.accept(this);
@@ -46,6 +49,7 @@ public class WhileScope extends ScopeWithParent {
 		// breaks in the while loop fall through to whatever is after the
 		// loop rather than passing through the test first
 		exits.convertBreakoutsToFallthroughs(body);
+		
 
 		exits.setRoot(condition.getRoot());
 		return exits;

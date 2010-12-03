@@ -40,8 +40,8 @@ public class DominationTest {
 
 	public void initialise(String testFuncName) throws Throwable, Exception {
 		Model model = createTestModel(DOMINATION_PROJ);
-		Function function = model.getTopLevelPackage().getModules()
-				.get("my_module").getFunctions().get(testFuncName);
+		Function function = model.getTopLevelPackage().getModules().get(
+				"my_module").getFunctions().get(testFuncName);
 		assertTrue("No function " + testFuncName, function != null);
 
 		Cfg graph = function.getCfg();
@@ -180,8 +180,8 @@ public class DominationTest {
 		assertNotSame(start, end);
 
 		for (BasicBlock block : blocks) {
-			assertTrue("START must dominate all other blocks",
-					domAnalyser.dominates(start, block));
+			assertTrue("START must dominate all other blocks", domAnalyser
+					.dominates(start, block));
 			if (block != end)
 				assertFalse("END must not dominate anything execpt itself",
 						domAnalyser.dominates(end, block));
@@ -487,6 +487,45 @@ public class DominationTest {
 
 		String[][] postdominators = { { "a", "c" }, { "d", "a" }, { "d", "b" },
 				{ "d", "c" }, { "a", "START" }, { "d", "START" } };
+		checkPostdomination(postdominators);
+	}
+
+	@Test
+	public void testDomTwoprongedFallthoughToWhile() throws Throwable {
+		initialise("dom_twopronged_fallthrough_to_while");
+
+		String[][] dominators = { { "a", "b" }, { "a", "c" }, { "a", "d" },
+				{ "a", "e" }, { "d", "e" }, { "a", "END" }, { "d", "END" } };
+		checkDomination(dominators);
+
+		String[][] postdominators = { { "d", "a" }, { "d", "b" }, { "d", "c" },
+				{ "d", "e" }, { "a", "START" }, { "d", "START" } };
+		checkPostdomination(postdominators);
+	}
+
+	@Test
+	public void testDomWhileIfContinue1() throws Throwable {
+		initialise("dom_while_if_continue1");
+
+		String[][] dominators = { { "a", "b" }, { "a", "c" }, { "b", "c" },
+				{ "a", "END" } };
+		checkDomination(dominators);
+
+		String[][] postdominators = { { "a", "b" }, { "a", "c" },
+				{ "a", "START" } };
+		checkPostdomination(postdominators);
+	}
+
+	@Test
+	public void testDomWhileIfContinue2() throws Throwable {
+		initialise("dom_while_if_continue2");
+
+		String[][] dominators = { { "a", "b" }, { "a", "c" }, { "a", "d" },
+				{ "b", "c" }, { "b", "d" }, { "a", "END" } };
+		checkDomination(dominators);
+
+		String[][] postdominators = { { "a", "b" }, { "a", "c" }, { "a", "d" },
+				{ "a", "START" } };
 		checkPostdomination(postdominators);
 	}
 }

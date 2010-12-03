@@ -3,6 +3,7 @@ package uk.ac.ic.doc.cfg.model.scope;
 import org.python.pydev.parser.jython.ast.Assign;
 import org.python.pydev.parser.jython.ast.Break;
 import org.python.pydev.parser.jython.ast.Call;
+import org.python.pydev.parser.jython.ast.Continue;
 import org.python.pydev.parser.jython.ast.Expr;
 import org.python.pydev.parser.jython.ast.FunctionDef;
 import org.python.pydev.parser.jython.ast.If;
@@ -51,5 +52,10 @@ public abstract class CodeScope extends Scope {
 	@Override
 	public Object visitBreak(Break node) throws Exception {
 		return delegateScope(new BreakScope(node, getCurrentBlock(), this));
+	}
+
+	@Override
+	public Object visitContinue(Continue node) throws Exception {
+		return delegateScope(new ContinueScope(node, getCurrentBlock(), this));
 	}
 }

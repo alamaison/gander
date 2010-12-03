@@ -48,9 +48,10 @@ public class BodyScope extends ScopeWithParent {
 				setCurrentBlock(lastStatement.getRoot());
 			}
 
-			// Union all statements' breakouts as we don't process them at this
-			// level
-			body.getBreakoutQueue().addAll(lastStatement.getBreakoutQueue());
+			// Union all statements' other exits as we don't process them at
+			// this level
+			body.inheritBreakoutsFrom(lastStatement);
+			body.inheritContinuesFrom(lastStatement);
 
 			// It's possible we didn't have a current block. If so, we pretend
 			// we did for the next loop

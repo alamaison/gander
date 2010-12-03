@@ -108,3 +108,24 @@ def dom_if_else_break():
 		else:
 			break
 	d()
+
+def dom_twopronged_fallthrough_to_while():
+	if a():
+		b()
+	else:
+		c()
+	while d():
+		e()
+
+def dom_while_if_continue1():
+	while a():
+		if b():
+			continue
+		c()
+
+def dom_while_if_continue2():
+	while a():
+		if b():
+			c()
+			continue
+		d()

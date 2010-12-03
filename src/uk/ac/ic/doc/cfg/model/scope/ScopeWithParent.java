@@ -1,8 +1,5 @@
 package uk.ac.ic.doc.cfg.model.scope;
 
-import java.util.HashSet;
-import java.util.Set;
-
 import org.python.pydev.parser.jython.SimpleNode;
 
 import uk.ac.ic.doc.cfg.model.BasicBlock;
@@ -39,23 +36,8 @@ public abstract class ScopeWithParent extends CodeScope {
 	@Override
 	protected final ScopeExits process() throws Exception {
 		ScopeExits exits = doProcess();
+
 		assert exits.exitSize() > 0;
-		
-		Set<BasicBlock> filteredBreakouts = new HashSet<BasicBlock>();
-		
-		for (BasicBlock b : exits.getBreakoutQueue()) {
-			if (b == null) {
-				// break appears as first statement in block.
-				// link from statement's root (which should be an if/loop test
-				// block) instead of body (which doesn't exist)
-				filteredBreakouts.add(exits.getRoot());
-			} else {
-				filteredBreakouts.add(b);
-			}
-		}
-		
-		exits.setBreakoutQueue(filteredBreakouts);
-		
 		return exits;
 	}
 
