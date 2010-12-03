@@ -9,7 +9,6 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -23,6 +22,62 @@ import uk.ac.ic.doc.cfg.model.Cfg;
 import uk.ac.ic.doc.cfg.model.Function;
 
 public class DominationTest {
+
+	private class DominationGraphTest extends GraphTest {
+
+		private AbstractDomination analyser;
+
+		public DominationGraphTest(Map<String, Collection<String>> links,
+				Set<BasicBlock> allBlocks, BasicBlock start, BasicBlock end,
+				AbstractDomination domAnalyser) {
+			super(links, allBlocks, start, end, "Domination");
+			this.analyser = domAnalyser;
+		}
+
+		@Override
+		protected boolean areLinked(BasicBlock source, BasicBlock target) {
+			return analyser.dominates(source, target);
+		}
+
+		@Override
+		protected BasicBlock tagToBlock(String tag) {
+			return findBlockContainingCall(tag, analyser);
+		}
+
+		@Override
+		protected boolean selfLinkRequired() {
+			return true;
+		}
+
+	}
+
+	private class PostdominationGraphTest extends GraphTest {
+
+		private AbstractDomination analyser;
+
+		public PostdominationGraphTest(Map<String, Collection<String>> links,
+				Set<BasicBlock> allBlocks, BasicBlock start, BasicBlock end,
+				AbstractDomination domAnalyser) {
+			super(links, allBlocks, start, end, "Postdomination");
+			this.analyser = domAnalyser;
+		}
+
+		@Override
+		protected boolean areLinked(BasicBlock source, BasicBlock target) {
+			return analyser.dominates(source, target);
+		}
+
+		@Override
+		protected BasicBlock tagToBlock(String tag) {
+			return findBlockContainingCall(tag, analyser);
+		}
+
+		@Override
+		protected boolean selfLinkRequired() {
+			return true;
+		}
+
+	}
 
 	private static final String DOMINATION_PROJ = "python_test_code/domination";
 
@@ -84,7 +139,9 @@ public class DominationTest {
 
 		checkStartEndDomination(allBlocks, start, end);
 
-		checkDom(dominators, allBlocks, start, end, domAnalyser, "");
+		GraphTest test = new DominationGraphTest(dominators, allBlocks, start,
+				end, domAnalyser);
+		test.run();
 	}
 
 	private void checkPostdomination(Map<String, Collection<String>> dominators) {
@@ -95,81 +152,9 @@ public class DominationTest {
 
 		checkStartEndPostdomination(allBlocks, start, end);
 
-		checkDom(dominators, allBlocks, start, end, postdomAnalyser, "post");
-	}
-
-	private void checkDom(Map<String, Collection<String>> dominators,
-			Set<BasicBlock> allBlocks, BasicBlock start, BasicBlock end,
-			AbstractDomination dominationTest, String tag) {
-
-		Set<BasicBlock> domBlocks = new HashSet<BasicBlock>(); // for non-dom
-		// test
-
-		// Check dominators. Each dominator block should link to its
-		// expected submissive blocks but no other
-		for (String dom : dominators.keySet()) {
-			BasicBlock domBlock = findBlockContainingCall(dom);
-
-			Set<BasicBlock> nonSubBlocks = new HashSet<BasicBlock>(allBlocks);
-
-			for (String sub : dominators.get(dom)) {
-				BasicBlock subBlock;
-				if (sub.equals("END"))
-					subBlock = end;
-				else if (sub.equals("START"))
-					subBlock = start;
-				else
-					subBlock = findBlockContainingCall(sub);
-
-				assertTrue("Call to function " + dom + "() must " + tag
-						+ "dominate " + "call to " + sub
-						+ "() but analysis says that it doesn't",
-						dominationTest.dominates(domBlock, subBlock));
-
-				nonSubBlocks.remove(subBlock);
-			}
-
-			// Check that any block that aren't meant to be dominated by
-			// anything else, really aren't
-			for (BasicBlock block : nonSubBlocks) {
-				boolean hasDominanceRelation = dominationTest.dominates(
-						domBlock, block);
-				if (block == domBlock)
-					assertTrue(
-							"All blocks must " + tag + "dominate themselves",
-							hasDominanceRelation);
-				else
-					assertFalse("Block containing call to function " + dom
-							+ "() has an unexpected " + tag + "domination:\n"
-							+ domBlock + " " + tag + "dominates " + block,
-							hasDominanceRelation);
-			}
-
-			domBlocks.add(domBlock);
-		}
-
-		// Then check that all other blocks (except START/END) are
-		// non-dominating
-		Set<BasicBlock> nonDomBlocks = new HashSet<BasicBlock>(allBlocks);
-		nonDomBlocks.removeAll(domBlocks);
-		nonDomBlocks.remove(start);
-		nonDomBlocks.remove(end);
-		for (BasicBlock nonDomBlock : nonDomBlocks) {
-			// Shouldn't dominate anything but itself
-			for (BasicBlock block : allBlocks) {
-				boolean hasDominanceRelation = dominationTest.dominates(
-						nonDomBlock, block);
-				if (block == nonDomBlock)
-					assertTrue(
-							"All blocks must " + tag + "dominate themselves",
-							hasDominanceRelation);
-				else
-					assertFalse("Unexpected " + tag + "domination:\n"
-							+ nonDomBlock + " " + tag + "dominates " + block,
-							hasDominanceRelation);
-
-			}
-		}
+		GraphTest test = new PostdominationGraphTest(dominators, allBlocks,
+				start, end, postdomAnalyser);
+		test.run();
 	}
 
 	/**
@@ -235,9 +220,10 @@ public class DominationTest {
 
 	// You can have more than one different tag in a basic block but not more
 	// than one basic block containing the same tag.
-	private BasicBlock findBlockContainingCall(String tag) {
+	private static BasicBlock findBlockContainingCall(String tag,
+			AbstractDomination analyser) {
 
-		Collection<BasicBlock> blocks = domAnalyser.getBlocks();
+		Collection<BasicBlock> blocks = analyser.getBlocks();
 		BasicBlock block = null;
 		for (BasicBlock b : blocks) {
 			if (isBlockTaggedWithFunction(b, tag)) {
