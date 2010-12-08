@@ -6,16 +6,10 @@ import static org.junit.Assert.assertTrue;
 
 import java.io.File;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.HashSet;
 import java.util.Set;
 
 import org.junit.Test;
-import org.python.pydev.parser.jython.SimpleNode;
-import org.python.pydev.parser.jython.ast.Call;
-import org.python.pydev.parser.jython.ast.Name;
 
 import uk.ac.ic.doc.cfg.model.BasicBlock;
 import uk.ac.ic.doc.cfg.model.Cfg;
@@ -23,13 +17,12 @@ import uk.ac.ic.doc.cfg.model.Function;
 
 public class DominationTest {
 
-	private class DominationGraphTest extends GraphTest {
+	class DominationGraphTest extends AbstractTaggedGraphTest {
 
 		private AbstractDomination analyser;
 
-		public DominationGraphTest(Map<String, Collection<String>> links,
-				Set<BasicBlock> allBlocks, BasicBlock start, BasicBlock end,
-				AbstractDomination domAnalyser) {
+		public DominationGraphTest(String[][] links, Set<BasicBlock> allBlocks,
+				BasicBlock start, BasicBlock end, AbstractDomination domAnalyser) {
 			super(links, allBlocks, start, end, "Domination");
 			this.analyser = domAnalyser;
 		}
@@ -40,22 +33,24 @@ public class DominationTest {
 		}
 
 		@Override
-		protected BasicBlock tagToBlock(String tag) {
-			return findBlockContainingCall(tag, analyser);
-		}
-
-		@Override
 		protected boolean selfLinkRequired() {
 			return true;
 		}
 
+		@Override
+		protected Set<BasicBlock> getLinkToAllBlocks() {
+			Set<BasicBlock> startSet = new HashSet<BasicBlock>();
+			startSet.add(getStart());
+			return startSet;
+		}
+
 	}
 
-	private class PostdominationGraphTest extends GraphTest {
+	private class PostdominationGraphTest extends AbstractTaggedGraphTest {
 
 		private AbstractDomination analyser;
 
-		public PostdominationGraphTest(Map<String, Collection<String>> links,
+		public PostdominationGraphTest(String[][] links,
 				Set<BasicBlock> allBlocks, BasicBlock start, BasicBlock end,
 				AbstractDomination domAnalyser) {
 			super(links, allBlocks, start, end, "Postdomination");
@@ -68,13 +63,15 @@ public class DominationTest {
 		}
 
 		@Override
-		protected BasicBlock tagToBlock(String tag) {
-			return findBlockContainingCall(tag, analyser);
+		protected boolean selfLinkRequired() {
+			return true;
 		}
 
 		@Override
-		protected boolean selfLinkRequired() {
-			return true;
+		protected Set<BasicBlock> getLinkToAllBlocks() {
+			Set<BasicBlock> endSet = new HashSet<BasicBlock>();
+			endSet.add(getEnd());
+			return endSet;
 		}
 
 	}
@@ -106,32 +103,6 @@ public class DominationTest {
 	}
 
 	private void checkDomination(String[][] dominators) {
-		// Convert 2D-array with possible multiple 'keys' into map of lists
-		Map<String, Collection<String>> m = new HashMap<String, Collection<String>>();
-
-		for (String[] d : dominators) {
-			if (!m.containsKey(d[0]))
-				m.put(d[0], new ArrayList<String>());
-			m.get(d[0]).add(d[1]);
-		}
-
-		checkDomination(m);
-	}
-
-	private void checkPostdomination(String[][] dominators) {
-		// Convert 2D-array with possible multiple 'keys' into map of lists
-		Map<String, Collection<String>> m = new HashMap<String, Collection<String>>();
-
-		for (String[] d : dominators) {
-			if (!m.containsKey(d[0]))
-				m.put(d[0], new ArrayList<String>());
-			m.get(d[0]).add(d[1]);
-		}
-
-		checkPostdomination(m);
-	}
-
-	private void checkDomination(Map<String, Collection<String>> dominators) {
 
 		Set<BasicBlock> allBlocks = domAnalyser.getBlocks();
 		BasicBlock start = findStartBlock(allBlocks);
@@ -144,7 +115,7 @@ public class DominationTest {
 		test.run();
 	}
 
-	private void checkPostdomination(Map<String, Collection<String>> dominators) {
+	private void checkPostdomination(String[][] dominators) {
 
 		Set<BasicBlock> allBlocks = postdomAnalyser.getBlocks();
 		BasicBlock start = findStartBlock(allBlocks);
@@ -216,47 +187,6 @@ public class DominationTest {
 		assertTrue("No END block found", end != null);
 
 		return end;
-	}
-
-	// You can have more than one different tag in a basic block but not more
-	// than one basic block containing the same tag.
-	private static BasicBlock findBlockContainingCall(String tag,
-			AbstractDomination analyser) {
-
-		Collection<BasicBlock> blocks = analyser.getBlocks();
-		BasicBlock block = null;
-		for (BasicBlock b : blocks) {
-			if (isBlockTaggedWithFunction(b, tag)) {
-				assertTrue("Multiple nodes with same function tag: " + tag
-						+ ". This violates the convention we are using for "
-						+ "these tests.", block == null);
-				block = b;
-			}
-		}
-
-		return block;
-	}
-
-	private static boolean isBlockTaggedWithFunction(BasicBlock block,
-			String tag) {
-		boolean found = false;
-		for (SimpleNode node : block) {
-			if (isFunctionNamed(tag, node)) {
-				assertFalse(
-						"Multiple statements in the block with same function "
-								+ "tag: " + tag + ". This violates the "
-								+ "convention we are using for these tests.",
-						found);
-				found = true;
-			}
-		}
-		return found;
-	}
-
-	private static boolean isFunctionNamed(String name, SimpleNode node) {
-		Call call = (Call) node;
-		Name funcName = (Name) call.func;
-		return funcName.id.equals(name);
 	}
 
 	@Test

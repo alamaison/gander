@@ -55,9 +55,8 @@ public class BasicBlock implements Iterable<SimpleNode> {
 	public boolean isEmpty() {
 		return statements.size() == 0;
 	}
-
-	@Override
-	public String toString() {
+	
+	public String stringerise() {
 		String message;
 		if (statements.isEmpty() && isStart())
 			message = "START";
@@ -65,8 +64,13 @@ public class BasicBlock implements Iterable<SimpleNode> {
 			message = "END";
 		else
 			message = statements.toString();
-			
-		return super.toString() + " " + message; 
+		
+		return message;
+	}
+
+	@Override
+	public String toString() {
+		return super.toString() + " " + stringerise(); 
 	}
 	
 }
