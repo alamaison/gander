@@ -10,6 +10,7 @@ public class ScopeExits {
 	private Set<BasicBlock> fallthroughQueue = new HashSet<BasicBlock>();
 	private Set<BasicBlock> breakoutQueue = new HashSet<BasicBlock>();
 	private Set<BasicBlock> continueQueue = new HashSet<BasicBlock>();
+	private Set<BasicBlock> returnQueue = new HashSet<BasicBlock>();
 	private BasicBlock root;
 
 	public void fallthrough(BasicBlock block) {
@@ -24,8 +25,8 @@ public class ScopeExits {
 		continueQueue.add(block);
 	}
 
-	public Set<BasicBlock> getFallthroughQueue() {
-		return fallthroughQueue;
+	public void returnFrom(BasicBlock block) {
+		returnQueue.add(block);
 	}
 
 	public void linkFallThroughsTo(BasicBlock successor) {
@@ -42,22 +43,29 @@ public class ScopeExits {
 			continueBlock.link(successor.getRoot());
 	}
 
+	public void linkReturnsTo(BasicBlock successor) {
+		for (BasicBlock returnBlock : returnQueue)
+			returnBlock.link(successor);
+	}
+
 	public void inheritFallthroughsFrom(ScopeExits otherExits) {
-		fallthroughQueue.addAll(otherExits.getFallthroughQueue());
+		fallthroughQueue.addAll(otherExits.fallthroughQueue);
 	}
 
-	public void inheritBreakoutsFrom(ScopeExits otherExits) {
-		breakoutQueue.addAll(otherExits.getBreakoutQueue());
+	public void inheritReturnsFrom(ScopeExits otherExits) {
+		returnQueue.addAll(otherExits.returnQueue);
 	}
 
-	public void inheritContinuesFrom(ScopeExits otherExits) {
+	public void inheritAllButFallthroughsFrom(ScopeExits otherExits) {
+
+		breakoutQueue.addAll(otherExits.breakoutQueue);
 		continueQueue.addAll(otherExits.continueQueue);
+		returnQueue.addAll(otherExits.returnQueue);
 	}
 
 	public void inheritExitsFrom(ScopeExits otherExits) {
+		inheritAllButFallthroughsFrom(otherExits);
 		inheritFallthroughsFrom(otherExits);
-		inheritBreakoutsFrom(otherExits);
-		inheritContinuesFrom(otherExits);
 	}
 
 	public void convertBreakoutsToFallthroughs(ScopeExits successor) {
@@ -66,7 +74,7 @@ public class ScopeExits {
 
 	public int exitSize() {
 		return fallthroughQueue.size() + breakoutQueue.size()
-				+ continueQueue.size();
+				+ continueQueue.size() + returnQueue.size();
 	}
 
 	public boolean isEndOfBlock() {
@@ -92,18 +100,6 @@ public class ScopeExits {
 		return getRoot() == null;
 	}
 
-	public void setFallthroughQueue(Set<BasicBlock> fallthroughQueue) {
-		this.fallthroughQueue = fallthroughQueue;
-	}
-
-	public Set<BasicBlock> getBreakoutQueue() {
-		return breakoutQueue;
-	}
-
-	public void setBreakoutQueue(Set<BasicBlock> breakoutQueue) {
-		this.breakoutQueue = breakoutQueue;
-	}
-
 	public BasicBlock getRoot() {
 		return root;
 	}
@@ -125,6 +121,7 @@ public class ScopeExits {
 	private void replaceNullExits() {
 		replaceNullExits(breakoutQueue, getRoot());
 		replaceNullExits(continueQueue, getRoot());
+		replaceNullExits(returnQueue, getRoot());
 	}
 
 	private static void replaceNullExits(Set<BasicBlock> exits, BasicBlock root) {
@@ -140,8 +137,9 @@ public class ScopeExits {
 	public String toString() {
 		return "ROOT:\n" + stringise(root) + "\n\nFALLTHROUGH:\n"
 				+ stringise(fallthroughQueue) + "\n\nBREAKOUT:\n"
-				+ stringise(breakoutQueue) + "\nCONTINUE:\n"
-				+ stringise(continueQueue);
+				+ stringise(breakoutQueue) + "\n\nCONTINUE:\n"
+				+ stringise(continueQueue) + "\n\nRETURN:\n"
+				+ stringise(returnQueue);
 	}
 
 	private static String stringise(Object obj) {

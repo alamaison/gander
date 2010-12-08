@@ -129,3 +129,52 @@ def test_while_if_continue2():
 			c()
 			continue
 		d()
+
+def test_return():
+	a()
+	b()
+	return
+
+def test_return_val():
+	a()
+	return b()
+	
+def test_cond_return():
+	a()
+	if b():
+		return c()
+	d()
+
+def test_while_return():
+	a()
+	while b():
+		c()
+		return
+	d()
+	
+def test_while_cond_return():
+	a()
+	while b():
+		c()
+		if d():
+			return
+		e()
+	f()
+
+def test_multiple_return():
+	if a():
+		return b()
+	else:
+		return c()
+
+def test_multiple_return2():
+	if a():
+		b()
+		return
+	else:
+		while c():
+			d()
+			if e():
+				return
+	f()
+	

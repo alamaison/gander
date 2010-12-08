@@ -47,7 +47,7 @@ public class IfScope extends ScopeWithParent {
 		ScopeExits body = new BodyScope(branch, null, this).process();
 
 		// link the test block to the branch body
-		assert condition.getFallthroughQueue().size() == 1;
+		assert condition.exitSize() == 1;
 		if (!body.isEmpty())
 			condition.linkFallThroughsTo(body);
 

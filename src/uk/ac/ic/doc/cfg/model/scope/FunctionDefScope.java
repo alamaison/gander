@@ -20,21 +20,23 @@ public class FunctionDefScope extends CodeScope {
 	}
 
 	public ScopeExits process() throws Exception {
-		
+
 		BodyScope scope = new BodyScope(node.body, null, this);
-		
+
 		ScopeExits body = scope.process();
-		
+
 		start = newBlock();
 		if (!body.isEmpty())
 			start.link(body.getRoot());
-	
+
 		end = newBlock();
-		if (!body.isEmpty())
+		if (!body.isEmpty()) {
 			body.linkFallThroughsTo(end);
-		else
+			body.linkReturnsTo(end);
+		} else {
 			start.link(end);
-		
+		}
+
 		return new ScopeExits();
 	}
 

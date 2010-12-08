@@ -7,6 +7,7 @@ import org.python.pydev.parser.jython.ast.Continue;
 import org.python.pydev.parser.jython.ast.Expr;
 import org.python.pydev.parser.jython.ast.FunctionDef;
 import org.python.pydev.parser.jython.ast.If;
+import org.python.pydev.parser.jython.ast.Return;
 import org.python.pydev.parser.jython.ast.While;
 
 public abstract class CodeScope extends Scope {
@@ -57,5 +58,10 @@ public abstract class CodeScope extends Scope {
 	@Override
 	public Object visitContinue(Continue node) throws Exception {
 		return delegateScope(new ContinueScope(node, getCurrentBlock(), this));
+	}
+
+	@Override
+	public Object visitReturn(Return node) throws Exception {
+		return delegateScope(new ReturnScope(node, getCurrentBlock(), this));
 	}
 }

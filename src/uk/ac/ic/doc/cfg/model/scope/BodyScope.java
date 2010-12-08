@@ -50,8 +50,7 @@ public class BodyScope extends ScopeWithParent {
 
 			// Union all statements' other exits as we don't process them at
 			// this level
-			body.inheritBreakoutsFrom(lastStatement);
-			body.inheritContinuesFrom(lastStatement);
+			body.inheritAllButFallthroughsFrom(lastStatement);
 
 			// It's possible we didn't have a current block. If so, we pretend
 			// we did for the next loop
@@ -61,7 +60,7 @@ public class BodyScope extends ScopeWithParent {
 
 		// Only push up last statement's fallthroughs as the others are
 		// dealt with by the body processing loop here
-		body.getFallthroughQueue().addAll(lastStatement.getFallthroughQueue());
+		body.inheritFallthroughsFrom(lastStatement);
 
 		body.setRoot(bodyRoot);
 

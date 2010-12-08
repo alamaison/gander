@@ -53,8 +53,8 @@ public class CfgTest2 {
 
 	public void initialise(String testFuncName) throws Throwable, Exception {
 		Model model = createTestModel(CONTROL_FLOW_PROJ);
-		Function function = model.getTopLevelPackage().getModules().get(
-				"my_module2").getFunctions().get(testFuncName);
+		Function function = model.getTopLevelPackage().getModules()
+				.get("my_module2").getFunctions().get(testFuncName);
 		assertTrue("No function " + testFuncName, function != null);
 
 		graph = function.getCfg();
@@ -262,6 +262,69 @@ public class CfgTest2 {
 
 		String[][] graph = { { "START", "a" }, { "a", "b" }, { "b", "c" },
 				{ "c", "a" }, { "b", "d" }, { "d", "a" }, { "a", "END" } };
+		checkControlFlow(graph);
+	}
+
+	@Test
+	public void testReturn() throws Throwable {
+		initialise("test_return");
+
+		String[][] graph = { { "START", "a" }, { "b", "END" } };
+		checkControlFlow(graph);
+	}
+
+	@Test
+	public void testReturnVal() throws Throwable {
+		initialise("test_return_val");
+
+		String[][] graph = { { "START", "a" }, { "b", "END" } };
+		checkControlFlow(graph);
+	}
+
+	@Test
+	public void testCondReturn() throws Throwable {
+		initialise("test_cond_return");
+
+		String[][] graph = { { "START", "a" }, { "b", "c" }, { "b", "d" },
+				{ "c", "END" }, { "d", "END" } };
+		checkControlFlow(graph);
+	}
+
+	@Test
+	public void testWhileReturn() throws Throwable {
+		initialise("test_while_return");
+
+		String[][] graph = { { "START", "a" }, { "a", "b" }, { "b", "c" },
+				{ "b", "d" }, { "c", "END" }, { "d", "END" } };
+		checkControlFlow(graph);
+	}
+
+	@Test
+	public void testWhileCondReturn() throws Throwable {
+		initialise("test_while_cond_return");
+
+		String[][] graph = { { "START", "a" }, { "a", "b" }, { "b", "c" },
+				{ "b", "f" }, { "d", "END" }, { "d", "e" }, { "e", "b" },
+				{ "f", "END" } };
+		checkControlFlow(graph);
+	}
+
+	@Test
+	public void testMultipleReturn() throws Throwable {
+		initialise("test_multiple_return");
+
+		String[][] graph = { { "START", "a" }, { "a", "b" }, { "a", "c" },
+				{ "b", "END" }, { "c", "END" } };
+		checkControlFlow(graph);
+	}
+
+	@Test
+	public void testMultipleReturn2() throws Throwable {
+		initialise("test_multiple_return2");
+
+		String[][] graph = { { "START", "a" }, { "a", "b" }, { "a", "c" },
+				{ "b", "END" }, { "c", "d" }, { "e", "END" }, { "e", "c" },
+				{ "c", "f" }, { "f", "END" } };
 		checkControlFlow(graph);
 	}
 }
