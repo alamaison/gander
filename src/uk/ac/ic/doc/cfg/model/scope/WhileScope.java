@@ -21,8 +21,7 @@ public class WhileScope extends ScopeWithParent {
 
 		// while
 
-		BasicBlock testBlock = newBlock();
-		setCurrentBlock(testBlock);
+		setCurrentBlock(null); // force new block for test
 		ScopeExits condition = (ScopeExits) node.test.accept(this);
 
 		// body
@@ -30,7 +29,7 @@ public class WhileScope extends ScopeWithParent {
 		BodyScope scope = new BodyScope(node.body, null, this);
 		ScopeExits body = scope.process();
 
-		// link the test block to the then body and the fallthrough
+		// link the test block to the body and the fallthrough
 		assert condition.exitSize() == 1;
 		condition.linkFallThroughsTo(body);
 		exits.inheritFallthroughsFrom(condition);

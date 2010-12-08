@@ -327,4 +327,40 @@ public class CfgTest2 {
 				{ "c", "f" }, { "f", "END" } };
 		checkControlFlow(graph);
 	}
+
+	@Test
+	public void testFor() throws Throwable {
+		initialise("test_for");
+
+		String[][] graph = { { "START", "a" }, { "a", "b" }, { "b", "c" },
+				{ "c", "b" }, { "b", "END" } };
+		checkControlFlow(graph);
+	}
+
+	@Test
+	public void testForBreak() throws Throwable {
+		initialise("test_for_break");
+
+		String[][] graph = { { "START", "a" }, { "a", "b" }, { "c", "a" },
+				{ "c", "END" }, { "a", "END" } };
+		checkControlFlow(graph);
+	}
+
+	@Test
+	public void testForContinue() throws Throwable {
+		initialise("test_for_continue");
+
+		String[][] graph = { { "START", "a" }, { "a", "b" }, { "b", "a" },
+				{ "b", "c" }, { "c", "a" }, { "a", "END" } };
+		checkControlFlow(graph);
+	}
+
+	@Test
+	public void testForReturn() throws Throwable {
+		initialise("test_for_return");
+
+		String[][] graph = { { "START", "a" }, { "a", "b" }, { "b", "END" },
+				{ "b", "c" }, { "c", "a" }, { "a", "END" } };
+		checkControlFlow(graph);
+	}
 }

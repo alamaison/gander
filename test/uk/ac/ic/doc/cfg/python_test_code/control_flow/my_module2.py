@@ -178,3 +178,25 @@ def test_multiple_return2():
 				return
 	f()
 	
+def test_for():
+	a()
+	for x in b():
+		c()
+	
+def test_for_break():
+	for x in a():
+		b()
+		if c():
+			break
+	
+def test_for_continue():
+	for x in a():
+		if b():
+			continue
+		c()
+	
+def test_for_return():
+	for x in a():
+		if b():
+			return
+		c()

@@ -5,6 +5,7 @@ import org.python.pydev.parser.jython.ast.Break;
 import org.python.pydev.parser.jython.ast.Call;
 import org.python.pydev.parser.jython.ast.Continue;
 import org.python.pydev.parser.jython.ast.Expr;
+import org.python.pydev.parser.jython.ast.For;
 import org.python.pydev.parser.jython.ast.FunctionDef;
 import org.python.pydev.parser.jython.ast.If;
 import org.python.pydev.parser.jython.ast.Return;
@@ -63,5 +64,10 @@ public abstract class CodeScope extends Scope {
 	@Override
 	public Object visitReturn(Return node) throws Exception {
 		return delegateScope(new ReturnScope(node, getCurrentBlock(), this));
+	}
+	
+	@Override
+	public Object visitFor(For node) throws Exception {
+		return delegateScope(new ForScope(node, getCurrentBlock(), this));
 	}
 }
