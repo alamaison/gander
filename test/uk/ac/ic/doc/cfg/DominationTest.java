@@ -76,7 +76,7 @@ public class DominationTest {
 
 	}
 
-	private static final String DOMINATION_PROJ = "python_test_code/domination";
+	private static final String DOMINATION_PROJ = "python_test_code/control_flow";
 
 	private Domination domAnalyser;
 	private Postdomination postdomAnalyser;
@@ -93,7 +93,7 @@ public class DominationTest {
 	public void initialise(String testFuncName) throws Throwable, Exception {
 		Model model = createTestModel(DOMINATION_PROJ);
 		Function function = model.getTopLevelPackage().getModules().get(
-				"my_module").getFunctions().get(testFuncName);
+				"my_module2").getFunctions().get(testFuncName);
 		assertTrue("No function " + testFuncName, function != null);
 
 		Cfg graph = function.getCfg();
@@ -191,7 +191,7 @@ public class DominationTest {
 
 	@Test
 	public void testDom() throws Throwable {
-		initialise("dom");
+		initialise("test_basic");
 
 		String[][] dominators = { { "a", "b" }, { "a", "END" }, { "b", "END" } };
 		checkDomination(dominators);
@@ -203,7 +203,7 @@ public class DominationTest {
 
 	@Test
 	public void testDomIf() throws Throwable {
-		initialise("dom_if");
+		initialise("test_if");
 
 		String[][] dominators = { { "a", "b" }, { "a", "c" }, { "b", "c" },
 				{ "a", "END" }, { "b", "END" } };
@@ -216,7 +216,7 @@ public class DominationTest {
 
 	@Test
 	public void testDomIfElse() throws Throwable {
-		initialise("dom_if_else");
+		initialise("test_if_else");
 
 		String[][] dominators = { { "a", "b" }, { "a", "c" }, { "a", "d" },
 				{ "b", "c" }, { "b", "d" }, { "a", "END" }, { "a", "END" },
@@ -230,7 +230,7 @@ public class DominationTest {
 
 	@Test
 	public void testDomIfFallthru() throws Throwable {
-		initialise("dom_if_fallthru");
+		initialise("test_if_fallthru");
 
 		String[][] dominators = { { "a", "b" }, { "a", "c" }, { "a", "d" },
 				{ "b", "c" }, { "b", "d" }, { "a", "END" }, { "b", "END" },
@@ -245,7 +245,7 @@ public class DominationTest {
 
 	@Test
 	public void testDomIfElseFallthru() throws Throwable {
-		initialise("dom_if_else_fallthru");
+		initialise("test_if_else_fallthru");
 
 		String[][] dominators = { { "a", "b" }, { "a", "c" }, { "a", "d" },
 				{ "a", "e" }, { "b", "c" }, { "b", "d" }, { "b", "e" },
@@ -260,7 +260,7 @@ public class DominationTest {
 
 	@Test
 	public void testDomWhile() throws Throwable {
-		initialise("dom_while");
+		initialise("test_while");
 
 		String[][] dominators = { { "a", "b" }, { "a", "c" }, { "a", "d" },
 				{ "b", "c" }, { "b", "d" }, { "a", "END" }, { "b", "END" },
@@ -275,7 +275,7 @@ public class DominationTest {
 
 	@Test
 	public void testDomNested() throws Throwable {
-		initialise("dom_nested");
+		initialise("test_nested");
 
 		String[][] dominators = { { "a", "b" }, { "a", "c" }, { "a", "d" },
 				{ "a", "e" }, { "a", "f" }, { "a", "g" }, { "a", "h" },
@@ -295,7 +295,7 @@ public class DominationTest {
 
 	@Test
 	public void testDomNestedWhileIf() throws Throwable {
-		initialise("dom_nested_while_if");
+		initialise("test_nested_while_if");
 
 		String[][] dominators = { { "a", "b" }, { "a", "c" }, { "a", "d" },
 				{ "a", "e" }, { "b", "c" }, { "b", "d" }, { "b", "e" },
@@ -310,7 +310,7 @@ public class DominationTest {
 
 	@Test
 	public void testDomNestedWhileIfBreak() throws Throwable {
-		initialise("dom_nested_while_if_break");
+		initialise("test_nested_while_if_break");
 
 		String[][] dominators = { { "a", "b" }, { "a", "c" }, { "a", "d" },
 				{ "a", "e" }, { "b", "c" }, { "b", "d" }, { "b", "e" },
@@ -324,7 +324,7 @@ public class DominationTest {
 
 	@Test
 	public void testDomNestedWhileIfBreakElse() throws Throwable {
-		initialise("dom_nested_while_if_break_else");
+		initialise("test_nested_while_if_break_else");
 
 		String[][] dominators = { { "a", "b" }, { "a", "c" }, { "a", "d" },
 				{ "a", "e" }, { "a", "f" }, { "b", "c" }, { "b", "d" },
@@ -339,7 +339,7 @@ public class DominationTest {
 
 	@Test
 	public void testDomNestedWhilesBreak() throws Throwable {
-		initialise("dom_nested_whiles_break");
+		initialise("test_nested_whiles_break");
 
 		String[][] dominators = { { "a", "b" }, { "a", "c" }, { "a", "d" },
 				{ "b", "c" }, { "b", "d" }, { "c", "d" }, { "a", "END" } };
@@ -352,7 +352,7 @@ public class DominationTest {
 
 	@Test
 	public void testDomNestedWhilesIfBreak() throws Throwable {
-		initialise("dom_nested_whiles_if_break");
+		initialise("test_nested_whiles_if_break");
 
 		String[][] dominators = { { "a", "b" }, { "a", "c" }, { "a", "d" },
 				{ "a", "e" }, { "b", "c" }, { "b", "d" }, { "b", "e" },
@@ -366,7 +366,7 @@ public class DominationTest {
 
 	@Test
 	public void testDomNestedWhilesBreakFall() throws Throwable {
-		initialise("dom_nested_whiles_break_fall");
+		initialise("test_nested_whiles_break_fall");
 
 		String[][] dominators = { { "a", "b" }, { "a", "c" }, { "a", "d" },
 				{ "a", "e" }, { "b", "c" }, { "b", "d" }, { "c", "d" },
@@ -381,7 +381,7 @@ public class DominationTest {
 
 	@Test
 	public void testDomNestedIfsBreak() throws Throwable {
-		initialise("dom_nested_ifs_break");
+		initialise("test_nested_ifs_break");
 
 		String[][] dominators = { { "a", "b" }, { "a", "c" }, { "a", "d" },
 				{ "a", "e" }, { "b", "c" }, { "b", "d" }, { "c", "d" },
@@ -395,7 +395,7 @@ public class DominationTest {
 
 	@Test
 	public void testDomIfElseBreak() throws Throwable {
-		initialise("dom_if_else_break");
+		initialise("test_if_else_break");
 
 		String[][] dominators = { { "a", "b" }, { "a", "c" }, { "a", "d" },
 				{ "b", "c" }, { "a", "END" }, { "d", "END" } };
@@ -408,7 +408,7 @@ public class DominationTest {
 
 	@Test
 	public void testDomTwoprongedFallthoughToWhile() throws Throwable {
-		initialise("dom_twopronged_fallthrough_to_while");
+		initialise("test_twopronged_fallthrough_to_while");
 
 		String[][] dominators = { { "a", "b" }, { "a", "c" }, { "a", "d" },
 				{ "a", "e" }, { "d", "e" }, { "a", "END" }, { "d", "END" } };
@@ -421,7 +421,7 @@ public class DominationTest {
 
 	@Test
 	public void testDomWhileIfContinue1() throws Throwable {
-		initialise("dom_while_if_continue1");
+		initialise("test_while_if_continue1");
 
 		String[][] dominators = { { "a", "b" }, { "a", "c" }, { "b", "c" },
 				{ "a", "END" } };
@@ -434,7 +434,7 @@ public class DominationTest {
 
 	@Test
 	public void testDomWhileIfContinue2() throws Throwable {
-		initialise("dom_while_if_continue2");
+		initialise("test_while_if_continue2");
 
 		String[][] dominators = { { "a", "b" }, { "a", "c" }, { "a", "d" },
 				{ "b", "c" }, { "b", "d" }, { "a", "END" } };

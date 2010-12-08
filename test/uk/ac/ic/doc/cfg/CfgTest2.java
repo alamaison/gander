@@ -38,7 +38,7 @@ public class CfgTest2 {
 		}
 	}
 
-	private static final String DOMINATION_PROJ = "python_test_code/domination";
+	private static final String CONTROL_FLOW_PROJ = "python_test_code/control_flow";
 
 	private Cfg graph;
 
@@ -52,9 +52,9 @@ public class CfgTest2 {
 	}
 
 	public void initialise(String testFuncName) throws Throwable, Exception {
-		Model model = createTestModel(DOMINATION_PROJ);
+		Model model = createTestModel(CONTROL_FLOW_PROJ);
 		Function function = model.getTopLevelPackage().getModules().get(
-				"my_module").getFunctions().get(testFuncName);
+				"my_module2").getFunctions().get(testFuncName);
 		assertTrue("No function " + testFuncName, function != null);
 
 		graph = function.getCfg();
@@ -99,7 +99,7 @@ public class CfgTest2 {
 
 	@Test
 	public void testCfg() throws Throwable {
-		initialise("dom");
+		initialise("test_basic");
 
 		String[][] graph = { { "START", "a" }, { "b", "END" } };
 		checkControlFlow(graph);
@@ -107,7 +107,7 @@ public class CfgTest2 {
 
 	@Test
 	public void testCfgIf() throws Throwable {
-		initialise("dom_if");
+		initialise("test_if");
 
 		String[][] graph = { { "START", "a" }, { "b", "c" }, { "b", "END" },
 				{ "c", "END" } };
@@ -116,7 +116,7 @@ public class CfgTest2 {
 
 	@Test
 	public void testCfgIfElse() throws Throwable {
-		initialise("dom_if_else");
+		initialise("test_if_else");
 
 		String[][] graph = { { "START", "a" }, { "b", "c" }, { "b", "d" },
 				{ "c", "END" }, { "d", "END" } };
@@ -125,7 +125,7 @@ public class CfgTest2 {
 
 	@Test
 	public void testCfgIfFallthru() throws Throwable {
-		initialise("dom_if_fallthru");
+		initialise("test_if_fallthru");
 
 		String[][] graph = { { "START", "a" }, { "b", "c" }, { "b", "d" },
 				{ "c", "d" }, { "d", "END" } };
@@ -134,7 +134,7 @@ public class CfgTest2 {
 
 	@Test
 	public void testCfgIfElseFallthru() throws Throwable {
-		initialise("dom_if_else_fallthru");
+		initialise("test_if_else_fallthru");
 
 		String[][] graph = { { "START", "a" }, { "b", "c" }, { "b", "d" },
 				{ "c", "e" }, { "d", "e" }, { "e", "END" } };
@@ -143,7 +143,7 @@ public class CfgTest2 {
 
 	@Test
 	public void testCfgWhile() throws Throwable {
-		initialise("dom_while");
+		initialise("test_while");
 
 		String[][] graph = { { "START", "a" }, { "a", "b" }, { "b", "c" },
 				{ "c", "b" }, { "b", "d" }, { "d", "END" } };
@@ -152,7 +152,7 @@ public class CfgTest2 {
 
 	@Test
 	public void testCfgNested() throws Throwable {
-		initialise("dom_nested");
+		initialise("test_nested");
 
 		String[][] graph = { { "START", "a" }, { "b", "c" }, { "b", "g" },
 				{ "c", "d" }, { "d", "e" }, { "e", "d" }, { "d", "f" },
@@ -162,7 +162,7 @@ public class CfgTest2 {
 
 	@Test
 	public void testCfgNestedWhileIf() throws Throwable {
-		initialise("dom_nested_while_if");
+		initialise("test_nested_while_if");
 
 		String[][] graph = { { "START", "a" }, { "a", "b" }, { "c", "d" },
 				{ "c", "e" }, { "d", "e" }, { "e", "a" }, { "a", "END" } };
@@ -171,7 +171,7 @@ public class CfgTest2 {
 
 	@Test
 	public void testCfgNestedWhileIfBreak() throws Throwable {
-		initialise("dom_nested_while_if_break");
+		initialise("test_nested_while_if_break");
 
 		String[][] graph = { { "START", "a" }, { "a", "b" }, { "c", "d" },
 				{ "c", "e" }, { "d", "END" }, { "e", "a" }, { "a", "END" } };
@@ -180,7 +180,7 @@ public class CfgTest2 {
 
 	@Test
 	public void testCfgNestedWhileIfBreakElse() throws Throwable {
-		initialise("dom_nested_while_if_break_else");
+		initialise("test_nested_while_if_break_else");
 
 		String[][] graph = { { "START", "a" }, { "a", "b" }, { "c", "d" },
 				{ "c", "e" }, { "d", "END" }, { "e", "f" }, { "f", "a" },
@@ -190,7 +190,7 @@ public class CfgTest2 {
 
 	@Test
 	public void testCfgNestedWhilesBreak() throws Throwable {
-		initialise("dom_nested_whiles_break");
+		initialise("test_nested_whiles_break");
 
 		String[][] graph = { { "START", "a" }, { "a", "b" }, { "b", "c" },
 				{ "c", "d" }, { "d", "a" }, { "c", "a" }, { "a", "END" } };
@@ -199,7 +199,7 @@ public class CfgTest2 {
 
 	@Test
 	public void testCfgNestedWhilesIfBreak() throws Throwable {
-		initialise("dom_nested_whiles_if_break");
+		initialise("test_nested_whiles_if_break");
 
 		String[][] graph = { { "START", "a" }, { "a", "b" }, { "b", "c" },
 				{ "c", "d" }, { "c", "a" }, { "e", "a" }, { "e", "c" },
@@ -209,7 +209,7 @@ public class CfgTest2 {
 
 	@Test
 	public void testCfgNestedWhilesBreakFall() throws Throwable {
-		initialise("dom_nested_whiles_break_fall");
+		initialise("test_nested_whiles_break_fall");
 
 		String[][] graph = { { "START", "a" }, { "a", "b" }, { "b", "c" },
 				{ "c", "d" }, { "c", "a" }, { "d", "a" }, { "a", "e" },
@@ -219,7 +219,7 @@ public class CfgTest2 {
 
 	@Test
 	public void testCfgNestedIfsBreak() throws Throwable {
-		initialise("dom_nested_ifs_break");
+		initialise("test_nested_ifs_break");
 
 		String[][] graph = { { "START", "a" }, { "a", "b" }, { "b", "a" },
 				{ "b", "c" }, { "c", "d" }, { "c", "e" }, { "d", "a" },
@@ -229,7 +229,7 @@ public class CfgTest2 {
 
 	@Test
 	public void testCfgIfElseBreak() throws Throwable {
-		initialise("dom_if_else_break");
+		initialise("test_if_else_break");
 
 		String[][] graph = { { "START", "a" }, { "a", "b" }, { "a", "d" },
 				{ "b", "c" }, { "b", "d" }, { "c", "a" }, { "a", "d" },
@@ -239,7 +239,7 @@ public class CfgTest2 {
 
 	@Test
 	public void testCfgTwoprongedFallthoughToWhile() throws Throwable {
-		initialise("dom_twopronged_fallthrough_to_while");
+		initialise("test_twopronged_fallthrough_to_while");
 
 		String[][] graph = { { "START", "a" }, { "a", "b" }, { "a", "c" },
 				{ "b", "d" }, { "c", "d" }, { "d", "e" }, { "e", "d" },
@@ -249,7 +249,7 @@ public class CfgTest2 {
 
 	@Test
 	public void testCfgWhileIfContinue1() throws Throwable {
-		initialise("dom_while_if_continue1");
+		initialise("test_while_if_continue1");
 
 		String[][] graph = { { "START", "a" }, { "a", "b" }, { "b", "c" },
 				{ "b", "a" }, { "c", "a" }, { "a", "END" } };
@@ -258,7 +258,7 @@ public class CfgTest2 {
 
 	@Test
 	public void testCfgWhileIfContinue2() throws Throwable {
-		initialise("dom_while_if_continue2");
+		initialise("test_while_if_continue2");
 
 		String[][] graph = { { "START", "a" }, { "a", "b" }, { "b", "c" },
 				{ "c", "a" }, { "b", "d" }, { "d", "a" }, { "a", "END" } };
