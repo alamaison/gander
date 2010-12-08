@@ -15,4 +15,8 @@ public class Method implements IModelElement {
 		return ((NameTok) (method.name)).id;
 	}
 
+	public Cfg getCfg() throws Exception {
+		return new Cfg(method);
+	}
+
 }

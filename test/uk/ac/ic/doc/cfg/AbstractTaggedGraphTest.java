@@ -18,14 +18,13 @@ import uk.ac.ic.doc.cfg.model.BasicBlock;
 public abstract class AbstractTaggedGraphTest extends GraphTest {
 
 	public AbstractTaggedGraphTest(Map<String, Collection<String>> links,
-			Set<BasicBlock> allBlocks, BasicBlock start, BasicBlock end,
-			String name) {
-		super(links, allBlocks, start, end, name);
+			Set<BasicBlock> blocks, String name) {
+		super(links, blocks, findStartBlock(blocks), findEndBlock(blocks), name);
 	}
 
 	public AbstractTaggedGraphTest(String[][] links, Set<BasicBlock> blocks,
-			BasicBlock start, BasicBlock end, String name) {
-		super(links, blocks, start, end, name);
+			String name) {
+		super(links, blocks, findStartBlock(blocks), findEndBlock(blocks), name);
 	}
 
 	protected BasicBlock findBlockContainingCall(String tag) {
@@ -60,7 +59,7 @@ public abstract class AbstractTaggedGraphTest extends GraphTest {
 		List<String> tags = new ArrayList<String>();
 		if (block.statements.isEmpty())
 			return block.stringerise();
-		
+
 		try {
 			for (SimpleNode node : block.statements) {
 				Call call = (Call) node;
@@ -95,4 +94,31 @@ public abstract class AbstractTaggedGraphTest extends GraphTest {
 		return funcName.id.equals(name);
 	}
 
+	private static BasicBlock findStartBlock(Set<BasicBlock> blocks) {
+		BasicBlock start = null;
+		for (BasicBlock block : blocks) {
+			if (block.getPredecessors().isEmpty()) {
+				assertTrue("Multiple START blocks found", start == null);
+				start = block;
+			}
+		}
+
+		assertTrue("No START block found", start != null);
+
+		return start;
+	}
+
+	private static BasicBlock findEndBlock(Set<BasicBlock> blocks) {
+		BasicBlock end = null;
+		for (BasicBlock block : blocks) {
+			if (block.getSuccessors().isEmpty()) {
+				assertTrue("Multiple END blocks found", end == null);
+				end = block;
+			}
+		}
+
+		assertTrue("No END block found", end != null);
+
+		return end;
+	}
 }

@@ -22,8 +22,8 @@ public class DominationTest {
 		private AbstractDomination analyser;
 
 		public DominationGraphTest(String[][] links, Set<BasicBlock> allBlocks,
-				BasicBlock start, BasicBlock end, AbstractDomination domAnalyser) {
-			super(links, allBlocks, start, end, "Domination");
+				AbstractDomination domAnalyser) {
+			super(links, allBlocks, "Domination");
 			this.analyser = domAnalyser;
 		}
 
@@ -51,9 +51,8 @@ public class DominationTest {
 		private AbstractDomination analyser;
 
 		public PostdominationGraphTest(String[][] links,
-				Set<BasicBlock> allBlocks, BasicBlock start, BasicBlock end,
-				AbstractDomination domAnalyser) {
-			super(links, allBlocks, start, end, "Postdomination");
+				Set<BasicBlock> allBlocks, AbstractDomination domAnalyser) {
+			super(links, allBlocks, "Postdomination");
 			this.analyser = domAnalyser;
 		}
 
@@ -92,8 +91,8 @@ public class DominationTest {
 
 	public void initialise(String testFuncName) throws Throwable, Exception {
 		Model model = createTestModel(DOMINATION_PROJ);
-		Function function = model.getTopLevelPackage().getModules().get(
-				"my_module2").getFunctions().get(testFuncName);
+		Function function = model.getTopLevelPackage().getModules()
+				.get("my_module2").getFunctions().get(testFuncName);
 		assertTrue("No function " + testFuncName, function != null);
 
 		Cfg graph = function.getCfg();
@@ -110,8 +109,8 @@ public class DominationTest {
 
 		checkStartEndDomination(allBlocks, start, end);
 
-		GraphTest test = new DominationGraphTest(dominators, allBlocks, start,
-				end, domAnalyser);
+		GraphTest test = new DominationGraphTest(dominators, allBlocks,
+				domAnalyser);
 		test.run();
 	}
 
@@ -124,7 +123,7 @@ public class DominationTest {
 		checkStartEndPostdomination(allBlocks, start, end);
 
 		GraphTest test = new PostdominationGraphTest(dominators, allBlocks,
-				start, end, postdomAnalyser);
+				postdomAnalyser);
 		test.run();
 	}
 
@@ -136,8 +135,8 @@ public class DominationTest {
 		assertNotSame(start, end);
 
 		for (BasicBlock block : blocks) {
-			assertTrue("START must dominate all other blocks", domAnalyser
-					.dominates(start, block));
+			assertTrue("START must dominate all other blocks",
+					domAnalyser.dominates(start, block));
 			if (block != end)
 				assertFalse("END must not dominate anything execpt itself",
 						domAnalyser.dominates(end, block));

@@ -17,9 +17,8 @@ public class CfgTest2 {
 
 	private class ControlFlowGraphTest extends AbstractTaggedGraphTest {
 
-		public ControlFlowGraphTest(String[][] links, Set<BasicBlock> blocks,
-				BasicBlock start, BasicBlock end) {
-			super(links, blocks, start, end, "Control-flow");
+		public ControlFlowGraphTest(String[][] links, Set<BasicBlock> blocks) {
+			super(links, blocks, "Control-flow");
 		}
 
 		@Override
@@ -63,38 +62,8 @@ public class CfgTest2 {
 	private void checkControlFlow(String[][] dominators) {
 
 		Set<BasicBlock> allBlocks = graph.getBlocks();
-		BasicBlock start = findStartBlock(allBlocks);
-		BasicBlock end = findEndBlock(allBlocks);
 
-		new ControlFlowGraphTest(dominators, allBlocks, start, end).run();
-	}
-
-	private BasicBlock findStartBlock(Set<BasicBlock> blocks) {
-		BasicBlock start = null;
-		for (BasicBlock block : blocks) {
-			if (block.getPredecessors().isEmpty()) {
-				assertTrue("Multiple START blocks found", start == null);
-				start = block;
-			}
-		}
-
-		assertTrue("No START block found", start != null);
-
-		return start;
-	}
-
-	private BasicBlock findEndBlock(Set<BasicBlock> blocks) {
-		BasicBlock end = null;
-		for (BasicBlock block : blocks) {
-			if (block.getSuccessors().isEmpty()) {
-				assertTrue("Multiple END blocks found", end == null);
-				end = block;
-			}
-		}
-
-		assertTrue("No END block found", end != null);
-
-		return end;
+		new ControlFlowGraphTest(dominators, allBlocks).run();
 	}
 
 	@Test
