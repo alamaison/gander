@@ -41,6 +41,7 @@ public class Module implements IModelElement {
 					.file_input();
 		} else {
 			this.module = new org.python.pydev.parser.jython.ast.Module(null);
+			this.module.body = new stmtType[]{};
 		}
 	}
 

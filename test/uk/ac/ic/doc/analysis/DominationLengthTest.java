@@ -5,7 +5,6 @@ import static org.junit.Assert.assertEquals;
 import java.io.File;
 import java.net.URL;
 
-import org.junit.Before;
 import org.junit.Test;
 
 import uk.ac.ic.doc.cfg.Model;
@@ -13,6 +12,8 @@ import uk.ac.ic.doc.cfg.Model;
 public class DominationLengthTest {
 
 	private static final String LENGTH_PROJ = "python_test_code/dom_length";
+	private static final String LENGTH_PKG_PROJ =
+		"python_test_code/dom_length_package";
 
 	private DominationLength analyser;
 
@@ -25,30 +26,57 @@ public class DominationLengthTest {
 		return model;
 	}
 
-	@Before
-	public void initialise() throws Throwable {
-		Model model = createTestModel(LENGTH_PROJ);
+	public void initialise(String project) throws Throwable {
+		Model model = createTestModel(project);
 
 		analyser = new DominationLength(model);
 	}
-	
+
 	@Test
 	public void testDomExpressionCount() throws Throwable {
+		initialise(LENGTH_PROJ);
 		assertEquals(12, analyser.expressionCount());
 	}
 
 	@Test
 	public void testDomLengthMax() throws Throwable {
+		initialise(LENGTH_PROJ);
 		assertEquals(8, analyser.max());
 	}
 
 	@Test
 	public void testDomLengthMin() throws Throwable {
+		initialise(LENGTH_PROJ);
 		assertEquals(1, analyser.min());
 	}
 
 	@Test
 	public void testDomLengthAvg() throws Throwable {
+		initialise(LENGTH_PROJ);
+		assertEquals(5.583, analyser.average(), 0.0006);
+	}
+
+	@Test
+	public void testDomPkgExpressionCount() throws Throwable {
+		initialise(LENGTH_PKG_PROJ);
+		assertEquals(12, analyser.expressionCount());
+	}
+
+	@Test
+	public void testDomPkgLengthMax() throws Throwable {
+		initialise(LENGTH_PKG_PROJ);
+		assertEquals(8, analyser.max());
+	}
+
+	@Test
+	public void testDomPkgLengthMin() throws Throwable {
+		initialise(LENGTH_PKG_PROJ);
+		assertEquals(1, analyser.min());
+	}
+
+	@Test
+	public void testDomPkgLengthAvg() throws Throwable {
+		initialise(LENGTH_PKG_PROJ);
 		assertEquals(5.583, analyser.average(), 0.0006);
 	}
 }
