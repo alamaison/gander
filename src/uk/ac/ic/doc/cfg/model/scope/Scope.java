@@ -8,7 +8,7 @@ import uk.ac.ic.doc.cfg.model.BasicBlock;
 public abstract class Scope extends VisitorBase {
 
 	private BasicBlock block = null;
-	
+
 	@Override
 	public void traverse(SimpleNode node) throws Exception {
 		node.traverse(this);
@@ -20,14 +20,16 @@ public abstract class Scope extends VisitorBase {
 
 	@Override
 	protected Object unhandled_node(SimpleNode node) throws Exception {
-		// TODO Auto-generated method stub
-		return null;
+		System.err.println("Unhandled node: " + node);
+		ScopeExits exits = new ScopeExits();
+		exits.setRoot(getCurrentBlock());
+		return exits;
 	}
 
 	protected BasicBlock getCurrentBlock() {
 		return block;
 	}
-	
+
 	protected void setCurrentBlock(BasicBlock block) {
 		this.block = block;
 	}

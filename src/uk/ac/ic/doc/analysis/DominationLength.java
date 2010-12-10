@@ -3,7 +3,6 @@ package uk.ac.ic.doc.analysis;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 
 import org.python.pydev.parser.jython.SimpleNode;
@@ -44,6 +43,7 @@ public class DominationLength {
 	}
 
 	private void analyseFunction(Function function) throws Exception {
+		System.err.println("Processing " + function.getName());
 		Cfg graph = function.getCfg();
 		analyseChainSize(graph);
 	}

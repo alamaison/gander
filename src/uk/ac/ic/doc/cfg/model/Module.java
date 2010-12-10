@@ -22,16 +22,18 @@ public class Module implements IModelElement {
 
 	private String name;
 	private org.python.pydev.parser.jython.ast.Module module;
+	private IModelElement parent;
 
 	private static final Pattern MODULE_NAME_PATTERN = Pattern
 			.compile("(.*)\\.py");
 	private static final int MODULE_NAME_MATCHING_GROUP = 1;
 
-	public Module(File module) throws IOException, ParseException,
-			InvalidElementException {
+	public Module(File module, IModelElement parent) throws IOException,
+			ParseException, InvalidElementException {
 		this.name = moduleNameFromFile(module);
 		if (this.name == null)
 			throw new InvalidElementException("Not a module", module);
+		this.parent = parent;
 
 		if (module.length() > 0) {
 			CharStream stream = new FastCharStream(fileToString(module)
@@ -41,7 +43,7 @@ public class Module implements IModelElement {
 					.file_input();
 		} else {
 			this.module = new org.python.pydev.parser.jython.ast.Module(null);
-			this.module.body = new stmtType[]{};
+			this.module.body = new stmtType[] {};
 		}
 	}
 
@@ -51,7 +53,7 @@ public class Module implements IModelElement {
 	 * @see uk.ac.ic.doc.cfg.model.IModelElement#getName()
 	 */
 	public String getName() {
-		return name;
+		return parent.getName() + "." + name;
 	}
 
 	/**
@@ -62,7 +64,7 @@ public class Module implements IModelElement {
 		BufferedInputStream f = null;
 		try {
 			f = new BufferedInputStream(new FileInputStream(file));
-				f.read(buffer);
+			f.read(buffer);
 		} finally {
 			if (f != null)
 				try {
@@ -90,28 +92,28 @@ public class Module implements IModelElement {
 	}
 
 	public Map<String, Class> getClasses() {
-		
+
 		Map<String, Class> classes = new HashMap<String, Class>();
 		for (stmtType stmt : module.body) {
 			if (stmt instanceof ClassDef) {
-				Class cls = new Class((ClassDef)stmt);
+				Class cls = new Class((ClassDef) stmt, this);
 				classes.put(cls.getName(), cls);
 			}
 		}
-		
+
 		return classes;
 	}
 
 	public Map<String, Function> getFunctions() {
-		
+
 		Map<String, Function> functions = new HashMap<String, Function>();
 		for (stmtType stmt : module.body) {
 			if (stmt instanceof FunctionDef) {
-				Function function = new Function((FunctionDef)stmt);
+				Function function = new Function((FunctionDef) stmt, this);
 				functions.put(function.getName(), function);
 			}
 		}
-		
+
 		return functions;
 	}
 }

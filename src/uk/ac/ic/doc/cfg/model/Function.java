@@ -8,13 +8,15 @@ import uk.ac.ic.doc.cfg.model.Cfg;
 public class Function implements IModelElement {
 
 	private FunctionDef function;
+	private IModelElement parent;
 
-	public Function(FunctionDef function) {
+	public Function(FunctionDef function, IModelElement parent) {
 		this.function = function;
+		this.parent = parent;
 	}
 
 	public String getName() {
-		return ((NameTok) (function.name)).id;
+		return parent.getName() + "." + ((NameTok) (function.name)).id;
 	}
 
 	public Cfg getCfg() throws Exception {

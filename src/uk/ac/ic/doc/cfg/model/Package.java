@@ -12,38 +12,46 @@ public class Package implements IModelElement {
 	private HashMap<String, Module> modules = new HashMap<String, Module>();
 	private HashMap<String, Package> packages = new HashMap<String, Package>();
 	private String name;
+	private IModelElement parent = null;
 
 	private static final String PACKAGE_TAG_NAME = "__init__";
 
-	public Package(File directory) throws IOException, ParseException, InvalidElementException {
-		processDirectory(directory, true);
+	public Package(File directory) throws IOException, ParseException,
+			InvalidElementException {
+		processDirectory(directory);
 	}
 
-	private Package(File directory, boolean topLevel) throws IOException,
+	private Package(File directory, IModelElement parent) throws IOException,
 			ParseException, InvalidElementException {
-		processDirectory(directory, topLevel);
+		this.parent = parent;
+		processDirectory(directory);
 	}
 
-	private void processDirectory(File directory, boolean topLevel)
-			throws IOException, ParseException, InvalidElementException {
-		
-		if (!directory.isDirectory() || (!topLevel && !isPythonPackage(directory)))
+	private boolean isTopLevel() {
+		return parent == null;
+	}
+
+	private void processDirectory(File directory) throws IOException,
+			ParseException, InvalidElementException {
+
+		if (!directory.isDirectory()
+				|| (!isTopLevel() && !isPythonPackage(directory)))
 			throw new InvalidElementException("Not a package", directory);
 
 		for (File f : directory.listFiles()) {
 			try {
 				if (f.isDirectory()) {
-					Package p = new Package(f, false);
+					Package p = new Package(f, this);
 					packages.put(p.getName(), p);
 				} else if (f.isFile()) {
-					Module m = new Module(f);
+					Module m = new Module(f, this);
 					modules.put(m.getName(), m);
 				}
+			} catch (InvalidElementException e) { /* carry on */
 			}
-			catch (InvalidElementException e) { /* carry on */ }
 		}
 
-		this.name = (topLevel) ? "" : directory.getName();
+		this.name = (isTopLevel()) ? "" : directory.getName();
 	}
 
 	/**
@@ -68,7 +76,10 @@ public class Package implements IModelElement {
 	 * @see uk.ac.ic.doc.cfg.model.IModelElement#getName()
 	 */
 	public String getName() {
-		return name;
+		if (isTopLevel())
+			return name;
+		else
+			return parent.getName() + "." + name;
 	}
 
 	public Map<String, Package> getPackages() {
