@@ -10,6 +10,7 @@ import org.python.pydev.parser.jython.ast.FunctionDef;
 import org.python.pydev.parser.jython.ast.If;
 import org.python.pydev.parser.jython.ast.Return;
 import org.python.pydev.parser.jython.ast.While;
+import org.python.pydev.parser.jython.ast.Yield;
 
 public abstract class CodeScope extends Scope {
 
@@ -69,5 +70,10 @@ public abstract class CodeScope extends Scope {
 	@Override
 	public Object visitFor(For node) throws Exception {
 		return delegateScope(new ForScope(node, getCurrentBlock(), this));
+	}
+	
+	@Override
+	public Object visitYield(Yield node) throws Exception {
+		return delegateScope(new YieldScope(node, getCurrentBlock(), this));
 	}
 }

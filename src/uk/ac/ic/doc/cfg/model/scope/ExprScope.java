@@ -15,10 +15,9 @@ public class ExprScope extends ScopeWithParent {
 
 	@Override
 	protected ScopeExits doProcess() throws Exception {
-		addToCurrentBlock(node.value);
-		ScopeExits exits = new ScopeExits();
-		exits.setRoot(getCurrentBlock());
-		exits.fallthrough(getCurrentBlock());
-		return exits;
+		// Expr nodes are just wrappers for any expression node.  These
+		// nodes need processing in their own right.
+		
+		return (ScopeExits) this.node.value.accept(this);
 	}
 }

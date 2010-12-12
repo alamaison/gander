@@ -52,7 +52,7 @@ public class ScopeExits {
 		fallthroughQueue.addAll(otherExits.fallthroughQueue);
 	}
 
-	public void inheritReturnsFrom(ScopeExits otherExits) {
+	public void inheritNonLoopExitsFrom(ScopeExits otherExits) {
 		returnQueue.addAll(otherExits.returnQueue);
 	}
 
@@ -81,6 +81,7 @@ public class ScopeExits {
 		if (exitSize() > 1)
 			return true;
 
+		// If the one fallthrough block already has a successor
 		assert fallthroughQueue.size() < 2;
 		for (BasicBlock b : fallthroughQueue) {
 			if (!b.isEnd())

@@ -200,3 +200,14 @@ def test_for_return():
 		if b():
 			return
 		c()
+
+def test_yield1():
+	a()
+	while b():
+		yield c()
+		d()
+
+def test_yield2():
+	a()
+	while b():
+		yield c()

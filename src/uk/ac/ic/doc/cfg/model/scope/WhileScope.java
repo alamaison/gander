@@ -49,8 +49,9 @@ public class WhileScope extends ScopeWithParent {
 		// loop rather than passing through the test first
 		exits.convertBreakoutsToFallthroughs(body);
 
-		// returns are the only type of exit that is pushed to the next level
-		exits.inheritReturnsFrom(body);
+		// returns and yields are the only type of exit that is pushed to the
+		// next level
+		exits.inheritNonLoopExitsFrom(body);
 
 		exits.setRoot(condition.getRoot());
 		return exits;
