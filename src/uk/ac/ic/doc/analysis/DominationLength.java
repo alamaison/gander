@@ -43,7 +43,7 @@ public class DominationLength {
 	}
 
 	private void analyseFunction(Function function) throws Exception {
-		System.err.println("Processing " + function.getName());
+		System.err.println("Processing " + function.getFullName());
 		Cfg graph = function.getCfg();
 		analyseChainSize(graph);
 	}

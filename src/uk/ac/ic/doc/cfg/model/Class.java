@@ -19,7 +19,11 @@ public class Class implements IModelElement {
 	}
 
 	public String getName() {
-		return parent.getName() + "." + ((NameTok) (cls.name)).id;
+		return ((NameTok) (cls.name)).id;
+	}
+	
+	public String getFullName() {
+		return parent.getFullName() + "." + getName();
 	}
 
 	public Map<String, Method> getMethods() {

@@ -76,10 +76,15 @@ public class Package implements IModelElement {
 	 * @see uk.ac.ic.doc.cfg.model.IModelElement#getName()
 	 */
 	public String getName() {
+		return name;
+	}
+
+	@Override
+	public String getFullName() {
 		if (isTopLevel())
-			return name;
+			return getName();
 		else
-			return parent.getName() + "." + name;
+			return parent.getFullName() + "." + getName();
 	}
 
 	public Map<String, Package> getPackages() {
@@ -89,5 +94,4 @@ public class Package implements IModelElement {
 	public Map<String, Module> getModules() {
 		return modules;
 	}
-
 }

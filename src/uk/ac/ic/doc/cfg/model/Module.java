@@ -53,7 +53,11 @@ public class Module implements IModelElement {
 	 * @see uk.ac.ic.doc.cfg.model.IModelElement#getName()
 	 */
 	public String getName() {
-		return parent.getName() + "." + name;
+		return name;
+	}
+	
+	public String getFullName() {
+		return parent.getFullName() + "." + getName();
 	}
 
 	/**

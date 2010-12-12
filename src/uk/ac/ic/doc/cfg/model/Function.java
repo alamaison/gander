@@ -16,7 +16,11 @@ public class Function implements IModelElement {
 	}
 
 	public String getName() {
-		return parent.getName() + "." + ((NameTok) (function.name)).id;
+		return ((NameTok) (function.name)).id;
+	}
+	
+	public String getFullName() {
+		return parent.getFullName() + "." + getName();
 	}
 
 	public Cfg getCfg() throws Exception {
