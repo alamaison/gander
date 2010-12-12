@@ -1,15 +1,15 @@
 package uk.ac.ic.doc.cfg.model.scope;
 
-import org.python.pydev.parser.jython.ast.Call;
+import org.python.pydev.parser.jython.SimpleNode;
+import org.python.pydev.parser.jython.ast.AugAssign;
 
 import uk.ac.ic.doc.cfg.model.BasicBlock;
 
-public class CallScope extends ScopeWithParent {
+public class SelfAddingScope<T extends SimpleNode> extends ScopeWithParent {
 
-	private Call node;
+	private T node;
 
-	// TODO Make CallScope that handles exceptions killing the basic block
-	public CallScope(Call node, BasicBlock root, Scope parent) {
+	public SelfAddingScope(T node, BasicBlock root, Scope parent) {
 		super(parent, root);
 		this.node = node;
 	}
@@ -22,5 +22,4 @@ public class CallScope extends ScopeWithParent {
 		exits.fallthrough(getCurrentBlock());
 		return exits;
 	}
-
 }
