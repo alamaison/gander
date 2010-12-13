@@ -6,11 +6,8 @@ import uk.ac.ic.doc.cfg.model.BasicBlock;
 
 public class RaiseScope extends ScopeWithParent {
 
-	private Raise node;
-
 	public RaiseScope(Raise node, BasicBlock root, Scope parent) {
 		super(parent, root);
-		this.node = node;
 	}
 
 	@Override

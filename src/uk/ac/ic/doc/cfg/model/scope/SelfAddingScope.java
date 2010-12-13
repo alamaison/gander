@@ -1,7 +1,6 @@
 package uk.ac.ic.doc.cfg.model.scope;
 
 import org.python.pydev.parser.jython.SimpleNode;
-import org.python.pydev.parser.jython.ast.AugAssign;
 
 import uk.ac.ic.doc.cfg.model.BasicBlock;
 
