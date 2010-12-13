@@ -211,3 +211,15 @@ def test_yield2():
 	a()
 	while b():
 		yield c()
+
+def test_pass():
+	pass
+
+def test_raise1():
+	raise Exception
+
+def test_raise2():
+	a()
+	if b():
+		raise Exception
+	c()

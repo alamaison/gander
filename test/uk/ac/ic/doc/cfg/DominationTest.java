@@ -21,9 +21,9 @@ public class DominationTest {
 
 		private AbstractDomination analyser;
 
-		public DominationGraphTest(String[][] links, Set<BasicBlock> allBlocks,
+		public DominationGraphTest(String[][] links, Cfg graph,
 				AbstractDomination domAnalyser) {
-			super(links, allBlocks, "Domination");
+			super(links, graph, "Domination");
 			this.analyser = domAnalyser;
 		}
 
@@ -50,9 +50,9 @@ public class DominationTest {
 
 		private AbstractDomination analyser;
 
-		public PostdominationGraphTest(String[][] links,
-				Set<BasicBlock> allBlocks, AbstractDomination domAnalyser) {
-			super(links, allBlocks, "Postdomination");
+		public PostdominationGraphTest(String[][] links, Cfg graph,
+				AbstractDomination domAnalyser) {
+			super(links, graph, "Postdomination");
 			this.analyser = domAnalyser;
 		}
 
@@ -77,6 +77,7 @@ public class DominationTest {
 
 	private static final String DOMINATION_PROJ = "python_test_code/control_flow";
 
+	private Cfg graph;
 	private Domination domAnalyser;
 	private Postdomination postdomAnalyser;
 
@@ -95,7 +96,7 @@ public class DominationTest {
 				.get("my_module2").getFunctions().get(testFuncName);
 		assertTrue("No function " + testFuncName, function != null);
 
-		Cfg graph = function.getCfg();
+		graph = function.getCfg();
 
 		domAnalyser = new Domination(graph.getBlocks(), graph.getStart());
 		postdomAnalyser = new Postdomination(graph.getBlocks(), graph.getEnd());
@@ -109,8 +110,7 @@ public class DominationTest {
 
 		checkStartEndDomination(allBlocks, start, end);
 
-		GraphTest test = new DominationGraphTest(dominators, allBlocks,
-				domAnalyser);
+		GraphTest test = new DominationGraphTest(dominators, graph, domAnalyser);
 		test.run();
 	}
 
@@ -122,7 +122,7 @@ public class DominationTest {
 
 		checkStartEndPostdomination(allBlocks, start, end);
 
-		GraphTest test = new PostdominationGraphTest(dominators, allBlocks,
+		GraphTest test = new PostdominationGraphTest(dominators, graph,
 				postdomAnalyser);
 		test.run();
 	}

@@ -12,8 +12,7 @@ public class Cfg {
 	private FunctionDefScope scope;
 
 	public Cfg(SimpleNode ast) throws Exception {
-		FunctionDef func = (FunctionDef) ast;
-		scope = new FunctionDefScope(func);
+		scope = new FunctionDefScope((FunctionDef) ast);
 		scope.process();
 	}
 
@@ -23,6 +22,10 @@ public class Cfg {
 
 	public BasicBlock getEnd() {
 		return scope.getEnd();
+	}
+
+	public BasicBlock getException() {
+		return scope.getException();
 	}
 
 	public Set<BasicBlock> getBlocks() {

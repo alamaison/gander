@@ -11,6 +11,7 @@ public class ScopeExits {
 	private Set<BasicBlock> breakoutQueue = new HashSet<BasicBlock>();
 	private Set<BasicBlock> continueQueue = new HashSet<BasicBlock>();
 	private Set<BasicBlock> returnQueue = new HashSet<BasicBlock>();
+	private Set<BasicBlock> raiseQueue = new HashSet<BasicBlock>();
 	private BasicBlock root;
 
 	public void fallthrough(BasicBlock block) {
@@ -27,6 +28,10 @@ public class ScopeExits {
 
 	public void returnFrom(BasicBlock block) {
 		returnQueue.add(block);
+	}
+
+	public void raise(BasicBlock block) {
+		raiseQueue.add(block);
 	}
 
 	public void linkFallThroughsTo(BasicBlock successor) {
@@ -48,12 +53,26 @@ public class ScopeExits {
 			returnBlock.link(successor);
 	}
 
+	public void linkRaisesTo(BasicBlock successor) {
+		for (BasicBlock block : raiseQueue)
+			block.link(successor);
+	}
+
+	public boolean canRaise() {
+		return !raiseQueue.isEmpty();
+	}
+
 	public void inheritFallthroughsFrom(ScopeExits otherExits) {
 		fallthroughQueue.addAll(otherExits.fallthroughQueue);
 	}
 
 	public void inheritNonLoopExitsFrom(ScopeExits otherExits) {
 		returnQueue.addAll(otherExits.returnQueue);
+		inheritRaisesFrom(otherExits);
+	}
+
+	public void inheritRaisesFrom(ScopeExits otherExits) {
+		raiseQueue.addAll(otherExits.raiseQueue);
 	}
 
 	public void inheritAllButFallthroughsFrom(ScopeExits otherExits) {
@@ -61,6 +80,7 @@ public class ScopeExits {
 		breakoutQueue.addAll(otherExits.breakoutQueue);
 		continueQueue.addAll(otherExits.continueQueue);
 		returnQueue.addAll(otherExits.returnQueue);
+		inheritRaisesFrom(otherExits);
 	}
 
 	public void inheritExitsFrom(ScopeExits otherExits) {
@@ -74,7 +94,7 @@ public class ScopeExits {
 
 	public int exitSize() {
 		return fallthroughQueue.size() + breakoutQueue.size()
-				+ continueQueue.size() + returnQueue.size();
+				+ continueQueue.size() + returnQueue.size() + raiseQueue.size();
 	}
 
 	public boolean isEndOfBlock() {
@@ -120,9 +140,11 @@ public class ScopeExits {
 	 * the actual block they will cause control to flow from.
 	 */
 	private void replaceNullExits() {
+		replaceNullExits(fallthroughQueue, getRoot());
 		replaceNullExits(breakoutQueue, getRoot());
 		replaceNullExits(continueQueue, getRoot());
 		replaceNullExits(returnQueue, getRoot());
+		replaceNullExits(raiseQueue, getRoot());
 	}
 
 	private static void replaceNullExits(Set<BasicBlock> exits, BasicBlock root) {
@@ -140,7 +162,8 @@ public class ScopeExits {
 				+ stringise(fallthroughQueue) + "\n\nBREAKOUT:\n"
 				+ stringise(breakoutQueue) + "\n\nCONTINUE:\n"
 				+ stringise(continueQueue) + "\n\nRETURN:\n"
-				+ stringise(returnQueue);
+				+ stringise(returnQueue) + "\n\nRAISE:\n"
+				+ stringise(raiseQueue);
 	}
 
 	private static String stringise(Object obj) {

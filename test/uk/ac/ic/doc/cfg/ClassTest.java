@@ -15,28 +15,6 @@ import uk.ac.ic.doc.cfg.model.Method;
 
 public class ClassTest {
 
-	private class ControlFlowGraphTest extends AbstractTaggedGraphTest {
-
-		public ControlFlowGraphTest(String[][] links, Set<BasicBlock> blocks) {
-			super(links, blocks, "Control-flow");
-		}
-
-		@Override
-		protected boolean areLinked(BasicBlock source, BasicBlock target) {
-			return source.getSuccessors().contains(target);
-		}
-
-		@Override
-		protected boolean selfLinkRequired() {
-			return false;
-		}
-
-		@Override
-		protected Set<BasicBlock> getLinkToAllBlocks() {
-			return new HashSet<BasicBlock>();
-		}
-	}
-
 	private static final String CONTROL_FLOW_PROJ = "python_test_code/control_flow";
 
 	private Cfg graph;
@@ -61,10 +39,7 @@ public class ClassTest {
 	}
 
 	private void checkControlFlow(String[][] dominators) {
-
-		Set<BasicBlock> allBlocks = graph.getBlocks();
-
-		new ControlFlowGraphTest(dominators, allBlocks).run();
+		new ControlFlowGraphTest(dominators, graph).run();
 	}
 
 	@Test

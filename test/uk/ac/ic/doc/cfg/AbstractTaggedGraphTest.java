@@ -6,25 +6,21 @@ import static org.junit.Assert.assertTrue;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 import org.python.pydev.parser.jython.SimpleNode;
 import org.python.pydev.parser.jython.ast.Call;
 import org.python.pydev.parser.jython.ast.Name;
 
 import uk.ac.ic.doc.cfg.model.BasicBlock;
+import uk.ac.ic.doc.cfg.model.Cfg;
 
 public abstract class AbstractTaggedGraphTest extends GraphTest {
 
-	public AbstractTaggedGraphTest(Map<String, Collection<String>> links,
-			Set<BasicBlock> blocks, String name) {
-		super(links, blocks, findStartBlock(blocks), findEndBlock(blocks), name);
-	}
+	private Cfg graph;
 
-	public AbstractTaggedGraphTest(String[][] links, Set<BasicBlock> blocks,
-			String name) {
-		super(links, blocks, findStartBlock(blocks), findEndBlock(blocks), name);
+	public AbstractTaggedGraphTest(String[][] links, Cfg graph, String name) {
+		super(links, graph.getBlocks(), graph.getStart(), graph.getEnd(), name);
+		this.graph = graph;
 	}
 
 	protected BasicBlock findBlockContainingCall(String tag) {
@@ -49,6 +45,8 @@ public abstract class AbstractTaggedGraphTest extends GraphTest {
 			return getEnd();
 		else if (tag.equals("START"))
 			return getStart();
+		else if (tag.equals("EXCEPTION"))
+			return graph.getException();
 		else
 			return findBlockContainingCall(tag);
 
@@ -92,33 +90,5 @@ public abstract class AbstractTaggedGraphTest extends GraphTest {
 		Call call = (Call) node;
 		Name funcName = (Name) call.func;
 		return funcName.id.equals(name);
-	}
-
-	private static BasicBlock findStartBlock(Set<BasicBlock> blocks) {
-		BasicBlock start = null;
-		for (BasicBlock block : blocks) {
-			if (block.getPredecessors().isEmpty()) {
-				assertTrue("Multiple START blocks found", start == null);
-				start = block;
-			}
-		}
-
-		assertTrue("No START block found", start != null);
-
-		return start;
-	}
-
-	private static BasicBlock findEndBlock(Set<BasicBlock> blocks) {
-		BasicBlock end = null;
-		for (BasicBlock block : blocks) {
-			if (block.getSuccessors().isEmpty()) {
-				assertTrue("Multiple END blocks found", end == null);
-				end = block;
-			}
-		}
-
-		assertTrue("No END block found", end != null);
-
-		return end;
 	}
 }

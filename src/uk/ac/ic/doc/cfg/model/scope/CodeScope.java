@@ -13,6 +13,8 @@ import org.python.pydev.parser.jython.ast.For;
 import org.python.pydev.parser.jython.ast.FunctionDef;
 import org.python.pydev.parser.jython.ast.If;
 import org.python.pydev.parser.jython.ast.Name;
+import org.python.pydev.parser.jython.ast.Pass;
+import org.python.pydev.parser.jython.ast.Raise;
 import org.python.pydev.parser.jython.ast.Return;
 import org.python.pydev.parser.jython.ast.Str;
 import org.python.pydev.parser.jython.ast.While;
@@ -118,5 +120,15 @@ public abstract class CodeScope extends Scope {
 		// add AST as-is to control graph so we can detect presence of
 		// token and treat like a local variable.
 		return delegateSelfAddingScope(node);
+	}
+
+	@Override
+	public Object visitRaise(Raise node) throws Exception {
+		return delegateScope(new RaiseScope(node, getCurrentBlock(), this));
+	}
+
+	@Override
+	public Object visitPass(Pass node) throws Exception {
+		return delegateScope(new PassScope(node, getCurrentBlock(), this));
 	}
 }

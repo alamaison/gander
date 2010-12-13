@@ -11,6 +11,8 @@ public class FunctionDefScope extends CodeScope {
 
 	private BasicBlock start;
 	private BasicBlock end;
+	private BasicBlock exception = null;
+	
 	private FunctionDef node;
 	private Set<BasicBlock> blocks = new HashSet<BasicBlock>();
 
@@ -22,19 +24,27 @@ public class FunctionDefScope extends CodeScope {
 	public ScopeExits process() throws Exception {
 
 		BodyScope scope = new BodyScope(node.body, null, this);
-
 		ScopeExits body = scope.process();
 
 		start = newBlock();
 		if (!body.isEmpty())
 			start.link(body.getRoot());
 
+		ScopeExits function = new ScopeExits();
+		function.inheritExitsFrom(body);
+		function.setRoot(start);
+		
 		end = newBlock();
-		if (!body.isEmpty()) {
-			body.linkFallThroughsTo(end);
-			body.linkReturnsTo(end);
+		if (!function.isEmpty()) {
+			function.linkFallThroughsTo(end);
+			function.linkReturnsTo(end);
 		} else {
 			start.link(end);
+		}
+		
+		if (function.canRaise()) {
+			exception = newBlock();
+			function.linkRaisesTo(exception);
 		}
 
 		return new ScopeExits();
@@ -56,5 +66,9 @@ public class FunctionDefScope extends CodeScope {
 
 	public BasicBlock getEnd() {
 		return end;
+	}
+	
+	public BasicBlock getException() {
+		return exception;
 	}
 }

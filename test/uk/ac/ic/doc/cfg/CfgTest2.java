@@ -4,38 +4,13 @@ import static org.junit.Assert.assertTrue;
 
 import java.io.File;
 import java.net.URL;
-import java.util.HashSet;
-import java.util.Set;
 
 import org.junit.Test;
 
-import uk.ac.ic.doc.cfg.model.BasicBlock;
 import uk.ac.ic.doc.cfg.model.Cfg;
 import uk.ac.ic.doc.cfg.model.Function;
 
 public class CfgTest2 {
-
-	private class ControlFlowGraphTest extends AbstractTaggedGraphTest {
-
-		public ControlFlowGraphTest(String[][] links, Set<BasicBlock> blocks) {
-			super(links, blocks, "Control-flow");
-		}
-
-		@Override
-		protected boolean areLinked(BasicBlock source, BasicBlock target) {
-			return source.getSuccessors().contains(target);
-		}
-
-		@Override
-		protected boolean selfLinkRequired() {
-			return false;
-		}
-
-		@Override
-		protected Set<BasicBlock> getLinkToAllBlocks() {
-			return new HashSet<BasicBlock>();
-		}
-	}
 
 	private static final String CONTROL_FLOW_PROJ = "python_test_code/control_flow";
 
@@ -61,9 +36,7 @@ public class CfgTest2 {
 
 	private void checkControlFlow(String[][] dominators) {
 
-		Set<BasicBlock> allBlocks = graph.getBlocks();
-
-		new ControlFlowGraphTest(dominators, allBlocks).run();
+		new ControlFlowGraphTest(dominators, graph).run();
 	}
 
 	@Test
@@ -349,6 +322,31 @@ public class CfgTest2 {
 		// String[][] graph = { { "START", "a" }, { "START", "b" }, { "a", "b"
 		// },
 		// { "b", "END" }, { "b", "c" }, { "c", "END" } };
+		checkControlFlow(graph);
+	}
+
+	@Test
+	public void testPass() throws Throwable {
+		initialise("test_pass");
+
+		String[][] graph = { { "START", "END" } };
+		checkControlFlow(graph);
+	}
+
+	@Test
+	public void testRaise1() throws Throwable {
+		initialise("test_raise1");
+
+		String[][] graph = { { "START", "EXCEPTION" } };
+		checkControlFlow(graph);
+	}
+
+	@Test
+	public void testRaise2() throws Throwable {
+		initialise("test_raise2");
+
+		String[][] graph = { { "START", "a" }, { "b", "EXCEPTION" },
+				{ "b", "c" }, { "c", "END" } };
 		checkControlFlow(graph);
 	}
 }
