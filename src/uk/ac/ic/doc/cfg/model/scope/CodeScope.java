@@ -5,12 +5,14 @@ import org.python.pydev.parser.jython.ast.Assign;
 import org.python.pydev.parser.jython.ast.AugAssign;
 import org.python.pydev.parser.jython.ast.Break;
 import org.python.pydev.parser.jython.ast.Call;
+import org.python.pydev.parser.jython.ast.ClassDef;
 import org.python.pydev.parser.jython.ast.Compare;
 import org.python.pydev.parser.jython.ast.Continue;
 import org.python.pydev.parser.jython.ast.Expr;
 import org.python.pydev.parser.jython.ast.For;
 import org.python.pydev.parser.jython.ast.FunctionDef;
 import org.python.pydev.parser.jython.ast.If;
+import org.python.pydev.parser.jython.ast.Name;
 import org.python.pydev.parser.jython.ast.Return;
 import org.python.pydev.parser.jython.ast.Str;
 import org.python.pydev.parser.jython.ast.While;
@@ -58,11 +60,6 @@ public abstract class CodeScope extends Scope {
 	}
 
 	@Override
-	public Object visitFunctionDef(FunctionDef node) throws Exception {
-		return delegateScope(new FunctionDefScope(node));
-	}
-
-	@Override
 	public Object visitBreak(Break node) throws Exception {
 		return delegateScope(new BreakScope(node, getCurrentBlock(), this));
 	}
@@ -99,6 +96,27 @@ public abstract class CodeScope extends Scope {
 
 	@Override
 	public Object visitCompare(Compare node) throws Exception {
+		return delegateSelfAddingScope(node);
+	}
+
+	@Override
+	public Object visitName(Name node) throws Exception {
+		return delegateSelfAddingScope(node);
+	}
+
+	@Override
+	public Object visitFunctionDef(FunctionDef node) throws Exception {
+		// We don't analyse flow in nested function definitions.  Just
+		// add AST as-is to control graph so we can detect presence of
+		// token and treat like a local variable.
+		return delegateSelfAddingScope(node);
+	}
+
+	@Override
+	public Object visitClassDef(ClassDef node) throws Exception {
+		// We don't analyse flow in nested class definitions.  Just
+		// add AST as-is to control graph so we can detect presence of
+		// token and treat like a local variable.
 		return delegateSelfAddingScope(node);
 	}
 }
