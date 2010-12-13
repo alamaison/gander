@@ -7,7 +7,7 @@ import org.python.pydev.parser.jython.ast.FunctionDef;
 
 import uk.ac.ic.doc.cfg.model.BasicBlock;
 
-public class FunctionDefScope extends CodeScope {
+public class FunctionDefScope extends Scope {
 
 	private BasicBlock start;
 	private BasicBlock end;

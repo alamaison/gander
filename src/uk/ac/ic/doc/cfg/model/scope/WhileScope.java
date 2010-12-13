@@ -8,7 +8,7 @@ public class WhileScope extends ScopeWithParent {
 
 	private While node;
 
-	public WhileScope(While node, BasicBlock root, CodeScope parent)
+	public WhileScope(While node, BasicBlock root, Scope parent)
 			throws Exception {
 		super(parent, root);
 		this.node = node;

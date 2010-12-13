@@ -4,7 +4,7 @@ import org.python.pydev.parser.jython.SimpleNode;
 
 import uk.ac.ic.doc.cfg.model.BasicBlock;
 
-public abstract class ScopeWithParent extends CodeScope {
+public abstract class ScopeWithParent extends Scope {
 
 	protected Scope parent;
 
