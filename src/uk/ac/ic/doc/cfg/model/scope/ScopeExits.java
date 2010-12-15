@@ -7,104 +7,173 @@ import uk.ac.ic.doc.cfg.model.BasicBlock;
 
 public class ScopeExits {
 
-	private Set<BasicBlock> fallthroughQueue = new HashSet<BasicBlock>();
-	private Set<BasicBlock> breakoutQueue = new HashSet<BasicBlock>();
-	private Set<BasicBlock> continueQueue = new HashSet<BasicBlock>();
-	private Set<BasicBlock> returnQueue = new HashSet<BasicBlock>();
-	private Set<BasicBlock> raiseQueue = new HashSet<BasicBlock>();
+	private class Exit {
+		private Set<BasicBlock> blocks = new HashSet<BasicBlock>();
+
+		public void add(BasicBlock block) {
+			blocks.add(block);
+		}
+
+		public void inherit(Exit other) {
+			blocks.addAll(other.blocks);
+		}
+
+		public void linkTo(ScopeExits successor) {
+			linkTo(successor.getRoot());
+		}
+
+		public void linkTo(BasicBlock successor) {
+			for (BasicBlock b : blocks)
+				b.link(successor);
+		}
+
+		public boolean isEmpty() {
+			return blocks.isEmpty();
+		}
+
+		public int size() {
+			return blocks.size();
+		}
+
+		/**
+		 * Replace null placeholders with actual root block.
+		 * 
+		 * Some statements such as break or continue don't contribute any
+		 * expressions to a basic block. If they are the first statement in a
+		 * body, there isn't a current block yet so we add null to the
+		 * corresponding exit list. When the body processor returns, these nulls
+		 * must be replaced by the actual block they will cause control to flow
+		 * from.
+		 */
+		public void replaceNullExits(BasicBlock root) {
+			for (BasicBlock b : blocks) {
+				if (b == null) {
+					blocks.remove(b);
+					blocks.add(root);
+				}
+			}
+		}
+
+		@Override
+		public String toString() {
+			return blocks.toString();
+		}
+	}
+
+	private Exit fallthroughQueue = new Exit();
+	private Exit breakoutQueue = new Exit();
+	private Exit continueQueue = new Exit();
+	private Exit returnQueue = new Exit();
+	private Exit raiseQueue = new Exit();
+
 	private BasicBlock root;
 
+	public Exit fallthroughs() {
+		return fallthroughQueue;
+	}
+
+	public Exit breakouts() {
+		return breakoutQueue;
+	}
+
+	public Exit continues() {
+		return continueQueue;
+	}
+
+	public Exit returns() {
+		return returnQueue;
+	}
+
+	public Exit raises() {
+		return raiseQueue;
+	}
+
 	public void fallthrough(BasicBlock block) {
-		fallthroughQueue.add(block);
+		fallthroughs().add(block);
 	}
 
 	public void breakout(BasicBlock block) {
-		breakoutQueue.add(block);
+		breakouts().add(block);
 	}
 
 	public void continu(BasicBlock block) {
-		continueQueue.add(block);
+		continues().add(block);
 	}
 
 	public void returnFrom(BasicBlock block) {
-		returnQueue.add(block);
+		returns().add(block);
 	}
 
 	public void raise(BasicBlock block) {
-		raiseQueue.add(block);
+		raises().add(block);
 	}
 
 	public void linkFallThroughsTo(BasicBlock successor) {
-		for (BasicBlock fallBlock : fallthroughQueue)
-			fallBlock.link(successor);
+		fallthroughs().linkTo(successor);
 	}
 
 	public void linkFallThroughsTo(ScopeExits successor) {
-		linkFallThroughsTo(successor.getRoot());
+		fallthroughs().linkTo(successor);
 	}
 
 	public void linkContinuesTo(ScopeExits successor) {
-		for (BasicBlock continueBlock : continueQueue)
-			continueBlock.link(successor.getRoot());
+		continues().linkTo(successor);
 	}
 
 	public void linkReturnsTo(BasicBlock successor) {
-		for (BasicBlock returnBlock : returnQueue)
-			returnBlock.link(successor);
+		returns().linkTo(successor);
 	}
-	
+
 	public void linkReturnsTo(ScopeExits successor) {
-		linkReturnsTo(successor.getRoot());
+		returns().linkTo(successor);
 	}
 
 	public void linkRaisesTo(ScopeExits successor) {
-		linkRaisesTo(successor.getRoot());
+		raises().linkTo(successor);
 	}
 
 	public void linkRaisesTo(BasicBlock successor) {
-		for (BasicBlock block : raiseQueue)
-			block.link(successor);
+		raises().linkTo(successor);
 	}
 
 	public void linkBreaksTo(ScopeExits successor) {
-		for (BasicBlock block : breakoutQueue)
-			block.link(successor.getRoot());
+		breakouts().linkTo(successor);
 	}
 
 	public boolean canRaise() {
-		return !raiseQueue.isEmpty();
+		return !raises().isEmpty();
 	}
 
 	public boolean canReturn() {
-		return !returnQueue.isEmpty();
+		return !returns().isEmpty();
 	}
 
 	public boolean canFallThrough() {
-		return !fallthroughQueue.isEmpty();
+		return !fallthroughs().isEmpty();
 	}
 
 	public boolean canBreak() {
-		return !breakoutQueue.isEmpty();
+		return !breakouts().isEmpty();
 	}
 
 	public void inheritFallthroughsFrom(ScopeExits otherExits) {
-		fallthroughQueue.addAll(otherExits.fallthroughQueue);
+		fallthroughs().inherit(otherExits.fallthroughs());
 	}
 
 	public void inheritNonLoopExitsFrom(ScopeExits otherExits) {
-		returnQueue.addAll(otherExits.returnQueue);
+		returns().inherit(otherExits.returns());
 		inheritRaisesFrom(otherExits);
 	}
 
 	public void inheritRaisesFrom(ScopeExits otherExits) {
-		raiseQueue.addAll(otherExits.raiseQueue);
+		raises().inherit(otherExits.raises());
 	}
 
 	public void inheritAllButFallthroughsFrom(ScopeExits otherExits) {
 
-		breakoutQueue.addAll(otherExits.breakoutQueue);
-		continueQueue.addAll(otherExits.continueQueue);
-		returnQueue.addAll(otherExits.returnQueue);
+		breakouts().inherit(otherExits.breakouts());
+		continues().inherit(otherExits.continues());
+		returns().inherit(otherExits.returns());
 		inheritRaisesFrom(otherExits);
 	}
 
@@ -114,24 +183,24 @@ public class ScopeExits {
 	}
 
 	public void convertBreakoutsToFallthroughs(ScopeExits successor) {
-		fallthroughQueue.addAll(successor.breakoutQueue);
+		fallthroughs().inherit(successor.breakouts());
 	}
 
 	public void convertFallthroughsToRaises(ScopeExits successor) {
-		raiseQueue.addAll(successor.fallthroughQueue);
+		raises().inherit(successor.fallthroughs());
 	}
 
 	public void convertFallthroughsToReturns(ScopeExits successor) {
-		returnQueue.addAll(successor.fallthroughQueue);
+		returns().inherit(successor.fallthroughs());
 	}
 
 	public void convertFallthroughsToBreaks(ScopeExits successor) {
-		breakoutQueue.addAll(successor.fallthroughQueue);
+		breakouts().inherit(successor.fallthroughs());
 	}
 
 	public int exitSize() {
-		return fallthroughQueue.size() + breakoutQueue.size()
-				+ continueQueue.size() + returnQueue.size() + raiseQueue.size();
+		return fallthroughs().size() + breakouts().size() + continues().size()
+				+ returns().size() + raises().size();
 	}
 
 	public boolean isEndOfBlock() {
@@ -139,8 +208,8 @@ public class ScopeExits {
 			return true;
 
 		// If the one fallthrough block already has a successor
-		assert fallthroughQueue.size() < 2;
-		for (BasicBlock b : fallthroughQueue) {
+		assert fallthroughs().size() < 2;
+		for (BasicBlock b : fallthroughs().blocks) {
 			if (!b.isEnd())
 				return true;
 		}
@@ -177,30 +246,20 @@ public class ScopeExits {
 	 * the actual block they will cause control to flow from.
 	 */
 	private void replaceNullExits() {
-		replaceNullExits(fallthroughQueue, getRoot());
-		replaceNullExits(breakoutQueue, getRoot());
-		replaceNullExits(continueQueue, getRoot());
-		replaceNullExits(returnQueue, getRoot());
-		replaceNullExits(raiseQueue, getRoot());
-	}
-
-	private static void replaceNullExits(Set<BasicBlock> exits, BasicBlock root) {
-		for (BasicBlock b : exits) {
-			if (b == null) {
-				exits.remove(b);
-				exits.add(root);
-			}
-		}
+		fallthroughs().replaceNullExits(getRoot());
+		breakouts().replaceNullExits(getRoot());
+		continues().replaceNullExits(getRoot());
+		returns().replaceNullExits(getRoot());
+		raises().replaceNullExits(getRoot());
 	}
 
 	@Override
 	public String toString() {
 		return "ROOT:\n" + stringise(root) + "\n\nFALLTHROUGH:\n"
-				+ stringise(fallthroughQueue) + "\n\nBREAKOUT:\n"
-				+ stringise(breakoutQueue) + "\n\nCONTINUE:\n"
-				+ stringise(continueQueue) + "\n\nRETURN:\n"
-				+ stringise(returnQueue) + "\n\nRAISE:\n"
-				+ stringise(raiseQueue);
+				+ stringise(fallthroughs()) + "\n\nBREAKOUT:\n"
+				+ stringise(breakouts()) + "\n\nCONTINUE:\n"
+				+ stringise(continues()) + "\n\nRETURN:\n"
+				+ stringise(returns()) + "\n\nRAISE:\n" + stringise(raises());
 	}
 
 	private static String stringise(Object obj) {
