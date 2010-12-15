@@ -54,20 +54,26 @@ public abstract class AbstractTaggedGraphTest extends GraphTest {
 
 	@Override
 	protected String formatBlock(BasicBlock block) {
-		List<String> tags = new ArrayList<String>();
-		if (block.statements.isEmpty())
-			return block.stringerise();
+		if (block == getEnd())
+			return "END";
+		else if (block == getStart())
+			return "START";
+		else if (block == graph.getException())
+			return "EXCEPTION";
+		else {
+			List<String> tags = new ArrayList<String>();
 
-		try {
-			for (SimpleNode node : block.statements) {
-				Call call = (Call) node;
-				Name funcName = (Name) call.func;
-				tags.add(funcName.id);
+			try {
+				for (SimpleNode node : block.statements) {
+					Call call = (Call) node;
+					Name funcName = (Name) call.func;
+					tags.add(funcName.id);
+				}
+			} catch (ClassCastException e) {
+				return block.toString();
 			}
-		} catch (ClassCastException e) {
-			return block.toString();
+			return tags.toString();
 		}
-		return tags.toString();
 	}
 
 	private static boolean isBlockTaggedWithFunction(BasicBlock block,

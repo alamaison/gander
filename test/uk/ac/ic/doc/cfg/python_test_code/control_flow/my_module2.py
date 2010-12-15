@@ -311,3 +311,67 @@ def test_try_except_else_raise():
 	else:
 		raise d()
 
+def test_try_finally1():
+	try:
+		if a():
+			raise b()
+	finally:
+		if c():
+			d()
+		else:
+			e()
+
+def test_try_finally2():
+	try:
+		if a():
+			b()
+	finally:
+		if c():
+			d()
+		else:
+			e()
+
+def test_try_finally3():
+	try:
+		if a():
+			return b()
+	finally:
+		if c():
+			d()
+		else:
+			e()
+
+def test_try_finally4():
+	try:
+		if a():
+			return b()
+		else:
+			raise c()
+	finally:
+		if d():
+			e()
+		else:
+			f()
+
+def test_try_finally5():
+	while a():
+		try:
+			if b():
+				break
+		finally:
+			if c():
+				d()
+			else:
+				e()
+
+def test_try_finally6():
+	try:
+		if a():
+			raise b()
+		else:
+			raise c()
+	finally:
+		if d():
+			e()
+		else:
+			f()

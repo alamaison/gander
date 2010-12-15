@@ -2,7 +2,9 @@ package uk.ac.ic.doc.cfg.model.scope;
 
 import org.python.pydev.parser.jython.SimpleNode;
 import org.python.pydev.parser.jython.ast.Assign;
+import org.python.pydev.parser.jython.ast.Attribute;
 import org.python.pydev.parser.jython.ast.AugAssign;
+import org.python.pydev.parser.jython.ast.BoolOp;
 import org.python.pydev.parser.jython.ast.Break;
 import org.python.pydev.parser.jython.ast.Call;
 import org.python.pydev.parser.jython.ast.ClassDef;
@@ -18,6 +20,8 @@ import org.python.pydev.parser.jython.ast.Raise;
 import org.python.pydev.parser.jython.ast.Return;
 import org.python.pydev.parser.jython.ast.Str;
 import org.python.pydev.parser.jython.ast.TryExcept;
+import org.python.pydev.parser.jython.ast.TryFinally;
+import org.python.pydev.parser.jython.ast.UnaryOp;
 import org.python.pydev.parser.jython.ast.VisitorBase;
 import org.python.pydev.parser.jython.ast.While;
 import org.python.pydev.parser.jython.ast.Yield;
@@ -113,6 +117,23 @@ public abstract class Scope extends VisitorBase {
 	}
 
 	@Override
+	public Object visitAttribute(Attribute node) throws Exception {
+		return delegateSelfAddingScope(node);
+	}
+
+	@Override
+	public Object visitBoolOp(BoolOp node) throws Exception {
+		// TODO: pull referenced variables out of node
+		return delegateSelfAddingScope(node);
+	}
+
+	@Override
+	public Object visitUnaryOp(UnaryOp node) throws Exception {
+		// TODO: pull referenced variables out of node
+		return delegateSelfAddingScope(node);
+	}
+
+	@Override
 	public Object visitFunctionDef(FunctionDef node) throws Exception {
 		// We don't analyse flow in nested function definitions.  Just
 		// add AST as-is to control graph so we can detect presence of
@@ -141,6 +162,11 @@ public abstract class Scope extends VisitorBase {
 	@Override
 	public Object visitTryExcept(TryExcept node) throws Exception {
 		return delegateScope(new TryExceptScope(node, getCurrentBlock(), this));
+	}
+
+	@Override
+	public Object visitTryFinally(TryFinally node) throws Exception {
+		return delegateScope(new TryFinallyScope(node, getCurrentBlock(), this));
 	}
 
 	@Override

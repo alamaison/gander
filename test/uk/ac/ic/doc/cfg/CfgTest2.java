@@ -458,4 +458,65 @@ public class CfgTest2 {
 				{ "d", "EXCEPTION" } };
 		checkControlFlow(graph);
 	}
+
+	@Test
+	public void testTryFinally1() throws Throwable {
+		initialise("test_try_finally1");
+
+		String[][] graph = { { "START", "a" }, { "a", "c" }, { "a", "b" },
+				{ "b", "c" }, { "c", "d" }, { "c", "e" }, { "d", "EXCEPTION" },
+				{ "d", "END" }, { "e", "EXCEPTION" }, { "e", "END" } };
+		checkControlFlow(graph);
+	}
+
+	@Test
+	public void testTryFinally2() throws Throwable {
+		initialise("test_try_finally2");
+
+		String[][] graph = { { "START", "a" }, { "a", "c" }, { "a", "b" },
+				{ "b", "c" }, { "c", "d" }, { "c", "e" }, { "d", "END" },
+				{ "e", "END" } };
+		checkControlFlow(graph);
+	}
+
+	@Test
+	public void testTryFinally3() throws Throwable {
+		initialise("test_try_finally3");
+
+		String[][] graph = { { "START", "a" }, { "a", "c" }, { "a", "b" },
+				{ "b", "c" }, { "c", "d" }, { "c", "e" }, { "d", "END" },
+				{ "e", "END" } };
+		checkControlFlow(graph);
+	}
+
+	@Test
+	public void testTryFinally4() throws Throwable {
+		initialise("test_try_finally4");
+
+		String[][] graph = { { "START", "a" }, { "a", "b" }, { "a", "c" },
+				{ "b", "d" }, { "c", "d" }, { "d", "e" }, { "d", "f" },
+				{ "e", "END" }, { "e", "EXCEPTION" }, { "f", "END" },
+				{ "f", "EXCEPTION" } };
+		checkControlFlow(graph);
+	}
+
+	@Test
+	public void testTryFinally5() throws Throwable {
+		initialise("test_try_finally5");
+
+		String[][] graph = { { "START", "a" }, { "a", "b" }, { "b", "c" },
+				{ "c", "d" }, { "c", "e" }, { "d", "a" }, { "d", "END" },
+				{ "e", "a" }, { "e", "END" }, { "a", "END" } };
+		checkControlFlow(graph);
+	}
+
+	@Test
+	public void testTryFinally6() throws Throwable {
+		initialise("test_try_finally6");
+
+		String[][] graph = { { "START", "a" }, { "a", "b" }, { "a", "c" },
+				{ "b", "d" }, { "c", "d" }, { "d", "e" }, { "d", "f" },
+				{ "e", "EXCEPTION" }, { "f", "EXCEPTION" } };
+		checkControlFlow(graph);
+	}
 }

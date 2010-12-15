@@ -52,6 +52,10 @@ public class ScopeExits {
 		for (BasicBlock returnBlock : returnQueue)
 			returnBlock.link(successor);
 	}
+	
+	public void linkReturnsTo(ScopeExits successor) {
+		linkReturnsTo(successor.getRoot());
+	}
 
 	public void linkRaisesTo(ScopeExits successor) {
 		linkRaisesTo(successor.getRoot());
@@ -62,12 +66,25 @@ public class ScopeExits {
 			block.link(successor);
 	}
 
+	public void linkBreaksTo(ScopeExits successor) {
+		for (BasicBlock block : breakoutQueue)
+			block.link(successor.getRoot());
+	}
+
 	public boolean canRaise() {
 		return !raiseQueue.isEmpty();
 	}
 
+	public boolean canReturn() {
+		return !returnQueue.isEmpty();
+	}
+
 	public boolean canFallThrough() {
 		return !fallthroughQueue.isEmpty();
+	}
+
+	public boolean canBreak() {
+		return !breakoutQueue.isEmpty();
 	}
 
 	public void inheritFallthroughsFrom(ScopeExits otherExits) {
@@ -98,6 +115,18 @@ public class ScopeExits {
 
 	public void convertBreakoutsToFallthroughs(ScopeExits successor) {
 		fallthroughQueue.addAll(successor.breakoutQueue);
+	}
+
+	public void convertFallthroughsToRaises(ScopeExits successor) {
+		raiseQueue.addAll(successor.fallthroughQueue);
+	}
+
+	public void convertFallthroughsToReturns(ScopeExits successor) {
+		returnQueue.addAll(successor.fallthroughQueue);
+	}
+
+	public void convertFallthroughsToBreaks(ScopeExits successor) {
+		breakoutQueue.addAll(successor.fallthroughQueue);
 	}
 
 	public int exitSize() {
