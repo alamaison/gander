@@ -27,7 +27,7 @@ public class BodyScope extends ScopeWithParent {
 			// forces us to close the current basic block. We signal this to the
 			// next processor by setting the block to null. The processor will
 			// create a new block if necessary.
-			if (lastStatement.isEndOfBlock())
+			if (getCurrentBlock() != null && lastStatement.isEndOfBlock())
 				setCurrentBlock(null);
 
 			previousStatement = lastStatement;

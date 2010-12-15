@@ -1,6 +1,7 @@
 package uk.ac.ic.doc.cfg.model.scope;
 
 import org.python.pydev.parser.jython.SimpleNode;
+import org.python.pydev.parser.jython.ast.Assert;
 import org.python.pydev.parser.jython.ast.Assign;
 import org.python.pydev.parser.jython.ast.Attribute;
 import org.python.pydev.parser.jython.ast.AugAssign;
@@ -14,11 +15,13 @@ import org.python.pydev.parser.jython.ast.Expr;
 import org.python.pydev.parser.jython.ast.For;
 import org.python.pydev.parser.jython.ast.FunctionDef;
 import org.python.pydev.parser.jython.ast.If;
+import org.python.pydev.parser.jython.ast.ImportFrom;
 import org.python.pydev.parser.jython.ast.Name;
 import org.python.pydev.parser.jython.ast.Pass;
 import org.python.pydev.parser.jython.ast.Raise;
 import org.python.pydev.parser.jython.ast.Return;
 import org.python.pydev.parser.jython.ast.Str;
+import org.python.pydev.parser.jython.ast.Subscript;
 import org.python.pydev.parser.jython.ast.TryExcept;
 import org.python.pydev.parser.jython.ast.TryFinally;
 import org.python.pydev.parser.jython.ast.UnaryOp;
@@ -122,6 +125,11 @@ public abstract class Scope extends VisitorBase {
 	}
 
 	@Override
+	public Object visitSubscript(Subscript node) throws Exception {
+		return delegateSelfAddingScope(node);
+	}
+
+	@Override
 	public Object visitBoolOp(BoolOp node) throws Exception {
 		// TODO: pull referenced variables out of node
 		return delegateSelfAddingScope(node);
@@ -130,6 +138,12 @@ public abstract class Scope extends VisitorBase {
 	@Override
 	public Object visitUnaryOp(UnaryOp node) throws Exception {
 		// TODO: pull referenced variables out of node
+		return delegateSelfAddingScope(node);
+	}
+
+	@Override
+	public Object visitImportFrom(ImportFrom node) throws Exception {
+		System.err.println("WARNING: nested __import__");
 		return delegateSelfAddingScope(node);
 	}
 
@@ -156,7 +170,7 @@ public abstract class Scope extends VisitorBase {
 
 	@Override
 	public Object visitPass(Pass node) throws Exception {
-		return delegateScope(new PassScope(node, getCurrentBlock(), this));
+		return delegateScope(new PassScope(getCurrentBlock(), this));
 	}
 
 	@Override
@@ -167,6 +181,11 @@ public abstract class Scope extends VisitorBase {
 	@Override
 	public Object visitTryFinally(TryFinally node) throws Exception {
 		return delegateScope(new TryFinallyScope(node, getCurrentBlock(), this));
+	}
+
+	@Override
+	public Object visitAssert(Assert node) throws Exception {
+		return delegateScope(new PassScope(getCurrentBlock(), this));
 	}
 
 	@Override
