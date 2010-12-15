@@ -53,6 +53,10 @@ public class ScopeExits {
 			returnBlock.link(successor);
 	}
 
+	public void linkRaisesTo(ScopeExits successor) {
+		linkRaisesTo(successor.getRoot());
+	}
+
 	public void linkRaisesTo(BasicBlock successor) {
 		for (BasicBlock block : raiseQueue)
 			block.link(successor);
@@ -60,6 +64,10 @@ public class ScopeExits {
 
 	public boolean canRaise() {
 		return !raiseQueue.isEmpty();
+	}
+
+	public boolean canFallThrough() {
+		return !fallthroughQueue.isEmpty();
 	}
 
 	public void inheritFallthroughsFrom(ScopeExits otherExits) {

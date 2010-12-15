@@ -216,10 +216,98 @@ def test_pass():
 	pass
 
 def test_raise1():
-	raise Exception
+	raise
 
 def test_raise2():
+	raise a()
+	
+def test_raise3():
 	a()
 	if b():
-		raise Exception
-	c()
+		raise c()
+	d()
+
+def test_try_except1():
+	try:
+		raise a()
+	except Exception:
+		b()
+
+def test_try_except2():
+	try:
+		a()
+		raise b()
+	except Exception:
+		c()
+
+def test_try_except3():
+	try:
+		if a():
+			raise b()
+	except Exception:
+		c()
+		
+def test_try_except4():
+	try:
+		if a():
+			raise b()
+	except ImportError:
+		c()
+	except Exception:
+		d()
+
+def test_try_except_all():
+	try:
+		if a():
+			raise b()
+	except Exception:
+		c()
+	except:
+		d()
+
+def test_try_except_raise():
+	try:
+		raise a()
+	except Exception:
+		raise b()
+		
+def test_try_except_all_raise():
+	try:
+		raise a()
+	except:
+		raise b()
+
+def test_try_except_else1():
+	try:
+		raise a()
+	except Exception:
+		b()
+	else:
+		c()
+
+def test_try_except_else2():
+	try:
+		if a():
+			raise b()
+	except Exception:
+		c()
+	else:
+		d()
+
+def test_try_except_else3():
+	try:
+		a()
+	except Exception:
+		b()
+	else:
+		c()
+
+def test_try_except_else_raise():
+	try:
+		if a():
+			raise b()
+	except Exception:
+		c()
+	else:
+		raise d()
+

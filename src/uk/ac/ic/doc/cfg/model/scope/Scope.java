@@ -17,6 +17,7 @@ import org.python.pydev.parser.jython.ast.Pass;
 import org.python.pydev.parser.jython.ast.Raise;
 import org.python.pydev.parser.jython.ast.Return;
 import org.python.pydev.parser.jython.ast.Str;
+import org.python.pydev.parser.jython.ast.TryExcept;
 import org.python.pydev.parser.jython.ast.VisitorBase;
 import org.python.pydev.parser.jython.ast.While;
 import org.python.pydev.parser.jython.ast.Yield;
@@ -135,6 +136,11 @@ public abstract class Scope extends VisitorBase {
 	@Override
 	public Object visitPass(Pass node) throws Exception {
 		return delegateScope(new PassScope(node, getCurrentBlock(), this));
+	}
+
+	@Override
+	public Object visitTryExcept(TryExcept node) throws Exception {
+		return delegateScope(new TryExceptScope(node, getCurrentBlock(), this));
 	}
 
 	@Override

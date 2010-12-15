@@ -345,8 +345,117 @@ public class CfgTest2 {
 	public void testRaise2() throws Throwable {
 		initialise("test_raise2");
 
-		String[][] graph = { { "START", "a" }, { "b", "EXCEPTION" },
-				{ "b", "c" }, { "c", "END" } };
+		String[][] graph = { { "START", "a" }, { "a", "EXCEPTION" } };
+		checkControlFlow(graph);
+	}
+
+	@Test
+	public void testRaise3() throws Throwable {
+		initialise("test_raise3");
+
+		String[][] graph = { { "START", "a" }, { "b", "c" },
+				{ "c", "EXCEPTION" }, { "b", "d" }, { "d", "END" } };
+		checkControlFlow(graph);
+	}
+
+	@Test
+	public void testTryExcept1() throws Throwable {
+		initialise("test_try_except1");
+
+		String[][] graph = { { "START", "a" }, { "a", "b" },
+				{ "a", "EXCEPTION" }, { "b", "END" } };
+		checkControlFlow(graph);
+	}
+
+	@Test
+	public void testTryExcept2() throws Throwable {
+		initialise("test_try_except2");
+
+		String[][] graph = { { "START", "a" }, { "b", "c" },
+				{ "b", "EXCEPTION" }, { "c", "END" } };
+		checkControlFlow(graph);
+	}
+
+	@Test
+	public void testTryExcept3() throws Throwable {
+		initialise("test_try_except3");
+
+		String[][] graph = { { "START", "a" }, { "a", "b" }, { "a", "END" },
+				{ "b", "EXCEPTION" }, { "b", "c" }, { "c", "END" } };
+		checkControlFlow(graph);
+	}
+
+	@Test
+	public void testTryExcept4() throws Throwable {
+		initialise("test_try_except4");
+
+		String[][] graph = { { "START", "a" }, { "a", "b" }, { "a", "END" },
+				{ "b", "EXCEPTION" }, { "b", "c" }, { "b", "d" },
+				{ "c", "END" }, { "d", "END" } };
+		checkControlFlow(graph);
+	}
+
+	@Test
+	public void testTryExceptAll() throws Throwable {
+		initialise("test_try_except_all");
+
+		String[][] graph = { { "START", "a" }, { "a", "b" }, { "a", "END" },
+				{ "b", "c" }, { "b", "d" }, { "c", "END" }, { "d", "END" } };
+		checkControlFlow(graph);
+	}
+
+	@Test
+	public void testTryExceptRaise() throws Throwable {
+		initialise("test_try_except_raise");
+
+		String[][] graph = { { "START", "a" }, { "a", "EXCEPTION" },
+				{ "a", "b" }, { "b", "EXCEPTION" } };
+		checkControlFlow(graph);
+	}
+
+	@Test
+	public void testTryExceptAllRaise() throws Throwable {
+		initialise("test_try_except_all_raise");
+
+		String[][] graph = { { "START", "a" }, { "a", "b" },
+				{ "b", "EXCEPTION" } };
+		checkControlFlow(graph);
+	}
+
+	@Test
+	public void testTryExceptElse1() throws Throwable {
+		initialise("test_try_except_else1");
+
+		String[][] graph = { { "START", "a" }, { "a", "EXCEPTION" },
+				{ "a", "b" }, { "b", "END" } };
+		checkControlFlow(graph);
+	}
+
+	@Test
+	public void testTryExceptElse2() throws Throwable {
+		initialise("test_try_except_else2");
+
+		String[][] graph = { { "START", "a" }, { "a", "b" }, { "a", "d" },
+				{ "b", "EXCEPTION" }, { "b", "c" }, { "c", "END" },
+				{ "d", "END" } };
+		checkControlFlow(graph);
+	}
+
+	@Test
+	public void testTryExceptElse3() throws Throwable {
+		initialise("test_try_except_else3");
+
+		String[][] graph = { { "START", "a" }, { "a", "c" }, { "c", "END" } };
+		checkControlFlow(graph);
+	}
+
+	@Test
+	public void testTryExceptElseRaise() throws Throwable {
+		initialise("test_try_except_else_raise");
+
+		String[][] graph = { { "START", "a" }, { "a", "b" }, { "a", "d" },
+				{ "b", "EXCEPTION" }, { "b", "c" }, { "c", "END" },
+				{ "d", "EXCEPTION" } };
 		checkControlFlow(graph);
 	}
 }
