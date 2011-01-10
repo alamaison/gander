@@ -14,7 +14,6 @@ public class RaiseScope extends ScopeWithParent {
 
 	@Override
 	protected Statement doProcess() throws Exception {
-		Statement prev = previousStatement();
 		Statement type = delegateScope(node.type);
 		setPreviousStatement(type);
 
@@ -40,8 +39,8 @@ public class RaiseScope extends ScopeWithParent {
 			statement.convertFallthroughsToRaises(tback);
 		} else {
 			// if there is a naked 'raise' statement, attribute the raising to
-			// the previous statement that fell through to it
-			statement.raises().inherit(prev.fallthroughs());
+			// the previous statement's incoming trajectory
+			statement.raises().inherit(trajectory());
 		}
 
 		statement.inheritAllButFallthroughsFrom(type);

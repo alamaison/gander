@@ -10,7 +10,7 @@ public class PassScope extends ScopeWithParent {
 	@Override
 	protected Statement doProcess() throws Exception {
 		Statement exits = new Statement();
-		exits.inheritExitsFrom(previousStatement());
+		exits.fallthroughs().inherit(trajectory());
 		return exits;
 	}
 

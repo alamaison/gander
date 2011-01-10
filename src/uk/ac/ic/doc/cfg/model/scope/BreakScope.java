@@ -12,7 +12,7 @@ public class BreakScope extends ScopeWithParent {
 	@Override
 	protected Statement doProcess() throws Exception {
 		Statement statement = new Statement();
-		statement.convertFallthroughsToBreaks(previousStatement());
+		statement.breakouts().inherit(trajectory());
 		return statement;
 	}
 

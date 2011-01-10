@@ -21,7 +21,7 @@ public class YieldScope extends ScopeWithParent {
 		// This isn't really how yield works but, for our purposes, it
 		// may suffice.
 		// TODO: Handle yield correctly
-		statement.inheritFallthroughsFrom(previousStatement());
+		statement.fallthroughs().inherit(trajectory());
 		return statement;
 	}
 
