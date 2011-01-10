@@ -28,8 +28,8 @@ public class FunctionDefScope extends Scope {
 		end = new EmptyScope(this, newTerminatorBlock()).process();
 		exception = new EmptyScope(this, newTerminatorBlock()).process();
 
-		Statement body = new BodyScope(node.body, start, start.fallthroughs(),
-				this).process();
+		Statement body = buildGraphForceNewBlock(node.body, start,
+				start.fallthroughs());
 
 		body.linkFallThroughsTo(end);
 		body.linkReturnsTo(end);

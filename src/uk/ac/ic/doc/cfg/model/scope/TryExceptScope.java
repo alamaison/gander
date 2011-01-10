@@ -20,9 +20,7 @@ class TryExceptScope extends ScopeWithParent {
 
 		// try
 
-		Statement body = new BodyScope(node.body, previousStatement(),
-				trajectory(), this).process();
-
+		Statement body = delegateButForceNewBlock(node.body);
 		if (body.canRaise()) {
 			boolean foundCatchAll = false;
 			for (excepthandlerType handler : node.handlers) {
@@ -30,8 +28,8 @@ class TryExceptScope extends ScopeWithParent {
 				if (handler.type == null)
 					foundCatchAll = true;
 
-				Statement handlerBody = new BodyScope(handler.body, body,
-						body.raises(), this).process();
+				Statement handlerBody = buildGraphForceNewBlock(handler.body,
+						body, body.raises());
 
 				exits.inheritInlinksFrom(handlerBody);
 
@@ -49,8 +47,8 @@ class TryExceptScope extends ScopeWithParent {
 		// raise an exception - the else is dead code in this case
 		if (node.orelse != null && body.canFallThrough()) {
 
-			Statement elseBody = new BodyScope(node.orelse.body, body,
-					body.fallthroughs(), this).process();
+			Statement elseBody = buildGraphForceNewBlock(node.orelse.body,
+					body, body.fallthroughs());
 			body.linkFallThroughsTo(elseBody);
 
 			exits.inheritExitsFrom(elseBody);

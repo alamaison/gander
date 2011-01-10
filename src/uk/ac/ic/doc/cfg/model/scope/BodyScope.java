@@ -7,8 +7,8 @@ class BodyScope extends ScopeWithParent {
 	private SimpleNode[] nodes;
 
 	protected BodyScope(SimpleNode[] nodes, Statement previousStatement,
-			Statement.Exit trajectory, Scope parent) {
-		super(parent, previousStatement, trajectory, true);
+			Statement.Exit trajectory, boolean startInNewBlock, Scope parent) {
+		super(parent, previousStatement, trajectory, startInNewBlock);
 		this.nodes = nodes;
 	}
 
@@ -23,10 +23,10 @@ class BodyScope extends ScopeWithParent {
 
 			Statement statement;
 			if (lastStatement == null)
-				statement = delegateScopeContinuing(nodes[i]);
+				statement = delegate(nodes[i]);
 			else
-				statement = delegateScope(nodes[i], lastStatement,
-						lastStatement.fallthroughs(), false);
+				statement = buildGraph(nodes[i], lastStatement,
+						lastStatement.fallthroughs());
 
 			// The first statement we process decides the inlinks for the
 			// entire body

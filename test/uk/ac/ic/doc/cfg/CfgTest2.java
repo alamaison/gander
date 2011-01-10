@@ -594,4 +594,28 @@ public class CfgTest2 {
 		String[][] graph = { { "START", "a" }, { "a", "END" } };
 		checkControlFlow(graph);
 	}
+
+	@Test
+	public void testPrint() throws Throwable {
+		initialise("test_print");
+
+		String[][] graph = { { "START", "a" }, { "a", "END" } };
+		checkControlFlow(graph);
+	}
+
+	@Test
+	public void testMultiprint() throws Throwable {
+		initialise("test_multiprint");
+
+		String[][] graph = { { "START", "a" }, { "b", "END" } };
+		checkControlFlow(graph);
+	}
+
+	@Test
+	public void testPrintContinuingSameBlock() throws Throwable {
+		initialise("test_print_continuing_same_block");
+
+		String[][] graph = { { "START", "a" }, { "c", "END" } };
+		checkControlFlow(graph);
+	}
 }

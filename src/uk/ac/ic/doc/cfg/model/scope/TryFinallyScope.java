@@ -19,16 +19,15 @@ class TryFinallyScope extends ScopeWithParent {
 
 		// try
 
-		Statement tryBody = new BodyScope(node.body, previousStatement(),
-				trajectory(), this).process();
+		Statement tryBody = delegateButForceNewBlock(node.body);
 
 		// finally
 
 		// Every method of exiting the try body directs control-flow to
 		// the finally body. Therefore we must pass the union of all the
 		// exits as the incoming trajectory.
-		Statement finallyBody = new BodyScope(node.finalbody.body, tryBody,
-				tryBody.allExits(), this).process();
+		Statement finallyBody = buildGraphForceNewBlock(node.finalbody.body,
+				tryBody, tryBody.allExits());
 
 		// The try-body's exit are generally resumed at the end of the finally
 		// body. However, if the finally body itself exits in a non-fallthru
@@ -59,9 +58,9 @@ class TryFinallyScope extends ScopeWithParent {
 				exits.convertFallthroughsToBreaks(finallyBody);
 			}
 		}
-		
+
 		// As explained above, any non-fallthrough exits in the finally-body
-		// are treated as normal exits.  Fallthroughs are treated as a
+		// are treated as normal exits. Fallthroughs are treated as a
 		// resumption of the try-body's exit
 		exits.inheritAllButFallthroughsFrom(finallyBody);
 

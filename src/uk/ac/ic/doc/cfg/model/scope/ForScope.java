@@ -19,13 +19,12 @@ class ForScope extends ScopeWithParent {
 		// for
 
 		// force new block for iterable
-		Statement iterable = delegateScopeForceNew(node.iter);
+		Statement iterable = delegateButForceNewBlock(node.iter);
 
 		// body
 
-		BodyScope scope = new BodyScope(node.body, iterable,
-				iterable.fallthroughs(), this);
-		Statement body = scope.process();
+		Statement body = buildGraphForceNewBlock(node.body, iterable,
+				iterable.fallthroughs());
 
 		// link the iterable to the body and the fallthrough
 		assert iterable.exitSize() == 1;

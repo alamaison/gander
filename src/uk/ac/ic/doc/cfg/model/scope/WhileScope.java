@@ -18,13 +18,13 @@ class WhileScope extends ScopeWithParent {
 		// while
 
 		// force new block for test
-		Statement condition = delegateScopeForceNew(node.test);
+		Statement condition = delegateButForceNewBlock(node.test);
 		assert condition.exitSize() == 1;
 
 		// body
 
-		Statement body = new BodyScope(node.body, condition,
-				condition.fallthroughs(), this).process();
+		Statement body = buildGraphForceNewBlock(node.body, condition,
+				condition.fallthroughs());
 
 		Statement exits = new Statement();
 		exits.inheritFallthroughsFrom(condition);

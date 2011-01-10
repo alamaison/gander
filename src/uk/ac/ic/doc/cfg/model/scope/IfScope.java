@@ -20,7 +20,7 @@ class IfScope extends ScopeWithParent {
 
 		// if
 
-		Statement condition = delegateScopeContinuing(node.test);
+		Statement condition = delegate(node.test);
 
 		// then
 
@@ -44,9 +44,7 @@ class IfScope extends ScopeWithParent {
 			throws Exception {
 
 		assert condition.exitSize() == 1;
-		Statement body = new BodyScope(branch, condition,
-				condition.fallthroughs(), this).process();
-
-		return body;
+		return buildGraphForceNewBlock(branch, condition,
+				condition.fallthroughs());
 	}
 }

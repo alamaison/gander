@@ -17,6 +17,6 @@ class ExprScope extends ScopeWithParent {
 		// Expr nodes are just wrappers for any expression node. These
 		// nodes need processing in their own right.
 
-		return delegateScopeContinuing(node.value);
+		return delegate(node.value);
 	}
 }

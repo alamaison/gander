@@ -14,13 +14,11 @@ class RaiseScope extends ScopeWithParent {
 
 	@Override
 	protected Statement doProcess() throws Exception {
-		Statement type = delegateScopeContinuing(node.type);
+		Statement type = delegate(node.type);
 
-		Statement inst = delegateScope(node.inst, type, type.fallthroughs(),
-				false);
+		Statement inst = buildGraph(node.inst, type, type.fallthroughs());
 
-		Statement tback = delegateScope(node.tback, inst, inst.fallthroughs(),
-				false);
+		Statement tback = buildGraph(node.tback, inst, inst.fallthroughs());
 
 		Statement statement = new Statement();
 

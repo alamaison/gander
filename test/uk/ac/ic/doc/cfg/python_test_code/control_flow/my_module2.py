@@ -441,3 +441,13 @@ def test_double_empty_body():
 	finally:
 		return
 	b()
+
+def test_print():
+	print a()
+
+def test_multiprint():
+	print a(), b()
+
+def test_print_continuing_same_block():
+	a()
+	print b(), c()

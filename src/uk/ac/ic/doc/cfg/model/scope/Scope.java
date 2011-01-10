@@ -15,9 +15,11 @@ import org.python.pydev.parser.jython.ast.Expr;
 import org.python.pydev.parser.jython.ast.For;
 import org.python.pydev.parser.jython.ast.FunctionDef;
 import org.python.pydev.parser.jython.ast.If;
+import org.python.pydev.parser.jython.ast.Import;
 import org.python.pydev.parser.jython.ast.ImportFrom;
 import org.python.pydev.parser.jython.ast.Name;
 import org.python.pydev.parser.jython.ast.Pass;
+import org.python.pydev.parser.jython.ast.Print;
 import org.python.pydev.parser.jython.ast.Raise;
 import org.python.pydev.parser.jython.ast.Return;
 import org.python.pydev.parser.jython.ast.Str;
@@ -223,6 +225,19 @@ abstract class Scope extends VisitorBase {
 	}
 
 	@Override
+	public Object visitImport(Import node) throws Exception {
+		// TODO: actually handle imports
+		return delegateScope(new PassScope(_previousStatement, _trajectory,
+				_startInNewBlock, this));
+	}
+
+	@Override
+	public Object visitPrint(Print node) throws Exception {
+		return delegateScope(new PrintScope(node, _previousStatement,
+				_trajectory, _startInNewBlock, this));
+	}
+
+	@Override
 	public void traverse(SimpleNode node) throws Exception {
 		node.traverse(this);
 	}
@@ -234,9 +249,8 @@ abstract class Scope extends VisitorBase {
 		return statement;
 	}
 
-	protected Statement delegateScope(SimpleNode node, Statement previous,
-			Statement.Exit trajectory, boolean startInNewBlock)
-			throws Exception {
+	private Statement buildGraph(SimpleNode node, Statement previous,
+			Exit trajectory, boolean startInNewBlock) throws Exception {
 		if (node == null)
 			return new Statement();
 
@@ -257,14 +271,50 @@ abstract class Scope extends VisitorBase {
 		}
 	}
 
-	protected Statement delegateScopeContinuing(SimpleNode node)
-			throws Exception {
-		return delegateScope(node, previousStatement(), trajectory(),
+	private Statement buildGraph(SimpleNode[] nodes, Statement previous,
+			Exit trajectory, boolean startInNewBlock) throws Exception {
+		return new BodyScope(nodes, previous, trajectory, startInNewBlock, this)
+				.process();
+	}
+
+	protected Statement delegate(SimpleNode node) throws Exception {
+		return buildGraph(node, previousStatement(), trajectory(),
 				getStartInNewBlock());
 	}
 
-	protected Statement delegateScopeForceNew(SimpleNode node) throws Exception {
-		return delegateScope(node, previousStatement(), trajectory(), true);
+	protected Statement delegate(SimpleNode[] nodes) throws Exception {
+		return buildGraph(nodes, previousStatement(), trajectory(),
+				getStartInNewBlock());
+	}
+
+	protected Statement buildGraph(SimpleNode node, Statement previous,
+			Exit trajectory) throws Exception {
+		return buildGraph(node, previous, trajectory, false);
+	}
+
+	protected Statement buildGraph(SimpleNode[] nodes, Statement previous,
+			Exit trajectory) throws Exception {
+		return buildGraph(nodes, previous, trajectory, false);
+	}
+
+	protected Statement delegateButForceNewBlock(SimpleNode node)
+			throws Exception {
+		return buildGraph(node, previousStatement(), trajectory(), true);
+	}
+
+	protected Statement delegateButForceNewBlock(SimpleNode[] nodes)
+			throws Exception {
+		return buildGraph(nodes, previousStatement(), trajectory(), true);
+	}
+
+	protected Statement buildGraphForceNewBlock(SimpleNode node,
+			Statement previous, Exit trajectory) throws Exception {
+		return buildGraph(node, previous, trajectory, true);
+	}
+
+	protected Statement buildGraphForceNewBlock(SimpleNode[] nodes,
+			Statement previous, Exit trajectory) throws Exception {
+		return buildGraph(nodes, previous, trajectory, true);
 	}
 
 	protected Statement previousStatement() {
