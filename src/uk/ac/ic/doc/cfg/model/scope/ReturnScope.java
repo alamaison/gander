@@ -2,11 +2,11 @@ package uk.ac.ic.doc.cfg.model.scope;
 
 import org.python.pydev.parser.jython.ast.Return;
 
-public class ReturnScope extends ScopeWithParent {
+class ReturnScope extends ScopeWithParent {
 
 	private Return node;
 
-	public ReturnScope(Return node, Statement previousStatement,
+	protected ReturnScope(Return node, Statement previousStatement,
 			Statement.Exit trajectory, boolean startInNewBlock, Scope parent) {
 		super(parent, previousStatement, trajectory, startInNewBlock);
 		this.node = node;

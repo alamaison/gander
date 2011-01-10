@@ -1,8 +1,6 @@
 package uk.ac.ic.doc.cfg.model;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
@@ -17,14 +15,6 @@ public class BasicBlock implements Iterable<SimpleNode> {
 	
 	public BasicBlock() {
 		this.statements = new ArrayList<SimpleNode>();
-	}
-	
-	BasicBlock(Collection<? extends SimpleNode> stmts) {
-		this.statements = new ArrayList<SimpleNode>(statements);
-	}
-
-	public BasicBlock(SimpleNode[] stmts) {
-		this.statements = new ArrayList<SimpleNode>(Arrays.asList(stmts));
 	}
 
 	public Iterator<SimpleNode> iterator() {

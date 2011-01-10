@@ -1,8 +1,8 @@
 package uk.ac.ic.doc.cfg.model.scope;
 
-public class PassScope extends ScopeWithParent {
+class PassScope extends ScopeWithParent {
 
-	public PassScope(Statement previousStatement, Statement.Exit trajectory,
+	protected PassScope(Statement previousStatement, Statement.Exit trajectory,
 			boolean startInNewBlock, Scope parent) {
 		super(parent, previousStatement, trajectory, startInNewBlock);
 	}

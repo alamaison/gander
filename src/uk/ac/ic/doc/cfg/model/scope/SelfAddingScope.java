@@ -2,11 +2,11 @@ package uk.ac.ic.doc.cfg.model.scope;
 
 import org.python.pydev.parser.jython.SimpleNode;
 
-public class SelfAddingScope<T extends SimpleNode> extends ScopeWithParent {
+class SelfAddingScope<T extends SimpleNode> extends ScopeWithParent {
 
 	private T node;
 
-	public SelfAddingScope(T node, Statement previousStatement,
+	protected SelfAddingScope(T node, Statement previousStatement,
 			Statement.Exit trajectory, boolean startInNewBlock, Scope parent) {
 		super(parent, previousStatement, trajectory, startInNewBlock);
 		this.node = node;

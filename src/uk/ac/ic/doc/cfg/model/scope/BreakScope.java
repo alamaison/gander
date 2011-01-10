@@ -2,9 +2,9 @@ package uk.ac.ic.doc.cfg.model.scope;
 
 import org.python.pydev.parser.jython.ast.Break;
 
-public class BreakScope extends ScopeWithParent {
+class BreakScope extends ScopeWithParent {
 
-	public BreakScope(Break node, Statement previousStatement,
+	protected BreakScope(Break node, Statement previousStatement,
 			Statement.Exit trajectory, boolean startInNewBlock, Scope parent) {
 		super(parent, previousStatement, trajectory, startInNewBlock);
 	}

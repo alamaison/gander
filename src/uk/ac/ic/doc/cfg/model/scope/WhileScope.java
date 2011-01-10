@@ -2,11 +2,11 @@ package uk.ac.ic.doc.cfg.model.scope;
 
 import org.python.pydev.parser.jython.ast.While;
 
-public class WhileScope extends ScopeWithParent {
+class WhileScope extends ScopeWithParent {
 
 	private While node;
 
-	public WhileScope(While node, Statement previousStatement,
+	protected WhileScope(While node, Statement previousStatement,
 			Statement.Exit trajectory, boolean startInNewBlock, Scope parent) {
 		super(parent, previousStatement, trajectory, startInNewBlock);
 		this.node = node;

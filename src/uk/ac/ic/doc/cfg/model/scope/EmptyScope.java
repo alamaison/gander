@@ -2,11 +2,11 @@ package uk.ac.ic.doc.cfg.model.scope;
 
 import uk.ac.ic.doc.cfg.model.BasicBlock;
 
-public class EmptyScope extends ScopeWithParent {
+class EmptyScope extends ScopeWithParent {
 
 	private BasicBlock block;
 
-	public EmptyScope(Scope parent, BasicBlock block) {
+	protected EmptyScope(Scope parent, BasicBlock block) {
 		super(parent, null, null, true);
 		this.block = block;
 	}

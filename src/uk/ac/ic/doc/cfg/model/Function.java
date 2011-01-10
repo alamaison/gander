@@ -10,7 +10,7 @@ public class Function implements IModelElement {
 	private FunctionDef function;
 	private IModelElement parent;
 
-	public Function(FunctionDef function, IModelElement parent) {
+	protected Function(FunctionDef function, IModelElement parent) {
 		this.function = function;
 		this.parent = parent;
 	}

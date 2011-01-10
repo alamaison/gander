@@ -4,7 +4,7 @@ import org.python.pydev.parser.jython.ast.FunctionDef;
 
 public class Method extends Function {
 
-	public Method(FunctionDef method, IModelElement parent) {
+	protected Method(FunctionDef method, IModelElement parent) {
 		super(method, parent);
 	}
 

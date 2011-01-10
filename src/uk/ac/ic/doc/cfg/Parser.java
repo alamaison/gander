@@ -6,7 +6,7 @@ import org.python.pydev.parser.jython.CharStream;
 import org.python.pydev.parser.jython.ParseException;
 import org.python.pydev.parser.jython.SimpleNode;
 
-public class Parser {
+class Parser {
 
 	static SimpleNode parse(CharStream stream) throws ParseException {
 		IGrammar grammar = new PythonGrammar26(stream);

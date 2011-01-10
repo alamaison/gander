@@ -8,13 +8,13 @@ import java.util.Set;
 
 import uk.ac.ic.doc.cfg.model.BasicBlock;
 
-public abstract class AbstractDomination {
+abstract class AbstractDomination {
 
-	protected Set<BasicBlock> blocks;
+	private Set<BasicBlock> blocks;
 
 	protected Map<BasicBlock, Set<BasicBlock>> out = new HashMap<BasicBlock, Set<BasicBlock>>();
 
-	public AbstractDomination(Set<BasicBlock> blocks, BasicBlock entry) {
+	protected AbstractDomination(Set<BasicBlock> blocks, BasicBlock entry) {
 		this.blocks = new HashSet<BasicBlock>(blocks);
 
 		calculateDominators(entry);
@@ -26,7 +26,7 @@ public abstract class AbstractDomination {
 		return intersection;
 	}
 
-	protected void calculateDominators(BasicBlock entry) {
+	private void calculateDominators(BasicBlock entry) {
 		initialisation(entry);
 
 		boolean changed = true;
@@ -67,7 +67,7 @@ public abstract class AbstractDomination {
 		return blocks;
 	}
 
-	public boolean dominates(BasicBlock dom, BasicBlock sub) {
+	protected boolean dominates(BasicBlock dom, BasicBlock sub) {
 		Collection<BasicBlock> doms = dominators(sub);
 		if (doms == null)
 			return false;

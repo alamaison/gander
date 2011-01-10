@@ -13,7 +13,7 @@ public class Class implements IModelElement {
 	private ClassDef cls;
 	private IModelElement parent;
 
-	public Class(ClassDef cls, IModelElement parent) {
+	protected Class(ClassDef cls, IModelElement parent) {
 		this.cls = cls;
 		this.parent = parent;
 	}

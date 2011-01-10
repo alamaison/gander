@@ -2,11 +2,11 @@ package uk.ac.ic.doc.cfg.model.scope;
 
 import org.python.pydev.parser.jython.ast.Raise;
 
-public class RaiseScope extends ScopeWithParent {
+class RaiseScope extends ScopeWithParent {
 
 	private Raise node;
 
-	public RaiseScope(Raise node, Statement previousStatement,
+	protected RaiseScope(Raise node, Statement previousStatement,
 			Statement.Exit trajectory, boolean startInNewBlock, Scope parent) {
 		super(parent, previousStatement, trajectory, startInNewBlock);
 		this.node = node;

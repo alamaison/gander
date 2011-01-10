@@ -2,11 +2,11 @@ package uk.ac.ic.doc.cfg.model.scope;
 
 import uk.ac.ic.doc.cfg.model.BasicBlock;
 
-public abstract class ScopeWithParent extends Scope {
+abstract class ScopeWithParent extends Scope {
 
-	protected Scope parent;
+	private Scope parent;
 
-	public ScopeWithParent(Scope parent, Statement previousStatement,
+	protected ScopeWithParent(Scope parent, Statement previousStatement,
 			Statement.Exit trajectory, boolean forceNewBlock) {
 		super(previousStatement, trajectory, forceNewBlock);
 		this.parent = parent;

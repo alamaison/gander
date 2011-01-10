@@ -32,7 +32,7 @@ import org.python.pydev.parser.jython.ast.Yield;
 import uk.ac.ic.doc.cfg.model.BasicBlock;
 import uk.ac.ic.doc.cfg.model.scope.Statement.Exit;
 
-public abstract class Scope extends VisitorBase {
+abstract class Scope extends VisitorBase {
 
 	private Statement previousStatement;
 	private boolean startInNewBlock;
@@ -43,25 +43,21 @@ public abstract class Scope extends VisitorBase {
 	private Exit _trajectory = null;
 	private boolean _startInNewBlock = false;
 
-	protected boolean getStartInNewBlock() {
+	private boolean getStartInNewBlock() {
 		return startInNewBlock;
-	}
-
-	protected void setStartInNewBlock(boolean startInNewBlock) {
-		this.startInNewBlock = startInNewBlock;
 	}
 
 	public Scope() {
 		startInNewBlock = true;
-		setPreviousStatement(new Statement());
+		this.previousStatement = new Statement();
 		this.trajectory = previousStatement().fallthroughs();
 	}
 
-	public Scope(Statement previousStatement, Exit trajectory,
+	protected Scope(Statement previousStatement, Exit trajectory,
 			boolean startInNewBlock) {
 		this.trajectory = trajectory;
 		this.startInNewBlock = startInNewBlock;
-		setPreviousStatement(previousStatement);
+		this.previousStatement = previousStatement;
 	}
 
 	private Statement delegateScope(Scope scope) throws Exception {
@@ -275,16 +271,8 @@ public abstract class Scope extends VisitorBase {
 		return previousStatement;
 	}
 
-	protected void setPreviousStatement(Statement previousStatement) {
-		this.previousStatement = previousStatement;
-	}
-
 	protected Exit trajectory() {
 		return trajectory;
-	}
-
-	protected void setTrajectory(Exit trajectory) {
-		this.trajectory = trajectory;
 	}
 
 	/**
@@ -294,7 +282,7 @@ public abstract class Scope extends VisitorBase {
 	 * 
 	 * @return Previous statement's unique fallthrough block.
 	 */
-	protected BasicBlock currentBlock() {
+	private BasicBlock currentBlock() {
 		return previousStatement().uniqueFallthrough();
 	}
 
@@ -312,7 +300,7 @@ public abstract class Scope extends VisitorBase {
 		}
 	}
 
-	protected void addToNewBlock(SimpleNode node) {
+	private void addToNewBlock(SimpleNode node) {
 		BasicBlock nextBlock = newBlock();
 		nextBlock.addStatement(node);
 
@@ -321,7 +309,8 @@ public abstract class Scope extends VisitorBase {
 		statement.fallthrough(nextBlock);
 		trajectory().linkTo(statement);
 
-		setPreviousStatement(statement);
-		setTrajectory(statement.fallthroughs());
+		this.previousStatement = statement;
+		this.trajectory = statement.fallthroughs();
+		this.startInNewBlock = false;
 	}
 }

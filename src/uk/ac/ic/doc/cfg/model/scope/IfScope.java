@@ -3,11 +3,11 @@ package uk.ac.ic.doc.cfg.model.scope;
 import org.python.pydev.parser.jython.ast.If;
 import org.python.pydev.parser.jython.ast.stmtType;
 
-public class IfScope extends ScopeWithParent {
+class IfScope extends ScopeWithParent {
 
 	private If node;
 
-	public IfScope(If node, Statement previousStatement,
+	protected IfScope(If node, Statement previousStatement,
 			Statement.Exit trajectory, boolean startInNewBlock, Scope parent) {
 		super(parent, previousStatement, trajectory, startInNewBlock);
 		this.node = node;

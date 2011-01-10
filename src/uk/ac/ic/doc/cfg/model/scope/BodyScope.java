@@ -2,11 +2,11 @@ package uk.ac.ic.doc.cfg.model.scope;
 
 import org.python.pydev.parser.jython.SimpleNode;
 
-public class BodyScope extends ScopeWithParent {
+class BodyScope extends ScopeWithParent {
 
 	private SimpleNode[] nodes;
 
-	public BodyScope(SimpleNode[] nodes, Statement previousStatement,
+	protected BodyScope(SimpleNode[] nodes, Statement previousStatement,
 			Statement.Exit trajectory, Scope parent) {
 		super(parent, previousStatement, trajectory, true);
 		this.nodes = nodes;

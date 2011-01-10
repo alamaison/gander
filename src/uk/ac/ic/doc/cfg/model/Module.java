@@ -28,7 +28,7 @@ public class Module implements IModelElement {
 			.compile("(.*)\\.py");
 	private static final int MODULE_NAME_MATCHING_GROUP = 1;
 
-	public Module(File module, IModelElement parent) throws IOException,
+	protected Module(File module, IModelElement parent) throws IOException,
 			ParseException, InvalidElementException {
 		this.name = moduleNameFromFile(module);
 		if (this.name == null)
@@ -86,7 +86,7 @@ public class Module implements IModelElement {
 	 *            Python module File.
 	 * @return Module name if valid Python module filename. Null otherwise.
 	 */
-	public static String moduleNameFromFile(File module) {
+	protected static String moduleNameFromFile(File module) {
 		if (!module.isFile())
 			return null;
 		Matcher m = MODULE_NAME_PATTERN.matcher(module.getName());

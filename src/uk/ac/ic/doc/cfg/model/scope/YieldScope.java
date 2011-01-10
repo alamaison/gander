@@ -2,11 +2,11 @@ package uk.ac.ic.doc.cfg.model.scope;
 
 import org.python.pydev.parser.jython.ast.Yield;
 
-public class YieldScope extends ScopeWithParent {
+class YieldScope extends ScopeWithParent {
 
 	private Yield node;
 
-	public YieldScope(Yield node, Statement previousStatement,
+	protected YieldScope(Yield node, Statement previousStatement,
 			Statement.Exit trajectory, boolean startInNewBlock, Scope parent) {
 		super(parent, previousStatement, trajectory, startInNewBlock);
 		this.node = node;

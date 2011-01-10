@@ -3,11 +3,11 @@ package uk.ac.ic.doc.cfg.model.scope;
 import org.python.pydev.parser.jython.ast.TryExcept;
 import org.python.pydev.parser.jython.ast.excepthandlerType;
 
-public class TryExceptScope extends ScopeWithParent {
+class TryExceptScope extends ScopeWithParent {
 
 	private TryExcept node;
 
-	public TryExceptScope(TryExcept node, Statement previousStatement,
+	protected TryExceptScope(TryExcept node, Statement previousStatement,
 			Statement.Exit trajectory, boolean startInNewBlock, Scope parent) {
 		super(parent, previousStatement, trajectory, startInNewBlock);
 		this.node = node;

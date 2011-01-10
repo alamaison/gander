@@ -8,7 +8,7 @@ public class InvalidElementException extends Exception {
 	private String message;
 	private File offender;
 
-	public InvalidElementException(String message, File offender) {
+	protected InvalidElementException(String message, File offender) {
 		this.message = message;
 		this.offender = offender;
 	}

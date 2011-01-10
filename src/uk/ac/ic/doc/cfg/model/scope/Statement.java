@@ -6,7 +6,7 @@ import java.util.Set;
 
 import uk.ac.ic.doc.cfg.model.BasicBlock;
 
-public class Statement {
+class Statement {
 
 	private class BlockSet implements Iterable<BasicBlock> {
 
@@ -51,7 +51,7 @@ public class Statement {
 		}
 	}
 
-	public class Entry extends BlockSet {
+	private class Entry extends BlockSet {
 
 	}
 
@@ -72,31 +72,31 @@ public class Statement {
 
 	private Entry inlinkQueue = new Entry();
 
-	public Exit fallthroughs() {
+	protected Exit fallthroughs() {
 		return fallthroughQueue;
 	}
 
-	public Exit breakouts() {
+	protected Exit breakouts() {
 		return breakoutQueue;
 	}
 
-	public Exit continues() {
+	protected Exit continues() {
 		return continueQueue;
 	}
 
-	public Exit returns() {
+	protected Exit returns() {
 		return returnQueue;
 	}
 
-	public Exit raises() {
+	protected Exit raises() {
 		return raiseQueue;
 	}
 
-	public Entry inlinks() {
+	private Entry inlinks() {
 		return inlinkQueue;
 	}
 	
-	public Exit allExits() {
+	protected Exit allExits() {
 		
 		Exit all = new Exit();
 		
@@ -109,90 +109,72 @@ public class Statement {
 		return all;
 	}
 
-	public void fallthrough(BasicBlock block) {
+	protected void fallthrough(BasicBlock block) {
 		fallthroughs().add(block);
 	}
 
-	public void breakout(BasicBlock block) {
-		breakouts().add(block);
-	}
-
-	public void continu(BasicBlock block) {
-		continues().add(block);
-	}
-
-	public void returnFrom(BasicBlock block) {
-		returns().add(block);
-	}
-
-	public void raise(BasicBlock block) {
-		raises().add(block);
-	}
-
-	public void inlink(BasicBlock block) {
+	protected void inlink(BasicBlock block) {
 		inlinks().add(block);
 	}
 
-	public void linkFallThroughsTo(Statement successor) {
+	protected void linkFallThroughsTo(Statement successor) {
 		fallthroughs().linkTo(successor);
 	}
 
-	public void linkContinuesTo(Statement successor) {
+	protected void linkContinuesTo(Statement successor) {
 		continues().linkTo(successor);
 	}
 
-
-	public void linkReturnsTo(Statement successor) {
+	protected void linkReturnsTo(Statement successor) {
 		returns().linkTo(successor);
 	}
 
-	public void linkRaisesTo(Statement successor) {
+	protected void linkRaisesTo(Statement successor) {
 		raises().linkTo(successor);
 	}
 
-
-	public void linkBreaksTo(Statement successor) {
+	protected void linkBreaksTo(Statement successor) {
 		breakouts().linkTo(successor);
 	}
 
-	public boolean canRaise() {
+	protected boolean canRaise() {
 		return !raises().isEmpty();
 	}
 
-	public boolean canReturn() {
+	protected boolean canReturn() {
 		return !returns().isEmpty();
 	}
 
-	public boolean canFallThrough() {
+	protected boolean canFallThrough() {
 		return !fallthroughs().isEmpty();
 	}
 
-	public boolean canBreak() {
+	protected boolean canBreak() {
 		return !breakouts().isEmpty();
 	}
 
-	public boolean canContinue() {
+	protected boolean canContinue() {
 		return !continues().isEmpty();
 	}
 	
-	public void inheritFallthroughsFrom(Statement otherExits) {
+	protected void inheritFallthroughsFrom(Statement otherExits) {
 		fallthroughs().inherit(otherExits.fallthroughs());
 	}
 
-	public void inheritNonLoopExitsFrom(Statement otherExits) {
+	protected void inheritNonLoopExitsFrom(Statement otherExits) {
 		returns().inherit(otherExits.returns());
 		inheritRaisesFrom(otherExits);
 	}
 
-	public void inheritRaisesFrom(Statement otherExits) {
+	protected void inheritRaisesFrom(Statement otherExits) {
 		raises().inherit(otherExits.raises());
 	}
 
-	public void inheritInlinksFrom(Statement other) {
+	protected void inheritInlinksFrom(Statement other) {
 		inlinks().inherit(other.inlinks());
 	}
 
-	public void inheritAllButFallthroughsFrom(Statement otherExits) {
+	protected void inheritAllButFallthroughsFrom(Statement otherExits) {
 
 		breakouts().inherit(otherExits.breakouts());
 		continues().inherit(otherExits.continues());
@@ -200,24 +182,24 @@ public class Statement {
 		inheritRaisesFrom(otherExits);
 	}
 
-	public void inheritExitsFrom(Statement otherExits) {
+	protected void inheritExitsFrom(Statement otherExits) {
 		inheritAllButFallthroughsFrom(otherExits);
 		inheritFallthroughsFrom(otherExits);
 	}
 
-	public void convertBreakoutsToFallthroughs(Statement successor) {
+	protected void convertBreakoutsToFallthroughs(Statement successor) {
 		fallthroughs().inherit(successor.breakouts());
 	}
 
-	public void convertFallthroughsToRaises(Statement successor) {
+	protected void convertFallthroughsToRaises(Statement successor) {
 		raises().inherit(successor.fallthroughs());
 	}
 
-	public void convertFallthroughsToReturns(Statement successor) {
+	protected void convertFallthroughsToReturns(Statement successor) {
 		returns().inherit(successor.fallthroughs());
 	}
 
-	public void convertFallthroughsToBreaks(Statement successor) {
+	protected void convertFallthroughsToBreaks(Statement successor) {
 		breakouts().inherit(successor.fallthroughs());
 	}
 
@@ -226,14 +208,14 @@ public class Statement {
 	 * 
 	 * @return Statement's unique fallthrough block.
 	 */
-	public BasicBlock uniqueFallthrough() {
+	protected BasicBlock uniqueFallthrough() {
 		if (fallthroughs().size() != 1)
 			throw new Error("No unique fallthough block");
 
 		return fallthroughs().iterator().next();
 	}
 
-	public int exitSize() {
+	protected int exitSize() {
 		return fallthroughs().size() + breakouts().size() + continues().size()
 				+ returns().size() + raises().size();
 	}
