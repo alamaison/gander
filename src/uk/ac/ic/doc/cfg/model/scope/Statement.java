@@ -221,11 +221,11 @@ class Statement {
 	}
 
 	public boolean isEndOfBlock() {
-		if (exitSize() > 1)
+		if (exitSize() > 1 || !canFallThrough())
 			return true;
 
 		// If the one fallthrough block already has a successor
-		return canFallThrough() && uniqueFallthrough().isClosed();
+		return uniqueFallthrough().isClosed();
 	}
 
 	@Override

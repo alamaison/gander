@@ -19,15 +19,15 @@ class TryFinallyScope extends ScopeWithParent {
 
 		// try
 
-		Statement tryBody = delegateButForceNewBlock(node.body);
+		Statement tryBody = delegate(node.body);
 
 		// finally
 
 		// Every method of exiting the try body directs control-flow to
 		// the finally body. Therefore we must pass the union of all the
 		// exits as the incoming trajectory.
-		Statement finallyBody = buildGraphForceNewBlock(node.finalbody.body,
-				tryBody, tryBody.allExits());
+		Statement finallyBody = buildGraph(node.finalbody.body, tryBody,
+				tryBody.allExits());
 
 		// The try-body's exit are generally resumed at the end of the finally
 		// body. However, if the finally body itself exits in a non-fallthru

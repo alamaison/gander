@@ -20,7 +20,7 @@ class TryExceptScope extends ScopeWithParent {
 
 		// try
 
-		Statement body = delegateButForceNewBlock(node.body);
+		Statement body = delegate(node.body);
 		if (body.canRaise()) {
 			boolean foundCatchAll = false;
 			for (excepthandlerType handler : node.handlers) {
