@@ -3,25 +3,24 @@ package uk.ac.ic.doc.cfg.model.scope;
 import org.python.pydev.parser.jython.ast.If;
 import org.python.pydev.parser.jython.ast.stmtType;
 
-import uk.ac.ic.doc.cfg.model.BasicBlock;
-
 public class IfScope extends ScopeWithParent {
 
 	private If node;
 
-	public IfScope(If node, BasicBlock root, Scope parent) throws Exception {
-		super(parent, root);
+	public IfScope(If node, Statement previousStatement,
+			Statement.Exit trajectory, boolean startInNewBlock, Scope parent) {
+		super(parent, previousStatement, trajectory, startInNewBlock);
 		this.node = node;
 	}
 
 	@Override
-	protected ScopeExits doProcess() throws Exception {
+	protected Statement doProcess() throws Exception {
 
-		ScopeExits exits = new ScopeExits();
+		Statement exits = new Statement();
 
 		// if
 
-		ScopeExits condition = (ScopeExits) node.test.accept(this);
+		Statement condition = (Statement) node.test.accept(this);
 
 		// then
 
@@ -37,19 +36,16 @@ public class IfScope extends ScopeWithParent {
 		else
 			exits.inheritExitsFrom(processBranch(node.orelse.body, condition));
 
-		exits.setRoot(condition.getRoot());
+		exits.inheritInlinksFrom(condition);
 		return exits;
 	}
 
-	private ScopeExits processBranch(stmtType[] branch, ScopeExits condition)
+	private Statement processBranch(stmtType[] branch, Statement condition)
 			throws Exception {
 
-		ScopeExits body = new BodyScope(branch, null, this).process();
-
-		// link the test block to the branch body
 		assert condition.exitSize() == 1;
-		if (!body.isEmpty())
-			condition.linkFallThroughsTo(body);
+		Statement body = new BodyScope(branch, condition,
+				condition.fallthroughs(), this).process();
 
 		return body;
 	}

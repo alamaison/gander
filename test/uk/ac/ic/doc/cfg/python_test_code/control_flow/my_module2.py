@@ -215,6 +215,29 @@ def test_yield2():
 def test_pass():
 	pass
 
+def test_if_pass():
+	if a():
+		pass
+	b()
+
+def test_if_else_pass():
+	if a():
+		pass
+	else:
+		b()
+	c()
+
+def test_if_else_pass_pass():
+	if a():
+		pass
+	else:
+		pass
+	b()
+
+def test_while_pass():
+	while a():
+		pass
+
 def test_raise1():
 	raise
 
@@ -311,6 +334,29 @@ def test_try_except_else_raise():
 	else:
 		raise d()
 
+def test_try_except_empty():
+	try:
+		pass
+	except Exception:
+		a()
+	b()
+
+
+def test_try_except_empty_raise():
+	try:
+		raise
+	except Exception:
+		a()
+	b()
+
+def test_try_except_empty_else():
+	try:
+		pass
+	except Exception:
+		a()
+	else:
+		b()
+		
 def test_try_finally1():
 	try:
 		if a():

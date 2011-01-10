@@ -2,31 +2,52 @@ package uk.ac.ic.doc.cfg.model.scope;
 
 import org.python.pydev.parser.jython.ast.Raise;
 
-import uk.ac.ic.doc.cfg.model.BasicBlock;
-
 public class RaiseScope extends ScopeWithParent {
 
 	private Raise node;
 
-	public RaiseScope(Raise node, BasicBlock root, Scope parent) {
-		super(parent, root);
+	public RaiseScope(Raise node, Statement previousStatement,
+			Statement.Exit trajectory, boolean startInNewBlock, Scope parent) {
+		super(parent, previousStatement, trajectory, startInNewBlock);
 		this.node = node;
 	}
 
 	@Override
-	protected ScopeExits doProcess() throws Exception {
-		if (node.type != null)
-			addToCurrentBlock(node.type);
-		if (node.inst != null)
-			addToCurrentBlock(node.inst);
-		if (node.tback!= null)
-			addToCurrentBlock(node.tback);
-		
-		ScopeExits exits = new ScopeExits();
-		exits.raise(getCurrentBlock());
-		exits.setRoot(getCurrentBlock());
-		
-		return exits;
-	}
+	protected Statement doProcess() throws Exception {
+		Statement prev = previousStatement();
+		Statement type = delegateScope(node.type);
+		setPreviousStatement(type);
 
+		Statement inst = delegateScope(node.inst);
+		setPreviousStatement(inst);
+
+		Statement tback = delegateScope(node.tback);
+		setPreviousStatement(tback);
+
+		Statement statement = new Statement();
+
+		// take inlink from first part of exception spec that provides one
+		// and attribute raise to first part's fallthough (should be
+		// same as inlink
+		if (type.canFallThrough()) {
+			statement.inheritInlinksFrom(type);
+			statement.convertFallthroughsToRaises(type);
+		} else if (inst.canFallThrough()) {
+			statement.inheritInlinksFrom(inst);
+			statement.convertFallthroughsToRaises(inst);
+		} else if (tback.canFallThrough()) {
+			statement.inheritInlinksFrom(tback);
+			statement.convertFallthroughsToRaises(tback);
+		} else {
+			// if there is a naked 'raise' statement, attribute the raising to
+			// the previous statement that fell through to it
+			statement.raises().inherit(prev.fallthroughs());
+		}
+
+		statement.inheritAllButFallthroughsFrom(type);
+		statement.inheritAllButFallthroughsFrom(inst);
+		statement.inheritAllButFallthroughsFrom(tback);
+
+		return statement;
+	}
 }

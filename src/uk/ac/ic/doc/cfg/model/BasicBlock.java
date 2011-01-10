@@ -38,9 +38,6 @@ public class BasicBlock implements Iterable<SimpleNode> {
 	public Set<BasicBlock> getPredecessors() {
 		return predecessors;
 	}
-	
-	public boolean isStart() { return getPredecessors().isEmpty(); }
-	public boolean isEnd() { return getSuccessors().isEmpty(); }
 
 	public void link(BasicBlock successor) {
 		out.add(successor);
@@ -54,5 +51,18 @@ public class BasicBlock implements Iterable<SimpleNode> {
 
 	public boolean isEmpty() {
 		return statements.size() == 0;
-	}	
+	}
+	
+	/**
+	 * Once a block has been linked, it is no longer eligible for adding
+	 * statements to.
+	 */
+	public boolean isClosed() {
+		return !getSuccessors().isEmpty();
+	}
+	
+	@Override
+	public String toString() {
+		return statements.toString();
+	}
 }

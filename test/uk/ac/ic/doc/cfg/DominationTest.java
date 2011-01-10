@@ -103,89 +103,48 @@ public class DominationTest {
 	}
 
 	private void checkDomination(String[][] dominators) {
-
-		Set<BasicBlock> allBlocks = domAnalyser.getBlocks();
-		BasicBlock start = findStartBlock(allBlocks);
-		BasicBlock end = findEndBlock(allBlocks);
-
-		checkStartEndDomination(allBlocks, start, end);
-
-		GraphTest test = new DominationGraphTest(dominators, graph, domAnalyser);
-		test.run();
+		checkStartEndDomination();
+		new DominationGraphTest(dominators, graph, domAnalyser).run();
 	}
 
 	private void checkPostdomination(String[][] dominators) {
-
-		Set<BasicBlock> allBlocks = postdomAnalyser.getBlocks();
-		BasicBlock start = findStartBlock(allBlocks);
-		BasicBlock end = findEndBlock(allBlocks);
-
-		checkStartEndPostdomination(allBlocks, start, end);
-
-		GraphTest test = new PostdominationGraphTest(dominators, graph,
-				postdomAnalyser);
-		test.run();
+		checkStartEndPostdomination();
+		new PostdominationGraphTest(dominators, graph, postdomAnalyser).run();
 	}
 
 	/**
 	 * START dominates all blocks and END dominates nothing.
 	 */
-	private void checkStartEndDomination(Set<BasicBlock> blocks,
-			BasicBlock start, BasicBlock end) {
-		assertNotSame(start, end);
+	private void checkStartEndDomination() {
+		assertNotSame(graph.getStart(), graph.getEnd());
 
-		for (BasicBlock block : blocks) {
-			assertTrue("START must dominate all other blocks",
-					domAnalyser.dominates(start, block));
-			if (block != end)
-				assertFalse("END must not dominate anything execpt itself",
-						domAnalyser.dominates(end, block));
+		for (BasicBlock block : graph.getBlocks()) {
+			if (block != graph.getException())
+				assertTrue(
+						"START must dominate all other blocks except EXCEPTION",
+						domAnalyser.dominates(graph.getStart(), block));
+			if (block != graph.getEnd())
+				assertFalse("END must not dominate anything except itself",
+						domAnalyser.dominates(graph.getEnd(), block));
 		}
 	}
 
 	/**
 	 * END postdominates all blocks and START postdominates nothing.
 	 */
-	private void checkStartEndPostdomination(Set<BasicBlock> blocks,
-			BasicBlock start, BasicBlock end) {
-		assertNotSame(start, end);
+	private void checkStartEndPostdomination() {
+		assertNotSame(graph.getStart(), graph.getEnd());
 
-		for (BasicBlock block : blocks) {
-			assertTrue("END must postdominate all other blocks",
-					postdomAnalyser.dominates(end, block));
-			if (block != start)
+		for (BasicBlock block : graph.getBlocks()) {
+			if (block != graph.getException())
+				assertTrue(
+						"END must postdominate all other blocks except EXCEPTION",
+						postdomAnalyser.dominates(graph.getEnd(), block));
+			if (block != graph.getStart())
 				assertFalse(
 						"START must not postdominate anything execpt itself",
-						postdomAnalyser.dominates(start, block));
+						postdomAnalyser.dominates(graph.getStart(), block));
 		}
-	}
-
-	private BasicBlock findStartBlock(Set<BasicBlock> blocks) {
-		BasicBlock start = null;
-		for (BasicBlock block : blocks) {
-			if (block.getPredecessors().isEmpty()) {
-				assertTrue("Multiple START blocks found", start == null);
-				start = block;
-			}
-		}
-
-		assertTrue("No START block found", start != null);
-
-		return start;
-	}
-
-	private BasicBlock findEndBlock(Set<BasicBlock> blocks) {
-		BasicBlock end = null;
-		for (BasicBlock block : blocks) {
-			if (block.getSuccessors().isEmpty()) {
-				assertTrue("Multiple END blocks found", end == null);
-				end = block;
-			}
-		}
-
-		assertTrue("No END block found", end != null);
-
-		return end;
 	}
 
 	@Test

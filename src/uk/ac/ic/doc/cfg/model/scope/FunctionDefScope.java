@@ -6,13 +6,14 @@ import java.util.Set;
 import org.python.pydev.parser.jython.ast.FunctionDef;
 
 import uk.ac.ic.doc.cfg.model.BasicBlock;
+import uk.ac.ic.doc.cfg.model.TerminatorBasicBlock;
 
 public class FunctionDefScope extends Scope {
 
-	private BasicBlock start;
-	private BasicBlock end;
-	private BasicBlock exception = null;
-	
+	private Statement start;
+	private Statement end;
+	private Statement exception;
+
 	private FunctionDef node;
 	private Set<BasicBlock> blocks = new HashSet<BasicBlock>();
 
@@ -21,33 +22,26 @@ public class FunctionDefScope extends Scope {
 		this.node = node;
 	}
 
-	public ScopeExits process() throws Exception {
+	public Statement process() throws Exception {
 
-		BodyScope scope = new BodyScope(node.body, null, this);
-		ScopeExits body = scope.process();
+		start = new EmptyScope(this, newTerminatorBlock()).process();
+		end = new EmptyScope(this, newTerminatorBlock()).process();
+		exception = new EmptyScope(this, newTerminatorBlock()).process();
 
-		start = newBlock();
-		if (!body.isEmpty())
-			start.link(body.getRoot());
+		Statement body = new BodyScope(node.body, start, start.fallthroughs(),
+				this).process();
 
-		ScopeExits function = new ScopeExits();
-		function.inheritExitsFrom(body);
-		function.setRoot(start);
-		
-		end = newBlock();
-		if (!function.isEmpty()) {
-			function.linkFallThroughsTo(end);
-			function.linkReturnsTo(end);
-		} else {
-			start.link(end);
-		}
-		
-		if (function.canRaise()) {
-			exception = newBlock();
-			function.linkRaisesTo(exception);
-		}
+		body.linkFallThroughsTo(end);
+		body.linkReturnsTo(end);
+		body.linkRaisesTo(exception);
 
-		return new ScopeExits();
+		return new Statement();
+	}
+
+	private BasicBlock newTerminatorBlock() {
+		BasicBlock b = new TerminatorBasicBlock();
+		blocks.add(b);
+		return b;
 	}
 
 	protected BasicBlock newBlock() {
@@ -61,14 +55,14 @@ public class FunctionDefScope extends Scope {
 	}
 
 	public BasicBlock getStart() {
-		return start;
+		return start.uniqueFallthrough();
 	}
 
 	public BasicBlock getEnd() {
-		return end;
+		return end.uniqueFallthrough();
 	}
-	
+
 	public BasicBlock getException() {
-		return exception;
+		return exception.uniqueFallthrough();
 	}
 }

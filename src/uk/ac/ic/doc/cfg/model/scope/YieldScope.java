@@ -2,29 +2,27 @@ package uk.ac.ic.doc.cfg.model.scope;
 
 import org.python.pydev.parser.jython.ast.Yield;
 
-import uk.ac.ic.doc.cfg.model.BasicBlock;
-
 public class YieldScope extends ScopeWithParent {
 
 	private Yield node;
 
-	public YieldScope(Yield node, BasicBlock root, Scope parent) {
-		super(parent, root);
+	public YieldScope(Yield node, Statement previousStatement,
+			Statement.Exit trajectory, boolean startInNewBlock, Scope parent) {
+		super(parent, previousStatement, trajectory, startInNewBlock);
 		this.node = node;
 	}
 
 	@Override
-	protected ScopeExits doProcess() throws Exception {
+	protected Statement doProcess() throws Exception {
 		addToCurrentBlock(node.value);
-		
-		ScopeExits exits = new ScopeExits();
-		exits.setRoot(getCurrentBlock());
-		
+
+		Statement statement = new Statement();
+
 		// This isn't really how yield works but, for our purposes, it
 		// may suffice.
 		// TODO: Handle yield correctly
-		exits.fallthrough(getCurrentBlock());
-		return exits;
+		statement.inheritFallthroughsFrom(previousStatement());
+		return statement;
 	}
 
 }

@@ -2,69 +2,50 @@ package uk.ac.ic.doc.cfg.model.scope;
 
 import org.python.pydev.parser.jython.SimpleNode;
 
-import uk.ac.ic.doc.cfg.model.BasicBlock;
-
 public class BodyScope extends ScopeWithParent {
 
 	private SimpleNode[] nodes;
 
-	public BodyScope(SimpleNode[] nodes, BasicBlock root, Scope parent) {
-		super(parent, root);
+	public BodyScope(SimpleNode[] nodes, Statement previousStatement,
+			Statement.Exit trajectory, Scope parent) {
+		super(parent, previousStatement, trajectory, true);
 		this.nodes = nodes;
 	}
 
 	@Override
-	protected ScopeExits doProcess() throws Exception {
-
-		BasicBlock bodyRoot = null;
-		ScopeExits body = new ScopeExits();
-		ScopeExits previousStatement = new ScopeExits();
-		ScopeExits lastStatement = new ScopeExits();
+	protected Statement doProcess() throws Exception {
+		Statement body = new Statement();
+		Statement previousStatement = null;
+		Statement lastStatement = null;
 
 		for (int i = 0; i < nodes.length; i++) {
-
-			// A statement the generated multiple internal or external links
-			// forces us to close the current basic block. We signal this to the
-			// next processor by setting the block to null. The processor will
-			// create a new block if necessary.
-			if (getCurrentBlock() != null && lastStatement.isEndOfBlock())
-				setCurrentBlock(null);
+			if (nodes[i] == null)
+				continue;
 
 			previousStatement = lastStatement;
-			lastStatement = (ScopeExits) nodes[i].accept(this);
+			lastStatement = (Statement) nodes[i].accept(this);
 
-			// The first statement that actually contributes a basic
-			// block is the root block for this body
-			if (bodyRoot == null)
-				bodyRoot = lastStatement.getRoot();
+			// The first statement we process decides the inlinks for the
+			// entire body
+			if (previousStatement == null)
+				body.inheritInlinksFrom(lastStatement);
 
-			// The statement processor may have added to the current basic block
-			// or it may have started a new one. We can detect this by comparing
-			// the root it returns with the current block. If they don't match
-			// then the processor started a new basic block. In this case we
-			// must link the current block to the new root.
-			if (getCurrentBlock() != lastStatement.getRoot()) {
-				previousStatement.linkFallThroughsTo(lastStatement);
-				setCurrentBlock(lastStatement.getRoot());
-			}
+			setPreviousStatement(lastStatement);
+			setTrajectory(lastStatement.fallthroughs());
+			setStartInNewBlock(false);
 
-			// Union all statements' other exits as we don't process them at
-			// this level
+			// Fallthroughs are handles by passing them to the next statement
+			// as the incoming trajectory. We union all other exits as we
+			// don't handles them at this level
 			body.inheritAllButFallthroughsFrom(lastStatement);
-
-			// It's possible we didn't have a current block. If so, we pretend
-			// we did for the next loop
-			if (getCurrentBlock() == null)
-				setCurrentBlock(lastStatement.getRoot());
 		}
 
 		// Only push up last statement's fallthroughs as the others are
-		// dealt with by the body processing loop here
-		body.inheritFallthroughsFrom(lastStatement);
+		// dealt with by the body processing loop above
+		if (lastStatement != null)
+			body.inheritFallthroughsFrom(lastStatement);
 
-		body.setRoot(bodyRoot);
-
-		assert body.exitSize() > 0;
+		// assert body.exitSize() > 0;
 		return body;
 	}
 }

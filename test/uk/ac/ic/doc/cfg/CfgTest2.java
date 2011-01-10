@@ -334,6 +334,39 @@ public class CfgTest2 {
 	}
 
 	@Test
+	public void testIfPass() throws Throwable {
+		initialise("test_if_pass");
+
+		String[][] graph = { { "START", "a" }, { "b", "END" } };
+		checkControlFlow(graph);
+	}
+
+	@Test
+	public void testIfElsePass() throws Throwable {
+		initialise("test_if_else_pass");
+
+		String[][] graph = { { "START", "a" }, { "a", "c" }, { "a", "b" },
+				{ "b", "c" }, { "c", "END" } };
+		checkControlFlow(graph);
+	}
+
+	@Test
+	public void testIfElsePassPass() throws Throwable {
+		initialise("test_if_else_pass_pass");
+
+		String[][] graph = { { "START", "a" }, { "b", "END" } };
+		checkControlFlow(graph);
+	}
+
+	@Test
+	public void testWhilePass() throws Throwable {
+		initialise("test_while_pass");
+
+		String[][] graph = { { "START", "a" }, { "a", "a" }, { "a", "END" } };
+		checkControlFlow(graph);
+	}
+
+	@Test
 	public void testRaise1() throws Throwable {
 		initialise("test_raise1");
 
@@ -456,6 +489,31 @@ public class CfgTest2 {
 		String[][] graph = { { "START", "a" }, { "a", "b" }, { "a", "d" },
 				{ "b", "EXCEPTION" }, { "b", "c" }, { "c", "END" },
 				{ "d", "EXCEPTION" } };
+		checkControlFlow(graph);
+	}
+
+	@Test
+	public void testTryExceptEmpty() throws Throwable {
+		initialise("test_try_except_empty");
+
+		String[][] graph = { { "START", "b" }, { "b", "END" } };
+		checkControlFlow(graph);
+	}
+
+	@Test
+	public void testTryExceptEmptyRaise() throws Throwable {
+		initialise("test_try_except_empty_raise");
+
+		String[][] graph = { { "START", "a" }, { "START", "EXCEPTION" },
+				{ "a", "b" }, { "b", "END" } };
+		checkControlFlow(graph);
+	}
+
+	@Test
+	public void testTryExceptEmptyElse() throws Throwable {
+		initialise("test_try_except_empty_else");
+
+		String[][] graph = { { "START", "b" }, { "b", "END" } };
 		checkControlFlow(graph);
 	}
 

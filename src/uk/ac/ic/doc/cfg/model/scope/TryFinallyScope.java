@@ -2,57 +2,58 @@ package uk.ac.ic.doc.cfg.model.scope;
 
 import org.python.pydev.parser.jython.ast.TryFinally;
 
-import uk.ac.ic.doc.cfg.model.BasicBlock;
-
 public class TryFinallyScope extends ScopeWithParent {
 
 	private TryFinally node;
 
-	public TryFinallyScope(TryFinally node, BasicBlock root, Scope parent) {
-		super(parent, root);
+	public TryFinallyScope(TryFinally node, Statement previousStatement,
+			Statement.Exit trajectory, boolean startInNewBlock, Scope parent) {
+		super(parent, previousStatement, trajectory, startInNewBlock);
 		this.node = node;
 	}
 
 	@Override
-	protected ScopeExits doProcess() throws Exception {
+	protected Statement doProcess() throws Exception {
 
-		ScopeExits exits = new ScopeExits();
+		Statement exits = new Statement();
 
 		// try
 
-		ScopeExits body = new BodyScope(node.body, null, this).process();
+		Statement tryBody = new BodyScope(node.body, previousStatement(),
+				trajectory(), this).process();
 
 		// finally
 
-		ScopeExits finallyBody = new BodyScope(node.finalbody.body, null, this)
-				.process();
-		if (body.canFallThrough()) {
-			body.linkFallThroughsTo(finallyBody);
+		Statement finallyBody = new BodyScope(node.finalbody.body, tryBody,
+				tryBody.fallthroughs(), this).process();
+		
+		if (tryBody.canFallThrough()) {
 			exits.inheritFallthroughsFrom(finallyBody);
 		}
 
 		// Any raises in the body fall-through to the finally block and the
 		// finally block's fall-throughs become raises.
-		if (body.canRaise()) {
-			body.linkRaisesTo(finallyBody);
+		if (tryBody.canRaise()) {
+			tryBody.linkRaisesTo(finallyBody);
 			exits.convertFallthroughsToRaises(finallyBody);
 		}
 
 		// Any returns in the body fall-through to the finally block and the
 		// finally block's fall-throughs become returns.
-		if (body.canReturn()) {
-			body.linkReturnsTo(finallyBody);
+		if (tryBody.canReturn()) {
+			tryBody.linkReturnsTo(finallyBody);
 			exits.convertFallthroughsToReturns(finallyBody);
 		}
 
 		// Any breaks in the body fall-through to the finally block and the
 		// finally block's fall-throughs become breaks.
-		if (body.canBreak()) {
-			body.linkBreaksTo(finallyBody);
+		if (tryBody.canBreak()) {
+			tryBody.linkBreaksTo(finallyBody);
 			exits.convertFallthroughsToBreaks(finallyBody);
 		}
 
-		exits.setRoot(body.getRoot());
+		exits.inheritInlinksFrom(tryBody);
+
 		return exits;
 	}
 }

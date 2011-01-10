@@ -2,20 +2,18 @@ package uk.ac.ic.doc.cfg.model.scope;
 
 import org.python.pydev.parser.jython.ast.Continue;
 
-import uk.ac.ic.doc.cfg.model.BasicBlock;
-
 public class ContinueScope extends ScopeWithParent {
 
-	public ContinueScope(Continue node, BasicBlock root, Scope parent) {
-		super(parent, root);
+	public ContinueScope(Continue node, Statement previousStatement,
+			Statement.Exit trajectory, boolean startInNewBlock, Scope parent) {
+		super(parent, previousStatement, trajectory, startInNewBlock);
 	}
 
 	@Override
-	protected ScopeExits doProcess() throws Exception {
-		ScopeExits exits = new ScopeExits();
-		exits.continu(getCurrentBlock());
-		exits.setRoot(getCurrentBlock());
-		return exits;
+	protected Statement doProcess() throws Exception {
+		Statement statement = new Statement();
+		statement.continues().inherit(previousStatement().fallthroughs());
+		return statement;
 	}
 
 }

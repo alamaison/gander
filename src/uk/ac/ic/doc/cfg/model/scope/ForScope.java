@@ -2,30 +2,30 @@ package uk.ac.ic.doc.cfg.model.scope;
 
 import org.python.pydev.parser.jython.ast.For;
 
-import uk.ac.ic.doc.cfg.model.BasicBlock;
-
 public class ForScope extends ScopeWithParent {
 
 	private For node;
 
-	public ForScope(For node, BasicBlock root, Scope parent) {
-		super(parent, root);
+	public ForScope(For node, Statement previousStatement,
+			Statement.Exit trajectory, boolean startInNewBlock, Scope parent) {
+		super(parent, previousStatement, trajectory, startInNewBlock);
 		this.node = node;
 	}
 
 	@Override
-	protected ScopeExits doProcess() throws Exception {
-		ScopeExits exits = new ScopeExits();
+	protected Statement doProcess() throws Exception {
+		Statement exits = new Statement();
 
 		// for
 
-		setCurrentBlock(null); // force new block for iterable
-		ScopeExits iterable = (ScopeExits) node.iter.accept(this);
+		setStartInNewBlock(true); // force new block for iterable
+		Statement iterable = (Statement) node.iter.accept(this);
 
 		// body
 
-		BodyScope scope = new BodyScope(node.body, null, this);
-		ScopeExits body = scope.process();
+		BodyScope scope = new BodyScope(node.body, iterable,
+				iterable.fallthroughs(), this);
+		Statement body = scope.process();
 
 		// link the iterable to the body and the fallthrough
 		assert iterable.exitSize() == 1;
@@ -47,11 +47,11 @@ public class ForScope extends ScopeWithParent {
 		// loop rather than passing through the test first
 		exits.convertBreakoutsToFallthroughs(body);
 
-		// returns and yiels are the only type of exit that is pushed to the
+		// returns and yields are the only type of exit that is pushed to the
 		// next level
 		exits.inheritNonLoopExitsFrom(body);
 
-		exits.setRoot(iterable.getRoot());
+		exits.inheritInlinksFrom(iterable);
 		return exits;
 	}
 

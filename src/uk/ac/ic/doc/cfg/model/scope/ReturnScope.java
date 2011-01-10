@@ -2,28 +2,27 @@ package uk.ac.ic.doc.cfg.model.scope;
 
 import org.python.pydev.parser.jython.ast.Return;
 
-import uk.ac.ic.doc.cfg.model.BasicBlock;
 
 public class ReturnScope extends ScopeWithParent {
 
 	private Return node;
 
-	public ReturnScope(Return node, BasicBlock root, Scope parent) {
-		super(parent, root);
+	public ReturnScope(Return node, Statement previousStatement,
+			Statement.Exit trajectory, boolean startInNewBlock, Scope parent) {
+		super(parent, previousStatement, trajectory, startInNewBlock);
 		this.node = node;
 	}
 	
 	@Override
-	protected ScopeExits doProcess() throws Exception {
+	protected Statement doProcess() throws Exception {
 		if (node.value != null) {
 			addToCurrentBlock(node.value);
 		}
 		
-		ScopeExits exits = new ScopeExits();
-		exits.returnFrom(getCurrentBlock());
-		exits.setRoot(getCurrentBlock());
+		Statement statement = new Statement();
+		statement.convertFallthroughsToReturns(previousStatement());
 		
-		return exits;
+		return statement;
 	}
 
 }

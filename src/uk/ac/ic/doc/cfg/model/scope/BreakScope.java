@@ -2,20 +2,18 @@ package uk.ac.ic.doc.cfg.model.scope;
 
 import org.python.pydev.parser.jython.ast.Break;
 
-import uk.ac.ic.doc.cfg.model.BasicBlock;
-
 public class BreakScope extends ScopeWithParent {
 
-	public BreakScope(Break node, BasicBlock root, Scope parent) {
-		super(parent, root);
+	public BreakScope(Break node, Statement previousStatement,
+			Statement.Exit trajectory, boolean startInNewBlock, Scope parent) {
+		super(parent, previousStatement, trajectory, startInNewBlock);
 	}
 
 	@Override
-	protected ScopeExits doProcess() throws Exception {
-		ScopeExits exits = new ScopeExits();
-		exits.breakout(getCurrentBlock());
-		exits.setRoot(getCurrentBlock());
-		return exits;
+	protected Statement doProcess() throws Exception {
+		Statement statement = new Statement();
+		statement.convertFallthroughsToBreaks(previousStatement());
+		return statement;
 	}
 
 }
