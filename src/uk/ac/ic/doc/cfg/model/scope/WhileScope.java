@@ -15,12 +15,10 @@ public class WhileScope extends ScopeWithParent {
 	@Override
 	protected Statement doProcess() throws Exception {
 
-		Statement exits = new Statement();
-
 		// while
 
-		setStartInNewBlock(true); // force new block for test
-		Statement condition = (Statement) node.test.accept(this);
+		// force new block for test
+		Statement condition = delegateScopeForceNew(node.test);
 		assert condition.exitSize() == 1;
 
 		// body
@@ -28,6 +26,7 @@ public class WhileScope extends ScopeWithParent {
 		Statement body = new BodyScope(node.body, condition,
 				condition.fallthroughs(), this).process();
 
+		Statement exits = new Statement();
 		exits.inheritFallthroughsFrom(condition);
 
 		// link the body back to the condition

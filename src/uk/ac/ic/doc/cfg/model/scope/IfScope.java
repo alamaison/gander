@@ -20,7 +20,7 @@ public class IfScope extends ScopeWithParent {
 
 		// if
 
-		Statement condition = (Statement) node.test.accept(this);
+		Statement condition = delegateScopeContinuing(node.test);
 
 		// then
 

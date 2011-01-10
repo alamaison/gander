@@ -38,6 +38,11 @@ public abstract class Scope extends VisitorBase {
 	private boolean startInNewBlock;
 	private Exit trajectory;
 
+	// Internal members only used to passing arguments to accept()
+	private Statement _previousStatement = null;
+	private Exit _trajectory = null;
+	private boolean _startInNewBlock = false;
+
 	protected boolean getStartInNewBlock() {
 		return startInNewBlock;
 	}
@@ -65,20 +70,20 @@ public abstract class Scope extends VisitorBase {
 
 	private <T extends SimpleNode> Statement delegateSelfAddingScope(T node)
 			throws Exception {
-		return delegateScope(new SelfAddingScope<T>(node, previousStatement(),
-				trajectory(), getStartInNewBlock(), this));
+		return delegateScope(new SelfAddingScope<T>(node, _previousStatement,
+				_trajectory, _startInNewBlock, this));
 	}
 
 	@Override
 	public Object visitIf(If node) throws Exception {
-		return delegateScope(new IfScope(node, previousStatement(),
-				trajectory(), getStartInNewBlock(), this));
+		return delegateScope(new IfScope(node, _previousStatement, _trajectory,
+				_startInNewBlock, this));
 	}
 
 	@Override
 	public Object visitWhile(While node) throws Exception {
-		return delegateScope(new WhileScope(node, previousStatement(),
-				trajectory(), getStartInNewBlock(), this));
+		return delegateScope(new WhileScope(node, _previousStatement,
+				_trajectory, _startInNewBlock, this));
 	}
 
 	@Override
@@ -88,8 +93,8 @@ public abstract class Scope extends VisitorBase {
 
 	@Override
 	public Object visitExpr(Expr node) throws Exception {
-		return delegateScope(new ExprScope(node, previousStatement(),
-				trajectory(), getStartInNewBlock(), this));
+		return delegateScope(new ExprScope(node, _previousStatement,
+				_trajectory, _startInNewBlock, this));
 	}
 
 	@Override
@@ -99,32 +104,32 @@ public abstract class Scope extends VisitorBase {
 
 	@Override
 	public Object visitBreak(Break node) throws Exception {
-		return delegateScope(new BreakScope(node, previousStatement(),
-				trajectory(), getStartInNewBlock(), this));
+		return delegateScope(new BreakScope(node, _previousStatement,
+				_trajectory, _startInNewBlock, this));
 	}
 
 	@Override
 	public Object visitContinue(Continue node) throws Exception {
-		return delegateScope(new ContinueScope(node, previousStatement(),
-				trajectory(), getStartInNewBlock(), this));
+		return delegateScope(new ContinueScope(node, _previousStatement,
+				_trajectory, _startInNewBlock, this));
 	}
 
 	@Override
 	public Object visitReturn(Return node) throws Exception {
-		return delegateScope(new ReturnScope(node, previousStatement(),
-				trajectory(), getStartInNewBlock(), this));
+		return delegateScope(new ReturnScope(node, _previousStatement,
+				_trajectory, _startInNewBlock, this));
 	}
 
 	@Override
 	public Object visitFor(For node) throws Exception {
-		return delegateScope(new ForScope(node, previousStatement(),
-				trajectory(), getStartInNewBlock(), this));
+		return delegateScope(new ForScope(node, _previousStatement,
+				_trajectory, _startInNewBlock, this));
 	}
 
 	@Override
 	public Object visitYield(Yield node) throws Exception {
-		return delegateScope(new YieldScope(node, previousStatement(),
-				trajectory(), getStartInNewBlock(), this));
+		return delegateScope(new YieldScope(node, _previousStatement,
+				_trajectory, _startInNewBlock, this));
 	}
 
 	@Override
@@ -193,32 +198,32 @@ public abstract class Scope extends VisitorBase {
 
 	@Override
 	public Object visitRaise(Raise node) throws Exception {
-		return delegateScope(new RaiseScope(node, previousStatement(),
-				trajectory(), getStartInNewBlock(), this));
+		return delegateScope(new RaiseScope(node, _previousStatement,
+				_trajectory, _startInNewBlock, this));
 	}
 
 	@Override
 	public Object visitPass(Pass node) throws Exception {
-		return delegateScope(new PassScope(previousStatement(), trajectory(),
-				getStartInNewBlock(), this));
+		return delegateScope(new PassScope(_previousStatement, _trajectory,
+				_startInNewBlock, this));
 	}
 
 	@Override
 	public Object visitTryExcept(TryExcept node) throws Exception {
-		return delegateScope(new TryExceptScope(node, previousStatement(),
-				trajectory(), getStartInNewBlock(), this));
+		return delegateScope(new TryExceptScope(node, _previousStatement,
+				_trajectory, _startInNewBlock, this));
 	}
 
 	@Override
 	public Object visitTryFinally(TryFinally node) throws Exception {
-		return delegateScope(new TryFinallyScope(node, previousStatement(),
-				trajectory(), getStartInNewBlock(), this));
+		return delegateScope(new TryFinallyScope(node, _previousStatement,
+				_trajectory, _startInNewBlock, this));
 	}
 
 	@Override
 	public Object visitAssert(Assert node) throws Exception {
-		return delegateScope(new PassScope(previousStatement(), trajectory(),
-				getStartInNewBlock(), this));
+		return delegateScope(new PassScope(_previousStatement, _trajectory,
+				_startInNewBlock, this));
 	}
 
 	@Override
@@ -233,10 +238,37 @@ public abstract class Scope extends VisitorBase {
 		return statement;
 	}
 
-	protected Statement delegateScope(SimpleNode node) throws Exception {
+	protected Statement delegateScope(SimpleNode node, Statement previous,
+			Statement.Exit trajectory, boolean startInNewBlock)
+			throws Exception {
 		if (node == null)
 			return new Statement();
-		return (Statement) node.accept(this);
+
+		assert _previousStatement == null;
+		assert _trajectory == null;
+		assert !_startInNewBlock;
+
+		try {
+			_previousStatement = previous;
+			_trajectory = trajectory;
+			_startInNewBlock = startInNewBlock;
+
+			return (Statement) node.accept(this);
+		} finally {
+			_previousStatement = null;
+			_trajectory = null;
+			_startInNewBlock = false;
+		}
+	}
+
+	protected Statement delegateScopeContinuing(SimpleNode node)
+			throws Exception {
+		return delegateScope(node, previousStatement(), trajectory(),
+				getStartInNewBlock());
+	}
+
+	protected Statement delegateScopeForceNew(SimpleNode node) throws Exception {
+		return delegateScope(node, previousStatement(), trajectory(), true);
 	}
 
 	protected Statement previousStatement() {

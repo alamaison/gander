@@ -18,8 +18,8 @@ public class ForScope extends ScopeWithParent {
 
 		// for
 
-		setStartInNewBlock(true); // force new block for iterable
-		Statement iterable = (Statement) node.iter.accept(this);
+		// force new block for iterable
+		Statement iterable = delegateScopeForceNew(node.iter);
 
 		// body
 

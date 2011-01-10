@@ -14,14 +14,13 @@ public class RaiseScope extends ScopeWithParent {
 
 	@Override
 	protected Statement doProcess() throws Exception {
-		Statement type = delegateScope(node.type);
-		setPreviousStatement(type);
+		Statement type = delegateScopeContinuing(node.type);
 
-		Statement inst = delegateScope(node.inst);
-		setPreviousStatement(inst);
+		Statement inst = delegateScope(node.inst, type, type.fallthroughs(),
+				false);
 
-		Statement tback = delegateScope(node.tback);
-		setPreviousStatement(tback);
+		Statement tback = delegateScope(node.tback, inst, inst.fallthroughs(),
+				false);
 
 		Statement statement = new Statement();
 

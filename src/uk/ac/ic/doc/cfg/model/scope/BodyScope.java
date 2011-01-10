@@ -14,35 +14,38 @@ public class BodyScope extends ScopeWithParent {
 
 	@Override
 	protected Statement doProcess() throws Exception {
-		Statement body = new Statement();
-		Statement previousStatement = null;
+		Statement body = null;
 		Statement lastStatement = null;
 
 		for (int i = 0; i < nodes.length; i++) {
 			if (nodes[i] == null)
 				continue;
 
-			previousStatement = lastStatement;
-			lastStatement = (Statement) nodes[i].accept(this);
+			Statement statement;
+			if (lastStatement == null)
+				statement = delegateScopeContinuing(nodes[i]);
+			else
+				statement = delegateScope(nodes[i], lastStatement,
+						lastStatement.fallthroughs(), false);
 
 			// The first statement we process decides the inlinks for the
 			// entire body
-			if (previousStatement == null)
-				body.inheritInlinksFrom(lastStatement);
-
-			setPreviousStatement(lastStatement);
-			setTrajectory(lastStatement.fallthroughs());
-			setStartInNewBlock(false);
+			if (body == null) {
+				body = new Statement();
+				body.inheritInlinksFrom(statement);
+			}
 
 			// Fallthroughs are handles by passing them to the next statement
 			// as the incoming trajectory. We union all other exits as we
 			// don't handles them at this level
-			body.inheritAllButFallthroughsFrom(lastStatement);
-			
+			body.inheritAllButFallthroughsFrom(statement);
+
+			lastStatement = statement;
+
 			// An empty fallthrough set from the last statement indicates that
-			// any remaining statements in this body are dead code.  We don't
+			// any remaining statements in this body are dead code. We don't
 			// bother processing those.
-			if (lastStatement.fallthroughs().isEmpty())
+			if (statement.fallthroughs().isEmpty())
 				break;
 		}
 
