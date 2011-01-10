@@ -577,4 +577,21 @@ public class CfgTest2 {
 				{ "e", "EXCEPTION" }, { "f", "EXCEPTION" } };
 		checkControlFlow(graph);
 	}
+
+	@Test
+	public void testTrickyTryExcept() throws Throwable {
+		initialise("test_tricky_try_except");
+
+		String[][] graph = { { "START", "a" }, { "a", "b" }, { "a", "d" },
+				{ "b", "c" }, { "b", "a" }, { "c", "d" }, { "d", "END" } };
+		checkControlFlow(graph);
+	}
+
+	@Test
+	public void testDoubleEmptyBody() throws Throwable {
+		initialise("test_double_empty_body");
+
+		String[][] graph = { { "START", "a" }, { "a", "END" } };
+		checkControlFlow(graph);
+	}
 }

@@ -421,3 +421,23 @@ def test_try_finally6():
 			e()
 		else:
 			f()
+
+def test_tricky_try_except():
+	# Here the empty 'except' body must attribute it's control-flow effect
+	# to the raises of the 'try' body
+	
+	while a():
+		try:
+			if b():
+				raise c()
+		except:
+			break
+	d()
+
+def test_double_empty_body():
+	a()
+	try:
+		raise
+	finally:
+		return
+	b()

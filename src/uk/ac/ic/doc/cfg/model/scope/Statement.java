@@ -95,6 +95,19 @@ public class Statement {
 	public Entry inlinks() {
 		return inlinkQueue;
 	}
+	
+	public Exit allExits() {
+		
+		Exit all = new Exit();
+		
+		all.inherit(fallthroughs());
+		all.inherit(breakouts());
+		all.inherit(raises());
+		all.inherit(continues());
+		all.inherit(returns());
+		
+		return all;
+	}
 
 	public void fallthrough(BasicBlock block) {
 		fallthroughs().add(block);
@@ -158,6 +171,10 @@ public class Statement {
 		return !breakouts().isEmpty();
 	}
 
+	public boolean canContinue() {
+		return !continues().isEmpty();
+	}
+	
 	public void inheritFallthroughsFrom(Statement otherExits) {
 		fallthroughs().inherit(otherExits.fallthroughs());
 	}
