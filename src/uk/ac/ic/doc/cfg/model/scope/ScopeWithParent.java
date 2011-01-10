@@ -13,10 +13,12 @@ public abstract class ScopeWithParent extends Scope {
 	}
 
 	@Override
-	protected final Statement process() throws Exception {
+	protected Statement process() throws Exception {
+		assert !trajectory().isEmpty(); // Don't process unreachable code
+
 		Statement exits = doProcess();
 
-		// EmptyScope triggers //assert exits.exitSize() > 0;
+		assert exits.exitSize() > 0;
 		return exits;
 	}
 

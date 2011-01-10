@@ -38,6 +38,12 @@ public class BodyScope extends ScopeWithParent {
 			// as the incoming trajectory. We union all other exits as we
 			// don't handles them at this level
 			body.inheritAllButFallthroughsFrom(lastStatement);
+			
+			// An empty fallthrough set from the last statement indicates that
+			// any remaining statements in this body are dead code.  We don't
+			// bother processing those.
+			if (lastStatement.fallthroughs().isEmpty())
+				break;
 		}
 
 		// Only push up last statement's fallthroughs as the others are
@@ -45,7 +51,7 @@ public class BodyScope extends ScopeWithParent {
 		if (lastStatement != null)
 			body.inheritFallthroughsFrom(lastStatement);
 
-		// assert body.exitSize() > 0;
+		assert body.exitSize() > 0;
 		return body;
 	}
 }

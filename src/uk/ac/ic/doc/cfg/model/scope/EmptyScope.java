@@ -12,6 +12,11 @@ public class EmptyScope extends ScopeWithParent {
 	}
 
 	@Override
+	protected final Statement process() throws Exception {
+		return doProcess();
+	}
+
+	@Override
 	protected Statement doProcess() throws Exception {
 		Statement exits = new Statement();
 		exits.fallthrough(block);
