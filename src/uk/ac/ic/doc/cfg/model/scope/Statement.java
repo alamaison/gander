@@ -170,6 +170,18 @@ class Statement {
 		raises().inherit(otherExits.raises());
 	}
 
+	protected void inheritReturnsFrom(Statement otherExits) {
+		returns().inherit(otherExits.returns());
+	}
+
+	protected void inheritBreaksFrom(Statement otherExits) {
+		breakouts().inherit(otherExits.breakouts());
+	}
+
+	protected void inheritContinuesFrom(Statement otherExits) {
+		continues().inherit(otherExits.continues());
+	}
+
 	protected void inheritInlinksFrom(Statement other) {
 		inlinks().inherit(other.inlinks());
 	}

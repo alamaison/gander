@@ -43,8 +43,9 @@ class TryExceptScope extends ScopeWithParent {
 			}
 		}
 
-		// Don't process the else branch if the body is certain to always
-		// raise an exception - the else is dead code in this case
+		// Don't process the else branch if the body can't 'fall off the end'
+		// Python defines this as always raising, returning, breaking,
+		// or continuing - the else is dead code in this case
 		if (node.orelse != null && body.canFallThrough()) {
 
 			Statement elseBody = buildGraphForceNewBlock(node.orelse.body,
@@ -55,6 +56,12 @@ class TryExceptScope extends ScopeWithParent {
 		} else {
 			exits.inheritFallthroughsFrom(body);
 		}
+		
+		// all returns, breaks and continues in the try-body bypass the
+		// except and else blocks and exit directly
+		exits.inheritReturnsFrom(body);
+		exits.inheritBreaksFrom(body);
+		exits.inheritContinuesFrom(body);
 
 		exits.inheritInlinksFrom(body);
 		return exits;
