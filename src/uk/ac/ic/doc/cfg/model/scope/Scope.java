@@ -15,10 +15,12 @@ import org.python.pydev.parser.jython.ast.Continue;
 import org.python.pydev.parser.jython.ast.Expr;
 import org.python.pydev.parser.jython.ast.For;
 import org.python.pydev.parser.jython.ast.FunctionDef;
+import org.python.pydev.parser.jython.ast.Global;
 import org.python.pydev.parser.jython.ast.If;
 import org.python.pydev.parser.jython.ast.Import;
 import org.python.pydev.parser.jython.ast.ImportFrom;
 import org.python.pydev.parser.jython.ast.List;
+import org.python.pydev.parser.jython.ast.ListComp;
 import org.python.pydev.parser.jython.ast.Name;
 import org.python.pydev.parser.jython.ast.Pass;
 import org.python.pydev.parser.jython.ast.Print;
@@ -255,8 +257,20 @@ abstract class Scope extends VisitorBase {
 	}
 	
 	@Override
+	public Object visitListComp(ListComp node) throws Exception {
+		return delegateScope(new ListCompScope(node, _previousStatement,
+				_trajectory, _startInNewBlock, this));
+	}
+	
+	@Override
 	public Object visitTuple(Tuple node) throws Exception {
 		return delegateScope(new TupleScope(node, _previousStatement,
+				_trajectory, _startInNewBlock, this));
+	}
+	
+	@Override
+	public Object visitGlobal(Global node) throws Exception {
+		return delegateScope(new PassScope(_previousStatement,
 				_trajectory, _startInNewBlock, this));
 	}
 	
