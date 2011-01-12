@@ -12,6 +12,7 @@ class ContinueScope extends ScopeWithParent {
 	@Override
 	protected Statement doProcess() throws Exception {
 		Statement statement = new Statement();
+		statement.inlinks().inherit(trajectory());
 		statement.continues().inherit(trajectory());
 		return statement;
 	}

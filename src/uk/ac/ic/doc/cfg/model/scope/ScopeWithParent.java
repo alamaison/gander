@@ -19,6 +19,8 @@ abstract class ScopeWithParent extends Scope {
 		Statement exits = doProcess();
 
 		assert exits.exitSize() > 0;
+		assert !exits.inlinks().isEmpty();
+		
 		return exits;
 	}
 

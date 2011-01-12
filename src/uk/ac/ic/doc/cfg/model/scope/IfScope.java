@@ -33,8 +33,10 @@ class IfScope extends ScopeWithParent {
 		// the test block
 		if (node.orelse == null)
 			exits.inheritExitsFrom(condition);
-		else
+		else {
 			exits.inheritExitsFrom(processBranch(node.orelse.body, condition));
+			exits.inheritAllButFallthroughsFrom(condition);
+		}
 
 		exits.inheritInlinksFrom(condition);
 		return exits;
@@ -43,7 +45,6 @@ class IfScope extends ScopeWithParent {
 	private Statement processBranch(stmtType[] branch, Statement condition)
 			throws Exception {
 
-		assert condition.exitSize() == 1;
 		return buildGraphForceNewBlock(branch, condition,
 				condition.fallthroughs());
 	}

@@ -37,6 +37,7 @@ class RaiseScope extends ScopeWithParent {
 		} else {
 			// if there is a naked 'raise' statement, attribute the raising to
 			// the previous statement's incoming trajectory
+			statement.inlinks().inherit(trajectory());
 			statement.raises().inherit(trajectory());
 		}
 

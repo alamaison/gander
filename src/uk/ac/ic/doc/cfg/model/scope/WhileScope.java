@@ -14,20 +14,20 @@ class WhileScope extends ScopeWithParent {
 
 	@Override
 	protected Statement doProcess() throws Exception {
+		Statement exits = new Statement();
 
 		// while
 
 		// force new block for test
 		Statement condition = delegateButForceNewBlock(node.test);
-		assert condition.exitSize() == 1;
+
+		exits.inheritInlinksFrom(condition);
+		exits.inheritExitsFrom(condition);
 
 		// body
 
 		Statement body = buildGraphForceNewBlock(node.body, condition,
 				condition.fallthroughs());
-
-		Statement exits = new Statement();
-		exits.inheritFallthroughsFrom(condition);
 
 		// link the body back to the condition
 		body.linkFallThroughsTo(condition);
@@ -36,9 +36,10 @@ class WhileScope extends ScopeWithParent {
 		body.linkContinuesTo(condition);
 
 		// TODO Handle Python while loops that have 'else' clauses!
-		// if (node.orelse != null){
-		// node.orelse.accept(this);
-		// }
+		if (node.orelse != null) {
+			// node.orelse.accept(this);
+			System.err.println("WARNING: unhandled while/else");
+		}
 
 		// breaks in the while loop fall through to whatever is after the
 		// loop rather than passing through the test first
@@ -48,7 +49,6 @@ class WhileScope extends ScopeWithParent {
 		// next level
 		exits.inheritNonLoopExitsFrom(body);
 
-		exits.inheritInlinksFrom(condition);
 		return exits;
 	}
 }

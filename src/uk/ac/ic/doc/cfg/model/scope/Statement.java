@@ -51,7 +51,7 @@ class Statement {
 		}
 	}
 
-	private class Entry extends BlockSet {
+	public class Entry extends BlockSet {
 
 	}
 
@@ -92,7 +92,7 @@ class Statement {
 		return raiseQueue;
 	}
 
-	private Entry inlinks() {
+	protected Entry inlinks() {
 		return inlinkQueue;
 	}
 	

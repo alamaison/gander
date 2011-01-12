@@ -10,6 +10,7 @@ class PassScope extends ScopeWithParent {
 	@Override
 	protected Statement doProcess() throws Exception {
 		Statement exits = new Statement();
+		exits.inlinks().inherit(trajectory());
 		exits.fallthroughs().inherit(trajectory());
 		return exits;
 	}

@@ -19,6 +19,7 @@ class ReturnScope extends ScopeWithParent {
 		}
 
 		Statement statement = new Statement();
+		statement.inlinks().inherit(trajectory());
 		statement.returns().inherit(trajectory());
 
 		return statement;
