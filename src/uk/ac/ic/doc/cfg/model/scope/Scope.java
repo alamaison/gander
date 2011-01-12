@@ -5,6 +5,7 @@ import org.python.pydev.parser.jython.ast.Assert;
 import org.python.pydev.parser.jython.ast.Assign;
 import org.python.pydev.parser.jython.ast.Attribute;
 import org.python.pydev.parser.jython.ast.AugAssign;
+import org.python.pydev.parser.jython.ast.BinOp;
 import org.python.pydev.parser.jython.ast.BoolOp;
 import org.python.pydev.parser.jython.ast.Break;
 import org.python.pydev.parser.jython.ast.Call;
@@ -17,6 +18,7 @@ import org.python.pydev.parser.jython.ast.FunctionDef;
 import org.python.pydev.parser.jython.ast.If;
 import org.python.pydev.parser.jython.ast.Import;
 import org.python.pydev.parser.jython.ast.ImportFrom;
+import org.python.pydev.parser.jython.ast.List;
 import org.python.pydev.parser.jython.ast.Name;
 import org.python.pydev.parser.jython.ast.Pass;
 import org.python.pydev.parser.jython.ast.Print;
@@ -26,6 +28,7 @@ import org.python.pydev.parser.jython.ast.Str;
 import org.python.pydev.parser.jython.ast.Subscript;
 import org.python.pydev.parser.jython.ast.TryExcept;
 import org.python.pydev.parser.jython.ast.TryFinally;
+import org.python.pydev.parser.jython.ast.Tuple;
 import org.python.pydev.parser.jython.ast.UnaryOp;
 import org.python.pydev.parser.jython.ast.VisitorBase;
 import org.python.pydev.parser.jython.ast.While;
@@ -174,6 +177,7 @@ abstract class Scope extends VisitorBase {
 
 	@Override
 	public Object visitImportFrom(ImportFrom node) throws Exception {
+		// TODO: actually handle imports
 		System.err.println("WARNING: nested __import__");
 		return delegateSelfAddingScope(node);
 	}
@@ -227,6 +231,7 @@ abstract class Scope extends VisitorBase {
 	@Override
 	public Object visitImport(Import node) throws Exception {
 		// TODO: actually handle imports
+		System.err.println("WARNING: nested import");
 		return delegateScope(new PassScope(_previousStatement, _trajectory,
 				_startInNewBlock, this));
 	}
@@ -236,6 +241,25 @@ abstract class Scope extends VisitorBase {
 		return delegateScope(new PrintScope(node, _previousStatement,
 				_trajectory, _startInNewBlock, this));
 	}
+
+	@Override
+	public Object visitBinOp(BinOp node) throws Exception {
+		return delegateScope(new BinOpScope(node, _previousStatement,
+				_trajectory, _startInNewBlock, this));
+	}
+	
+	@Override
+	public Object visitList(List node) throws Exception {
+		return delegateScope(new ListScope(node, _previousStatement,
+				_trajectory, _startInNewBlock, this));
+	}
+	
+	@Override
+	public Object visitTuple(Tuple node) throws Exception {
+		return delegateScope(new TupleScope(node, _previousStatement,
+				_trajectory, _startInNewBlock, this));
+	}
+	
 
 	@Override
 	public void traverse(SimpleNode node) throws Exception {

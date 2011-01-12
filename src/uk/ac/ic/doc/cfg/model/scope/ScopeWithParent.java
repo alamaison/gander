@@ -7,8 +7,8 @@ abstract class ScopeWithParent extends Scope {
 	private Scope parent;
 
 	protected ScopeWithParent(Scope parent, Statement previousStatement,
-			Statement.Exit trajectory, boolean forceNewBlock) {
-		super(previousStatement, trajectory, forceNewBlock);
+			Statement.Exit trajectory, boolean startInNewBlock) {
+		super(previousStatement, trajectory, startInNewBlock);
 		this.parent = parent;
 	}
 
