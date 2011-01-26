@@ -3,6 +3,7 @@ package uk.ac.ic.doc.cfg;
 import java.util.HashSet;
 import java.util.Set;
 
+import uk.ac.ic.doc.AbstractTaggedGraphTest;
 import uk.ac.ic.doc.cfg.model.BasicBlock;
 import uk.ac.ic.doc.cfg.model.Cfg;
 

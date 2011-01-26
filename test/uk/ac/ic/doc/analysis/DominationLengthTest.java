@@ -7,6 +7,7 @@ import java.net.URL;
 
 import org.junit.Test;
 
+import uk.ac.ic.doc.analysis.dominance.DominationLength;
 import uk.ac.ic.doc.cfg.Model;
 
 public class DominationLengthTest {

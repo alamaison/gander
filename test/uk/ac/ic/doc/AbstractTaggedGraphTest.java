@@ -1,4 +1,4 @@
-package uk.ac.ic.doc.cfg;
+package uk.ac.ic.doc;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -11,6 +11,7 @@ import org.python.pydev.parser.jython.SimpleNode;
 import org.python.pydev.parser.jython.ast.Call;
 import org.python.pydev.parser.jython.ast.Name;
 
+import uk.ac.ic.doc.cfg.GraphTest;
 import uk.ac.ic.doc.cfg.model.BasicBlock;
 import uk.ac.ic.doc.cfg.model.Cfg;
 

@@ -1,4 +1,4 @@
-package uk.ac.ic.doc.analysis;
+package uk.ac.ic.doc.analysis.dominance;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -7,9 +7,7 @@ import java.util.Set;
 
 import org.python.pydev.parser.jython.SimpleNode;
 
-import uk.ac.ic.doc.cfg.Domination;
 import uk.ac.ic.doc.cfg.Model;
-import uk.ac.ic.doc.cfg.Postdomination;
 import uk.ac.ic.doc.cfg.model.BasicBlock;
 import uk.ac.ic.doc.cfg.model.Cfg;
 import uk.ac.ic.doc.cfg.model.Class;

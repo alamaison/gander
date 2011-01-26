@@ -2,7 +2,7 @@ package uk.ac.ic.doc.analysers;
 
 import java.io.File;
 
-import uk.ac.ic.doc.analysis.DominationLength;
+import uk.ac.ic.doc.analysis.dominance.DominationLength;
 import uk.ac.ic.doc.cfg.Model;
 
 public class RunDomLengthAnalysis {

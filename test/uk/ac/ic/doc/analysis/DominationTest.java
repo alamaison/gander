@@ -1,4 +1,4 @@
-package uk.ac.ic.doc.cfg;
+package uk.ac.ic.doc.analysis;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotSame;
@@ -11,6 +11,11 @@ import java.util.Set;
 
 import org.junit.Test;
 
+import uk.ac.ic.doc.AbstractTaggedGraphTest;
+import uk.ac.ic.doc.analysis.dominance.AbstractDomination;
+import uk.ac.ic.doc.analysis.dominance.Domination;
+import uk.ac.ic.doc.analysis.dominance.Postdomination;
+import uk.ac.ic.doc.cfg.Model;
 import uk.ac.ic.doc.cfg.model.BasicBlock;
 import uk.ac.ic.doc.cfg.model.Cfg;
 import uk.ac.ic.doc.cfg.model.Function;
@@ -75,7 +80,7 @@ public class DominationTest {
 
 	}
 
-	private static final String DOMINATION_PROJ = "python_test_code/control_flow";
+	private static final String DOMINATION_PROJ = "python_test_code/domination";
 
 	private Cfg graph;
 	private Domination domAnalyser;
@@ -93,7 +98,7 @@ public class DominationTest {
 	public void initialise(String testFuncName) throws Throwable, Exception {
 		Model model = createTestModel(DOMINATION_PROJ);
 		Function function = model.getTopLevelPackage().getModules()
-				.get("my_module2").getFunctions().get(testFuncName);
+				.get("my_module").getFunctions().get(testFuncName);
 		assertTrue("No function " + testFuncName, function != null);
 
 		graph = function.getCfg();
