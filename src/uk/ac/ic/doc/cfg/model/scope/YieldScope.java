@@ -14,15 +14,15 @@ class YieldScope extends ScopeWithParent {
 
 	@Override
 	protected Statement doProcess() throws Exception {
-		addToCurrentBlock(node.value);
 
-		Statement statement = new Statement();
+		Statement value = delegate(node.value);
 
 		// This isn't really how yield works but, for our purposes, it
 		// may suffice.
 		// TODO: Handle yield correctly
-		statement.inlinks().inherit(trajectory());
-		statement.fallthroughs().inherit(trajectory());
+		Statement statement = new Statement();
+		statement.inheritInlinksFrom(value);
+		statement.inheritExitsFrom(value);
 		return statement;
 	}
 

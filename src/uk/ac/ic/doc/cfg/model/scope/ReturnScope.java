@@ -14,13 +14,12 @@ class ReturnScope extends ScopeWithParent {
 
 	@Override
 	protected Statement doProcess() throws Exception {
-		if (node.value != null) {
-			addToCurrentBlock(node.value);
-		}
+		Statement returnValue = delegate(node.value);
 
 		Statement statement = new Statement();
-		statement.inlinks().inherit(trajectory());
-		statement.returns().inherit(trajectory());
+		statement.inheritInlinksFrom(returnValue);
+		statement.inheritAllButFallthroughsFrom(returnValue);
+		statement.convertFallthroughsToReturns(returnValue);
 
 		return statement;
 	}

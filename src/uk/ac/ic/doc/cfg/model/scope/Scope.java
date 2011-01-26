@@ -22,6 +22,7 @@ import org.python.pydev.parser.jython.ast.ImportFrom;
 import org.python.pydev.parser.jython.ast.List;
 import org.python.pydev.parser.jython.ast.ListComp;
 import org.python.pydev.parser.jython.ast.Name;
+import org.python.pydev.parser.jython.ast.Num;
 import org.python.pydev.parser.jython.ast.Pass;
 import org.python.pydev.parser.jython.ast.Print;
 import org.python.pydev.parser.jython.ast.Raise;
@@ -102,7 +103,8 @@ abstract class Scope extends VisitorBase {
 
 	@Override
 	public Object visitCall(Call node) throws Exception {
-		return delegateSelfAddingScope(node);
+		return delegateScope(new CallScope(node, _previousStatement,
+				_trajectory, _startInNewBlock, this));
 	}
 
 	@Override
@@ -146,8 +148,14 @@ abstract class Scope extends VisitorBase {
 	}
 
 	@Override
-	public Object visitCompare(Compare node) throws Exception {
+	public Object visitNum(Num node) throws Exception {
 		return delegateSelfAddingScope(node);
+	}
+
+	@Override
+	public Object visitCompare(Compare node) throws Exception {
+		return delegateScope(new CompareScope(node, _previousStatement,
+				_trajectory, _startInNewBlock, this));
 	}
 
 	@Override
@@ -167,29 +175,30 @@ abstract class Scope extends VisitorBase {
 
 	@Override
 	public Object visitBoolOp(BoolOp node) throws Exception {
-		// TODO: pull referenced variables out of node
-		return delegateSelfAddingScope(node);
+		return delegateScope(new BoolOpScope(node, _previousStatement,
+				_trajectory, _startInNewBlock, this));
 	}
 
 	@Override
 	public Object visitUnaryOp(UnaryOp node) throws Exception {
-		// TODO: pull referenced variables out of node
-		return delegateSelfAddingScope(node);
+		return delegateScope(new UnaryOpScope(node, _previousStatement,
+				_trajectory, _startInNewBlock, this));
 	}
 
 	@Override
 	public Object visitImportFrom(ImportFrom node) throws Exception {
 		// TODO: actually handle imports
 		System.err.println("WARNING: nested __import__");
-		return delegateSelfAddingScope(node);
+		return delegateScope(new PassScope(_previousStatement, _trajectory,
+				_startInNewBlock, this));
 	}
 
 	@Override
 	public Object visitFunctionDef(FunctionDef node) throws Exception {
-		// We don't analyse flow in nested function definitions. Just
-		// add AST as-is to control graph so we can detect presence of
-		// token and treat like a local variable.
-		return delegateSelfAddingScope(node);
+		// We don't analyse flow in nested function definitions.
+		System.err.println("WARNING: nested function def");
+		return delegateScope(new PassScope(_previousStatement, _trajectory,
+				_startInNewBlock, this));
 	}
 
 	@Override
@@ -249,31 +258,30 @@ abstract class Scope extends VisitorBase {
 		return delegateScope(new BinOpScope(node, _previousStatement,
 				_trajectory, _startInNewBlock, this));
 	}
-	
+
 	@Override
 	public Object visitList(List node) throws Exception {
 		return delegateScope(new ListScope(node, _previousStatement,
 				_trajectory, _startInNewBlock, this));
 	}
-	
+
 	@Override
 	public Object visitListComp(ListComp node) throws Exception {
 		return delegateScope(new ListCompScope(node, _previousStatement,
 				_trajectory, _startInNewBlock, this));
 	}
-	
+
 	@Override
 	public Object visitTuple(Tuple node) throws Exception {
 		return delegateScope(new TupleScope(node, _previousStatement,
 				_trajectory, _startInNewBlock, this));
 	}
-	
+
 	@Override
 	public Object visitGlobal(Global node) throws Exception {
-		return delegateScope(new PassScope(_previousStatement,
-				_trajectory, _startInNewBlock, this));
+		return delegateScope(new PassScope(_previousStatement, _trajectory,
+				_startInNewBlock, this));
 	}
-	
 
 	@Override
 	public void traverse(SimpleNode node) throws Exception {
@@ -289,8 +297,12 @@ abstract class Scope extends VisitorBase {
 
 	private Statement buildGraph(SimpleNode node, Statement previous,
 			Exit trajectory, boolean startInNewBlock) throws Exception {
-		if (node == null)
-			return new Statement();
+		if (node == null) {
+			Statement statement = new Statement();
+			statement.inlinks().inherit(trajectory());
+			statement.fallthroughs().inherit(trajectory());
+			return statement;
+		}
 
 		assert _previousStatement == null;
 		assert _trajectory == null;
