@@ -98,8 +98,8 @@ public class DominationTest {
 
 		graph = function.getCfg();
 
-		domAnalyser = new Domination(graph.getBlocks(), graph.getStart());
-		postdomAnalyser = new Postdomination(graph.getBlocks(), graph.getEnd());
+		domAnalyser = new Domination(graph);
+		postdomAnalyser = new Postdomination(graph);
 	}
 
 	private void checkDomination(String[][] dominators) {

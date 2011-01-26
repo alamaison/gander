@@ -54,10 +54,8 @@ public class DominationLength {
 	}
 
 	private void analyseChainSize(Cfg graph) {
-		Domination domAnalyser = new Domination(graph.getBlocks(),
-				graph.getStart());
-		Postdomination postdomAnalyser = new Postdomination(graph.getBlocks(),
-				graph.getEnd());
+		Domination domAnalyser = new Domination(graph);
+		Postdomination postdomAnalyser = new Postdomination(graph);
 
 		for (BasicBlock sub : graph.getBlocks()) {
 			Set<SimpleNode> statements = new HashSet<SimpleNode>();

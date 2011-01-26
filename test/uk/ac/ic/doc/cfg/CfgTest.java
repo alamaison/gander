@@ -7,8 +7,8 @@ import static org.junit.Assert.assertTrue;
 
 import java.io.File;
 import java.net.URL;
+import java.util.Collection;
 import java.util.Iterator;
-import java.util.Set;
 
 import org.junit.Test;
 import org.python.pydev.parser.jython.SimpleNode;
@@ -104,7 +104,7 @@ public class CfgTest {
 		assertEquals(2, i); // two statements in block
 
 		// Block 1 only links to the end block
-		Set<BasicBlock> out = block.getSuccessors();
+		Collection<BasicBlock> out = block.getSuccessors();
 		assertEquals(1, out.size());
 		assertEquals(end, out.iterator().next());
 	}

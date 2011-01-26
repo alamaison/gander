@@ -1,6 +1,7 @@
 package uk.ac.ic.doc.cfg.model;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
@@ -8,6 +9,13 @@ import java.util.Set;
 import org.python.pydev.parser.jython.SimpleNode;
 
 public class BasicBlock implements Iterable<SimpleNode> {
+
+	public interface Visitor {
+
+		void visitBlock(BasicBlock cur, BasicBlock parent);
+
+	}
+
 	public ArrayList<SimpleNode> statements;
 
 	private Set<BasicBlock> out = new HashSet<BasicBlock>();
@@ -21,11 +29,11 @@ public class BasicBlock implements Iterable<SimpleNode> {
 		return statements.iterator();
 	}
 
-	public Set<BasicBlock> getSuccessors() {
+	public Collection<BasicBlock> getSuccessors() {
 		return out;
 	}
 	
-	public Set<BasicBlock> getPredecessors() {
+	public Collection<BasicBlock> getPredecessors() {
 		return predecessors;
 	}
 

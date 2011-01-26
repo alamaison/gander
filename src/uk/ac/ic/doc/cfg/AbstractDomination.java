@@ -1,73 +1,34 @@
 package uk.ac.ic.doc.cfg;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import uk.ac.ic.doc.analysis.dominance.DomFront;
+import uk.ac.ic.doc.analysis.dominance.DomMethod;
+import uk.ac.ic.doc.analysis.dominance.Dominators;
 import uk.ac.ic.doc.cfg.model.BasicBlock;
+import uk.ac.ic.doc.cfg.model.Cfg;
 
-abstract class AbstractDomination {
+public abstract class AbstractDomination {
 
-	private Set<BasicBlock> blocks;
+	protected Map<BasicBlock, DomFront.DomInfo> doms;
 
-	protected Map<BasicBlock, Set<BasicBlock>> out = new HashMap<BasicBlock, Set<BasicBlock>>();
-
-	protected AbstractDomination(Set<BasicBlock> blocks, BasicBlock entry) {
-		this.blocks = new HashSet<BasicBlock>(blocks);
-
-		calculateDominators(entry);
-	}
-
-	protected static <T> Set<T> setIntersection(Set<T> set1, Set<T> set2) {
-		Set<T> intersection = new HashSet<T>(set1);
-		intersection.retainAll(set2);
-		return intersection;
-	}
-
-	private void calculateDominators(BasicBlock entry) {
-		initialisation(entry);
-
-		boolean changed = true;
-		while (changed) {
-			changed = false;
-
-			for (BasicBlock block : blocks) {
-				if (block == entry)
-					continue;
-
-				Set<BasicBlock> updatedDoms = findPredecessorDoms(block);
-				updatedDoms.add(block);
-
-				if (!out.get(block).equals(updatedDoms)) {
-					changed = true;
-					out.put(block, updatedDoms);
-				}
-			}
+	protected AbstractDomination(Cfg graph, boolean postdom) {
+		doms = new HashMap<BasicBlock, DomFront.DomInfo>();
+		for (BasicBlock block : graph.getBlocks()) {
+			doms.put(block, new DomFront.DomInfo());
 		}
+		Dominators.make(new DomMethod(graph), doms, postdom);
 	}
-
-	private void initialisation(BasicBlock entry) {
-		for (BasicBlock block : blocks) {
-			out.put(block, new HashSet<BasicBlock>(blocks));
-
-			if (block == entry) {
-				Set<BasicBlock> startSet = new HashSet<BasicBlock>();
-				startSet.add(entry);
-				out.put(block, startSet);
-			} else
-				out.put(block, new HashSet<BasicBlock>(blocks));
-		}
-	}
-
-	protected abstract Set<BasicBlock> findPredecessorDoms(BasicBlock block);
 
 	public Set<BasicBlock> getBlocks() {
-		return blocks;
+		return doms.keySet();
 	}
 
-	protected boolean dominates(BasicBlock dom, BasicBlock sub) {
+	public boolean dominates(BasicBlock dom, BasicBlock sub) {
 		Collection<BasicBlock> doms = dominators(sub);
 		if (doms == null)
 			return false;
@@ -76,7 +37,17 @@ abstract class AbstractDomination {
 	}
 
 	public Collection<BasicBlock> dominators(BasicBlock sub) {
-		return out.get(sub);
+		ArrayList<BasicBlock> dominators = new ArrayList<BasicBlock>();
+		BasicBlock pos = sub;
+		while (pos != null) {
+			dominators.add(pos);
+			BasicBlock idom = doms.get(pos).idom;
+			if (pos == idom)
+				break;
+			pos = idom;
+		}
+
+		return dominators;
 	}
 
 }
