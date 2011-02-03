@@ -20,6 +20,10 @@ public abstract class AbstractDomination {
 		}
 		Dominators.make(new DomMethod(graph), doms, postdom);
 	}
+	
+	protected AbstractDomination(Map<BasicBlock, DomFront.DomInfo> doms) {
+		this.doms = doms;
+	}
 
 	public Set<BasicBlock> getBlocks() {
 		return doms.keySet();
