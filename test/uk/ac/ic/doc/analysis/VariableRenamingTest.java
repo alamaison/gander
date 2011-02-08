@@ -50,6 +50,14 @@ public class VariableRenamingTest extends AbstractTaggedCallTest {
 		checkRename(renameGroups);
 	}
 
+	@Test
+	public void testCementFindLoader() throws Throwable {
+		initialise("find_loader", 4);
+		String[][] renameGroups = {};
+		checkRename(renameGroups);
+	}
+
+
 	private void checkRename(String[][] renameGroups) throws Throwable {
 		Map<String, Set<Integer>> seenSubscripts = new HashMap<String, Set<Integer>>();
 		for (String[] group : renameGroups) {

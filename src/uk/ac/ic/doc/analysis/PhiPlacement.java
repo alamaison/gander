@@ -37,9 +37,12 @@ public class PhiPlacement {
 
 			Queue<BasicBlock> worklist = new LinkedList<BasicBlock>(
 					definingLocations);
+			Set<BasicBlock> doneList = new HashSet<BasicBlock>();
 			while (!worklist.isEmpty()) {
-				for (BasicBlock frontierBlock : domInfo
-						.get(worklist.remove()).dominanceFrontiers) {
+				BasicBlock workItem = worklist.remove();
+				doneList.add(workItem);
+
+				for (BasicBlock frontierBlock : domInfo.get(workItem).dominanceFrontiers) {
 
 					Set<String> phiTargetsAtLocation = phis.get(frontierBlock);
 					if (phiTargetsAtLocation == null) {
@@ -49,7 +52,8 @@ public class PhiPlacement {
 
 					phiTargetsAtLocation.add(name);
 
-					worklist.add(frontierBlock);
+					if (doneList.contains(frontierBlock))
+						worklist.add(frontierBlock);
 				}
 			}
 		}

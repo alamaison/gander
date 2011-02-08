@@ -114,6 +114,14 @@ public class GlobalAndDefsFinderTest extends AbstractTaggedCallTest {
 		checkDefs(defs);
 	}
 
+	@Test
+	public void testCementFindLoader() throws Throwable {
+		initialise("find_loader", 4);
+		checkGlobals("loader", "importer", "z", "None", "fullname");
+		String[][] defs = { { "loader", "loader.call(tag)" } };
+		checkDefs(defs);
+	}
+
 	private void checkDefs(String[][] expectedDefs) throws Throwable {
 		Set<String> expectedDefinitions = new HashSet<String>();
 		for (String[] defDescriptor : expectedDefs) {

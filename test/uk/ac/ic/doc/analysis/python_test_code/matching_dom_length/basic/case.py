@@ -68,3 +68,13 @@ def assignment_considered_in_correct_order():
 	x = x.m()
 	x.a("tag1")
 
+# Taken from cement licensed under the MIT License
+# Copyright (c) 2009-2010 BJ Dierkes
+def find_loader(fullname):
+    for importer in z.iter_importers("for_tag"):
+        loader = importer.find_module(fullname)
+        loader.call("tag")
+        if loader is not None:
+            return loader
+
+    return None
