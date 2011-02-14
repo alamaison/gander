@@ -1,5 +1,6 @@
 package uk.ac.ic.doc.analysis;
 
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -17,7 +18,7 @@ public class DependenceChain {
 
 	private class SubscriptMatcher extends BasicBlockVisitor {
 
-		private Set<SimpleNode> calls = new HashSet<SimpleNode>();
+		private Set<Call> calls = new HashSet<Call>();
 		private Name target;
 		private int subscript;
 
@@ -53,7 +54,7 @@ public class DependenceChain {
 			node.traverse(this);
 		}
 
-		Set<SimpleNode> matchingCalls() {
+		Set<Call> matchingCalls() {
 			return calls;
 		}
 	}
@@ -70,14 +71,18 @@ public class DependenceChain {
 		return (Name) fieldAccess.value;
 	}
 
-	public Iterable<SimpleNode> dependentStatements(Call call,
+	/**
+	 * Given a call, return all calls that target the same variable that
+	 * are control-dependent on the original call.
+	 */
+	public Collection<Call> dependentStatements(Call call,
 			BasicBlock containingBlock) throws Exception {
 
 		Name target = extractMethodCallTarget(call);
 		renamer = new VariableRenaming(graph);
 		int permittedSubscript = renamer.subscript(target);
 
-		Set<SimpleNode> dependentCalls = new HashSet<SimpleNode>();
+		Set<Call> dependentCalls = new HashSet<Call>();
 
 		SubscriptMatcher matcher = new SubscriptMatcher(containingBlock,
 				target, permittedSubscript);

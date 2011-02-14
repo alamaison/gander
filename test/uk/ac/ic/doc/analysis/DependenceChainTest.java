@@ -138,43 +138,34 @@ public class DependenceChainTest extends AbstractTaggedCallTest {
 				+ "'", statement != null);
 		String variable = variableFromTag(taggedCall);
 
-		Iterable<SimpleNode> chain = analyser.dependentStatements(
+		Iterable<Call> chain = analyser.dependentStatements(
 				statement.getCall(), statement.getBlock());
 		// TODO: We consider any call with matching name but ignore arguments
 		for (String callName : expected) {
 			checkCallInChain(variable, callName, chain);
 		}
 
-		for (SimpleNode node : chain) {
-			assertTrue("Non-call found in dependence chain: " + node,
-					node instanceof Call);
-			Call methodCall = (Call) node;
-
+		for (Call call : chain) {
 			// Test only expected variable included in chain
 			assertTrue(
 					"Dependence chain includes a method called on variable '"
-							+ TaggedBlockFinder.extractMethodCallTarget(methodCall)
+							+ TaggedBlockFinder.extractMethodCallTarget(call)
 							+ "' but should only include calls that target '"
 							+ variable + "'",
-					TaggedBlockFinder.isMethodCallTarget(variable, methodCall));
+					TaggedBlockFinder.isMethodCallTarget(variable, call));
 
 			// Test only expected calls included in chain
 			boolean found = false;
 			for (String expectedMethod : expected) {
 				if (TaggedBlockFinder.isMethodCall(variable, expectedMethod,
-						methodCall)) {
+						call)) {
 					found = true;
 					break;
 				}
 			}
-			assertTrue(
-					"Dependence chain includes an unexpected method call: "
-							+ TaggedBlockFinder
-									.extractMethodCallTarget(methodCall)
-							+ "."
-							+ TaggedBlockFinder
-									.extractMethodCallName(methodCall),
-					found);
+			assertTrue("Dependence chain includes an unexpected method call: "
+					+ TaggedBlockFinder.extractMethodCallTarget(call) + "."
+					+ TaggedBlockFinder.extractMethodCallName(call), found);
 		}
 	}
 
@@ -189,7 +180,7 @@ public class DependenceChainTest extends AbstractTaggedCallTest {
 	 *            Dependency chain.
 	 */
 	private void checkCallInChain(String variable, String method,
-			Iterable<SimpleNode> chain) {
+			Iterable<Call> chain) {
 		for (SimpleNode statement : chain) {
 			try {
 				if (TaggedBlockFinder.isMethodCall(variable, method,
