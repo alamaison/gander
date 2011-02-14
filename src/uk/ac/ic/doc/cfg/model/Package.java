@@ -79,7 +79,6 @@ public class Package implements IModelElement {
 		return name;
 	}
 
-	@Override
 	public String getFullName() {
 		if (isTopLevel())
 			return getName();
