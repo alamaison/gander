@@ -17,6 +17,59 @@ import uk.ac.ic.doc.cfg.model.Cfg;
  */
 public class VariableRenaming {
 
+	/**
+	 * Perform most of Rename algorithm on p469 of Engineering A Compiler.
+	 */
+	private class Renamer extends NameInspector {
+
+		public Renamer(BasicBlock block) throws Exception {
+			inspect(block);
+		}
+
+		@Override
+		public void seenLoad(Name name) {
+			rewrite(name, top(name.id));
+		}
+
+		@Override
+		public void seenStore(Name name) {
+			rewrite(name, newName(name.id));
+		}
+
+		@Override
+		public void seenAugStore(Name name) {
+			// for the purposes of variable renaming, we can ignore that
+			// the variable is used and rename because it is also redefined
+			// XXX: Is this correct by SSA?
+			rewrite(name, newName(name.id));
+		}
+	}
+
+	/**
+	 * Perform last part of Rename algorithm on p469 of Engineering A Compiler
+	 * (popping new names off the stack).
+	 */
+	private class Popper extends NameInspector {
+
+		public Popper(BasicBlock block) throws Exception {
+			inspect(block);
+		}
+
+		@Override
+		protected void unhandledName(Name name) {
+		}
+
+		@Override
+		protected void seenStore(Name name) {
+			stacks.get(name.id).pop();
+		}
+
+		@Override
+		protected void seenAugStore(Name name) {
+			stacks.get(name.id).pop();
+		}
+	}
+
 	private Map<Name, Integer> subscripts = new HashMap<Name, Integer>();
 	private Map<String, Integer> counters = new HashMap<String, Integer>();
 	private Map<String, Stack<Integer>> stacks = new HashMap<String, Stack<Integer>>();
@@ -43,11 +96,19 @@ public class VariableRenaming {
 		Stack<Integer> stack = stacks.get(variable);
 		if (stack == null || stack.isEmpty())
 			return -1;
-		
+
 		return stack.peek();
 	}
 
+	private void rewrite(Name name, Integer subscript) {
+		Integer prev = subscripts.put(name, subscript);
+		assert prev == null; // This exact name instance has already been
+		// renamed.
+	}
+
 	private void rename(BasicBlock node) throws Exception {
+
+		// for each phi-function in b, "x <- phi(...)", rename x as NewName(x)
 		Iterable<String> targets = phis.phiTargets(node);
 		if (targets != null) {
 			for (String target : targets) {
@@ -55,19 +116,14 @@ public class VariableRenaming {
 			}
 		}
 
-		DefUseSeparator defUses = new DefUseSeparator(node);
-		for (IDefUse op : defUses.operations()) {
-			Name name = op.getName();
-			if (op instanceof Use) {
-				Integer prev = subscripts.put(name, top(name.id));
-				assert prev == null;
-			} else {
-				assert op instanceof Def;
-				Integer prev = subscripts.put(name, newName(name.id));
-				assert prev == null;
-			}
-		}
+		// for each operation "x <- y op z" in b, rewrite y as as top(stack[y]),
+		// rewrite z as top(stack[z]), rewrite x as NewName(x)
+		new Renamer(node);
 
+		// for each sucessor in the CFG, fill in phi-function paramters
+		// NOT NEEDED
+
+		// for each successor s in the dominator tree, Rename(s)
 		Set<BasicBlock> successors = domSuccessors.get(node);
 		if (successors != null) {
 			for (BasicBlock successor : successors) {
@@ -75,15 +131,12 @@ public class VariableRenaming {
 			}
 		}
 
+		// for each operation "x <- y op z" in b and each phi-function
+		// "x <- phi(...)", pop(stack[x])
+		new Popper(node);
 		if (targets != null) {
 			for (String target : targets) {
 				stacks.get(target).pop();
-			}
-		}
-		for (IDefUse op : defUses.operations()) {
-			String name = op.getName().id;
-				if (op instanceof Def) {
-				stacks.get(name).pop();
 			}
 		}
 	}

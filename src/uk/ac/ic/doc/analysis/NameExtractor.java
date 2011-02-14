@@ -6,16 +6,14 @@ import java.util.List;
 import org.python.pydev.parser.jython.SimpleNode;
 import org.python.pydev.parser.jython.ast.Assign;
 import org.python.pydev.parser.jython.ast.Name;
-import org.python.pydev.parser.jython.ast.VisitorBase;
-import org.python.pydev.parser.jython.ast.expr_contextType;
 
 import uk.ac.ic.doc.cfg.model.BasicBlock;
 
-public class DefUseSeparator extends BasicBlockVisitor {
+public class NameExtractor extends BasicBlockVisitor {
 
-	private List<IDefUse> ops = new ArrayList<IDefUse>();
+	private List<Name> names = new ArrayList<Name>();
 
-	DefUseSeparator(BasicBlock block) throws Exception {
+	NameExtractor(BasicBlock block) throws Exception {
 		for (SimpleNode statement : block) {
 			statement.accept(this);
 		}
@@ -24,8 +22,8 @@ public class DefUseSeparator extends BasicBlockVisitor {
 	/**
 	 * Custom-traverse Assign nodes.
 	 * 
-	 * The default traversal visits the target before the value. NOT what 
-	 * we want.
+	 * The default traversal visits the target before the value. NOT what we
+	 * want.
 	 */
 	@Override
 	public Object visitAssign(Assign node) throws Exception {
@@ -44,19 +42,12 @@ public class DefUseSeparator extends BasicBlockVisitor {
 
 	@Override
 	public Object visitName(Name node) throws Exception {
-		if (node.ctx == expr_contextType.Load) {
-			ops.add(new Use(node));
-		} else if (node.ctx == expr_contextType.Store) {
-			ops.add(new Def(node));
-		} else {
-			System.err.println("WARNING unhandled name-use context");
-		}
-
+		names.add(node);
 		return null;
 	}
 
-	List<IDefUse> operations() {
-		return ops;
+	List<Name> operations() {
+		return names;
 	}
 
 	@Override

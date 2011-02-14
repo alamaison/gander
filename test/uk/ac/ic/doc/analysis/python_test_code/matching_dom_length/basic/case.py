@@ -78,3 +78,9 @@ def find_loader(fullname):
             return loader
 
     return None
+
+def aug_assign():
+	y = 2
+	y.a("tag1")
+	y += 4
+	y.a("tag2")

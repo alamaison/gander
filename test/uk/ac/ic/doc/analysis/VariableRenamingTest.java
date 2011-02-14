@@ -57,6 +57,12 @@ public class VariableRenamingTest extends AbstractTaggedCallTest {
 		checkRename(renameGroups);
 	}
 
+	@Test
+	public void testAugAssign() throws Throwable {
+		initialise("aug_assign", 1);
+		String[][] renameGroups = { { "y.a(tag1)" }, { "y.a(tag2)" } };
+		checkRename(renameGroups);
+	}
 
 	private void checkRename(String[][] renameGroups) throws Throwable {
 		Map<String, Set<Integer>> seenSubscripts = new HashMap<String, Set<Integer>>();
@@ -70,7 +76,8 @@ public class VariableRenamingTest extends AbstractTaggedCallTest {
 				seen = new HashSet<Integer>();
 				seenSubscripts.put(variable.id, seen);
 			}
-			assertTrue("Duplicate subscript", !seen.contains(subscript));
+			assertTrue("Duplicate subscript: " + subscript, !seen
+					.contains(subscript));
 			seen.add(subscript);
 
 			for (int i = 1; i < group.length; ++i) {
