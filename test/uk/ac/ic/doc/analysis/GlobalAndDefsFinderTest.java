@@ -115,10 +115,59 @@ public class GlobalAndDefsFinderTest extends AbstractTaggedCallTest {
 	}
 
 	@Test
+	public void testWhilePhi() throws Throwable {
+		initialise("while_phi", 2);
+		checkGlobals("x", "z");
+		String[][] defs = { { "x", "z.bob(tag2)" } };
+		checkDefs(defs);
+	}
+
+	@Test
+	public void testWhileNoPhi() throws Throwable {
+		initialise("while_no_phi", 2);
+		checkGlobals("x", "z");
+		String[][] defs = { { "y", "z.bob(tag2)" } };
+		checkDefs(defs);
+	}
+
+	@Test
+	public void testWhileNonLoopVarCausesPhi() throws Throwable {
+		initialise("while_non_loop_var_causes_phi", 3);
+		checkGlobals("x", "y", "z");
+		String[][] defs = { { "y", "z.bob(tag2)" } };
+		checkDefs(defs);
+	}
+
+	@Test
+	public void testForPhi() throws Throwable {
+		initialise("for_phi", 2);
+		checkGlobals("w", "x", "z");
+		String[][] defs = { { "x", "w.a(tag)", "x.bob(tag2)" } };
+		checkDefs(defs);
+	}
+
+	@Test
+	public void testForNoPhi() throws Throwable {
+		initialise("for_no_phi", 2);
+		checkGlobals("w", "z");
+		String[][] defs = { { "x", "w.a(tag)" }, { "y", "z.bob(tag2)" } };
+		checkDefs(defs);
+	}
+
+	@Test
+	public void testForNonLoopVarCausesPhi() throws Throwable {
+		initialise("for_non_loop_var_causes_phi", 3);
+		checkGlobals("w", "y", "z");
+		String[][] defs = { { "x", "w.a(tag)" }, { "y", "z.bob(tag2)" } };
+		checkDefs(defs);
+	}
+
+	@Test
 	public void testCementFindLoader() throws Throwable {
 		initialise("find_loader", 4);
-		checkGlobals("loader", "importer", "z", "None", "fullname");
-		String[][] defs = { { "loader", "loader.call(tag)" } };
+		checkGlobals("loader", "importer", "z", "None", "fullname", "importer");
+		String[][] defs = { { "importer", "z.iter_importers(for_tag)" },
+				{ "loader", "loader.call(tag)" } };
 		checkDefs(defs);
 	}
 
@@ -143,7 +192,7 @@ public class GlobalAndDefsFinderTest extends AbstractTaggedCallTest {
 	}
 
 	private void checkGlobals(String... expectedGlobal) throws Exception {
-		assertEquals(new HashSet<String>(Arrays.asList(expectedGlobal)),
-				finder.globals());
+		assertEquals(new HashSet<String>(Arrays.asList(expectedGlobal)), finder
+				.globals());
 	}
 }

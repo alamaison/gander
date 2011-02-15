@@ -1,5 +1,6 @@
 package uk.ac.ic.doc.cfg.model.scope;
 
+import org.python.pydev.parser.jython.SimpleNode;
 import org.python.pydev.parser.jython.ast.For;
 
 class ForScope extends ScopeWithParent {
@@ -19,7 +20,8 @@ class ForScope extends ScopeWithParent {
 		// for
 
 		// force new block for iterable
-		Statement iterable = delegateButForceNewBlock(node.iter);
+		Statement iterable = delegateButForceNewBlock(
+				new SimpleNode[]{node.iter, node.target});
 
 		exits.inheritInlinksFrom(iterable);
 		exits.inheritExitsFrom(iterable);

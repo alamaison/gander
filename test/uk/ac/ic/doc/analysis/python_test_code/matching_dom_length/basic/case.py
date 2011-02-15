@@ -67,6 +67,33 @@ def assignment_in_non_dom_block():
 def assignment_considered_in_correct_order():
 	x = x.m()
 	x.a("tag1")
+	
+def while_phi():
+	while x.b("tag"):
+		x = z.bob("tag2")
+	
+def while_no_phi():
+	while x.b("tag"):
+		y = z.bob("tag2")
+	
+def while_non_loop_var_causes_phi():
+	while x.b("tag"):
+		y = z.bob("tag2")
+	y.b()
+	
+def for_phi():
+	for x in w.a("tag"):
+		x.bob("tag2")
+		x = z
+
+def for_no_phi():
+	for x in w.a("tag"):
+		y = z.bob("tag2")
+
+def for_non_loop_var_causes_phi():
+	for x in w.a("tag"):
+		y = z.bob("tag2")
+	y.b()
 
 # Taken from cement licensed under the MIT License
 # Copyright (c) 2009-2010 BJ Dierkes

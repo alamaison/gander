@@ -1,453 +1,453 @@
 def test_basic():
-	a()
-	b()
+	a
+	b
 
 def test_if():
-	a()
-	if b():
-		c()
+	a
+	if b:
+		c
 
 def test_if_else():
-	a()
-	if b():
-		c()
+	a
+	if b:
+		c
 	else:
-		d()
+		d
 
 def test_if_fallthru():
-	a()
-	if b():
-		c()
-	d()
+	a
+	if b:
+		c
+	d
 
 def test_if_else_fallthru():
-	a()
-	if b():
-		c()
+	a
+	if b:
+		c
 	else:
-		d()
-	e()
+		d
+	e
 
 def test_while():
-	a()
-	while b():
-		c()
-	d()
+	a
+	while b:
+		c
+	d
 	
 def test_nested():
-	a()
-	if b():
-		c()
-		while d():
-			e()
-		f()
+	a
+	if b:
+		c
+		while d:
+			e
+		f
 	else:
-		g()
-	h()
+		g
+	h
 
 def test_nested_while_if():
-	while a():
-		b()
-		if c():
-			d()
-		e()
+	while a:
+		b
+		if c:
+			d
+		e
 
 def test_nested_while_if_break():
-	while a():
-		b()
-		if c():
-			d()
+	while a:
+		b
+		if c:
+			d
 			break
-		e()
+		e
 
 def test_nested_while_if_break_else():
-	while a():
-		b()
-		if c():
-			d()
+	while a:
+		b
+		if c:
+			d
 			break
 		else:
-			e()
-		f()
+			e
+		f
 
 def test_nested_whiles_break():
-	while a():
-		b()
-		while c():
-			d()
+	while a:
+		b
+		while c:
+			d
 			break
 
 def test_nested_whiles_if_break():
-	while a():
-		b()
-		while c():
-			d()
-			if e():
+	while a:
+		b
+		while c:
+			d
+			if e:
 				break
 
 def test_nested_whiles_break_fall():
-	while a():
-		b()
-		while c():
-			d()
+	while a:
+		b
+		while c:
+			d
 			break
-	e()
+	e
 
 def test_nested_ifs_break():
-	while a():
-		if b():
-			if c():
+	while a:
+		if b:
+			if c:
 				break
-			d()
-	e()
+			d
+	e
 	
 def test_if_else_break():
-	while a():
-		if b():
-			c()
+	while a:
+		if b:
+			c
 		else:
 			break
-	d()
+	d
 
 def test_twopronged_fallthrough_to_while():
-	if a():
-		b()
+	if a:
+		b
 	else:
-		c()
-	while d():
-		e()
+		c
+	while d:
+		e
 
 def test_while_if_continue1():
-	while a():
-		if b():
+	while a:
+		if b:
 			continue
-		c()
+		c
 
 def test_while_if_continue2():
-	while a():
-		if b():
-			c()
+	while a:
+		if b:
+			c
 			continue
-		d()
+		d
 
 def test_return():
-	a()
-	b()
+	a
+	b
 	return
 
 def test_return_val():
-	a()
-	return b()
+	a
+	return b
 	
 def test_cond_return():
-	a()
-	if b():
-		return c()
-	d()
+	a
+	if b:
+		return c
+	d
 
 def test_while_return():
-	a()
-	while b():
-		c()
+	a
+	while b:
+		c
 		return
-	d()
+	d
 	
 def test_while_cond_return():
-	a()
-	while b():
-		c()
-		if d():
+	a
+	while b:
+		c
+		if d:
 			return
-		e()
-	f()
+		e
+	f
 
 def test_multiple_return():
-	if a():
-		return b()
+	if a:
+		return b
 	else:
-		return c()
+		return c
 
 def test_multiple_return2():
-	if a():
-		b()
+	if a:
+		b
 		return
 	else:
-		while c():
-			d()
-			if e():
+		while c:
+			d
+			if e:
 				return
-	f()
+	f
 	
 def test_for():
-	a()
-	for x in b():
-		c()
+	a
+	for x in b:
+		c
 	
 def test_for_break():
-	for x in a():
-		b()
-		if c():
+	for x in a:
+		b
+		if c:
 			break
 	
 def test_for_continue():
-	for x in a():
-		if b():
+	for x in a:
+		if b:
 			continue
-		c()
+		c
 	
 def test_for_return():
-	for x in a():
-		if b():
+	for x in a:
+		if b:
 			return
-		c()
+		c
 
 def test_yield1():
-	a()
-	while b():
-		yield c()
-		d()
+	a
+	while b:
+		yield c
+		d
 
 def test_yield2():
-	a()
-	while b():
-		yield c()
+	a
+	while b:
+		yield c
 
 def test_pass():
 	pass
 
 def test_if_pass():
-	if a():
+	if a:
 		pass
-	b()
+	b
 
 def test_if_else_pass():
-	if a():
+	if a:
 		pass
 	else:
-		b()
-	c()
+		b
+	c
 
 def test_if_else_pass_pass():
-	if a():
+	if a:
 		pass
 	else:
 		pass
-	b()
+	b
 
 def test_while_pass():
-	while a():
+	while a:
 		pass
 
 def test_raise1():
 	raise
 
 def test_raise2():
-	raise a()
+	raise a
 	
 def test_raise3():
-	a()
-	if b():
-		raise c()
-	d()
+	a
+	if b:
+		raise c
+	d
 
 def test_try_except1():
 	try:
-		raise a()
+		raise a
 	except Exception:
-		b()
+		b
 
 def test_try_except2():
 	try:
-		a()
-		raise b()
+		a
+		raise b
 	except Exception:
-		c()
+		c
 
 def test_try_except3():
 	try:
-		if a():
-			raise b()
+		if a:
+			raise b
 	except Exception:
-		c()
+		c
 		
 def test_try_except4():
 	try:
-		if a():
-			raise b()
+		if a:
+			raise b
 	except ImportError:
-		c()
+		c
 	except Exception:
-		d()
+		d
 
 def test_try_except_all():
 	try:
-		if a():
-			raise b()
+		if a:
+			raise b
 	except Exception:
-		c()
+		c
 	except:
-		d()
+		d
 
 def test_try_except_raise():
 	try:
-		raise a()
+		raise a
 	except Exception:
-		raise b()
+		raise b
 		
 def test_try_except_all_raise():
 	try:
-		raise a()
+		raise a
 	except:
-		raise b()
+		raise b
 
 def test_try_except_else1():
 	try:
-		raise a()
+		raise a
 	except Exception:
-		b()
+		b
 	else:
-		c()
+		c
 
 def test_try_except_else2():
 	try:
-		if a():
-			raise b()
+		if a:
+			raise b
 	except Exception:
-		c()
+		c
 	else:
-		d()
+		d
 
 def test_try_except_else3():
 	try:
-		a()
+		a
 	except Exception:
-		b()
+		b
 	else:
-		c()
+		c
 
 def test_try_except_else_raise():
 	try:
-		if a():
-			raise b()
+		if a:
+			raise b
 	except Exception:
-		c()
+		c
 	else:
-		raise d()
+		raise d
 
 def test_try_except_empty():
 	try:
 		pass
 	except Exception:
-		a()
-	b()
+		a
+	b
 
 
 def test_try_except_empty_raise():
 	try:
 		raise
 	except Exception:
-		a()
-	b()
+		a
+	b
 
 def test_try_except_empty_else():
 	try:
 		pass
 	except Exception:
-		a()
+		a
 	else:
-		b()
+		b
 		
 def test_try_finally1():
 	try:
-		if a():
-			raise b()
+		if a:
+			raise b
 	finally:
-		if c():
-			d()
+		if c:
+			d
 		else:
-			e()
+			e
 
 def test_try_finally2():
 	try:
-		if a():
-			b()
+		if a:
+			b
 	finally:
-		if c():
-			d()
+		if c:
+			d
 		else:
-			e()
+			e
 
 def test_try_finally3():
 	try:
-		if a():
-			return b()
+		if a:
+			return b
 	finally:
-		if c():
-			d()
+		if c:
+			d
 		else:
-			e()
+			e
 
 def test_try_finally4():
 	try:
-		if a():
-			return b()
+		if a:
+			return b
 		else:
-			raise c()
+			raise c
 	finally:
-		if d():
-			e()
+		if d:
+			e
 		else:
-			f()
+			f
 
 def test_try_finally5():
-	while a():
+	while a:
 		try:
-			if b():
+			if b:
 				break
 		finally:
-			if c():
-				d()
+			if c:
+				d
 			else:
-				e()
+				e
 
 def test_try_finally6():
 	try:
-		if a():
-			raise b()
+		if a:
+			raise b
 		else:
-			raise c()
+			raise c
 	finally:
-		if d():
-			e()
+		if d:
+			e
 		else:
-			f()
+			f
 
 def test_tricky_try_except():
 	# Here the empty 'except' body must attribute it's control-flow effect
 	# to the raises of the 'try' body
 	
-	while a():
+	while a:
 		try:
-			if b():
-				raise c()
+			if b:
+				raise c
 		except:
 			break
-	d()
+	d
 
 def test_double_empty_body():
-	a()
+	a
 	try:
 		raise
 	finally:
 		return
-	b()
+	b
 
 def test_print():
-	print a()
+	print a
 
 def test_multiprint():
-	print a(), b()
+	print a, b
 
 def test_print_continuing_same_block():
-	a()
-	print b(), c()
+	a
+	print b, c

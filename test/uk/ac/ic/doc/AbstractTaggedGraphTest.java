@@ -94,8 +94,7 @@ public abstract class AbstractTaggedGraphTest extends GraphTest {
 	}
 
 	private static boolean isFunctionNamed(String name, SimpleNode node) {
-		Call call = (Call) node;
-		Name funcName = (Name) call.func;
-		return funcName.id.equals(name);
+		Name tagName = (Name) node;
+		return tagName.id.equals(name);
 	}
 }
