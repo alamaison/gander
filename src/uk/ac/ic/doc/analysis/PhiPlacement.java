@@ -52,7 +52,7 @@ public class PhiPlacement {
 
 					phiTargetsAtLocation.add(name);
 
-					if (doneList.contains(frontierBlock))
+					if (!doneList.contains(frontierBlock))
 						worklist.add(frontierBlock);
 				}
 			}
