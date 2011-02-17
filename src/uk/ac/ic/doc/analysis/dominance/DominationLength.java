@@ -5,7 +5,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -98,26 +97,6 @@ public class DominationLength {
 			return statements;
 		}
 
-	}
-
-	public class MatchingNameFinder {
-
-		private String name;
-
-		public MatchingNameFinder(String name) throws Exception {
-			this.name = name;
-		}
-
-		public int countMatches(Collection<SimpleNode> statements)
-				throws Exception {
-			int count = 0;
-			for (SimpleNode statement : statements) {
-				NameExtractor extractor = new NameExtractor(statement);
-				Collection<String> names = extractor.names();
-				count += Collections.frequency(names, name);
-			}
-			return count;
-		}
 	}
 
 	public class ControlDependence {
@@ -231,90 +210,9 @@ public class DominationLength {
 
 	}
 
-	public class NameExtractor extends VisitorBase {
-
-		private List<String> names = new ArrayList<String>();
-
-		NameExtractor(SimpleNode node) throws Exception {
-			node.accept(this);
-		}
-
-		@Override
-		protected Object unhandled_node(SimpleNode node) throws Exception {
-			System.err.println("unhandled node: " + node.toString());
-			return null;
-		}
-
-		@Override
-		public void traverse(SimpleNode node) throws Exception {
-			// // Don't traverse nodes
-			// assert false;
-			node.traverse(this);
-		}
-
-		@Override
-		public Object visitNameTok(NameTok node) throws Exception {
-			names.add(node.id);
-			return null;
-		}
-
-		@Override
-		public Object visitAssign(Assign node) throws Exception {
-			node.traverse(this);
-			return null;
-		}
-
-		@Override
-		public Object visitAugAssign(AugAssign node) throws Exception {
-			node.traverse(this);
-			return null;
-		}
-
-		@Override
-		public Object visitAttribute(Attribute node) throws Exception {
-			// Ignore attribute name. We don't want to consider the field
-			// or method name as a variable name
-			node.value.accept(this);
-			return null;
-		}
-
-		@Override
-		public Object visitSubscript(Subscript node) throws Exception {
-			node.traverse(this);
-			return null;
-		}
-
-		@Override
-		public Object visitCall(Call node) throws Exception {
-			node.traverse(this);
-			return null;
-		}
-
-		@Override
-		public Object visitNum(Num node) throws Exception {
-			return null;
-		}
-
-		@Override
-		public Object visitName(Name node) throws Exception {
-			names.add(node.id);
-			return null;
-		}
-
-		@Override
-		public Object visitStr(Str node) throws Exception {
-			return null;
-		}
-
-		public Collection<String> names() {
-			return names;
-		}
-
-	}
-
-	static Name extractMethodCallTarget(Call call) {
+	static NameTok extractMethodCallName(Call call) {
 		Attribute fieldAccess = (Attribute) call.func;
-		return (Name) fieldAccess.value;
+		return (NameTok) fieldAccess.attr;
 	}
 
 	public class SameVariableOnlyAnalysis extends AbstractAnalysis {
@@ -352,9 +250,10 @@ public class DominationLength {
 		}
 
 		public void analyse(Domination domAnalyser,
-				Postdomination postdomAnalyser, Cfg graph) throws Exception {
+				Postdomination postdomAnalyser, Module module, Cfg graph)
+				throws Exception {
 
-			DependenceChain chainAnalyser = new DependenceChain(graph);
+			DependenceChain chainAnalyser = new DependenceChain(module, graph);
 
 			for (BasicBlock sub : graph.getBlocks()) {
 				for (Call call : new CallFinder(sub).calls()) {
@@ -362,28 +261,44 @@ public class DominationLength {
 						continue;
 
 					Collection<Call> dependentCalls = chainAnalyser
-							.dependentStatements(call, sub);
+							.dependentCalls(call, sub);
 
-					int count = countMatchingNames(new HashSet<SimpleNode>(
-							dependentCalls), extractMethodCallTarget(call).id);
-					add(new Integer(count));
+					if (dependentCalls != null) {
+						int count = countUniqueMethodNames(dependentCalls);
+						// if (count > 1)
+						// printChain(call, dependentCalls);
+
+						add(new Integer(count));
+					}
+					// If no dependent calls, this isn't a chain length of 0.
+					// It means the call wasn't a method call at all! Something
+					// like a function being called on a module rather than
+					// an object method.
 				}
+			}
+		}
+
+		private void printChain(Call call, Collection<Call> dependentCalls) {
+			if (dependentCalls != null) {
+				System.err.println("'" + call + "' chain:\n" + dependentCalls
+						+ "\n\n");
 			}
 		}
 
 		private boolean isMethodCallOnName(Call call) {
 			if (!(call.func instanceof Attribute))
 				return false;
-			
-			Attribute attr = (Attribute)call.func;
+
+			Attribute attr = (Attribute) call.func;
 			return attr.value instanceof Name;
 		}
 
-		private int countMatchingNames(Set<SimpleNode> statements, String name)
-				throws Exception {
-			MatchingNameFinder statementMatcher = new MatchingNameFinder(name);
-
-			return statementMatcher.countMatches(statements);
+		private int countUniqueMethodNames(Iterable<Call> calls) {
+			Set<String> methods = new HashSet<String>();
+			for (Call call : calls) {
+				methods.add(extractMethodCallName(call).id);
+			}
+			return methods.size();
 		}
 
 	}
@@ -406,29 +321,30 @@ public class DominationLength {
 
 	private void analyseModule(Module module) throws Exception {
 		for (Function function : module.getFunctions().values())
-			analyseFunction(function);
+			analyseFunction(module, function);
 
 		for (Class klass : module.getClasses().values())
-			analyseClass(klass);
+			analyseClass(module, klass);
 	}
 
-	private void analyseFunction(Function function) throws Exception {
+	private void analyseFunction(Module module, Function function)
+			throws Exception {
 		//System.err.println("Processing " + function.getFullName());
 		Cfg graph = function.getCfg();
-		analyseChainSize(graph);
+		analyseChainSize(module, graph);
 	}
 
-	private void analyseClass(Class klass) throws Exception {
+	private void analyseClass(Module module, Class klass) throws Exception {
 		for (Method method : klass.getMethods().values())
-			analyseFunction(method);
+			analyseFunction(module, method);
 	}
 
-	private void analyseChainSize(Cfg graph) throws Exception {
+	private void analyseChainSize(Module module, Cfg graph) throws Exception {
 		Domination domAnalyser = new Domination(graph);
 		Postdomination postdomAnalyser = new Postdomination(graph);
 		all.analyse(domAnalyser, postdomAnalyser, graph);
 		variableOnly.analyse(domAnalyser, postdomAnalyser, graph);
-		matching.analyse(domAnalyser, postdomAnalyser, graph);
+		matching.analyse(domAnalyser, postdomAnalyser, module, graph);
 	}
 
 }

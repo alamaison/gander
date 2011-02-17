@@ -111,3 +111,13 @@ def aug_assign():
 	y.a("tag1")
 	y += 4
 	y.a("tag2")
+	
+import sys
+
+def ignore_imported_functions():
+	encoding = sys.getdefaultencoding("tag1")
+	y = x
+	y.a()
+	y.b("tag2")
+	y.a()
+	

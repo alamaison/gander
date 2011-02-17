@@ -14,6 +14,7 @@ import org.python.pydev.parser.grammar26.PythonGrammar26;
 import org.python.pydev.parser.jython.CharStream;
 import org.python.pydev.parser.jython.FastCharStream;
 import org.python.pydev.parser.jython.ParseException;
+import org.python.pydev.parser.jython.SimpleNode;
 import org.python.pydev.parser.jython.ast.ClassDef;
 import org.python.pydev.parser.jython.ast.FunctionDef;
 import org.python.pydev.parser.jython.ast.stmtType;
@@ -55,9 +56,13 @@ public class Module implements IModelElement {
 	public String getName() {
 		return name;
 	}
-	
+
 	public String getFullName() {
 		return parent.getFullName() + "." + getName();
+	}
+
+	public SimpleNode getAst() {
+		return module;
 	}
 
 	/**

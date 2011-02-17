@@ -1,6 +1,5 @@
 package uk.ac.ic.doc.analysis;
 
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -13,6 +12,8 @@ import uk.ac.ic.doc.analysis.dominance.Domination;
 import uk.ac.ic.doc.analysis.dominance.Postdomination;
 import uk.ac.ic.doc.cfg.model.BasicBlock;
 import uk.ac.ic.doc.cfg.model.Cfg;
+import uk.ac.ic.doc.cfg.model.Module;
+import uk.ac.ic.doc.flowinference.types.TypeResolutionVisitor;
 
 public class DependenceChain {
 
@@ -61,8 +62,10 @@ public class DependenceChain {
 
 	private Cfg graph;
 	private VariableRenaming renamer;
+	private Module module;
 
-	public DependenceChain(Cfg graph) {
+	public DependenceChain(Module module, Cfg graph) {
+		this.module = module;
 		this.graph = graph;
 	}
 
@@ -75,10 +78,15 @@ public class DependenceChain {
 	 * Given a call, return all calls that target the same variable that
 	 * are control-dependent on the original call.
 	 */
-	public Collection<Call> dependentStatements(Call call,
+	public Set<Call> dependentCalls(Call call,
 			BasicBlock containingBlock) throws Exception {
-
+		
 		Name target = extractMethodCallTarget(call);
+		
+		TypeResolutionVisitor typer = new TypeResolutionVisitor(module.getAst());
+		if (typer.typeOf(target.id) instanceof uk.ac.ic.doc.flowinference.types.Module)
+			return null;
+
 		renamer = new VariableRenaming(graph);
 		int permittedSubscript = renamer.subscript(target);
 

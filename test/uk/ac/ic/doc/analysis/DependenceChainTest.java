@@ -1,14 +1,17 @@
 package uk.ac.ic.doc.analysis;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
 import org.junit.Test;
-import org.python.pydev.parser.jython.SimpleNode;
+import org.python.pydev.parser.jython.ast.Attribute;
 import org.python.pydev.parser.jython.ast.Call;
+import org.python.pydev.parser.jython.ast.Name;
+import org.python.pydev.parser.jython.ast.NameTok;
 
 public class DependenceChainTest extends AbstractTaggedCallTest {
 
@@ -21,13 +24,14 @@ public class DependenceChainTest extends AbstractTaggedCallTest {
 
 	public void initialise(String caseName) throws Throwable {
 		super.initialise(caseName);
-		analyser = new DependenceChain(graph);
+		analyser = new DependenceChain(module, graph);
 	}
 
 	@Test
 	public void testBasic() throws Throwable {
 		initialise("basic");
-		checkChain("y.b(tag)", result("a", "b"));
+		String[][] chains = { { "y.b(tag)", "a", "b" } };
+		checkChains(chains);
 	}
 
 	/**
@@ -37,8 +41,9 @@ public class DependenceChainTest extends AbstractTaggedCallTest {
 	@Test
 	public void testIgnoreUsesBeforeKill() throws Throwable {
 		initialise("kills_in_same_block");
-		checkChain("y.b(tag3)", result("b", "c"));
-		checkChain("y.c(tag4)", result("b", "c"));
+		String[][] chains = { { "y.b(tag3)", "b", "c" },
+				{ "y.c(tag4)", "b", "c" } };
+		checkChains(chains);
 	}
 
 	/**
@@ -48,8 +53,9 @@ public class DependenceChainTest extends AbstractTaggedCallTest {
 	@Test
 	public void testOnlyIncludeBetweenKills() throws Throwable {
 		initialise("kills_in_same_block");
-		checkChain("y.a(tag1)", result("a", "b"));
-		checkChain("y.b(tag2)", result("a", "b"));
+		String[][] chains = { { "y.a(tag1)", "a", "b" },
+				{ "y.b(tag2)", "a", "b" } };
+		checkChains(chains);
 	}
 
 	/**
@@ -58,10 +64,9 @@ public class DependenceChainTest extends AbstractTaggedCallTest {
 	@Test
 	public void testMixedKillsInSameBlock() throws Throwable {
 		initialise("mixed_kills_in_same_block");
-		checkChain("x.a(tag1)", result("a"));
-		checkChain("x.b(tag3)", result("b"));
-		checkChain("y.a(tag2)", result("a", "m"));
-		checkChain("y.m(tag4)", result("a", "m"));
+		String[][] chains = { { "x.a(tag1)", "a" }, { "x.b(tag3)", "b" },
+				{ "y.a(tag2)", "a", "m" }, { "y.m(tag4)", "a", "m" }, };
+		checkChains(chains);
 	}
 
 	/**
@@ -70,9 +75,9 @@ public class DependenceChainTest extends AbstractTaggedCallTest {
 	@Test
 	public void testAssignValueIsUse() throws Throwable {
 		initialise("assign_value_is_use");
-		checkChain("x.a(tag1)", result("a", "b"));
-		checkChain("x.b(tag2)", result("a", "b"));
-		checkChain("x.a(tag3)", result("a"));
+		String[][] chains = { { "x.a(tag1)", "a", "b" },
+				{ "x.b(tag2)", "a", "b" }, { "x.a(tag3)", "a" }, };
+		checkChains(chains);
 	}
 
 	/**
@@ -82,10 +87,9 @@ public class DependenceChainTest extends AbstractTaggedCallTest {
 	@Test
 	public void testMultikill() throws Throwable {
 		initialise("multikill");
-		checkChain("y.a(tag1)", result("a"));
-		checkChain("x.b(tag2)", result("b"));
-		checkChain("x.c(tag3)", result("c"));
-		checkChain("y.d(tag4)", result("d"));
+		String[][] chains = { { "y.a(tag1)", "a" }, { "x.b(tag2)", "b" },
+				{ "x.c(tag3)", "c" }, { "y.d(tag4)", "d" }, };
+		checkChains(chains);
 	}
 
 	/**
@@ -95,7 +99,8 @@ public class DependenceChainTest extends AbstractTaggedCallTest {
 	@Test
 	public void testIncludeOnlyDominators() throws Throwable {
 		initialise("include_only_dominators");
-		checkChain("y.c(tag)", result("a", "c"));
+		String[][] chains = { { "y.c(tag)", "a", "c" }, };
+		checkChains(chains);
 	}
 
 	/**
@@ -105,7 +110,8 @@ public class DependenceChainTest extends AbstractTaggedCallTest {
 	@Test
 	public void testIncludeOnlyPostdominators() throws Throwable {
 		initialise("include_only_postdominators");
-		checkChain("y.a(tag)", result("a", "c"));
+		String[][] chains = { { "y.a(tag)", "a", "c" }, };
+		checkChains(chains);
 	}
 
 	/**
@@ -115,7 +121,8 @@ public class DependenceChainTest extends AbstractTaggedCallTest {
 	@Test
 	public void testIncludeDomAndPostdom() throws Throwable {
 		initialise("include_dom_and_postdom");
-		checkChain("y.b(tag)", result("a", "b", "c"));
+		String[][] chains = { { "y.b(tag)", "a", "b", "c" }, };
+		checkChains(chains);
 	}
 
 	/**
@@ -125,10 +132,28 @@ public class DependenceChainTest extends AbstractTaggedCallTest {
 	@Test
 	public void testAssignmentInNonDomBlock() throws Throwable {
 		initialise("assignment_in_non_dom_block");
-		checkChain("y.a(tag1)", result("a", "b"));
-		checkChain("y.b(tag2)", result("a", "b"));
-		checkChain("y.c(tag3)", result("c", "d"));
-		checkChain("y.d(tag4)", result("c", "d"));
+		String[][] chains = { { "y.a(tag1)", "a", "b" },
+				{ "y.b(tag2)", "a", "b" }, { "y.c(tag3)", "c", "d" },
+				{ "y.d(tag4)", "c", "d" }, };
+		checkChains(chains);
+	}
+
+	@Test
+	public void testIgnoreImportedFunctions() throws Throwable {
+		initialise("ignore_imported_functions");
+		String[][] chains = { { "y.b(tag2)", "a", "b" }, };
+		checkChains(chains);
+		checkNoChain("sys.getdefaultencoding(tag1)");
+	}
+
+	private void checkChains(String[]... descriptors) throws Exception {
+		for (String[] descriptor : descriptors) {
+			Set<String> expected = new HashSet<String>();
+			for (int i = 1; i < descriptor.length; ++i) {
+				expected.add(descriptor[i]);
+			}
+			checkChain(descriptor[0], expected);
+		}
 	}
 
 	private void checkChain(String taggedCall, Set<String> expected)
@@ -138,62 +163,62 @@ public class DependenceChainTest extends AbstractTaggedCallTest {
 				+ "'", statement != null);
 		String variable = variableFromTag(taggedCall);
 
-		Iterable<Call> chain = analyser.dependentStatements(
+		Iterable<Call> chain = analyser.dependentCalls(
 				statement.getCall(), statement.getBlock());
+
+		// Test the chain only includes calls to the single expected variable
+		Set<String> variables = variablesInChain(chain);
+		assertEquals(1, variables.size());
+		assertEquals(variable, variables.iterator().next());
+
+		// Test that all expected calls are in the chain and no unexpected calls
+		// are in the chain.
 		// TODO: We consider any call with matching name but ignore arguments
-		for (String callName : expected) {
-			checkCallInChain(variable, callName, chain);
-		}
+		Collection<String> calledMethods = calledMethodsFromChain(chain,
+				variable);
+		assertEquals(
+				"Expected dependence chain doesn't match method found in the "
+						+ "chain produced by the analyser", expected,
+				calledMethods);
+	}
 
+	private void checkNoChain(String... antiTags) throws Exception {
+		for (String antiTag : antiTags) {
+			checkNoChain(antiTag);
+		}
+	}
+
+	private void checkNoChain(String antiTag) throws Exception {
+		Statement statement = findTaggedStatement(antiTag);
+		assertTrue(
+				"Unable to find statement tagged in test: '" + antiTag + "'",
+				statement != null);
+		String variable = variableFromTag(antiTag);
+
+		Iterable<Call> chain = analyser.dependentCalls(
+				statement.getCall(), statement.getBlock());
+		assertTrue(
+				"Tagged function '" + antiTag
+						+ "' has a dependence chain when we don't expect one: "
+						+ chain, null == chain);
+	}
+
+	private Set<String> calledMethodsFromChain(Iterable<Call> chain,
+			String variable) {
+		Set<String> methods = new HashSet<String>();
 		for (Call call : chain) {
-			// Test only expected variable included in chain
-			assertTrue(
-					"Dependence chain includes a method called on variable '"
-							+ TaggedBlockFinder.extractMethodCallTarget(call)
-							+ "' but should only include calls that target '"
-							+ variable + "'",
-					TaggedBlockFinder.isMethodCallTarget(variable, call));
-
-			// Test only expected calls included in chain
-			boolean found = false;
-			for (String expectedMethod : expected) {
-				if (TaggedBlockFinder.isMethodCall(variable, expectedMethod,
-						call)) {
-					found = true;
-					break;
-				}
-			}
-			assertTrue("Dependence chain includes an unexpected method call: "
-					+ TaggedBlockFinder.extractMethodCallTarget(call) + "."
-					+ TaggedBlockFinder.extractMethodCallName(call), found);
+			Attribute fieldAccess = (Attribute) call.func;
+			methods.add(((NameTok) fieldAccess.attr).id);
 		}
+		return methods;
 	}
 
-	/**
-	 * Searches dependency chain for a method call matching criteria.
-	 * 
-	 * @param variable
-	 *            Expected variable name.
-	 * @param method
-	 *            Expected method name.
-	 * @param chain
-	 *            Dependency chain.
-	 */
-	private void checkCallInChain(String variable, String method,
-			Iterable<Call> chain) {
-		for (SimpleNode statement : chain) {
-			try {
-				if (TaggedBlockFinder.isMethodCall(variable, method,
-						(Call) statement))
-					return;
-			} catch (ClassCastException e) {
-			}
+	private Set<String> variablesInChain(Iterable<Call> chain) {
+		Set<String> vars = new HashSet<String>();
+		for (Call call : chain) {
+			Attribute fieldAccess = (Attribute) call.func;
+			vars.add(((Name) fieldAccess.value).id);
 		}
-		assertTrue("Method call '" + method + "'not found in chain: " + chain,
-				false);
-	}
-
-	private Set<String> result(String... methodNames) {
-		return new HashSet<String>(Arrays.asList(methodNames));
+		return vars;
 	}
 }

@@ -8,29 +8,31 @@ import java.net.URL;
 import uk.ac.ic.doc.cfg.Model;
 import uk.ac.ic.doc.cfg.model.BasicBlock;
 import uk.ac.ic.doc.cfg.model.Cfg;
+import uk.ac.ic.doc.cfg.model.Module;
 
 public abstract class AbstractTaggedCallTest {
 
 	protected Cfg graph;
 	protected TaggedBlockFinder tagFinder;
 	private final String projectDirectory;
-	
+	protected Module module;
+
 	public AbstractTaggedCallTest(String projectDirectory) {
 		this.projectDirectory = projectDirectory;
 	}
-	
-	protected void initialise(String caseName)
-			throws Throwable {
+
+	protected void initialise(String caseName) throws Throwable {
 		URL topLevel = getClass().getResource(projectDirectory);
 
 		File topLevelDirectory = new File(topLevel.toURI());
 
-		graph = new Model(topLevelDirectory).getTopLevelPackage().getModules()
-				.get("case").getFunctions().get(caseName).getCfg();
+		module = new Model(topLevelDirectory).getTopLevelPackage().getModules()
+				.get("case");
+		graph = module.getFunctions().get(caseName).getCfg();
 
 		tagFinder = new TaggedBlockFinder(graph);
 	}
-	
+
 	protected void initialise(String caseName, int expectedBlockCount)
 			throws Throwable {
 		initialise(caseName);
@@ -55,15 +57,15 @@ public abstract class AbstractTaggedCallTest {
 	private void checkBlockCount(int expected) {
 		assertEquals(expected, graph.getBlocks().size() - 3);
 	}
-	
+
 	protected String variableFromTag(String taggedCall) {
 		return tagFinder.variableFromTag(taggedCall);
 	}
-	
+
 	protected String methodFromTag(String taggedCall) {
 		return tagFinder.methodFromTag(taggedCall);
 	}
-	
+
 	protected String tagFromTag(String taggedCall) {
 		return tagFinder.tagFromTag(taggedCall);
 	}
