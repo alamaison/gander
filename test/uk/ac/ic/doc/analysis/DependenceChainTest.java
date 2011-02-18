@@ -193,7 +193,6 @@ public class DependenceChainTest extends AbstractTaggedCallTest {
 		assertTrue(
 				"Unable to find statement tagged in test: '" + antiTag + "'",
 				statement != null);
-		String variable = variableFromTag(antiTag);
 
 		Iterable<Call> chain = analyser.dependentCalls(
 				statement.getCall(), statement.getBlock());
