@@ -17,18 +17,6 @@ public class RunDomLengthAnalysis {
 		Model model = new Model(topLevelDirectory);
 		DominationLength analysis = new DominationLength(model);
 		
-		System.out.println("==Considering all statements==");
-		System.out.println("Minimum: " + analysis.all.min());
-		System.out.println("Maximum: " + analysis.all.max());
-		System.out.println("Average: " + analysis.all.average());
-		System.out.println();
-		
-		System.out.println("==Considering only variables==");
-		System.out.println("Minimum: " + analysis.variableOnly.min());
-		System.out.println("Maximum: " + analysis.variableOnly.max());
-		System.out.println("Average: " + analysis.variableOnly.average());
-		System.out.println();
-		
 		System.out.println("==Variables matching target only==");
 		System.out.println("Minimum: " + analysis.matching.min());
 		System.out.println("Maximum: " + analysis.matching.max());
