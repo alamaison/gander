@@ -20,7 +20,7 @@ import org.python.pydev.parser.jython.ast.Str;
 import org.python.pydev.parser.jython.ast.Subscript;
 import org.python.pydev.parser.jython.ast.VisitorBase;
 
-import uk.ac.ic.doc.gander.analysis.BasicBlockVisitor;
+import uk.ac.ic.doc.gander.analysis.BasicBlockTraverser;
 import uk.ac.ic.doc.gander.analysis.DependenceChain;
 import uk.ac.ic.doc.gander.cfg.Model;
 import uk.ac.ic.doc.gander.cfg.model.BasicBlock;
@@ -217,7 +217,7 @@ public class DominationLength {
 
 	public class SameVariableOnlyAnalysis extends AbstractAnalysis {
 
-		private class CallFinder extends BasicBlockVisitor {
+		private class CallFinder extends BasicBlockTraverser {
 
 			private ArrayList<Call> calls = new ArrayList<Call>();
 
@@ -236,17 +236,6 @@ public class DominationLength {
 			Iterable<Call> calls() {
 				return calls;
 			}
-
-			@Override
-			protected Object unhandled_node(SimpleNode node) throws Exception {
-				return null;
-			}
-
-			@Override
-			public void traverse(SimpleNode node) throws Exception {
-				node.traverse(this);
-			}
-
 		}
 
 		public void analyse(Domination domAnalyser,
@@ -329,7 +318,7 @@ public class DominationLength {
 
 	private void analyseFunction(Module module, Function function)
 			throws Exception {
-		//System.err.println("Processing " + function.getFullName());
+		// System.err.println("Processing " + function.getFullName());
 		Cfg graph = function.getCfg();
 		analyseChainSize(module, graph);
 	}

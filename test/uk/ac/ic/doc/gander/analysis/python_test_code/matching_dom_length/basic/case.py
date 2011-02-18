@@ -120,4 +120,30 @@ def ignore_imported_functions():
 	y.a()
 	y.b("tag2")
 	y.a()
-	
+
+# The function body in the nested function should be ignored as it isn't
+# part of the test function; it is the declaration of the object being
+# assigned to the variable 'nested'.
+def function_def_is_variable_decl():
+	def nested(x):
+		y = x
+		y.n()
+		y.o("tag_nested")
+		y.p()
+	z = w
+	z.a()
+	z.b("tag1")
+	z.c()
+	nested.__call__("tag2")
+
+# The body of a lambda should be ignored as it isn't part of the test function;
+# it is the declaration of callable object, that's all'
+def lambda_is_object_ignore_body():
+	l = lambda y: [y.a("tag_in_lambda1") for x in y.b("tag_in_lambda2")]
+	z = w
+	z.a()
+	z.b("tag1")
+	z.c()
+	l.__call__("tag2")
+	l.p()
+		

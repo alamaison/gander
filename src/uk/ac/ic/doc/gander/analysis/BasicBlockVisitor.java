@@ -20,7 +20,12 @@ import org.python.pydev.parser.jython.ast.WithItem;
 public abstract class BasicBlockVisitor extends VisitorBase {
 
 	private Object forbidden() {
-		throw new Error("Control-flow changing statements not allowed in a basic block");
+		// If you get an error here you may have traversed into a nested,
+		// FunctionDef, ClassDef or Lambda. These can appear in a basic block
+		// but they must not be traversed as their bodies (which may can contain
+		// control-flow statements) aren't executed as part of the basic block.
+		throw new Error(
+				"Control-flow changing statements not allowed in a basic block");
 	}
 
 	@Override

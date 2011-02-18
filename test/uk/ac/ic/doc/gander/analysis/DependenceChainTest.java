@@ -13,8 +13,6 @@ import org.python.pydev.parser.jython.ast.Call;
 import org.python.pydev.parser.jython.ast.Name;
 import org.python.pydev.parser.jython.ast.NameTok;
 
-import uk.ac.ic.doc.gander.analysis.DependenceChain;
-
 public class DependenceChainTest extends AbstractTaggedCallTest {
 
 	private static final String TEST_FOLDER = "python_test_code/matching_dom_length/basic";
@@ -148,6 +146,24 @@ public class DependenceChainTest extends AbstractTaggedCallTest {
 		checkNoChain("sys.getdefaultencoding(tag1)");
 	}
 
+	@Test
+	public void testFunctionDefIsVariableDecl() throws Throwable {
+		initialise("function_def_is_variable_decl", 1);
+		String[][] chains = { { "z.b(tag1)", "a", "b", "c" },
+				{ "nested.__call__(tag2)", "__call__" } };
+		checkChains(chains);
+		checkNoChain("y.o(tag_nested)");
+	}
+
+	@Test
+	public void testLambdaIsObjectIgnoreBody() throws Throwable {
+		initialise("lambda_is_object_ignore_body", 1);
+		String[][] chains = { { "z.b(tag1)", "a", "b", "c" },
+				{ "l.__call__(tag2)", "__call__", "p" } };
+		checkChains(chains);
+		checkNoChain("y.a(tag_in_lambda1)", "y.b(tag_in_lambda2)");
+	}
+
 	private void checkChains(String[]... descriptors) throws Exception {
 		for (String[] descriptor : descriptors) {
 			Set<String> expected = new HashSet<String>();
@@ -165,8 +181,8 @@ public class DependenceChainTest extends AbstractTaggedCallTest {
 				+ "'", statement != null);
 		String variable = variableFromTag(taggedCall);
 
-		Iterable<Call> chain = analyser.dependentCalls(
-				statement.getCall(), statement.getBlock());
+		Iterable<Call> chain = analyser.dependentCalls(statement.getCall(),
+				statement.getBlock());
 
 		// Test the chain only includes calls to the single expected variable
 		Set<String> variables = variablesInChain(chain);
@@ -196,12 +212,12 @@ public class DependenceChainTest extends AbstractTaggedCallTest {
 				"Unable to find statement tagged in test: '" + antiTag + "'",
 				statement != null);
 
-		Iterable<Call> chain = analyser.dependentCalls(
-				statement.getCall(), statement.getBlock());
+		Set<Call> chain = analyser.dependentCalls(statement.getCall(),
+				statement.getBlock());
 		assertTrue(
 				"Tagged function '" + antiTag
 						+ "' has a dependence chain when we don't expect one: "
-						+ chain, null == chain);
+						+ chain, chain.isEmpty());
 	}
 
 	private Set<String> calledMethodsFromChain(Iterable<Call> chain,

@@ -172,6 +172,22 @@ public class GlobalAndDefsFinderTest extends AbstractTaggedCallTest {
 		checkDefs(defs);
 	}
 
+	@Test
+	public void testFunctionDefIsVariableDecl() throws Throwable {
+		initialise("function_def_is_variable_decl", 1);
+		checkGlobals("w");
+		String[][] defs = { { "nested", "z.b(tag1)" }, { "z", "z.b(tag1)" } };
+		checkDefs(defs);
+	}
+
+	@Test
+	public void testLambdaIsObjectIgnoreBody() throws Throwable {
+		initialise("lambda_is_object_ignore_body", 1);
+		checkGlobals("w");
+		String[][] defs = { { "l", "z.b(tag1)" }, { "z", "z.b(tag1)" } };
+		checkDefs(defs);
+	}
+
 	private void checkDefs(String[][] expectedDefs) throws Throwable {
 		Set<String> expectedDefinitions = new HashSet<String>();
 		for (String[] defDescriptor : expectedDefs) {
@@ -193,7 +209,7 @@ public class GlobalAndDefsFinderTest extends AbstractTaggedCallTest {
 	}
 
 	private void checkGlobals(String... expectedGlobal) throws Exception {
-		assertEquals(new HashSet<String>(Arrays.asList(expectedGlobal)), finder
-				.globals());
+		assertEquals("Set of globals unexpected:", new HashSet<String>(Arrays
+				.asList(expectedGlobal)), finder.globals());
 	}
 }

@@ -17,7 +17,10 @@ import uk.ac.ic.doc.gander.flowinference.types.TypeResolutionVisitor;
 
 public class DependenceChain {
 
-	private class SubscriptMatcher extends BasicBlockVisitor {
+	/**
+	 * Finds calls that target a given SSA subscripted variable.
+	 */
+	private class SubscriptMatcher extends BasicBlockTraverser {
 
 		private Set<Call> calls = new HashSet<Call>();
 		private Name target;
@@ -45,16 +48,6 @@ public class DependenceChain {
 			return null;
 		}
 
-		@Override
-		protected Object unhandled_node(SimpleNode node) throws Exception {
-			return null;
-		}
-
-		@Override
-		public void traverse(SimpleNode node) throws Exception {
-			node.traverse(this);
-		}
-
 		Set<Call> matchingCalls() {
 			return calls;
 		}
@@ -75,45 +68,44 @@ public class DependenceChain {
 	}
 
 	/**
-	 * Given a call, return all calls that target the same variable that
-	 * are control-dependent on the original call.
+	 * Given a call, return all calls that target the same variable that are
+	 * control-dependent on the original call.
 	 */
-	public Set<Call> dependentCalls(Call call,
-			BasicBlock containingBlock) throws Exception {
-		
-		Name target = extractMethodCallTarget(call);
-		
-		TypeResolutionVisitor typer = new TypeResolutionVisitor(module.getAst());
-		if (typer.typeOf(target.id) instanceof uk.ac.ic.doc.gander.flowinference.types.Module)
-			return null;
-
-		renamer = new VariableRenaming(graph);
-		int permittedSubscript = renamer.subscript(target);
-
+	public Set<Call> dependentCalls(Call call, BasicBlock containingBlock)
+			throws Exception {
 		Set<Call> dependentCalls = new HashSet<Call>();
 
-		SubscriptMatcher matcher = new SubscriptMatcher(containingBlock,
-				target, permittedSubscript);
-		dependentCalls.addAll(matcher.matchingCalls());
+		Name target = extractMethodCallTarget(call);
 
-		Domination domAnalyser = new Domination(renamer.getDomInfo());
-		Postdomination postdomAnalyser = new Postdomination(graph);
+		TypeResolutionVisitor typer = new TypeResolutionVisitor(module.getAst());
+		if (!(typer.typeOf(target.id) instanceof uk.ac.ic.doc.gander.flowinference.types.Module)) {
 
-		for (BasicBlock dominator : domAnalyser.dominators(containingBlock)) {
-			if (dominator == containingBlock)
-				continue;
-			matcher = new SubscriptMatcher(dominator, target,
-					permittedSubscript);
+			renamer = new VariableRenaming(graph);
+			int permittedSubscript = renamer.subscript(target);
+
+			SubscriptMatcher matcher = new SubscriptMatcher(containingBlock,
+					target, permittedSubscript);
 			dependentCalls.addAll(matcher.matchingCalls());
-		}
 
-		for (BasicBlock postdominator : postdomAnalyser
-				.dominators(containingBlock)) {
-			if (postdominator == containingBlock)
-				continue;
-			matcher = new SubscriptMatcher(postdominator, target,
-					permittedSubscript);
-			dependentCalls.addAll(matcher.matchingCalls());
+			Domination domAnalyser = new Domination(renamer.getDomInfo());
+			Postdomination postdomAnalyser = new Postdomination(graph);
+
+			for (BasicBlock dominator : domAnalyser.dominators(containingBlock)) {
+				if (dominator == containingBlock)
+					continue;
+				matcher = new SubscriptMatcher(dominator, target,
+						permittedSubscript);
+				dependentCalls.addAll(matcher.matchingCalls());
+			}
+
+			for (BasicBlock postdominator : postdomAnalyser
+					.dominators(containingBlock)) {
+				if (postdominator == containingBlock)
+					continue;
+				matcher = new SubscriptMatcher(postdominator, target,
+						permittedSubscript);
+				dependentCalls.addAll(matcher.matchingCalls());
+			}
 		}
 
 		return dependentCalls;

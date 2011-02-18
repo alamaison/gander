@@ -12,6 +12,7 @@ import org.python.pydev.parser.jython.ast.Call;
 import org.python.pydev.parser.jython.ast.ClassDef;
 import org.python.pydev.parser.jython.ast.Compare;
 import org.python.pydev.parser.jython.ast.Continue;
+import org.python.pydev.parser.jython.ast.Delete;
 import org.python.pydev.parser.jython.ast.Expr;
 import org.python.pydev.parser.jython.ast.For;
 import org.python.pydev.parser.jython.ast.FunctionDef;
@@ -19,6 +20,7 @@ import org.python.pydev.parser.jython.ast.Global;
 import org.python.pydev.parser.jython.ast.If;
 import org.python.pydev.parser.jython.ast.Import;
 import org.python.pydev.parser.jython.ast.ImportFrom;
+import org.python.pydev.parser.jython.ast.Lambda;
 import org.python.pydev.parser.jython.ast.List;
 import org.python.pydev.parser.jython.ast.ListComp;
 import org.python.pydev.parser.jython.ast.Name;
@@ -195,10 +197,18 @@ abstract class Scope extends VisitorBase {
 
 	@Override
 	public Object visitFunctionDef(FunctionDef node) throws Exception {
-		// We don't analyse flow in nested function definitions.
-		System.err.println("WARNING: nested function def");
-		return delegateScope(new PassScope(_previousStatement, _trajectory,
-				_startInNewBlock, this));
+		// We don't analyse flow in nested function definitions. Just
+		// add AST as-is to control graph so we can detect presence of
+		// callable object and treat like a local variable.
+		return delegateSelfAddingScope(node);
+	}
+
+	@Override
+	public Object visitLambda(Lambda node) throws Exception {
+		// We don't analyse flow in the body of lambdas. Just
+		// add AST as-is to control graph so we can detect presence of
+		// callable object and treat like a local variable.
+		return delegateSelfAddingScope(node);
 	}
 
 	@Override
@@ -206,6 +216,14 @@ abstract class Scope extends VisitorBase {
 		// We don't analyse flow in nested class definitions. Just
 		// add AST as-is to control graph so we can detect presence of
 		// token and treat like a local variable.
+		return delegateSelfAddingScope(node);
+	}
+
+	@Override
+	public Object visitDelete(Delete node) throws Exception {
+		// We add the whole delete node to the graph so that later analyses
+		// can recognise the removal of a name if they need to do data-flow
+		// analysis
 		return delegateSelfAddingScope(node);
 	}
 

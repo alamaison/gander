@@ -9,7 +9,7 @@ import org.python.pydev.parser.jython.ast.Name;
 
 import uk.ac.ic.doc.gander.cfg.model.BasicBlock;
 
-public class NameExtractor extends BasicBlockVisitor {
+public class NameExtractor extends BasicBlockTraverser {
 
 	private List<Name> names = new ArrayList<Name>();
 
@@ -48,16 +48,6 @@ public class NameExtractor extends BasicBlockVisitor {
 
 	List<Name> operations() {
 		return names;
-	}
-
-	@Override
-	protected Object unhandled_node(SimpleNode node) throws Exception {
-		return null;
-	}
-
-	@Override
-	public void traverse(SimpleNode node) throws Exception {
-		node.traverse(this);
 	}
 
 }
