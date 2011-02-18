@@ -35,7 +35,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.zip.ZipFile;
 
-import org.apache.commons.codec.binary.Base64;
+//import org.apache.commons.codec.binary.Base64;
 import org.eclipse.core.filebuffers.FileBuffers;
 import org.eclipse.core.filebuffers.ITextFileBuffer;
 import org.eclipse.core.filebuffers.ITextFileBufferManager;
@@ -225,36 +225,36 @@ public class REF {
      * @param o the object we want as a string
      * @return the string representing the object as base64
      */
-    public static String getObjAsStr(Object o) {
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-        try {
-            ObjectOutputStream stream = new ObjectOutputStream(out);
-            stream.writeObject(o);
-            stream.close();
-        } catch (Exception e) {
-            Log.log(e);
-            throw new RuntimeException(e);
-        }
-    
-        return new String(encodeBase64(out));
-    }
+//    public static String getObjAsStr(Object o) {
+//        ByteArrayOutputStream out = new ByteArrayOutputStream();
+//        try {
+//            ObjectOutputStream stream = new ObjectOutputStream(out);
+//            stream.writeObject(o);
+//            stream.close();
+//        } catch (Exception e) {
+//            Log.log(e);
+//            throw new RuntimeException(e);
+//        }
+//    
+//        return new String(encodeBase64(out));
+//    }
 
     /**
      * @return the contents of the passed ByteArrayOutputStream as a byte[] encoded with base64.
      */
-    public static byte[] encodeBase64(ByteArrayOutputStream out) {
-        byte[] byteArray = out.toByteArray();
-        return encodeBase64(byteArray);
-    }
+//    public static byte[] encodeBase64(ByteArrayOutputStream out) {
+//        byte[] byteArray = out.toByteArray();
+//        return encodeBase64(byteArray);
+//    }
 
     
     /**
      * @return the contents of the passed byteArray[] as a byte[] encoded with base64.
      */
-    public static byte[] encodeBase64(byte[] byteArray) {
-        return Base64.encodeBase64(byteArray);
-    }
-    
+//    public static byte[] encodeBase64(byte[] byteArray) {
+//        return Base64.encodeBase64(byteArray);
+//    }
+//    
     
     /**
      * @param persisted the base64 string that should be converted to an object.
@@ -278,13 +278,13 @@ public class REF {
      * 
      * @return the object that was previously serialized in the passed base64 string.
      */
-    public static Object getStrAsObj(String persisted, ICallback<Object, ObjectInputStream> readFromFileMethod) 
-        throws IOException, ClassNotFoundException {
-        
-        InputStream input = new ByteArrayInputStream(decodeBase64(persisted));
-        Object o = readFromInputStreamAndCloseIt(readFromFileMethod, input);
-        return o;
-    }
+//    public static Object getStrAsObj(String persisted, ICallback<Object, ObjectInputStream> readFromFileMethod) 
+//        throws IOException, ClassNotFoundException {
+//        
+//        InputStream input = new ByteArrayInputStream(decodeBase64(persisted));
+//        Object o = readFromInputStreamAndCloseIt(readFromFileMethod, input);
+//        return o;
+//    }
 
     /**
      * This method loads the contents of an object that was serialized.
@@ -319,9 +319,9 @@ public class REF {
     /**
      * Decodes some string that was encoded as base64
      */
-    public static byte[] decodeBase64(String persisted) {
-        return Base64.decodeBase64(persisted.getBytes());
-    }
+//    public static byte[] decodeBase64(String persisted) {
+//        return Base64.decodeBase64(persisted.getBytes());
+//    }
 
     
     /**
