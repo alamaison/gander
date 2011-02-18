@@ -13,6 +13,7 @@ import org.python.pydev.parser.jython.ast.ClassDef;
 import org.python.pydev.parser.jython.ast.Compare;
 import org.python.pydev.parser.jython.ast.Continue;
 import org.python.pydev.parser.jython.ast.Delete;
+import org.python.pydev.parser.jython.ast.Dict;
 import org.python.pydev.parser.jython.ast.Expr;
 import org.python.pydev.parser.jython.ast.For;
 import org.python.pydev.parser.jython.ast.FunctionDef;
@@ -280,6 +281,12 @@ abstract class Scope extends VisitorBase {
 	@Override
 	public Object visitList(List node) throws Exception {
 		return delegateScope(new ListScope(node, _previousStatement,
+				_trajectory, _startInNewBlock, this));
+	}
+
+	@Override
+	public Object visitDict(Dict node) throws Exception {
+		return delegateScope(new DictScope(node, _previousStatement,
 				_trajectory, _startInNewBlock, this));
 	}
 
