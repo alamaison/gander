@@ -26,5 +26,9 @@ public class Function implements IModelElement {
 	public Cfg getCfg() throws Exception {
 		return new Cfg(function);
 	}
+	
+	public FunctionDef getFunctionDef() {
+		return function;
+	}
 
 }

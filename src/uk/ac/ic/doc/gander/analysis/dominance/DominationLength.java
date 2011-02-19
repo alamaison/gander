@@ -118,8 +118,10 @@ public class DominationLength {
 			}
 		}
 
-		private void printChain(Call call, Collection<Call> dependentCalls) {
+		private void printChain(int count, Call call,
+				Collection<Call> dependentCalls) {
 			if (dependentCalls != null) {
+				System.err.println("Chain length: " + count);
 				System.err.println("'" + call + "' chain:\n" + dependentCalls
 						+ "\n\n");
 			}
@@ -167,7 +169,7 @@ public class DominationLength {
 
 	private void analyseFunction(Module module, Function function)
 			throws Exception {
-		System.err.println("Processing " + function.getFullName());
+		//System.err.println("Processing " + function.getFullName());
 		Cfg graph = function.getCfg();
 		analyseChainSize(module, graph);
 	}

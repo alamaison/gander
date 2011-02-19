@@ -164,6 +164,21 @@ public class DependenceChainTest extends AbstractTaggedCallTest {
 		checkNoChain("y.a(tag_in_lambda1)", "y.b(tag_in_lambda2)");
 	}
 
+	@Test
+	public void testRecurseIntoCall() throws Throwable {
+		initialise("recurse_into_call", 1);
+		String[][] chains = { { "y.b(tag)", "a", "b", "p", "q" } };
+		checkChains(chains);
+	}
+
+	@Test
+	public void testRecurseIntoCallWithSomeNonPostdomStatements()
+			throws Throwable {
+		initialise("recurse_into_call_with_some_non_postdom_statements", 1);
+		String[][] chains = { { "g.b(tag)", "a", "b", "r", "t" } };
+		checkChains(chains);
+	}
+
 	private void checkChains(String[]... descriptors) throws Exception {
 		for (String[] descriptor : descriptors) {
 			Set<String> expected = new HashSet<String>();
@@ -183,11 +198,6 @@ public class DependenceChainTest extends AbstractTaggedCallTest {
 
 		Iterable<Call> chain = analyser.dependentCalls(statement.getCall(),
 				statement.getBlock());
-
-		// Test the chain only includes calls to the single expected variable
-		Set<String> variables = variablesInChain(chain);
-		assertEquals(1, variables.size());
-		assertEquals(variable, variables.iterator().next());
 
 		// Test that all expected calls are in the chain and no unexpected calls
 		// are in the chain.
@@ -228,14 +238,5 @@ public class DependenceChainTest extends AbstractTaggedCallTest {
 			methods.add(((NameTok) fieldAccess.attr).id);
 		}
 		return methods;
-	}
-
-	private Set<String> variablesInChain(Iterable<Call> chain) {
-		Set<String> vars = new HashSet<String>();
-		for (Call call : chain) {
-			Attribute fieldAccess = (Attribute) call.func;
-			vars.add(((Name) fieldAccess.value).id);
-		}
-		return vars;
 	}
 }

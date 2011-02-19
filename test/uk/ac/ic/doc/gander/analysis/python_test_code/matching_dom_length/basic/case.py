@@ -146,4 +146,23 @@ def lambda_is_object_ignore_body():
 	z.c()
 	l.__call__("tag2")
 	l.p()
-		
+
+def callme(z):
+	z.p()
+	z.q()
+
+def recurse_into_call():
+	y.a()
+	y.b("tag")
+	callme(y)
+
+def callme_not_all_postdom(w):
+	if w.r():
+		w.s()
+	w.t()
+
+def recurse_into_call_with_some_non_postdom_statements():
+	g.a()
+	g.b("tag")
+	callme_not_all_postdom(g)
+
