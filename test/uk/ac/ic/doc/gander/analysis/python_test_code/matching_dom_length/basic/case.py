@@ -111,15 +111,6 @@ def aug_assign():
 	y.a("tag1")
 	y += 4
 	y.a("tag2")
-	
-import sys
-
-def ignore_imported_functions():
-	encoding = sys.getdefaultencoding("tag1")
-	y = x
-	y.a()
-	y.b("tag2")
-	y.a()
 
 # The function body in the nested function should be ignored as it isn't
 # part of the test function; it is the declaration of the object being
@@ -165,4 +156,16 @@ def recurse_into_call_with_some_non_postdom_statements():
 	g.a()
 	g.b("tag")
 	callme_not_all_postdom(g)
+	
+def call_me_and_i_call_someone_else(t):
+	t.bob()
+	callme_not_all_postdom(t)
+	if (t.sally()):
+		callme(t)
+
+def recurse_two_levels():
+	y = x
+	call_me_and_i_call_someone_else(y)
+	y.a("tag")
+	
 

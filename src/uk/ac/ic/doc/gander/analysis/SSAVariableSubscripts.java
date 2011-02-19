@@ -15,7 +15,7 @@ import uk.ac.ic.doc.gander.cfg.model.Cfg;
 /**
  * Based on Figure 9.13, p169 Engineering a Compiler.
  */
-public class VariableRenaming {
+public class SSAVariableSubscripts {
 
 	/**
 	 * Perform most of Rename algorithm on p469 of Engineering A Compiler.
@@ -76,7 +76,7 @@ public class VariableRenaming {
 	private Map<BasicBlock, Set<BasicBlock>> domSuccessors = new HashMap<BasicBlock, Set<BasicBlock>>();
 	private PhiPlacement phis;
 
-	public VariableRenaming(Cfg graph) throws Exception {
+	public SSAVariableSubscripts(Cfg graph) throws Exception {
 		phis = new PhiPlacement(graph);
 		buildDomTree(graph);
 

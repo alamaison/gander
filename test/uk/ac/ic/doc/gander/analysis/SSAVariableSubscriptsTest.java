@@ -11,21 +11,21 @@ import org.junit.Test;
 import org.python.pydev.parser.jython.ast.Call;
 import org.python.pydev.parser.jython.ast.Name;
 
-import uk.ac.ic.doc.gander.analysis.VariableRenaming;
+import uk.ac.ic.doc.gander.analysis.SSAVariableSubscripts;
 
-public class VariableRenamingTest extends AbstractTaggedCallTest {
+public class SSAVariableSubscriptsTest extends AbstractTaggedCallTest {
 
 	private static final String TEST_FOLDER = "python_test_code/matching_dom_length/basic/";
-	protected VariableRenaming renamer;
+	protected SSAVariableSubscripts renamer;
 
-	public VariableRenamingTest() {
+	public SSAVariableSubscriptsTest() {
 		super(TEST_FOLDER);
 	}
 
 	protected void initialise(String caseName, int expectedBlockCount)
 			throws Throwable {
 		super.initialise(caseName, expectedBlockCount);
-		renamer = new VariableRenaming(graph);
+		renamer = new SSAVariableSubscripts(graph);
 	}
 
 	@Test

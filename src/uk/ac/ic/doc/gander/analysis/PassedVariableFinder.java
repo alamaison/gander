@@ -23,13 +23,13 @@ class PassedVariableFinder extends BasicBlockTraverser {
 	 * A variable may be passed more than once to a single call and can appear
 	 * by position and/or by keyword.
 	 */
-	class Passing {
+	class PassedVar {
 
 		private Set<Integer> positions = new HashSet<Integer>();
 		private Set<String> keywords = new HashSet<String>();
 		private Call function;
 
-		public Passing(Call call) {
+		public PassedVar(Call call) {
 			function = call;
 			for (int i = 0; i < call.args.length; ++i)
 				if (isNameMatch(call.args[i]))
@@ -52,7 +52,7 @@ class PassedVariableFinder extends BasicBlockTraverser {
 		}
 	}
 
-	private Set<Passing> calls = new HashSet<Passing>();
+	private Set<PassedVar> calls = new HashSet<PassedVar>();
 	private String variable;
 
 	public PassedVariableFinder(String variable, Iterable<BasicBlock> blocks)
@@ -68,7 +68,7 @@ class PassedVariableFinder extends BasicBlockTraverser {
 	@Override
 	public Object visitCall(Call node) throws Exception {
 		if (isVariablePassed(node))
-			calls.add(new Passing(node));
+			calls.add(new PassedVar(node));
 		
 		// Some arguments may themselves be calls so we need to dig deeper
 		node.traverse(this);
@@ -95,7 +95,7 @@ class PassedVariableFinder extends BasicBlockTraverser {
 		return false;
 	}
 
-	public Set<Passing> passes() {
+	public Set<PassedVar> passes() {
 		return calls;
 	}
 }

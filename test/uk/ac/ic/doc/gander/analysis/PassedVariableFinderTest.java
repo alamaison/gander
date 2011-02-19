@@ -14,7 +14,7 @@ import org.junit.Test;
 import org.python.pydev.parser.jython.ast.Call;
 import org.python.pydev.parser.jython.ast.Name;
 
-import uk.ac.ic.doc.gander.analysis.PassedVariableFinder.Passing;
+import uk.ac.ic.doc.gander.analysis.PassedVariableFinder.PassedVar;
 import uk.ac.ic.doc.gander.cfg.Model;
 import uk.ac.ic.doc.gander.cfg.model.BasicBlock;
 import uk.ac.ic.doc.gander.cfg.model.Function;
@@ -28,7 +28,7 @@ public class PassedVariableFinderTest {
 	public void testPassSinglePosition() throws Throwable {
 		initialise("pass_single_position");
 
-		Set<Passing> calls = new PassedVariableFinder("x", blocks).passes();
+		Set<PassedVar> calls = new PassedVariableFinder("x", blocks).passes();
 		assertEquals(1, calls.size());
 
 		Integer[] positions = { 0 };
@@ -41,13 +41,13 @@ public class PassedVariableFinderTest {
 	public void testPassSinglePositionTwiceSameParm() throws Throwable {
 		initialise("pass_single_position_twice_same_parm");
 
-		Set<Passing> calls = new PassedVariableFinder("x", blocks).passes();
+		Set<PassedVar> calls = new PassedVariableFinder("x", blocks).passes();
 		assertEquals(2, calls.size());
 
 		Integer[] positions = { 0 };
 		String[] keywords = {};
 
-		for (Passing spec : calls) {
+		for (PassedVar spec : calls) {
 			checkSpec(spec, "func_with_single_parm", positions, keywords);
 		}
 	}
@@ -56,7 +56,7 @@ public class PassedVariableFinderTest {
 	public void testPassSinglePositionTwiceDifferentParm() throws Throwable {
 		initialise("pass_single_position_twice_different_parm");
 
-		Set<Passing> calls = new PassedVariableFinder("x", blocks).passes();
+		Set<PassedVar> calls = new PassedVariableFinder("x", blocks).passes();
 		assertEquals(1, calls.size());
 
 		Integer[] positions = { 0 };
@@ -75,12 +75,12 @@ public class PassedVariableFinderTest {
 	public void testPassSinglePositionTwiceDifferentFunc() throws Throwable {
 		initialise("pass_single_position_twice_different_func");
 
-		Set<Passing> calls = new PassedVariableFinder("x", blocks).passes();
+		Set<PassedVar> calls = new PassedVariableFinder("x", blocks).passes();
 		assertEquals(2, calls.size());
 
 		Integer[] positions = { 0 };
 		String[] keywords = {};
-		Iterator<Passing> specs = calls.iterator();
+		Iterator<PassedVar> specs = calls.iterator();
 		checkSpec(specs.next(), "func_with_single_parm", positions, keywords);
 		checkSpec(specs.next(), "func_with_single_parm2", positions, keywords);
 	}
@@ -90,7 +90,7 @@ public class PassedVariableFinderTest {
 			throws Throwable {
 		initialise("pass_single_position_twice_different_parm_different_func");
 
-		Set<Passing> calls = new PassedVariableFinder("x", blocks).passes();
+		Set<PassedVar> calls = new PassedVariableFinder("x", blocks).passes();
 		assertEquals(1, calls.size());
 
 		Integer[] positions = { 0 };
@@ -110,7 +110,7 @@ public class PassedVariableFinderTest {
 		initialise("ignore_passing_compound_expressions");
 
 		PassedVariableFinder finder = new PassedVariableFinder("y", blocks);
-		Set<Passing> calls = finder.passes();
+		Set<PassedVar> calls = finder.passes();
 		assertEquals(1, calls.size());
 
 		Integer[] positions = { 0 };
@@ -123,7 +123,7 @@ public class PassedVariableFinderTest {
 	public void testPassTwoPosition() throws Throwable {
 		initialise("pass_two_position");
 
-		Set<Passing> calls = new PassedVariableFinder("y", blocks).passes();
+		Set<PassedVar> calls = new PassedVariableFinder("y", blocks).passes();
 		assertEquals(1, calls.size());
 
 		Integer[] positionsy = { 1 };
@@ -143,7 +143,7 @@ public class PassedVariableFinderTest {
 	public void testPassSameVarTwicePosition() throws Throwable {
 		initialise("pass_same_var_twice_position");
 
-		Set<Passing> calls = new PassedVariableFinder("x", blocks).passes();
+		Set<PassedVar> calls = new PassedVariableFinder("x", blocks).passes();
 		assertEquals(1, calls.size());
 
 		Integer[] positions = { 0, 1 };
@@ -156,7 +156,7 @@ public class PassedVariableFinderTest {
 	public void testPassSingleKeyword() throws Throwable {
 		initialise("pass_single_keyword");
 
-		Set<Passing> calls = new PassedVariableFinder("x", blocks).passes();
+		Set<PassedVar> calls = new PassedVariableFinder("x", blocks).passes();
 		assertEquals(1, calls.size());
 
 		Integer[] positions = {};
@@ -169,7 +169,7 @@ public class PassedVariableFinderTest {
 	public void testPassTwoKeywordsUsualOrder() throws Throwable {
 		initialise("pass_two_keywords_usual_order");
 
-		Set<Passing> calls = new PassedVariableFinder("x", blocks).passes();
+		Set<PassedVar> calls = new PassedVariableFinder("x", blocks).passes();
 		assertEquals(1, calls.size());
 
 		Integer[] positions = {};
@@ -189,7 +189,7 @@ public class PassedVariableFinderTest {
 	public void testPassTwoKeywordsOutOfOrder() throws Throwable {
 		initialise("pass_two_keywords_out_of_order");
 
-		Set<Passing> calls = new PassedVariableFinder("x", blocks).passes();
+		Set<PassedVar> calls = new PassedVariableFinder("x", blocks).passes();
 		assertEquals(1, calls.size());
 
 		Integer[] positions = {};
@@ -209,7 +209,7 @@ public class PassedVariableFinderTest {
 	public void testPassSameVarTwiceKeyword() throws Throwable {
 		initialise("pass_same_var_twice_keyword");
 
-		Set<Passing> calls = new PassedVariableFinder("x", blocks).passes();
+		Set<PassedVar> calls = new PassedVariableFinder("x", blocks).passes();
 		assertEquals(1, calls.size());
 
 		Integer[] positions = {};
@@ -222,7 +222,7 @@ public class PassedVariableFinderTest {
 	public void testPassSameVarTwiceMixed() throws Throwable {
 		initialise("pass_same_var_twice_mixed");
 
-		Set<Passing> calls = new PassedVariableFinder("x", blocks).passes();
+		Set<PassedVar> calls = new PassedVariableFinder("x", blocks).passes();
 		assertEquals(1, calls.size());
 
 		Integer[] positions = { 0 };
@@ -231,7 +231,7 @@ public class PassedVariableFinderTest {
 				keywords);
 	}
 
-	private void checkSpec(Passing spec, String functionName,
+	private void checkSpec(PassedVar spec, String functionName,
 			Integer[] positions, String[] keywords) {
 		Call call = spec.getCall();
 		assertTrue("Function is not a simple variable name",

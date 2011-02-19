@@ -13,18 +13,17 @@ import org.python.pydev.parser.jython.ast.Call;
 import org.python.pydev.parser.jython.ast.Name;
 import org.python.pydev.parser.jython.ast.NameTok;
 
-public class DependenceChainTest extends AbstractTaggedCallTest {
+public class SignatureBuilderTest extends AbstractTaggedCallTest {
 
 	private static final String TEST_FOLDER = "python_test_code/matching_dom_length/basic";
-	private DependenceChain analyser;
+	private SignatureBuilder analyser = new SignatureBuilder();
 
-	public DependenceChainTest() {
+	public SignatureBuilderTest() {
 		super(TEST_FOLDER);
 	}
 
 	public void initialise(String caseName) throws Throwable {
 		super.initialise(caseName);
-		analyser = new DependenceChain(module, graph);
 	}
 
 	@Test
@@ -139,14 +138,6 @@ public class DependenceChainTest extends AbstractTaggedCallTest {
 	}
 
 	@Test
-	public void testIgnoreImportedFunctions() throws Throwable {
-		initialise("ignore_imported_functions");
-		String[][] chains = { { "y.b(tag2)", "a", "b" }, };
-		checkChains(chains);
-		checkNoChain("sys.getdefaultencoding(tag1)");
-	}
-
-	@Test
 	public void testFunctionDefIsVariableDecl() throws Throwable {
 		initialise("function_def_is_variable_decl", 1);
 		String[][] chains = { { "z.b(tag1)", "a", "b", "c" },
@@ -179,6 +170,13 @@ public class DependenceChainTest extends AbstractTaggedCallTest {
 		checkChains(chains);
 	}
 
+	@Test
+	public void testRecurseTwoLevels() throws Throwable {
+		initialise("recurse_two_levels", 1);
+		String[][] chains = { { "y.a(tag)", "a", "bob", "sally", "r", "t" } };
+		checkChains(chains);
+	}
+
 	private void checkChains(String[]... descriptors) throws Exception {
 		for (String[] descriptor : descriptors) {
 			Set<String> expected = new HashSet<String>();
@@ -196,8 +194,9 @@ public class DependenceChainTest extends AbstractTaggedCallTest {
 				+ "'", statement != null);
 		String variable = variableFromTag(taggedCall);
 
-		Iterable<Call> chain = analyser.dependentCalls(statement.getCall(),
-				statement.getBlock());
+		Iterable<Call> chain = analyser.signature(
+				extractMethodCallTarget(statement.getCall()), statement
+						.getBlock(), module, graph);
 
 		// Test that all expected calls are in the chain and no unexpected calls
 		// are in the chain.
@@ -222,20 +221,29 @@ public class DependenceChainTest extends AbstractTaggedCallTest {
 				"Unable to find statement tagged in test: '" + antiTag + "'",
 				statement != null);
 
-		Set<Call> chain = analyser.dependentCalls(statement.getCall(),
-				statement.getBlock());
+		Set<Call> chain = analyser.signature(extractMethodCallTarget(statement
+				.getCall()), statement.getBlock(), module, graph);
 		assertTrue(
 				"Tagged function '" + antiTag
 						+ "' has a dependence chain when we don't expect one: "
 						+ chain, chain.isEmpty());
 	}
 
+	private static Name extractMethodCallTarget(Call call) {
+		Attribute fieldAccess = (Attribute) call.func;
+		return (Name) fieldAccess.value;
+	}
+
+	private static NameTok extractMethodCallName(Call call) {
+		Attribute fieldAccess = (Attribute) call.func;
+		return (NameTok) fieldAccess.attr;
+	}
+
 	private Set<String> calledMethodsFromChain(Iterable<Call> chain,
 			String variable) {
 		Set<String> methods = new HashSet<String>();
 		for (Call call : chain) {
-			Attribute fieldAccess = (Attribute) call.func;
-			methods.add(((NameTok) fieldAccess.attr).id);
+			methods.add(extractMethodCallName(call).id);
 		}
 		return methods;
 	}
