@@ -170,7 +170,7 @@ public class SignatureBuilder {
 			if (function != null) {
 				FunctionDef functiondef = function.getFunctionDef();
 				calls.addAll(getSignatureForPassedVariable(pass, functiondef,
-						(Module)function.getParent(), model));
+						(Module) function.getParent(), model));
 			}
 		}
 
@@ -208,7 +208,10 @@ public class SignatureBuilder {
 				if (type instanceof uk.ac.ic.doc.gander.flowinference.types.Module) {
 					Module module = model.getTopLevelPackage().getModules()
 							.get(name.id);
-					return module.getFunctions().get(((NameTok) node.attr).id);
+					if (module != null) {
+						return module.getFunctions().get(
+								((NameTok) node.attr).id);
+					}
 				}
 			}
 			return null;
