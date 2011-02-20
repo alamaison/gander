@@ -167,5 +167,16 @@ def recurse_two_levels():
 	y = x
 	call_me_and_i_call_someone_else(y)
 	y.a("tag")
-	
+
+import sibling_module
+
+def recurse_into_call_imported_from_sibling_module():
+	y = x
+	sibling_module.call_me_my_brother(y)
+	y.a("tag")
+
+def recurse_into_call_imported_from_sibling_module_deep():
+	y = x
+	sibling_module.call_me_my_brother_deep(y)
+	y.a("tag")
 

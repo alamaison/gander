@@ -15,6 +15,7 @@ public abstract class AbstractTaggedCallTest {
 	protected Cfg graph;
 	protected TaggedBlockFinder tagFinder;
 	private final String projectDirectory;
+	protected Model model;
 	protected Module module;
 
 	public AbstractTaggedCallTest(String projectDirectory) {
@@ -26,7 +27,8 @@ public abstract class AbstractTaggedCallTest {
 
 		File topLevelDirectory = new File(topLevel.toURI());
 
-		module = new Model(topLevelDirectory).getTopLevelPackage().getModules()
+		model = new Model(topLevelDirectory);
+		module = model.getTopLevelPackage().getModules()
 				.get("case");
 		graph = module.getFunctions().get(caseName).getCfg();
 

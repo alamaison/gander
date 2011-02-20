@@ -96,8 +96,8 @@ public class DominationLength {
 		}
 
 		public void analyse(Domination domAnalyser,
-				Postdomination postdomAnalyser, Module module, Cfg graph)
-				throws Exception {
+				Postdomination postdomAnalyser, Module module, Cfg graph,
+				Model model) throws Exception {
 
 			SignatureBuilder chainAnalyser = new SignatureBuilder();
 
@@ -107,7 +107,8 @@ public class DominationLength {
 						continue;
 
 					Collection<Call> dependentCalls = chainAnalyser.signature(
-							extractMethodCallTarget(call), sub, module, graph);
+							extractMethodCallTarget(call), sub, module, graph,
+							model);
 
 					if (dependentCalls != null) {
 						int count = countUniqueMethodNames(dependentCalls);
@@ -162,8 +163,10 @@ public class DominationLength {
 	}
 
 	public SameVariableOnlyAnalysis matching = new SameVariableOnlyAnalysis();
+	private Model model;
 
 	public DominationLength(Model model) throws Exception {
+		this.model = model;
 		Package pack = model.getTopLevelPackage();
 		analysePackage(pack);
 	}
@@ -185,7 +188,7 @@ public class DominationLength {
 
 	private void analyseFunction(Module module, Function function)
 			throws Exception {
-		//System.err.println("Processing " + function.getFullName());
+		// System.err.println("Processing " + function.getFullName());
 		Cfg graph = function.getCfg();
 		analyseChainSize(module, graph);
 	}
@@ -198,7 +201,7 @@ public class DominationLength {
 	private void analyseChainSize(Module module, Cfg graph) throws Exception {
 		Domination domAnalyser = new Domination(graph);
 		Postdomination postdomAnalyser = new Postdomination(graph);
-		matching.analyse(domAnalyser, postdomAnalyser, module, graph);
+		matching.analyse(domAnalyser, postdomAnalyser, module, graph, model);
 	}
 
 }

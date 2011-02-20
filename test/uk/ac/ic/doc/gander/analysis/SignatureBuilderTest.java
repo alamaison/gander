@@ -177,6 +177,21 @@ public class SignatureBuilderTest extends AbstractTaggedCallTest {
 		checkChains(chains);
 	}
 
+	@Test
+	public void testRecurseIntoCallImportedFromSiblingModule() throws Throwable {
+		initialise("recurse_into_call_imported_from_sibling_module", 1);
+		String[][] chains = { { "y.a(tag)", "a", "f", "g", "billy" } };
+		checkChains(chains);
+	}
+
+	@Test
+	public void testRecurseIntoCallImportedFromSiblingModuleDeep()
+			throws Throwable {
+		initialise("recurse_into_call_imported_from_sibling_module_deep", 1);
+		String[][] chains = { { "y.a(tag)", "a", "f", "g", "goose" } };
+		checkChains(chains);
+	}
+
 	private void checkChains(String[]... descriptors) throws Exception {
 		for (String[] descriptor : descriptors) {
 			Set<String> expected = new HashSet<String>();
@@ -196,7 +211,7 @@ public class SignatureBuilderTest extends AbstractTaggedCallTest {
 
 		Iterable<Call> chain = analyser.signature(
 				extractMethodCallTarget(statement.getCall()), statement
-						.getBlock(), module, graph);
+						.getBlock(), module, graph, model);
 
 		// Test that all expected calls are in the chain and no unexpected calls
 		// are in the chain.
@@ -222,7 +237,7 @@ public class SignatureBuilderTest extends AbstractTaggedCallTest {
 				statement != null);
 
 		Set<Call> chain = analyser.signature(extractMethodCallTarget(statement
-				.getCall()), statement.getBlock(), module, graph);
+				.getCall()), statement.getBlock(), module, graph, model);
 		assertTrue(
 				"Tagged function '" + antiTag
 						+ "' has a dependence chain when we don't expect one: "

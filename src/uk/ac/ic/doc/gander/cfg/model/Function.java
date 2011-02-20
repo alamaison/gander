@@ -30,5 +30,9 @@ public class Function implements IModelElement {
 	public FunctionDef getFunctionDef() {
 		return function;
 	}
+	
+	public IModelElement getParent() {
+		return parent;
+	}
 
 }
