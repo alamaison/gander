@@ -1,18 +1,16 @@
 package uk.ac.ic.doc.gander.model;
 
 import java.io.File;
-import java.io.IOException;
 
-import org.python.pydev.parser.jython.ParseException;
-
+import uk.ac.ic.doc.gander.model.build.PackageBuilder;
 
 public class Model {
 
 	private Package topLevelPackage;
 
-	public Model(File topLevelDirectory) throws IOException, ParseException,
-			InvalidElementException {
-		topLevelPackage = new Package(topLevelDirectory);
+	public Model(File topLevelDirectory) throws Exception {
+		topLevelPackage = new PackageBuilder(topLevelDirectory, null)
+				.getPackage();
 	}
 
 	public Package getTopLevelPackage() {

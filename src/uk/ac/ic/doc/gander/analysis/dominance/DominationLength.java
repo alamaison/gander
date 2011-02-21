@@ -185,7 +185,7 @@ public class DominationLength {
 	}
 
 	private void analyseClass(Module module, Class klass) throws Exception {
-		for (Method method : klass.getMethods().values())
+		for (Function method : klass.getFunctions().values())
 			analyseFunction(module, method);
 	}
 

@@ -8,7 +8,7 @@ import java.net.URL;
 import org.junit.Test;
 
 import uk.ac.ic.doc.gander.cfg.model.Cfg;
-import uk.ac.ic.doc.gander.model.Method;
+import uk.ac.ic.doc.gander.model.Function;
 import uk.ac.ic.doc.gander.model.Model;
 
 public class ClassTest {
@@ -29,8 +29,8 @@ public class ClassTest {
 	public void initialise(String className, String methodName)
 			throws Throwable, Exception {
 		Model model = createTestModel(CONTROL_FLOW_PROJ);
-		Method method = model.getTopLevelPackage().getModules().get("classes")
-				.getClasses().get(className).getMethods().get(methodName);
+		Function method = model.getTopLevelPackage().getModules().get("classes")
+				.getClasses().get(className).getFunctions().get(methodName);
 		assertTrue("No function " + methodName, method != null);
 
 		graph = method.getCfg();

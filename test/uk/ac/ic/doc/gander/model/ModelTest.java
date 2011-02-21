@@ -9,13 +9,6 @@ import java.util.Map;
 
 import org.junit.Test;
 
-import uk.ac.ic.doc.gander.model.Class;
-import uk.ac.ic.doc.gander.model.Function;
-import uk.ac.ic.doc.gander.model.Method;
-import uk.ac.ic.doc.gander.model.Model;
-import uk.ac.ic.doc.gander.model.Module;
-import uk.ac.ic.doc.gander.model.Package;
-
 public class ModelTest {
 
 	private static final String PACKAGE_STRUCTURE_PROJ = "python_test_code/package_structure";
@@ -62,9 +55,9 @@ public class ModelTest {
 	@Test
 	public void testGetMethods() throws Throwable {
 		Model model = createTestModel(MODULE_STRUCTURE_PROJ);
-		Map<String, Method> methods = model.getTopLevelPackage().getPackages()
-				.get("my_package").getModules().get("my_module").getClasses()
-				.get("my_class").getMethods();
+		Map<String, Function> methods = model.getTopLevelPackage()
+				.getPackages().get("my_package").getModules().get("my_module")
+				.getClasses().get("my_class").getFunctions();
 		assertEquals(1, methods.size());
 		assertTrue(methods.containsKey("my_method_empty"));
 	}
@@ -75,7 +68,43 @@ public class ModelTest {
 		Map<String, Function> functions = model.getTopLevelPackage()
 				.getPackages().get("my_package").getModules().get("my_module")
 				.getFunctions();
-		assertEquals(1, functions.size());
+		assertEquals(3, functions.size());
 		assertTrue(functions.containsKey("my_free_function"));
+		assertTrue(functions.containsKey("test_nesting"));
+		assertTrue(functions.containsKey("test_nesting_class"));
+	}
+
+	@Test
+	public void testGetNestedFunctions() throws Throwable {
+		Model model = createTestModel(MODULE_STRUCTURE_PROJ);
+		Map<String, Function> functions = model.getTopLevelPackage()
+				.getPackages().get("my_package").getModules().get("my_module")
+				.getFunctions().get("test_nesting").getFunctions();
+		assertEquals(1, functions.size());
+		assertTrue(functions.containsKey("my_nested_def"));
+	}
+
+	@Test
+	public void testGetNestedClassInFunction() throws Throwable {
+		Model model = createTestModel(MODULE_STRUCTURE_PROJ);
+		Map<String, Class> classes = model.getTopLevelPackage().getPackages()
+				.get("my_package").getModules().get("my_module").getFunctions()
+				.get("test_nesting_class").getClasses();
+		assertEquals(1, classes.size());
+		assertTrue(classes.containsKey("nested_class"));
+
+		Class nested = classes.get("nested_class");
+		assertTrue(nested.getFunctions().containsKey("__init__"));
+	}
+
+	@Test
+	public void testGetNestedClassInClass() throws Throwable {
+		Model model = createTestModel(MODULE_STRUCTURE_PROJ);
+		Map<String, Class> classes = model.getTopLevelPackage().getPackages()
+				.get("my_package").getModules().get("my_module").getFunctions()
+				.get("test_nesting_class").getClasses().get("nested_class")
+				.getClasses();
+		assertEquals(1, classes.size());
+		assertTrue(classes.containsKey("really_nested_class"));
 	}
 }

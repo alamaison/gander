@@ -44,9 +44,7 @@ public class TypeResolver extends VisitorBase {
 
 		@Override
 		public Object visitClassDef(ClassDef node) throws Exception {
-			// FIXME: This always looks for the def in the top level of the
-			// module when it should look in the top of the scope stack
-			uk.ac.ic.doc.gander.model.Class scope = module.getClasses().get(
+			uk.ac.ic.doc.gander.model.Class scope = scopes.peek().getClasses().get(
 					((NameTok) node.name).id);
 			if (scope == null)
 				throw new Error("Class found while scoping that doesn't "
@@ -61,17 +59,15 @@ public class TypeResolver extends VisitorBase {
 
 		@Override
 		public Object visitFunctionDef(FunctionDef node) throws Exception {
-			// FIXME: This always looks for the def in the top level of the
-			// module when it should look in the top of the scope stack
-			Function function = module.getFunctions().get(
+			Function scope = scopes.peek().getFunctions().get(
 					((NameTok) node.name).id);
-			if (function == null)
+			if (scope == null)
 				throw new Error("Function found while scoping that doesn't "
 						+ "exist in the model: " + ((NameTok) node.name).id);
 
-			assert node == function.getFunctionDef();
+			assert node == scope.getFunctionDef();
 			scopes.push(scope);
-			//node.traverse(this);
+			node.traverse(this);
 			scopes.pop();
 			return null;
 		}
