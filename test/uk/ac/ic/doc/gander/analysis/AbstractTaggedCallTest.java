@@ -5,10 +5,11 @@ import static org.junit.Assert.assertEquals;
 import java.io.File;
 import java.net.URL;
 
-import uk.ac.ic.doc.gander.cfg.Model;
 import uk.ac.ic.doc.gander.cfg.model.BasicBlock;
 import uk.ac.ic.doc.gander.cfg.model.Cfg;
-import uk.ac.ic.doc.gander.cfg.model.Module;
+import uk.ac.ic.doc.gander.model.Function;
+import uk.ac.ic.doc.gander.model.Model;
+import uk.ac.ic.doc.gander.model.Module;
 
 public abstract class AbstractTaggedCallTest {
 
@@ -17,6 +18,7 @@ public abstract class AbstractTaggedCallTest {
 	private final String projectDirectory;
 	protected Model model;
 	protected Module module;
+	protected Function function;
 
 	public AbstractTaggedCallTest(String projectDirectory) {
 		this.projectDirectory = projectDirectory;
@@ -30,7 +32,8 @@ public abstract class AbstractTaggedCallTest {
 		model = new Model(topLevelDirectory);
 		module = model.getTopLevelPackage().getModules()
 				.get("case");
-		graph = module.getFunctions().get(caseName).getCfg();
+		function = module.getFunctions().get(caseName);
+		graph = function.getCfg();
 
 		tagFinder = new TaggedBlockFinder(graph);
 	}

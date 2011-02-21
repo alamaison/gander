@@ -14,15 +14,14 @@ import org.python.pydev.parser.jython.ast.NameTok;
 
 import uk.ac.ic.doc.gander.analysis.BasicBlockTraverser;
 import uk.ac.ic.doc.gander.analysis.SignatureBuilder;
-import uk.ac.ic.doc.gander.cfg.Model;
 import uk.ac.ic.doc.gander.cfg.model.BasicBlock;
-import uk.ac.ic.doc.gander.cfg.model.Cfg;
-import uk.ac.ic.doc.gander.cfg.model.Class;
-import uk.ac.ic.doc.gander.cfg.model.Function;
-import uk.ac.ic.doc.gander.cfg.model.Method;
-import uk.ac.ic.doc.gander.cfg.model.Module;
-import uk.ac.ic.doc.gander.cfg.model.Package;
-import uk.ac.ic.doc.gander.flowinference.types.TypeResolutionVisitor;
+import uk.ac.ic.doc.gander.flowinference.TypeResolver;
+import uk.ac.ic.doc.gander.model.Class;
+import uk.ac.ic.doc.gander.model.Function;
+import uk.ac.ic.doc.gander.model.Method;
+import uk.ac.ic.doc.gander.model.Model;
+import uk.ac.ic.doc.gander.model.Module;
+import uk.ac.ic.doc.gander.model.Package;
 
 public class DominationLength {
 
@@ -96,19 +95,19 @@ public class DominationLength {
 		}
 
 		public void analyse(Domination domAnalyser,
-				Postdomination postdomAnalyser, Module module, Cfg graph,
-				Model model) throws Exception {
+				Postdomination postdomAnalyser, Module module,
+				Function function, Model model) throws Exception {
 
 			SignatureBuilder chainAnalyser = new SignatureBuilder();
 
-			for (BasicBlock sub : graph.getBlocks()) {
+			for (BasicBlock sub : function.getCfg().getBlocks()) {
 				for (Call call : new CallFinder(sub).calls()) {
-					if (!isMethodCallOnName(call, module))
+					if (!isMethodCallOnName(call, function, module))
 						continue;
 
 					Collection<Call> dependentCalls = chainAnalyser.signature(
-							extractMethodCallTarget(call), sub, module, graph,
-							model);
+							extractMethodCallTarget(call), sub, module,
+							function, model);
 
 					if (dependentCalls != null) {
 						int count = countUniqueMethodNames(dependentCalls);
@@ -134,8 +133,8 @@ public class DominationLength {
 			}
 		}
 
-		private boolean isMethodCallOnName(Call call, Module module)
-				throws Exception {
+		private boolean isMethodCallOnName(Call call, Function function,
+				Module module) throws Exception {
 			if (!(call.func instanceof Attribute))
 				return false;
 
@@ -147,9 +146,8 @@ public class DominationLength {
 
 			// skip calls to module functions - they look like method calls but
 			// we want to treat then differently
-			TypeResolutionVisitor typer = new TypeResolutionVisitor(module
-					.getAst());
-			return !(typer.typeOf(variable.id) instanceof uk.ac.ic.doc.gander.flowinference.types.Module);
+			TypeResolver typer = new TypeResolver(model, module);
+			return !(typer.typeOf(variable, function) instanceof uk.ac.ic.doc.gander.flowinference.types.TModule);
 		}
 
 		private int countUniqueMethodNames(Iterable<Call> calls) {
@@ -186,22 +184,17 @@ public class DominationLength {
 			analyseClass(module, klass);
 	}
 
-	private void analyseFunction(Module module, Function function)
-			throws Exception {
-		// System.err.println("Processing " + function.getFullName());
-		Cfg graph = function.getCfg();
-		analyseChainSize(module, graph);
-	}
-
 	private void analyseClass(Module module, Class klass) throws Exception {
 		for (Method method : klass.getMethods().values())
 			analyseFunction(module, method);
 	}
 
-	private void analyseChainSize(Module module, Cfg graph) throws Exception {
-		Domination domAnalyser = new Domination(graph);
-		Postdomination postdomAnalyser = new Postdomination(graph);
-		matching.analyse(domAnalyser, postdomAnalyser, module, graph, model);
+	private void analyseFunction(Module module, Function function)
+			throws Exception {
+		// System.err.println("Processing " + function.getFullName());
+		Domination domAnalyser = new Domination(function.getCfg());
+		Postdomination postdomAnalyser = new Postdomination(function.getCfg());
+		matching.analyse(domAnalyser, postdomAnalyser, module, function, model);
 	}
 
 }

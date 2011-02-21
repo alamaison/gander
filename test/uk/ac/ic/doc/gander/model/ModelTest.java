@@ -1,4 +1,4 @@
-package uk.ac.ic.doc.gander.cfg;
+package uk.ac.ic.doc.gander.model;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -9,12 +9,12 @@ import java.util.Map;
 
 import org.junit.Test;
 
-import uk.ac.ic.doc.gander.cfg.Model;
-import uk.ac.ic.doc.gander.cfg.model.Class;
-import uk.ac.ic.doc.gander.cfg.model.Function;
-import uk.ac.ic.doc.gander.cfg.model.Method;
-import uk.ac.ic.doc.gander.cfg.model.Module;
-import uk.ac.ic.doc.gander.cfg.model.Package;
+import uk.ac.ic.doc.gander.model.Class;
+import uk.ac.ic.doc.gander.model.Function;
+import uk.ac.ic.doc.gander.model.Method;
+import uk.ac.ic.doc.gander.model.Model;
+import uk.ac.ic.doc.gander.model.Module;
+import uk.ac.ic.doc.gander.model.Package;
 
 public class ModelTest {
 

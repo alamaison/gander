@@ -1,10 +1,10 @@
-package uk.ac.ic.doc.gander.cfg.model;
+package uk.ac.ic.doc.gander.model;
 
 import org.python.pydev.parser.jython.ast.FunctionDef;
 
 public class Method extends Function {
 
-	protected Method(FunctionDef method, IModelElement parent) {
+	protected Method(FunctionDef method, Scope parent) {
 		super(method, parent);
 	}
 

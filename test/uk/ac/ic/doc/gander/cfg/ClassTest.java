@@ -7,9 +7,9 @@ import java.net.URL;
 
 import org.junit.Test;
 
-import uk.ac.ic.doc.gander.cfg.Model;
 import uk.ac.ic.doc.gander.cfg.model.Cfg;
-import uk.ac.ic.doc.gander.cfg.model.Method;
+import uk.ac.ic.doc.gander.model.Method;
+import uk.ac.ic.doc.gander.model.Model;
 
 public class ClassTest {
 

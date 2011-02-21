@@ -8,20 +8,16 @@ import org.python.pydev.parser.jython.ast.Attribute;
 import org.python.pydev.parser.jython.ast.Call;
 import org.python.pydev.parser.jython.ast.FunctionDef;
 import org.python.pydev.parser.jython.ast.Name;
-import org.python.pydev.parser.jython.ast.NameTok;
-import org.python.pydev.parser.jython.ast.VisitorBase;
 import org.python.pydev.parser.jython.ast.exprType;
 
 import uk.ac.ic.doc.gander.analysis.PassedVariableFinder.PassedVar;
 import uk.ac.ic.doc.gander.analysis.dominance.Domination;
 import uk.ac.ic.doc.gander.analysis.dominance.Postdomination;
-import uk.ac.ic.doc.gander.cfg.Model;
 import uk.ac.ic.doc.gander.cfg.model.BasicBlock;
 import uk.ac.ic.doc.gander.cfg.model.Cfg;
-import uk.ac.ic.doc.gander.cfg.model.Function;
-import uk.ac.ic.doc.gander.cfg.model.Module;
-import uk.ac.ic.doc.gander.flowinference.types.Type;
-import uk.ac.ic.doc.gander.flowinference.types.TypeResolutionVisitor;
+import uk.ac.ic.doc.gander.model.Function;
+import uk.ac.ic.doc.gander.model.Model;
+import uk.ac.ic.doc.gander.model.Module;
 
 public class SignatureBuilder {
 
@@ -107,8 +103,10 @@ public class SignatureBuilder {
 	 * calls which may happen after re-assigning to a variable aren't included.
 	 */
 	public Set<Call> signature(Name variable, BasicBlock containingBlock,
-			Module module, Cfg graph, Model model) throws Exception {
-		return buildSignature(variable, containingBlock, module, graph, model);
+			Module module, Function enclosingFunction, Model model)
+			throws Exception {
+		return buildSignature(variable, containingBlock, module,
+				enclosingFunction, model);
 	}
 
 	/**
@@ -116,18 +114,19 @@ public class SignatureBuilder {
 	 * and recursing into any calls they make.
 	 */
 	private static Set<Call> buildSignature(Name variable,
-			BasicBlock controlBlock, Module module, Cfg graph, Model model)
-			throws Exception {
+			BasicBlock controlBlock, Module module, Function function,
+			Model model) throws Exception {
 
 		// FIXME: This will loop infinitely with recursive calls
 
-		Set<BasicBlock> blocks = controlDependentBlocks(controlBlock, graph);
+		Set<BasicBlock> blocks = controlDependentBlocks(controlBlock, function
+				.getCfg());
 
 		Set<Call> calls = getPartialSignatureFromVariableUseInFunction(
-				variable, blocks, graph);
+				variable, blocks, function);
 
 		calls.addAll(getPartialSignatureFromPassingVariableToCalls(variable.id,
-				blocks, module, model));
+				blocks, function, module, model));
 		return calls;
 	}
 
@@ -136,11 +135,11 @@ public class SignatureBuilder {
 	 * that is derived from uses occurring solely within the same function.
 	 */
 	private static Set<Call> getPartialSignatureFromVariableUseInFunction(
-			Name variableAtLocation, Set<BasicBlock> blocksToSearch, Cfg graph)
-			throws Exception {
+			Name variableAtLocation, Set<BasicBlock> blocksToSearch,
+			Function function) throws Exception {
 		Set<Call> calls = new HashSet<Call>();
 
-		SSAVariableSubscripts ssa = new SSAVariableSubscripts(graph);
+		SSAVariableSubscripts ssa = new SSAVariableSubscripts(function.getCfg());
 		int permittedSubscript = ssa.subscript(variableAtLocation);
 
 		for (BasicBlock block : blocksToSearch) {
@@ -158,7 +157,8 @@ public class SignatureBuilder {
 	 */
 	private static Set<Call> getPartialSignatureFromPassingVariableToCalls(
 			String variable, Iterable<BasicBlock> blocksToSearch,
-			Module module, Model model) throws Exception {
+			Function enclosingFunction, Module module, Model model)
+			throws Exception {
 
 		Set<Call> calls = new HashSet<Call>();
 
@@ -166,84 +166,21 @@ public class SignatureBuilder {
 				blocksToSearch).passes();
 		for (PassedVar pass : passes) {
 			Call call = pass.getCall();
-			Function function = resolveFunction(model, module, call);
+			Function function = resolveFunction(model, module,
+					enclosingFunction, call);
 			if (function != null) {
-				FunctionDef functiondef = function.getFunctionDef();
-				calls.addAll(getSignatureForPassedVariable(pass, functiondef,
-						(Module) function.getParent(), model));
+				calls.addAll(getSignatureForPassedVariable(pass, function,
+						(Module) function.getParentScope(), model));
 			}
 		}
 
 		return calls;
 	}
 
-	/**
-	 * Given a call, attempt to find the function being called.
-	 */
-	private static class FunctionResolver extends VisitorBase {
-
-		// TODO: deal with situation where function is not a simple
-		// variable name. It might be qualified with a module name, for
-		// instance.
-
-		private Function function;
-		private Model model;
-		private Module enclosingModule;
-
-		FunctionResolver(Call call, Module enclosingModule, Model model)
-				throws Exception {
-			this.enclosingModule = enclosingModule;
-			this.model = model;
-			function = (Function) call.func.accept(this);
-		}
-
-		@Override
-		public Object visitAttribute(Attribute node) throws Exception {
-			if (node.value instanceof Name) {
-				TypeResolutionVisitor typer = new TypeResolutionVisitor(
-						enclosingModule.getAst());
-				Name name = ((Name) node.value);
-				// XXX: using string not good enough
-				Type type = typer.typeOf(name.id);
-				if (type instanceof uk.ac.ic.doc.gander.flowinference.types.Module) {
-					Module module = model.getTopLevelPackage().getModules()
-							.get(name.id);
-					if (module != null) {
-						return module.getFunctions().get(
-								((NameTok) node.attr).id);
-					}
-				}
-			}
-			return null;
-		}
-
-		@Override
-		public Object visitName(Name node) throws Exception {
-			// TODO: Handle case where name doesn't correspond to a function
-			// in the local module. This can happen with builtins for
-			// instance.
-			return enclosingModule.getFunctions().get(node.id);
-		}
-
-		@Override
-		public void traverse(SimpleNode node) throws Exception {
-			// Don't traverse by default
-		}
-
-		@Override
-		protected Object unhandled_node(SimpleNode node) throws Exception {
-			return null;
-		}
-
-		public Function getFunction() {
-			return function;
-		}
-	}
-
 	private static Function resolveFunction(Model model, Module module,
-			Call call) throws Exception {
-		Function function = new FunctionResolver(call, module, model)
-				.getFunction();
+			Function enclosingFunction, Call call) throws Exception {
+		Function function = new FunctionResolver(call, enclosingFunction,
+				module, model).getFunction();
 
 		if (function == null)
 			System.err.println("Warning: unable to resolve function: "
@@ -256,11 +193,11 @@ public class SignatureBuilder {
 	 * Return signature implied by passing variable to call.
 	 */
 	private static Set<Call> getSignatureForPassedVariable(PassedVar pass,
-			FunctionDef function, Module module, Model model) throws Exception {
+			Function function, Module module, Model model) throws Exception {
 
 		Set<Call> calls = new HashSet<Call>();
 
-		for (Name param : resolveParameterNames(pass, function)) {
+		for (Name param : resolveParameterNames(pass, function.getFunctionDef())) {
 			calls.addAll(getSignatureForParameter(param, function, module,
 					model));
 		}
@@ -277,9 +214,9 @@ public class SignatureBuilder {
 	 * function.
 	 */
 	private static Set<Call> getSignatureForParameter(Name param,
-			FunctionDef function, Module module, Model model) throws Exception {
-		Cfg graph = new Cfg(function);
-		return buildSignature(param, graph.getStart(), module, graph, model);
+			Function function, Module module, Model model) throws Exception {
+		Cfg graph = function.getCfg();
+		return buildSignature(param, graph.getStart(), module, function, model);
 	}
 
 	/**

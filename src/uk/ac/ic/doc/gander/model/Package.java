@@ -1,4 +1,4 @@
-package uk.ac.ic.doc.gander.cfg.model;
+package uk.ac.ic.doc.gander.model;
 
 import java.io.File;
 import java.io.IOException;
@@ -7,12 +7,15 @@ import java.util.Map;
 
 import org.python.pydev.parser.jython.ParseException;
 
-public class Package implements IModelElement {
+import uk.ac.ic.doc.gander.model.build.ModuleParser;
+
+
+public class Package implements Scope {
 
 	private HashMap<String, Module> modules = new HashMap<String, Module>();
 	private HashMap<String, Package> packages = new HashMap<String, Package>();
 	private String name;
-	private IModelElement parent = null;
+	private Package parent = null;
 
 	private static final String PACKAGE_TAG_NAME = "__init__";
 
@@ -21,7 +24,7 @@ public class Package implements IModelElement {
 		processDirectory(directory);
 	}
 
-	private Package(File directory, IModelElement parent) throws IOException,
+	private Package(File directory, Package parent) throws IOException,
 			ParseException, InvalidElementException {
 		this.parent = parent;
 		processDirectory(directory);
@@ -62,7 +65,7 @@ public class Package implements IModelElement {
 			return false;
 
 		for (File f : directory.listFiles()) {
-			String name = Module.moduleNameFromFile(f);
+			String name = ModuleParser.moduleNameFromFile(f);
 			if (name != null && name.equals(PACKAGE_TAG_NAME))
 				return true;
 		}
@@ -92,5 +95,21 @@ public class Package implements IModelElement {
 
 	public Map<String, Module> getModules() {
 		return modules;
+	}
+
+	public Scope lookup(String token) {
+		Scope subItem = getPackages().get(token);
+		if (subItem == null)
+			subItem = getModules().get(token);
+
+		return subItem;
+	}
+	
+	public Package getPackage() {
+		return parent;
+	}
+
+	public Scope getParentScope() {
+		return getPackage();
 	}
 }

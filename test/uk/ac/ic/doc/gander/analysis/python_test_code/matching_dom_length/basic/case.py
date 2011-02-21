@@ -180,3 +180,15 @@ def recurse_into_call_imported_from_sibling_module_deep():
 	sibling_module.call_me_my_brother_deep(y)
 	y.a("tag")
 
+import subpackage.submodule
+
+def recurse_into_call_imported_from_package_module():
+	y = x
+	subpackage.submodule.call_me_auntie(y)
+	y.a("tag")
+
+def recurse_into_call_imported_from_package_module_clever():
+	y = x
+	subpackage.submodule.call_me_auntie_and_see_how_clever_i_am(y)
+	y.a("tag")
+

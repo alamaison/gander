@@ -1,4 +1,4 @@
-package uk.ac.ic.doc.gander.cfg.model;
+package uk.ac.ic.doc.gander.model;
 
 import java.io.File;
 
@@ -8,7 +8,7 @@ public class InvalidElementException extends Exception {
 	private String message;
 	private File offender;
 
-	protected InvalidElementException(String message, File offender) {
+	public InvalidElementException(String message, File offender) {
 		this.message = message;
 		this.offender = offender;
 	}

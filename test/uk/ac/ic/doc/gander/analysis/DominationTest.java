@@ -15,10 +15,10 @@ import uk.ac.ic.doc.gander.AbstractTaggedGraphTest;
 import uk.ac.ic.doc.gander.analysis.dominance.AbstractDomination;
 import uk.ac.ic.doc.gander.analysis.dominance.Domination;
 import uk.ac.ic.doc.gander.analysis.dominance.Postdomination;
-import uk.ac.ic.doc.gander.cfg.Model;
 import uk.ac.ic.doc.gander.cfg.model.BasicBlock;
 import uk.ac.ic.doc.gander.cfg.model.Cfg;
-import uk.ac.ic.doc.gander.cfg.model.Function;
+import uk.ac.ic.doc.gander.model.Function;
+import uk.ac.ic.doc.gander.model.Model;
 
 public class DominationTest {
 

@@ -1,4 +1,4 @@
-package uk.ac.ic.doc.gander.cfg;
+package uk.ac.ic.doc.gander;
 
 import org.python.pydev.parser.IGrammar;
 import org.python.pydev.parser.grammar26.PythonGrammar26;

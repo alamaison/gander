@@ -1,4 +1,4 @@
-package uk.ac.ic.doc.gander.cfg;
+package uk.ac.ic.doc.gander;
 
 import static org.junit.Assert.*;
 
@@ -17,7 +17,7 @@ import org.python.pydev.parser.jython.ast.Name;
 import org.python.pydev.parser.jython.ast.NameTok;
 import org.python.pydev.parser.jython.ast.Pass;
 
-import uk.ac.ic.doc.gander.cfg.Parser;
+import uk.ac.ic.doc.gander.Parser;
 
 public class ParserTest {
 	

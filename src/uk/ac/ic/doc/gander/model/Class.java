@@ -1,4 +1,4 @@
-package uk.ac.ic.doc.gander.cfg.model;
+package uk.ac.ic.doc.gander.model;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -8,12 +8,12 @@ import org.python.pydev.parser.jython.ast.FunctionDef;
 import org.python.pydev.parser.jython.ast.NameTok;
 import org.python.pydev.parser.jython.ast.stmtType;
 
-public class Class implements IModelElement {
+public class Class implements Scope {
 
 	private ClassDef cls;
-	private IModelElement parent;
+	private Scope parent;
 
-	protected Class(ClassDef cls, IModelElement parent) {
+	protected Class(ClassDef cls, Scope parent) {
 		this.cls = cls;
 		this.parent = parent;
 	}
@@ -36,6 +36,18 @@ public class Class implements IModelElement {
 		}
 
 		return methods;
+	}
+
+	public Scope lookup(String token) {
+		return getMethods().get(token);
+	}
+
+	public ClassDef getClassDef() {
+		return cls;
+	}
+
+	public Scope getParentScope() {
+		return parent;
 	}
 
 }

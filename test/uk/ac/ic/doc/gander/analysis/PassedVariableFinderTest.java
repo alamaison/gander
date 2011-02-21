@@ -15,9 +15,9 @@ import org.python.pydev.parser.jython.ast.Call;
 import org.python.pydev.parser.jython.ast.Name;
 
 import uk.ac.ic.doc.gander.analysis.PassedVariableFinder.PassedVar;
-import uk.ac.ic.doc.gander.cfg.Model;
 import uk.ac.ic.doc.gander.cfg.model.BasicBlock;
-import uk.ac.ic.doc.gander.cfg.model.Function;
+import uk.ac.ic.doc.gander.model.Function;
+import uk.ac.ic.doc.gander.model.Model;
 
 public class PassedVariableFinderTest {
 

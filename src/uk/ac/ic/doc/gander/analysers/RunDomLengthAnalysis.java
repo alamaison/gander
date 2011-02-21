@@ -3,7 +3,7 @@ package uk.ac.ic.doc.gander.analysers;
 import java.io.File;
 
 import uk.ac.ic.doc.gander.analysis.dominance.DominationLength;
-import uk.ac.ic.doc.gander.cfg.Model;
+import uk.ac.ic.doc.gander.model.Model;
 
 public class RunDomLengthAnalysis {
 

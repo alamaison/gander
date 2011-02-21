@@ -1,4 +1,4 @@
 package uk.ac.ic.doc.gander.flowinference.types;
 
-public class Module implements Type {
+public class TModule implements Type {
 }

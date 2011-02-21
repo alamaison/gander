@@ -1,12 +1,10 @@
-package uk.ac.ic.doc.gander.cfg;
+package uk.ac.ic.doc.gander.model;
 
 import java.io.File;
 import java.io.IOException;
 
 import org.python.pydev.parser.jython.ParseException;
 
-import uk.ac.ic.doc.gander.cfg.model.InvalidElementException;
-import uk.ac.ic.doc.gander.cfg.model.Package;
 
 public class Model {
 
