@@ -3,108 +3,150 @@ package uk.ac.ic.doc.gander.model;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-import java.io.File;
-import java.net.URL;
 import java.util.Map;
 
 import org.junit.Test;
 
-public class ModelTest {
+public class ModelTest extends AbstractModelTest {
 
-	private static final String PACKAGE_STRUCTURE_PROJ = "python_test_code/package_structure";
+	@Test
+	public void classes() throws Throwable {
+		createTestModel(MODULE_STRUCTURE_PROJ);
+		Map<String, Class> classes = getModel().getTopLevelPackage().getModules()
+				.get("my_module").getClasses();
 
-	private static final String MODULE_STRUCTURE_PROJ = "python_test_code/model_structure";
-
-	private Model createTestModel(String projectPath) throws Throwable {
-		URL topLevel = getClass().getResource(projectPath);
-
-		File topLevelDirectory = new File(topLevel.toURI());
-
-		Model model = new Model(topLevelDirectory);
-		return model;
+		assertKeys(classes, "my_class", "my_class_empty");
 	}
 
 	@Test
-	public void testGetTopLevelPackages() throws Throwable {
-		Model model = createTestModel(PACKAGE_STRUCTURE_PROJ);
-		Map<String, Package> packages = model.getTopLevelPackage()
-				.getPackages();
-		assertEquals(1, packages.size());
-		assertTrue(packages.containsKey("my_package"));
-		assertEquals("my_package", packages.get("my_package").getName());
+	public void methods() throws Throwable {
+		createTestModel(MODULE_STRUCTURE_PROJ);
+		Map<String, Function> methods = getModel().getTopLevelPackage().getModules()
+				.get("my_module").getClasses().get("my_class").getFunctions();
+
+		assertKeys(methods, "my_method_empty");
 	}
 
 	@Test
-	public void testGetTopLevelModules() throws Throwable {
-		Model model = createTestModel(PACKAGE_STRUCTURE_PROJ);
-		Map<String, Module> modules = model.getTopLevelPackage().getModules();
-		assertEquals(2, modules.size());
-		assertTrue(modules.containsKey("my_module1"));
-		assertTrue(modules.containsKey("my_module2"));
+	public void functions() throws Throwable {
+		createTestModel(MODULE_STRUCTURE_PROJ);
+		Map<String, Function> functions = getModel().getTopLevelPackage()
+				.getModules().get("my_module").getFunctions();
+
+		assertKeys(functions, "my_free_function", "test_nesting",
+				"test_nesting_class");
 	}
 
 	@Test
-	public void testGetClasses() throws Throwable {
-		Model model = createTestModel(MODULE_STRUCTURE_PROJ);
-		Map<String, Class> classes = model.getTopLevelPackage().getPackages()
-				.get("my_package").getModules().get("my_module").getClasses();
-		assertEquals(2, classes.size());
-		assertTrue(classes.containsKey("my_class_empty"));
+	public void noPackages() throws Throwable {
+		createTestModel(MODULE_STRUCTURE_PROJ);
+		assertTrue(getModel().getTopLevelPackage().getPackages().isEmpty());
 	}
 
 	@Test
-	public void testGetMethods() throws Throwable {
-		Model model = createTestModel(MODULE_STRUCTURE_PROJ);
-		Map<String, Function> methods = model.getTopLevelPackage()
-				.getPackages().get("my_package").getModules().get("my_module")
-				.getClasses().get("my_class").getFunctions();
-		assertEquals(1, methods.size());
-		assertTrue(methods.containsKey("my_method_empty"));
+	public void nestedFunctions() throws Throwable {
+		createTestModel(MODULE_STRUCTURE_PROJ);
+		Map<String, Function> functions = getModel().getTopLevelPackage()
+				.getModules().get("my_module").getFunctions().get(
+						"test_nesting").getFunctions();
+
+		assertKeys(functions, "my_nested_def");
 	}
 
 	@Test
-	public void testGetFunctions() throws Throwable {
-		Model model = createTestModel(MODULE_STRUCTURE_PROJ);
-		Map<String, Function> functions = model.getTopLevelPackage()
-				.getPackages().get("my_package").getModules().get("my_module")
-				.getFunctions();
-		assertEquals(3, functions.size());
-		assertTrue(functions.containsKey("my_free_function"));
-		assertTrue(functions.containsKey("test_nesting"));
-		assertTrue(functions.containsKey("test_nesting_class"));
-	}
+	public void nestedClassInFunction() throws Throwable {
+		createTestModel(MODULE_STRUCTURE_PROJ);
+		Map<String, Class> classes = getModel().getTopLevelPackage().getModules()
+				.get("my_module").getFunctions().get("test_nesting_class")
+				.getClasses();
 
-	@Test
-	public void testGetNestedFunctions() throws Throwable {
-		Model model = createTestModel(MODULE_STRUCTURE_PROJ);
-		Map<String, Function> functions = model.getTopLevelPackage()
-				.getPackages().get("my_package").getModules().get("my_module")
-				.getFunctions().get("test_nesting").getFunctions();
-		assertEquals(1, functions.size());
-		assertTrue(functions.containsKey("my_nested_def"));
-	}
-
-	@Test
-	public void testGetNestedClassInFunction() throws Throwable {
-		Model model = createTestModel(MODULE_STRUCTURE_PROJ);
-		Map<String, Class> classes = model.getTopLevelPackage().getPackages()
-				.get("my_package").getModules().get("my_module").getFunctions()
-				.get("test_nesting_class").getClasses();
-		assertEquals(1, classes.size());
-		assertTrue(classes.containsKey("nested_class"));
+		assertKeys(classes, "nested_class");
 
 		Class nested = classes.get("nested_class");
 		assertTrue(nested.getFunctions().containsKey("__init__"));
 	}
 
 	@Test
-	public void testGetNestedClassInClass() throws Throwable {
-		Model model = createTestModel(MODULE_STRUCTURE_PROJ);
-		Map<String, Class> classes = model.getTopLevelPackage().getPackages()
-				.get("my_package").getModules().get("my_module").getFunctions()
-				.get("test_nesting_class").getClasses().get("nested_class")
+	public void nestedClassInClass() throws Throwable {
+		createTestModel(MODULE_STRUCTURE_PROJ);
+		Map<String, Class> classes = getModel().getTopLevelPackage().getModules()
+				.get("my_module").getFunctions().get("test_nesting_class")
+				.getClasses().get("nested_class").getClasses();
+
+		assertKeys(classes, "really_nested_class");
+	}
+
+	@Test
+	public void topLevelPackages() throws Throwable {
+		createTestModel(PACKAGE_STRUCTURE_PROJ);
+		Map<String, Package> packages = getModel().getTopLevelPackage()
+				.getPackages();
+
+		assertKeys(packages, "my_package");
+		assertEquals("my_package", packages.get("my_package").getName());
+	}
+
+	@Test
+	public void topLevelModules() throws Throwable {
+		createTestModel(PACKAGE_STRUCTURE_PROJ);
+		Map<String, Module> modules = getModel().getTopLevelPackage().getModules();
+
+		assertKeys(modules, "my_module1", "my_module2");
+	}
+
+	@Test
+	public void packages() throws Throwable {
+		createTestModel(PACKAGE_STRUCTURE_PROJ);
+		Map<String, Package> packages = getModel().getTopLevelPackage()
+				.getPackages();
+
+		assertKeys(packages, "my_package");
+	}
+
+	@Test
+	public void packageModules() throws Throwable {
+		createTestModel(PACKAGE_STRUCTURE_PROJ);
+		Map<String, Module> modules = getModel().getTopLevelPackage().getPackages()
+				.get("my_package").getModules();
+
+		assertKeys(modules, "my_submodule");
+	}
+
+	@Test
+	public void packageClasses() throws Throwable {
+		createTestModel(PACKAGE_STRUCTURE_PROJ);
+		Map<String, Class> classes = getModel().getTopLevelPackage().getPackages()
+				.get("my_package").getClasses();
+
+		assertKeys(classes, "PackageClass");
+	}
+
+	@Test
+	public void packageFunctions() throws Throwable {
+		createTestModel(PACKAGE_STRUCTURE_PROJ);
+		Map<String, Function> functions = getModel().getTopLevelPackage()
+				.getPackages().get("my_package").getFunctions();
+
+		assertKeys(functions, "package_function");
+	}
+
+	@Test
+	public void packageModuleFunctions() throws Throwable {
+		createTestModel(PACKAGE_STRUCTURE_PROJ);
+		Map<String, Function> functions = getModel().getTopLevelPackage()
+				.getPackages().get("my_package").getModules().get(
+						"my_submodule").getFunctions();
+
+		assertKeys(functions, "submodule_function");
+	}
+
+	@Test
+	public void packageModuleClasses() throws Throwable {
+		createTestModel(PACKAGE_STRUCTURE_PROJ);
+		Map<String, Class> functions = getModel().getTopLevelPackage().getPackages()
+				.get("my_package").getModules().get("my_submodule")
 				.getClasses();
-		assertEquals(1, classes.size());
-		assertTrue(classes.containsKey("really_nested_class"));
+
+		assertKeys(functions, "SubmoduleClass");
 	}
 }

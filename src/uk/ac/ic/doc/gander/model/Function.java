@@ -50,20 +50,28 @@ public class Function implements BuildableScope {
 		return null;
 	}
 
-	public Map<String, Class> getClasses() {
-		return classes;
-	}
-
-	public Map<String, Function> getFunctions() {
-		return functions;
+	public Map<String, Package> getPackages() {
+		return Collections.emptyMap();
 	}
 
 	public Map<String, Module> getModules() {
 		return Collections.emptyMap();
 	}
 
-	public Map<String, Package> getPackages() {
-		return Collections.emptyMap();
+	public Map<String, Class> getClasses() {
+		return Collections.unmodifiableMap(classes);
+	}
+
+	public Map<String, Function> getFunctions() {
+		return Collections.unmodifiableMap(functions);
+	}
+
+	public void addPackage(Package pkg) {
+		throw new Error("A function cannot contain a package");
+	}
+
+	public void addModule(Module module) {
+		throw new Error("A function cannot contain a package");
 	}
 
 	public void addClass(Class klass) {
@@ -73,13 +81,4 @@ public class Function implements BuildableScope {
 	public void addFunction(Function function) {
 		functions.put(function.getName(), function);
 	}
-
-	public void addModule(Module module) {
-		throw new Error("A function cannot contain a package");
-	}
-
-	public void addPackage(Package pkg) {
-		throw new Error("A function cannot contain a package");
-	}
-
 }

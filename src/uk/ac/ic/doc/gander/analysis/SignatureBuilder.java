@@ -17,7 +17,6 @@ import uk.ac.ic.doc.gander.cfg.model.BasicBlock;
 import uk.ac.ic.doc.gander.cfg.model.Cfg;
 import uk.ac.ic.doc.gander.model.Function;
 import uk.ac.ic.doc.gander.model.Model;
-import uk.ac.ic.doc.gander.model.Module;
 
 public class SignatureBuilder {
 
@@ -103,10 +102,9 @@ public class SignatureBuilder {
 	 * calls which may happen after re-assigning to a variable aren't included.
 	 */
 	public Set<Call> signature(Name variable, BasicBlock containingBlock,
-			Module module, Function enclosingFunction, Model model)
-			throws Exception {
-		return buildSignature(variable, containingBlock, module,
-				enclosingFunction, model);
+			Function enclosingFunction, Model model) throws Exception {
+		return buildSignature(variable, containingBlock, enclosingFunction,
+				model);
 	}
 
 	/**
@@ -114,8 +112,8 @@ public class SignatureBuilder {
 	 * and recursing into any calls they make.
 	 */
 	private static Set<Call> buildSignature(Name variable,
-			BasicBlock controlBlock, Module module, Function function,
-			Model model) throws Exception {
+			BasicBlock controlBlock, Function function, Model model)
+			throws Exception {
 
 		// FIXME: This will loop infinitely with recursive calls
 
@@ -126,7 +124,7 @@ public class SignatureBuilder {
 				variable, blocks, function);
 
 		calls.addAll(getPartialSignatureFromPassingVariableToCalls(variable.id,
-				blocks, function, module, model));
+				blocks, function, model));
 		return calls;
 	}
 
@@ -157,8 +155,7 @@ public class SignatureBuilder {
 	 */
 	private static Set<Call> getPartialSignatureFromPassingVariableToCalls(
 			String variable, Iterable<BasicBlock> blocksToSearch,
-			Function enclosingFunction, Module module, Model model)
-			throws Exception {
+			Function enclosingFunction, Model model) throws Exception {
 
 		Set<Call> calls = new HashSet<Call>();
 
@@ -166,21 +163,20 @@ public class SignatureBuilder {
 				blocksToSearch).passes();
 		for (PassedVar pass : passes) {
 			Call call = pass.getCall();
-			Function function = resolveFunction(model, module,
-					enclosingFunction, call);
+			Function function = resolveFunction(model, enclosingFunction, call);
 			if (function != null) {
 				calls.addAll(getSignatureForPassedVariable(pass, function,
-						(Module) function.getParentScope(), model));
+						model));
 			}
 		}
 
 		return calls;
 	}
 
-	private static Function resolveFunction(Model model, Module module,
+	private static Function resolveFunction(Model model,
 			Function enclosingFunction, Call call) throws Exception {
-		Function function = new FunctionResolver(call, enclosingFunction,
-				module, model).getFunction();
+		Function function = new FunctionResolver(call, enclosingFunction, model)
+				.getFunction();
 
 		if (function == null)
 			System.err.println("Warning: unable to resolve function: "
@@ -193,13 +189,12 @@ public class SignatureBuilder {
 	 * Return signature implied by passing variable to call.
 	 */
 	private static Set<Call> getSignatureForPassedVariable(PassedVar pass,
-			Function function, Module module, Model model) throws Exception {
+			Function function, Model model) throws Exception {
 
 		Set<Call> calls = new HashSet<Call>();
 
 		for (Name param : resolveParameterNames(pass, function.getFunctionDef())) {
-			calls.addAll(getSignatureForParameter(param, function, module,
-					model));
+			calls.addAll(getSignatureForParameter(param, function, model));
 		}
 
 		return calls;
@@ -214,9 +209,9 @@ public class SignatureBuilder {
 	 * function.
 	 */
 	private static Set<Call> getSignatureForParameter(Name param,
-			Function function, Module module, Model model) throws Exception {
+			Function function, Model model) throws Exception {
 		Cfg graph = function.getCfg();
-		return buildSignature(param, graph.getStart(), module, function, model);
+		return buildSignature(param, graph.getStart(), function, model);
 	}
 
 	/**
@@ -234,8 +229,10 @@ public class SignatureBuilder {
 		for (String keyword : pass.getKeywords()) {
 			Name name = findParamNameNode(keyword, function);
 			if (name == null)
-				throw new Error("Function called with incorrect keyword");
-			names.add(name);
+				System.err.println("PROGRAM ERROR: Function called with "
+						+ "incorrect keyword");
+			else
+				names.add(name);
 		}
 
 		return names;

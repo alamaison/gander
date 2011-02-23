@@ -18,7 +18,6 @@ import uk.ac.ic.doc.gander.cfg.model.BasicBlock;
 import uk.ac.ic.doc.gander.flowinference.TypeResolver;
 import uk.ac.ic.doc.gander.model.Class;
 import uk.ac.ic.doc.gander.model.Function;
-import uk.ac.ic.doc.gander.model.Method;
 import uk.ac.ic.doc.gander.model.Model;
 import uk.ac.ic.doc.gander.model.Module;
 import uk.ac.ic.doc.gander.model.Package;
@@ -95,19 +94,19 @@ public class DominationLength {
 		}
 
 		public void analyse(Domination domAnalyser,
-				Postdomination postdomAnalyser, Module module,
-				Function function, Model model) throws Exception {
+				Postdomination postdomAnalyser, Function function, Model model)
+				throws Exception {
 
 			SignatureBuilder chainAnalyser = new SignatureBuilder();
 
 			for (BasicBlock sub : function.getCfg().getBlocks()) {
 				for (Call call : new CallFinder(sub).calls()) {
-					if (!isMethodCallOnName(call, function, module))
+					if (!isMethodCallOnName(call, function))
 						continue;
 
-					Collection<Call> dependentCalls = chainAnalyser.signature(
-							extractMethodCallTarget(call), sub, module,
-							function, model);
+					Collection<Call> dependentCalls = chainAnalyser
+							.signature(extractMethodCallTarget(call), sub,
+									function, model);
 
 					if (dependentCalls != null) {
 						int count = countUniqueMethodNames(dependentCalls);
@@ -133,8 +132,8 @@ public class DominationLength {
 			}
 		}
 
-		private boolean isMethodCallOnName(Call call, Function function,
-				Module module) throws Exception {
+		private boolean isMethodCallOnName(Call call, Function function)
+				throws Exception {
 			if (!(call.func instanceof Attribute))
 				return false;
 
@@ -146,7 +145,7 @@ public class DominationLength {
 
 			// skip calls to module functions - they look like method calls but
 			// we want to treat then differently
-			TypeResolver typer = new TypeResolver(model, module);
+			TypeResolver typer = new TypeResolver(model);
 			return !(typer.typeOf(variable, function) instanceof uk.ac.ic.doc.gander.flowinference.types.TModule);
 		}
 
@@ -178,23 +177,22 @@ public class DominationLength {
 
 	private void analyseModule(Module module) throws Exception {
 		for (Function function : module.getFunctions().values())
-			analyseFunction(module, function);
+			analyseFunction(function);
 
 		for (Class klass : module.getClasses().values())
-			analyseClass(module, klass);
+			analyseClass(klass);
 	}
 
-	private void analyseClass(Module module, Class klass) throws Exception {
+	private void analyseClass(Class klass) throws Exception {
 		for (Function method : klass.getFunctions().values())
-			analyseFunction(module, method);
+			analyseFunction(method);
 	}
 
-	private void analyseFunction(Module module, Function function)
-			throws Exception {
+	private void analyseFunction(Function function) throws Exception {
 		// System.err.println("Processing " + function.getFullName());
 		Domination domAnalyser = new Domination(function.getCfg());
 		Postdomination postdomAnalyser = new Postdomination(function.getCfg());
-		matching.analyse(domAnalyser, postdomAnalyser, module, function, model);
+		matching.analyse(domAnalyser, postdomAnalyser, function, model);
 	}
 
 }

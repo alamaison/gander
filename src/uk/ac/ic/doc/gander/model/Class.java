@@ -30,10 +30,6 @@ public class Class implements BuildableScope {
 		return parent.getFullName() + "." + getName();
 	}
 
-	public Map<String, Function> getFunctions() {
-		return methods;
-	}
-
 	public Scope lookup(String token) {
 		return getFunctions().get(token);
 	}
@@ -46,16 +42,28 @@ public class Class implements BuildableScope {
 		return parent;
 	}
 
-	public Map<String, Class> getClasses() {
-		return classes;
+	public Map<String, Package> getPackages() {
+		return Collections.emptyMap();
 	}
 
 	public Map<String, Module> getModules() {
 		return Collections.emptyMap();
 	}
 
-	public Map<String, Package> getPackages() {
-		return Collections.emptyMap();
+	public Map<String, Class> getClasses() {
+		return Collections.unmodifiableMap(classes);
+	}
+
+	public Map<String, Function> getFunctions() {
+		return Collections.unmodifiableMap(methods);
+	}
+
+	public void addPackage(Package pkg) {
+		throw new Error("A class cannot contain a package");
+	}
+
+	public void addModule(Module module) {
+		throw new Error("A class cannot contain a package");
 	}
 
 	public void addClass(Class klass) {
@@ -65,13 +73,4 @@ public class Class implements BuildableScope {
 	public void addFunction(Function function) {
 		methods.put(function.getName(), function);
 	}
-
-	public void addModule(Module module) {
-		throw new Error("A class cannot contain a package");
-	}
-
-	public void addPackage(Package pkg) {
-		throw new Error("A class cannot contain a package");
-	}
-
 }

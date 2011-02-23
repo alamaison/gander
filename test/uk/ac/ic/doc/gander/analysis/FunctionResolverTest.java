@@ -52,7 +52,7 @@ public class FunctionResolverTest {
 	@Test
 	public void testImportedFromSubpackageModule() throws Throwable {
 		check("test_imported_from_subpackage_module", "werthers_expected",
-				"wwerthers");
+				"werthers");
 	}
 
 	@Before
@@ -77,7 +77,7 @@ public class FunctionResolverTest {
 		assertTrue("Unable to find tagged call in test: '" + callTag + "'",
 				call != null);
 
-		resolver = new FunctionResolver(call, function, module, model);
+		resolver = new FunctionResolver(call, function, model);
 		assertTrue("Function wasn't resolved: '" + call + "'", resolver
 				.getFunction() != null);
 

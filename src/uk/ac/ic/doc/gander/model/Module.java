@@ -10,8 +10,8 @@ import uk.ac.ic.doc.gander.model.build.BuildableScope;
 
 public class Module implements Scope, BuildableScope {
 
-	private HashMap<String, Class> classes = new HashMap<String, Class>();
-	private HashMap<String, Function> functions = new HashMap<String, Function>();
+	private Map<String, Class> classes = new HashMap<String, Class>();
+	private Map<String, Function> functions = new HashMap<String, Function>();
 
 	private String name;
 	private org.python.pydev.parser.jython.ast.Module module;
@@ -48,12 +48,20 @@ public class Module implements Scope, BuildableScope {
 		return getParentPackage();
 	}
 
+	public Map<String, Package> getPackages() {
+		return Collections.emptyMap();
+	}
+
+	public Map<String, Module> getModules() {
+		return Collections.emptyMap();
+	}
+
 	public Map<String, Class> getClasses() {
-		return classes;
+		return Collections.unmodifiableMap(classes);
 	}
 
 	public Map<String, Function> getFunctions() {
-		return functions;
+		return Collections.unmodifiableMap(functions);
 	}
 
 	public Scope lookup(String token) {
@@ -66,27 +74,19 @@ public class Module implements Scope, BuildableScope {
 		return subItem;
 	}
 
-	public void addClass(Class klass) {
-		classes.put(klass.getName(), klass);
-	}
-
-	public void addFunction(Function function) {
-		functions.put(function.getName(), function);
+	public void addPackage(Package pkg) {
+		throw new Error("A module cannot contain a package");
 	}
 
 	public void addModule(Module module) {
 		throw new Error("A module cannot contain another module");
 	}
 
-	public void addPackage(Package pkg) {
-		throw new Error("A module cannot contain a package");
+	public void addClass(Class klass) {
+		classes.put(klass.getName(), klass);
 	}
 
-	public Map<String, Module> getModules() {
-		return Collections.emptyMap();
-	}
-
-	public Map<String, Package> getPackages() {
-		return Collections.emptyMap();
+	public void addFunction(Function function) {
+		functions.put(function.getName(), function);
 	}
 }
