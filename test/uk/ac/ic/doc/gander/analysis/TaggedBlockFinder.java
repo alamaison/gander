@@ -11,13 +11,15 @@ import org.python.pydev.parser.jython.ast.Name;
 import org.python.pydev.parser.jython.ast.NameTok;
 import org.python.pydev.parser.jython.ast.Str;
 import org.python.pydev.parser.jython.ast.VisitorBase;
+import org.python.pydev.parser.jython.ast.exprType;
 
 import uk.ac.ic.doc.gander.cfg.model.BasicBlock;
 import uk.ac.ic.doc.gander.cfg.model.Cfg;
 
 public class TaggedBlockFinder {
 
-	private static Pattern taggedCallPattern = Pattern.compile("(\\w+)\\.(\\w+)\\(\\\"?(\\w+)\\\"?\\)");
+	private static Pattern taggedCallPattern = Pattern
+			.compile("(\\w+)\\.(\\w+)\\(\\\"?(\\w+)\\\"?\\)");
 
 	private static class TagFinder extends VisitorBase {
 
@@ -26,8 +28,8 @@ public class TaggedBlockFinder {
 		private String tag;
 		private Call call = null;
 
-		TagFinder(SimpleNode node, String variable, String method,
-				String tag) throws Exception {
+		TagFinder(SimpleNode node, String variable, String method, String tag)
+				throws Exception {
 			this.variable = variable;
 			this.method = method;
 			this.tag = tag;
@@ -37,11 +39,26 @@ public class TaggedBlockFinder {
 		@Override
 		public Object visitCall(Call node) throws Exception {
 			Call call = matchMethodCall(variable, method, node);
-			if (call != null && call.args.length > 0
-					&& ((Str) call.args[0]).s.equals(tag)) {
+			if (call != null && paramsContainTag(call)) {
 				this.call = call;
 			}
+
+			// Calls may contain other calls as parameters so continue
+			// digging into AST
+			node.traverse(this);
 			return null;
+		}
+
+		private boolean paramsContainTag(Call call) {
+			if (call.args.length < 1)
+				return false;
+
+			for (exprType arg : call.args) {
+				if (((Str) arg).s.equals(tag))
+					return true;
+			}
+
+			return false;
 		}
 
 		@Override
@@ -52,7 +69,6 @@ public class TaggedBlockFinder {
 		@Override
 		public void traverse(SimpleNode node) throws Exception {
 			node.traverse(this);
-
 		}
 
 		boolean isFound() {
@@ -84,28 +100,29 @@ public class TaggedBlockFinder {
 
 		return null; // statement not found
 	}
-	
+
 	private Matcher match(String taggedCall) {
 		Matcher matcher = taggedCallPattern.matcher(taggedCall);
 		matcher.find();
 		return matcher;
 	}
-	
+
 	public String variableFromTag(String taggedCall) {
 		return match(taggedCall).group(1);
 	}
-	
+
 	public String methodFromTag(String taggedCall) {
 		return match(taggedCall).group(2);
 	}
-	
+
 	public String tagFromTag(String taggedCall) {
 		return match(taggedCall).group(3);
 	}
 
 	public Statement findTaggedStatement(String taggedCall) throws Exception {
 		Matcher matcher = match(taggedCall);
-		return findTaggedStatement(matcher.group(1), matcher.group(2), matcher.group(3));
+		return findTaggedStatement(matcher.group(1), matcher.group(2), matcher
+				.group(3));
 	}
 
 	/**

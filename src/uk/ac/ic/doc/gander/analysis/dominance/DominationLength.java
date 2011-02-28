@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import org.python.pydev.parser.jython.SimpleNode;
@@ -24,7 +25,7 @@ import uk.ac.ic.doc.gander.model.Package;
 
 public class DominationLength {
 
-	public abstract class AbstractAnalysis {
+	private static class AnalysisResults {
 
 		private ArrayList<Integer> counts = new ArrayList<Integer>();
 
@@ -51,12 +52,12 @@ public class DominationLength {
 			return total / counts.size();
 		}
 
-		public int expressionCount() {
-			return counts.size();
-		}
-
 		public void add(int count) {
 			counts.add(count);
+		}
+
+		public List<Integer> counts() {
+			return counts;
 		}
 	}
 
@@ -70,7 +71,25 @@ public class DominationLength {
 		return (NameTok) fieldAccess.attr;
 	}
 
-	public class SameVariableOnlyAnalysis extends AbstractAnalysis {
+	private class SameVariableOnlyAnalysis {
+
+		private AnalysisResults stats = new AnalysisResults();
+
+		public List<Integer> counts() {
+			return stats.counts();
+		}
+
+		public int max() {
+			return stats.max();
+		}
+
+		public int min() {
+			return stats.min();
+		}
+
+		public double average() {
+			return stats.average();
+		}
 
 		private class CallFinder extends BasicBlockTraverser {
 
@@ -85,6 +104,7 @@ public class DominationLength {
 			public Object visitCall(Call node) throws Exception {
 				if (node.func instanceof Attribute)
 					calls.add(node);
+				node.traverse(this);
 				return null;
 			}
 
@@ -93,9 +113,7 @@ public class DominationLength {
 			}
 		}
 
-		public void analyse(Domination domAnalyser,
-				Postdomination postdomAnalyser, Function function, Model model)
-				throws Exception {
+		public void analyse(Function function, Model model) throws Exception {
 
 			SignatureBuilder chainAnalyser = new SignatureBuilder();
 
@@ -113,7 +131,7 @@ public class DominationLength {
 						// if (count > 1)
 						// printChain(call, dependentCalls);
 
-						add(new Integer(count));
+						stats.add(new Integer(count));
 					}
 					// If no dependent calls, this isn't a chain length of 0.
 					// It means the call wasn't a method call at all! Something
@@ -159,7 +177,7 @@ public class DominationLength {
 
 	}
 
-	public SameVariableOnlyAnalysis matching = new SameVariableOnlyAnalysis();
+	private SameVariableOnlyAnalysis matching = new SameVariableOnlyAnalysis();
 	private Model model;
 
 	public DominationLength(Model model) throws Exception {
@@ -190,9 +208,22 @@ public class DominationLength {
 
 	private void analyseFunction(Function function) throws Exception {
 		// System.err.println("Processing " + function.getFullName());
-		Domination domAnalyser = new Domination(function.getCfg());
-		Postdomination postdomAnalyser = new Postdomination(function.getCfg());
-		matching.analyse(domAnalyser, postdomAnalyser, function, model);
+		matching.analyse(function, model);
 	}
 
+	public List<Integer> counts() {
+		return matching.counts();
+	}
+
+	public int max() {
+		return matching.max();
+	}
+
+	public int min() {
+		return matching.min();
+	}
+
+	public double average() {
+		return matching.average();
+	}
 }

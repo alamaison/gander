@@ -111,6 +111,11 @@ def aug_assign():
 	y.a("tag1")
 	y += 4
 	y.a("tag2")
+	
+# The parameters of one call may include further calls to the same object
+def nested_calls():
+	g = h
+	g.e("outer_tag", g.f("inner_tag"))
 
 # The function body in the nested function should be ignored as it isn't
 # part of the test function; it is the declaration of the object being

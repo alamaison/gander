@@ -156,6 +156,14 @@ public class SignatureBuilderTest extends AbstractTaggedCallTest {
 	}
 
 	@Test
+	public void testNestedCalls() throws Throwable {
+		initialise("nested_calls", 1);
+		String[][] chains = { { "g.f(inner_tag)", "e", "f" },
+				{ "g.e(outer_tag)", "e", "f" } };
+		checkChains(chains);
+	}
+
+	@Test
 	public void testRecurseIntoCall() throws Throwable {
 		initialise("recurse_into_call", 1);
 		String[][] chains = { { "y.b(tag)", "a", "b", "p", "q" } };

@@ -71,6 +71,11 @@ public class SignatureBuilder {
 						calls.add(node);
 				}
 			}
+
+			// Calls may contain other calls as parameters so continue
+			// digging into AST
+			node.traverse(this);
+
 			return null;
 		}
 
