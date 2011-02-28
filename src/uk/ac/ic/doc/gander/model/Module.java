@@ -33,7 +33,10 @@ public class Module implements Scope, BuildableScope {
 	}
 
 	public String getFullName() {
-		return parent.getFullName() + "." + getName();
+		if (parent != null)
+			return parent.getFullName() + "." + getName();
+		else
+			return getName();
 	}
 
 	public SimpleNode getAst() {
