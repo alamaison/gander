@@ -30,29 +30,34 @@ public class FunctionResolverTest {
 	private Module module;
 
 	@Test
-	public void testLocalNamespace() throws Throwable {
+	public void localNamespace() throws Throwable {
 		check("test_local_namespace", "local_tag_expected", "local_tag");
 	}
 
 	@Test
-	public void testImported() throws Throwable {
+	public void imported() throws Throwable {
 		check("test_imported", "love_expected", "love");
 	}
 
 	@Test
-	public void testImportedFromPackageModule() throws Throwable {
+	public void importedFromPackageModule() throws Throwable {
 		check("test_imported_from_package_module", "emily_expected", "emily");
 	}
 
 	@Test
-	public void testImportedFromPackage() throws Throwable {
+	public void importedFromPackage() throws Throwable {
 		check("test_imported_from_package", "music_expected", "music");
 	}
 
 	@Test
-	public void testImportedFromSubpackageModule() throws Throwable {
+	public void importedFromSubpackageModule() throws Throwable {
 		check("test_imported_from_subpackage_module", "werthers_expected",
 				"werthers");
+	}
+
+	@Test
+	public void fromImport() throws Throwable {
+		check("test_from_import", "cold_and_wet_expected", "cold_and_wet");
 	}
 
 	@Before

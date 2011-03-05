@@ -14,6 +14,7 @@ import org.python.pydev.parser.jython.SimpleNode;
 import org.python.pydev.parser.jython.ast.ClassDef;
 import org.python.pydev.parser.jython.ast.FunctionDef;
 import org.python.pydev.parser.jython.ast.Import;
+import org.python.pydev.parser.jython.ast.ImportFrom;
 import org.python.pydev.parser.jython.ast.NameTok;
 import org.python.pydev.parser.jython.ast.VisitorBase;
 import org.python.pydev.parser.jython.ast.aliasType;
@@ -47,7 +48,7 @@ public class SymbolTable {
 		Map<String, Type> bindings = symbols.get(scope);
 		if (bindings == null)
 			bindings = Collections.emptyMap();
-		
+
 		return bindings;
 	}
 
@@ -63,8 +64,7 @@ public class SymbolTable {
 						+ "exist in the model: " + ((NameTok) node.name).id);
 
 			// Do not traverse. This has already been taken care of while
-			// building
-			// the model.
+			// building the model.
 			return null;
 		}
 
@@ -72,14 +72,14 @@ public class SymbolTable {
 		public Object visitFunctionDef(FunctionDef node) throws Exception {
 			Function scope = scopes.peek().getFunctions().get(
 					((NameTok) node.name).id);
-			//assert node == scope.getFunctionDef();
+			// FIXME: Make this assert pass
+			// assert node == scope.getFunctionDef();
 			if (scope == null)
 				throw new Error("Function found while scoping that doesn't "
 						+ "exist in the model: " + ((NameTok) node.name).id);
 
 			// Do not traverse. This has already been taken care of while
-			// building
-			// the model.
+			// building the model.
 			return null;
 		}
 
@@ -122,6 +122,20 @@ public class SymbolTable {
 		}
 
 		@Override
+		public Object visitImportFrom(ImportFrom node) throws Exception {
+			Module module = model.lookupModule(((NameTok) node.module).id);
+			for (aliasType alias : node.names) {
+				if (alias.asname != null) {
+					simulateImportFromAs(module, ((NameTok) alias.name).id,
+							((NameTok) alias.asname).id);
+				} else {
+					simulateImportFrom(module, ((NameTok) alias.name).id);
+				}
+			}
+			return null;
+		}
+
+		@Override
 		public void traverse(SimpleNode node) throws Exception {
 			node.traverse(this);
 		}
@@ -129,6 +143,44 @@ public class SymbolTable {
 		@Override
 		protected Object unhandled_node(SimpleNode node) throws Exception {
 			return null;
+		}
+
+		private void simulateImportFrom(Module module, String itemName) {
+			simulateImportFromAs(module, itemName, itemName);
+		}
+
+		private void simulateImportFromAs(Module module, String itemName,
+				String asName) {
+			Type type = null;
+
+			// Resolve item name to an item inside the module
+			Package pkg = module.getPackages().get(itemName);
+			if (pkg != null) {
+				type = new TPackage(pkg);
+			} else {
+				Module submodule = module.getModules().get(itemName);
+				if (submodule != null) {
+					type = new TModule(submodule);
+				} else {
+					Class klass = module.getClasses().get(itemName);
+					if (klass != null) {
+						type = new TClass(klass);
+					} else {
+						Function function = module.getFunctions().get(itemName);
+						if (function != null) {
+							type = new TFunction(function);
+						}
+					}
+				}
+			}
+
+			if (type != null) {
+				put(scopes.peek(), asName, type);
+			} else {
+				System.err.println("Warning unable to resolve target of "
+						+ "import from: from " + module.getFullName()
+						+ " import " + itemName + " as " + asName);
+			}
 		}
 
 		private void simulateImportAs(String importName, String asName) {

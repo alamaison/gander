@@ -21,3 +21,8 @@ import children.grandchildren.grandson
 
 def test_imported_from_subpackage_module():
 	children.grandchildren.grandson.sweeties_please("werthers_expected")
+
+from children.son import play_football
+
+def test_from_import():
+	play_football("cold_and_wet_expected")

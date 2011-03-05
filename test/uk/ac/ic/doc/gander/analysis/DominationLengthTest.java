@@ -24,6 +24,18 @@ public class DominationLengthTest {
 		check("inline", counts, 1, 3, 1.55);
 	}
 
+	@Test
+	public void local() throws Throwable {
+		Integer[] counts = { 4, 4, 2, 2, 3 };
+		check("local", counts, 2, 4, 3);
+	}
+
+	@Test
+	public void siblingImport() throws Throwable {
+		Integer[] counts = { 3, 3, 4, 2, 1, 2, 1, 4 };
+		check("sibling_import", counts, 1, 4, 2.5);
+	}
+
 	private void check(String caseName, Integer[] expectedCounts,
 			int expectedMin, int expectedMax, double expectedAverage)
 			throws Throwable {
