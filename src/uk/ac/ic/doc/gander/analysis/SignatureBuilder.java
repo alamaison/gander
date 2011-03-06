@@ -228,7 +228,12 @@ public class SignatureBuilder {
 		Set<Name> names = new HashSet<Name>();
 
 		for (Integer pos : pass.getPositions()) {
-			names.add((Name) function.args.args[pos]);
+			// The passing specification may indicate that more parameters
+			// are passed than there are parameters in the function being
+			// called.  This can happen if the called function has a stararg
+			// parameter.  E.g. def func(*args) being called as func(1,2).
+			if (pos < function.args.args.length)
+				names.add((Name) function.args.args[pos]);
 		}
 
 		for (String keyword : pass.getKeywords()) {
