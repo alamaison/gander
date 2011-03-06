@@ -124,12 +124,14 @@ public class SymbolTable {
 		@Override
 		public Object visitImportFrom(ImportFrom node) throws Exception {
 			Module module = model.lookupModule(((NameTok) node.module).id);
-			for (aliasType alias : node.names) {
-				if (alias.asname != null) {
-					simulateImportFromAs(module, ((NameTok) alias.name).id,
-							((NameTok) alias.asname).id);
-				} else {
-					simulateImportFrom(module, ((NameTok) alias.name).id);
+			if (module != null) {
+				for (aliasType alias : node.names) {
+					if (alias.asname != null) {
+						simulateImportFromAs(module, ((NameTok) alias.name).id,
+								((NameTok) alias.asname).id);
+					} else {
+						simulateImportFrom(module, ((NameTok) alias.name).id);
+					}
 				}
 			}
 			return null;
@@ -170,16 +172,15 @@ public class SymbolTable {
 						if (function != null) {
 							type = new TFunction(function);
 						}
+						
+						// TODO: The target of the 'from foo import bar' can
+						// be a variable.
 					}
 				}
 			}
 
 			if (type != null) {
 				put(scopes.peek(), asName, type);
-			} else {
-				System.err.println("Warning unable to resolve target of "
-						+ "import from: from " + module.getFullName()
-						+ " import " + itemName + " as " + asName);
 			}
 		}
 
