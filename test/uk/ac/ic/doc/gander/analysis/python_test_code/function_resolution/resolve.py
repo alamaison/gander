@@ -26,3 +26,6 @@ from children.son import play_football
 
 def test_from_import():
 	play_football("cold_and_wet_expected")
+	
+def test_call_builtin():
+	print len("iterable_expected")

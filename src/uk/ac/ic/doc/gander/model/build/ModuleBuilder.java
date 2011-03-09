@@ -2,13 +2,11 @@ package uk.ac.ic.doc.gander.model.build;
 
 import java.io.File;
 
-import uk.ac.ic.doc.gander.model.Package;
-
 public class ModuleBuilder {
 
 	private uk.ac.ic.doc.gander.model.Module module;
 
-	public ModuleBuilder(File moduleFile, Package parent) throws Exception {
+	public ModuleBuilder(File moduleFile, BuildablePackage parent) throws Exception {
 		ModuleParser parser = new ModuleParser(moduleFile);
 		ModuleBuilderVisitor builder = new ModuleBuilderVisitor(parser
 				.getName(), parent);

@@ -60,6 +60,11 @@ public class FunctionResolverTest {
 		check("test_from_import", "cold_and_wet_expected", "cold_and_wet");
 	}
 
+	@Test
+	public void builtin() throws Throwable {
+		check("test_call_builtin", "iterable_expected", "iterable");
+	}
+
 	@Before
 	public void setup() throws Throwable {
 		URL topLevel = getClass().getResource(TEST_FOLDER);
