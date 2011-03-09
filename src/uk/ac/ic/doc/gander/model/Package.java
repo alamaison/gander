@@ -3,13 +3,16 @@ package uk.ac.ic.doc.gander.model;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
+import java.util.Queue;
 
 import org.python.pydev.parser.jython.ParseException;
 
 import uk.ac.ic.doc.gander.model.build.BuildableScope;
 
-public class Package implements BuildableScope {
+public class Package implements Importable, BuildableScope {
 
 	private HashMap<String, Module> modules = new HashMap<String, Module>();
 	private HashMap<String, Package> packages = new HashMap<String, Package>();
@@ -63,13 +66,35 @@ public class Package implements BuildableScope {
 			return Collections.emptyMap();
 		return initPy.getFunctions();
 	}
+	
+	public Module lookupModule(List<String> importNameTokens) {
+		Queue<String> tokens = new LinkedList<String>(importNameTokens);
 
-	public Scope lookup(String token) {
-		Scope subItem = getPackages().get(token);
-		if (subItem == null)
-			subItem = getModules().get(token);
+		Package scope = this;
+		while (scope != null && !tokens.isEmpty()) {
+			String token = tokens.remove();
+			if (tokens.isEmpty())
+				return scope.getModules().get(token);
+			else
+				scope = scope.getPackages().get(token);
+		}
 
-		return subItem;
+		return null;
+	}
+
+	public Package lookupPackage(List<String> importNameTokens) {
+		Queue<String> tokens = new LinkedList<String>(importNameTokens);
+
+		Package scope = this;
+		while (scope != null && !tokens.isEmpty()) {
+			String token = tokens.remove();
+			if (tokens.isEmpty())
+				return scope.getPackages().get(token);
+			else
+				scope = scope.getPackages().get(token);
+		}
+
+		return scope;
 	}
 
 	public Package getParentPackage() {

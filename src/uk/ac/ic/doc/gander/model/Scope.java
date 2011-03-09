@@ -10,8 +10,6 @@ public interface Scope {
 
 	public Scope getParentScope();
 
-	public Scope lookup(String token);
-
 	public Map<String, Class> getClasses();
 
 	public Map<String, Function> getFunctions();

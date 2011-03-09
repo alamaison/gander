@@ -8,6 +8,7 @@ public class TClass implements ScopeType {
 	private Class classInstance;
 
 	public TClass(Class classInstance) {
+		assert classInstance != null;
 		this.classInstance = classInstance;
 	}
 

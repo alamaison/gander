@@ -30,10 +30,6 @@ public class Class implements BuildableScope {
 		return parent.getFullName() + "." + getName();
 	}
 
-	public Scope lookup(String token) {
-		return getFunctions().get(token);
-	}
-
 	public ClassDef getClassDef() {
 		return cls;
 	}

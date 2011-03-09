@@ -12,17 +12,22 @@ public class ModelTest extends AbstractModelTest {
 	@Test
 	public void classes() throws Throwable {
 		createTestModel(MODULE_STRUCTURE_PROJ);
-		Map<String, Class> classes = getModel().getTopLevelPackage().getModules()
-				.get("my_module").getClasses();
+		Map<String, Class> classes = getModel().getTopLevelPackage()
+				.getModules().get("my_module").getClasses();
 
 		assertKeys(classes, "my_class", "my_class_empty");
+
+		assertEquals("The parent of 'my_class' isn't 'my_module'", getModel()
+				.getTopLevelPackage().getModules().get("my_module"), classes
+				.get("my_class").getParentScope());
 	}
 
 	@Test
 	public void methods() throws Throwable {
 		createTestModel(MODULE_STRUCTURE_PROJ);
-		Map<String, Function> methods = getModel().getTopLevelPackage().getModules()
-				.get("my_module").getClasses().get("my_class").getFunctions();
+		Map<String, Function> methods = getModel().getTopLevelPackage()
+				.getModules().get("my_module").getClasses().get("my_class")
+				.getFunctions();
 
 		assertKeys(methods, "my_method_empty");
 	}
@@ -56,9 +61,9 @@ public class ModelTest extends AbstractModelTest {
 	@Test
 	public void nestedClassInFunction() throws Throwable {
 		createTestModel(MODULE_STRUCTURE_PROJ);
-		Map<String, Class> classes = getModel().getTopLevelPackage().getModules()
-				.get("my_module").getFunctions().get("test_nesting_class")
-				.getClasses();
+		Map<String, Class> classes = getModel().getTopLevelPackage()
+				.getModules().get("my_module").getFunctions().get(
+						"test_nesting_class").getClasses();
 
 		assertKeys(classes, "nested_class");
 
@@ -69,9 +74,10 @@ public class ModelTest extends AbstractModelTest {
 	@Test
 	public void nestedClassInClass() throws Throwable {
 		createTestModel(MODULE_STRUCTURE_PROJ);
-		Map<String, Class> classes = getModel().getTopLevelPackage().getModules()
-				.get("my_module").getFunctions().get("test_nesting_class")
-				.getClasses().get("nested_class").getClasses();
+		Map<String, Class> classes = getModel().getTopLevelPackage()
+				.getModules().get("my_module").getFunctions().get(
+						"test_nesting_class").getClasses().get("nested_class")
+				.getClasses();
 
 		assertKeys(classes, "really_nested_class");
 	}
@@ -84,39 +90,44 @@ public class ModelTest extends AbstractModelTest {
 
 		assertKeys(packages, "my_package");
 		assertEquals("my_package", packages.get("my_package").getName());
+
+		assertEquals("The parent of 'my_package' isn't the top-level package",
+				getModel().getTopLevelPackage(), packages.get("my_package")
+						.getParentScope());
 	}
 
 	@Test
 	public void topLevelModules() throws Throwable {
 		createTestModel(PACKAGE_STRUCTURE_PROJ);
-		Map<String, Module> modules = getModel().getTopLevelPackage().getModules();
+		Map<String, Module> modules = getModel().getTopLevelPackage()
+				.getModules();
 
 		assertKeys(modules, "my_module1", "my_module2");
-	}
 
-	@Test
-	public void packages() throws Throwable {
-		createTestModel(PACKAGE_STRUCTURE_PROJ);
-		Map<String, Package> packages = getModel().getTopLevelPackage()
-				.getPackages();
-
-		assertKeys(packages, "my_package");
+		assertEquals("The parent of 'my_module1' isn't the top-level package",
+				getModel().getTopLevelPackage(), modules.get("my_module1")
+						.getParentScope());
 	}
 
 	@Test
 	public void packageModules() throws Throwable {
 		createTestModel(PACKAGE_STRUCTURE_PROJ);
-		Map<String, Module> modules = getModel().getTopLevelPackage().getPackages()
-				.get("my_package").getModules();
+		Map<String, Module> modules = getModel().getTopLevelPackage()
+				.getPackages().get("my_package").getModules();
 
 		assertKeys(modules, "my_submodule");
+
+		assertEquals(
+				"The parent of 'my_submodule' isn't 'my_package'",
+				getModel().getTopLevelPackage().getPackages().get("my_package"),
+				modules.get("my_submodule").getParentScope());
 	}
 
 	@Test
 	public void packageClasses() throws Throwable {
 		createTestModel(PACKAGE_STRUCTURE_PROJ);
-		Map<String, Class> classes = getModel().getTopLevelPackage().getPackages()
-				.get("my_package").getClasses();
+		Map<String, Class> classes = getModel().getTopLevelPackage()
+				.getPackages().get("my_package").getClasses();
 
 		assertKeys(classes, "PackageClass");
 	}
@@ -143,9 +154,9 @@ public class ModelTest extends AbstractModelTest {
 	@Test
 	public void packageModuleClasses() throws Throwable {
 		createTestModel(PACKAGE_STRUCTURE_PROJ);
-		Map<String, Class> functions = getModel().getTopLevelPackage().getPackages()
-				.get("my_package").getModules().get("my_submodule")
-				.getClasses();
+		Map<String, Class> functions = getModel().getTopLevelPackage()
+				.getPackages().get("my_package").getModules().get(
+						"my_submodule").getClasses();
 
 		assertKeys(functions, "SubmoduleClass");
 	}

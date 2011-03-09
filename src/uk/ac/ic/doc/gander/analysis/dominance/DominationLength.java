@@ -164,7 +164,7 @@ public class DominationLength {
 			// skip calls to module functions - they look like method calls but
 			// we want to treat then differently
 			TypeResolver typer = new TypeResolver(model);
-			return !(typer.typeOf(variable, function) instanceof uk.ac.ic.doc.gander.flowinference.types.TModule);
+			return !(typer.typeOf(variable, function) instanceof uk.ac.ic.doc.gander.flowinference.types.TImportable);
 		}
 
 		private int countUniqueMethodNames(Iterable<Call> calls) {

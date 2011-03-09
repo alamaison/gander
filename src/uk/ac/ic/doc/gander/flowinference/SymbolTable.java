@@ -1,13 +1,10 @@
 package uk.ac.ic.doc.gander.flowinference;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Queue;
 import java.util.Stack;
 
 import org.python.pydev.parser.jython.SimpleNode;
@@ -21,8 +18,6 @@ import org.python.pydev.parser.jython.ast.aliasType;
 
 import uk.ac.ic.doc.gander.flowinference.types.TClass;
 import uk.ac.ic.doc.gander.flowinference.types.TFunction;
-import uk.ac.ic.doc.gander.flowinference.types.TModule;
-import uk.ac.ic.doc.gander.flowinference.types.TPackage;
 import uk.ac.ic.doc.gander.flowinference.types.Type;
 import uk.ac.ic.doc.gander.model.Class;
 import uk.ac.ic.doc.gander.model.Function;
@@ -62,9 +57,6 @@ public class SymbolTable {
 			if (scope == null)
 				throw new Error("Class found while scoping that doesn't "
 						+ "exist in the model: " + ((NameTok) node.name).id);
-
-			// Do not traverse. This has already been taken care of while
-			// building the model.
 			return null;
 		}
 
@@ -77,14 +69,39 @@ public class SymbolTable {
 			if (scope == null)
 				throw new Error("Function found while scoping that doesn't "
 						+ "exist in the model: " + ((NameTok) node.name).id);
-
-			// Do not traverse. This has already been taken care of while
-			// building the model.
 			return null;
 		}
 
 		@Override
 		public Object visitImport(Import node) throws Exception {
+			new ImportSymbols().resolveImport(node);
+			return null;
+		}
+
+		@Override
+		public Object visitImportFrom(ImportFrom node) throws Exception {
+			new ImportSymbols().resolveImportFrom(node);
+			return null;
+		}
+
+		@Override
+		public void traverse(SimpleNode node) throws Exception {
+			
+			// Do not traverse. This has already been taken care of while
+			// building the model. processScope() does the equivalent of
+			// traversing the elements using the model instead of the AST.
+			
+		}
+
+		@Override
+		protected Object unhandled_node(SimpleNode node) throws Exception {
+			return null;
+		}
+
+	}
+
+	private class ImportSymbols {
+		public void resolveImport(Import node) throws Exception {
 			// The import name is a string which may contain dots to indicate
 			// a package module as in "package.subpackage.submodule". Python
 			// will import each segment of the name as a package before
@@ -112,107 +129,49 @@ public class SymbolTable {
 			// apart and each to the inferred types
 			for (aliasType alias : node.names) {
 				if (alias.asname != null) {
-					simulateImportAs(((NameTok) alias.name).id,
+					new ImportResolver(scopes.peek(), model
+							.getTopLevelPackage()).simulateImportAs(
+							((NameTok) alias.name).id,
 							((NameTok) alias.asname).id);
 				} else {
-					simulateImport(((NameTok) alias.name).id);
+					new ImportResolver(scopes.peek(), model
+							.getTopLevelPackage())
+							.simulateImport(((NameTok) alias.name).id);
 				}
 			}
-			return null;
 		}
 
-		@Override
-		public Object visitImportFrom(ImportFrom node) throws Exception {
+		public void resolveImportFrom(ImportFrom node) throws Exception {
 			Module module = model.lookupModule(((NameTok) node.module).id);
-			if (module != null) {
-				for (aliasType alias : node.names) {
-					if (alias.asname != null) {
-						simulateImportFromAs(module, ((NameTok) alias.name).id,
-								((NameTok) alias.asname).id);
-					} else {
-						simulateImportFrom(module, ((NameTok) alias.name).id);
-					}
+			if (module == null)
+				return;
+
+			for (aliasType alias : node.names) {
+				if (alias.asname != null) {
+					new ImportResolver(scopes.peek(), model
+							.getTopLevelPackage()).simulateImportFromAs(module,
+							((NameTok) alias.name).id,
+							((NameTok) alias.asname).id);
+				} else {
+					new ImportResolver(scopes.peek(), model
+							.getTopLevelPackage()).simulateImportFrom(module,
+							((NameTok) alias.name).id);
 				}
 			}
-			return null;
+
+		}
+
+	}
+
+	private class ImportResolver extends ImportSimulator {
+		private ImportResolver(Scope importReceiver, Package topLevel) {
+			super(importReceiver, topLevel);
 		}
 
 		@Override
-		public void traverse(SimpleNode node) throws Exception {
-			node.traverse(this);
+		protected void importInto(Scope scope, Type loadedImportable, String as) {
+			put(scope, as, loadedImportable);
 		}
-
-		@Override
-		protected Object unhandled_node(SimpleNode node) throws Exception {
-			return null;
-		}
-
-		private void simulateImportFrom(Module module, String itemName) {
-			simulateImportFromAs(module, itemName, itemName);
-		}
-
-		private void simulateImportFromAs(Module module, String itemName,
-				String asName) {
-			Type type = null;
-
-			// Resolve item name to an item inside the module
-			Package pkg = module.getPackages().get(itemName);
-			if (pkg != null) {
-				type = new TPackage(pkg);
-			} else {
-				Module submodule = module.getModules().get(itemName);
-				if (submodule != null) {
-					type = new TModule(submodule);
-				} else {
-					Class klass = module.getClasses().get(itemName);
-					if (klass != null) {
-						type = new TClass(klass);
-					} else {
-						Function function = module.getFunctions().get(itemName);
-						if (function != null) {
-							type = new TFunction(function);
-						}
-						
-						// TODO: The target of the 'from foo import bar' can
-						// be a variable.
-					}
-				}
-			}
-
-			if (type != null) {
-				put(scopes.peek(), asName, type);
-			}
-		}
-
-		private void simulateImportAs(String importName, String asName) {
-			Module module = model.lookupModule(importName);
-			if (module != null) {
-				put(scopes.peek(), asName, new TModule(module));
-			}
-		}
-
-		private void simulateImport(String importName) {
-			Queue<String> tokens = new LinkedList<String>(
-					dottedNameToImportTokens(importName));
-
-			Scope scope = scopes.peek();
-			List<String> processed = new ArrayList<String>();
-			while (!tokens.isEmpty()) {
-				String token = tokens.remove();
-				processed.add(token);
-
-				if (!tokens.isEmpty()) {
-					Package pkg = model.lookupPackage(processed);
-					put(scope, token, new TPackage(pkg));
-
-					scope = pkg;
-				} else {
-					Module module = model.lookupModule(processed);
-					put(scope, token, new TModule(module));
-				}
-			}
-		}
-
 	}
 
 	private void processScope(Scope scope) throws Exception {
@@ -224,7 +183,7 @@ public class SymbolTable {
 
 		for (Module module : scope.getModules().values()) {
 			scopes.push(module);
-			module.getAst().accept(new SymbolTableAstVisitor());
+			module.getAst().traverse(new SymbolTableAstVisitor());
 			scopes.pop();
 
 			processScope(module);
@@ -232,22 +191,34 @@ public class SymbolTable {
 
 		for (Class klass : scope.getClasses().values()) {
 			put(scopes.peek(), klass.getName(), new TClass(klass));
+
+			scopes.push(klass);
+			klass.getClassDef().traverse(new SymbolTableAstVisitor());
+			scopes.pop();
+
 			processScope(klass);
 		}
 
 		for (Function function : scope.getFunctions().values()) {
 			put(scopes.peek(), function.getName(), new TFunction(function));
+
+			scopes.push(function);
+			function.getFunctionDef().traverse(new SymbolTableAstVisitor());
+			scopes.pop();
+
 			processScope(function);
 		}
 
 		scopes.pop();
 	}
 
-	private static List<String> dottedNameToImportTokens(String importPath) {
+	static List<String> dottedNameToImportTokens(String importPath) {
 		return Arrays.asList(importPath.split("\\."));
 	}
 
 	private void put(Scope scope, String name, Type type) {
+		assert type != null;
+
 		Map<String, Type> scopeMapping = symbols.get(scope);
 		if (scopeMapping == null) {
 			scopeMapping = new HashMap<String, Type>();

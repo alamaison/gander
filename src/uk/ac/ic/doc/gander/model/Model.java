@@ -2,9 +2,8 @@ package uk.ac.ic.doc.gander.model;
 
 import java.io.File;
 import java.util.Arrays;
-import java.util.LinkedList;
+import java.util.Collections;
 import java.util.List;
-import java.util.Queue;
 
 import uk.ac.ic.doc.gander.model.build.PackageBuilder;
 
@@ -31,38 +30,25 @@ public class Model {
 	public Package lookupPackage(String importName) {
 		return lookupPackage(dottedNameToImportTokens(importName));
 	}
-
-	public Module lookupModule(List<String> importNameTokens) {
-		Queue<String> tokens = new LinkedList<String>(importNameTokens);
-
-		Package scope = getTopLevelPackage();
-		while (scope != null && !tokens.isEmpty()) {
-			String token = tokens.remove();
-			if (tokens.isEmpty())
-				return scope.getModules().get(token);
-			else
-				scope = scope.getPackages().get(token);
-		}
-
-		return null;
+	
+	public Importable lookup(String importName) {
+		List<String> tokens = dottedNameToImportTokens(importName);
+		Importable imported = lookupPackage(tokens);
+		if (imported == null)
+			imported = lookupModule(tokens);
+		return imported;
 	}
 
+	public Module lookupModule(List<String> importNameTokens) {
+		return getTopLevelPackage().lookupModule(importNameTokens);	}
+
 	public Package lookupPackage(List<String> importNameTokens) {
-		Queue<String> tokens = new LinkedList<String>(importNameTokens);
-
-		Package scope = getTopLevelPackage();
-		while (scope != null && !tokens.isEmpty()) {
-			String token = tokens.remove();
-			if (tokens.isEmpty())
-				return scope.getPackages().get(token);
-			else
-				scope = scope.getPackages().get(token);
-		}
-
-		return null;
+		return getTopLevelPackage().lookupPackage(importNameTokens);
 	}
 
 	private static List<String> dottedNameToImportTokens(String importPath) {
+		if ("".equals(importPath))
+			return Collections.emptyList();
 		return Arrays.asList(importPath.split("\\."));
 	}
 }

@@ -8,7 +8,7 @@ import org.python.pydev.parser.jython.SimpleNode;
 
 import uk.ac.ic.doc.gander.model.build.BuildableScope;
 
-public class Module implements Scope, BuildableScope {
+public class Module implements Importable, BuildableScope {
 
 	private Map<String, Class> classes = new HashMap<String, Class>();
 	private Map<String, Function> functions = new HashMap<String, Function>();
@@ -21,6 +21,7 @@ public class Module implements Scope, BuildableScope {
 			String name, Package parent) {
 		this.module = module;
 		this.name = name;
+		this.parent = parent;
 	}
 
 	/*
@@ -65,16 +66,6 @@ public class Module implements Scope, BuildableScope {
 
 	public Map<String, Function> getFunctions() {
 		return Collections.unmodifiableMap(functions);
-	}
-
-	public Scope lookup(String token) {
-		// FIXME: This order is arbitrary. Really we should record which
-		// function/class definition came last and only use that one
-		Scope subItem = getClasses().get(token);
-		if (subItem == null)
-			subItem = getFunctions().get(token);
-
-		return subItem;
 	}
 
 	public void addPackage(Package pkg) {

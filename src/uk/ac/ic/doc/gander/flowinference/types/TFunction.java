@@ -8,6 +8,7 @@ public class TFunction implements ScopeType {
 	private Function functionInstance;
 
 	public TFunction(Function functionInstance) {
+		assert functionInstance != null;
 		this.functionInstance = functionInstance;
 	}
 

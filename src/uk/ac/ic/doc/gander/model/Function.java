@@ -46,10 +46,6 @@ public class Function implements BuildableScope {
 		return parent;
 	}
 
-	public Scope lookup(String token) {
-		return null;
-	}
-
 	public Map<String, Package> getPackages() {
 		return Collections.emptyMap();
 	}
