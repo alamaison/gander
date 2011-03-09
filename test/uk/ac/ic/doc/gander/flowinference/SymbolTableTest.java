@@ -269,10 +269,105 @@ public class SymbolTableTest {
 		assertTrue("fatty's symbol table contains 'adopted_children' but it "
 				+ "isn't recognised as referring to a package",
 				type instanceof TPackage);
-		
+
 		Package adopted = model.lookupPackage("adopted_children");
-		assertEquals("Type resolved to a package but not to 'adopted_children'", adopted,
-				((TPackage) type).getScopeInstance());
+		assertEquals(
+				"Type resolved to a package but not to 'adopted_children'",
+				adopted, ((TPackage) type).getNamespaceInstance());
+	}
+
+	@Test
+	public void fromImportFirstItem() {
+		Module fetch = model.lookupModule("hgext.fetch");
+
+		assertTrue("fetch's symbol table doesn't include 'commands'", table
+				.symbols(fetch).containsKey("commands"));
+
+		Type type = table.symbols(fetch).get("commands");
+		assertTrue("fetch's symbol table contains 'commands' but it isn't "
+				+ "recognised as referring to a module",
+				type instanceof TModule);
+
+		Module commands = model.lookupModule("mercurial.commands");
+		assertEquals("Type resolved to a module but not to "
+				+ "'mercurial.commands'", commands, ((TModule) type)
+				.getModuleInstance());
+	}
+
+	@Test
+	public void fromImportSubsequentItem() {
+		Module fetch = model.lookupModule("hgext.fetch");
+
+		assertTrue("fetch's symbol table doesn't include 'hg'", table.symbols(
+				fetch).containsKey("hg"));
+
+		Type type = table.symbols(fetch).get("hg");
+		assertTrue("fetch's symbol table contains 'hg' but it isn't "
+				+ "recognised as referring to a module",
+				type instanceof TModule);
+
+		Module hg = model.lookupModule("mercurial.hg");
+		assertEquals("Type resolved to a module but not to 'mercurial.hg'", hg,
+				((TModule) type).getModuleInstance());
+	}
+
+	@Test
+	public void fromImportAs() {
+		Module fetch = model.lookupModule("hgext.fetch");
+
+		assertTrue("fetch's symbol table doesn't include 'droid'", table
+				.symbols(fetch).containsKey("droid"));
+
+		Type type = table.symbols(fetch).get("droid");
+		assertTrue("fetch's symbol table contains 'droid' but it isn't "
+				+ "recognised as referring to a module",
+				type instanceof TModule);
+
+		Module droid = model.lookupModule("mercurial.zorg");
+		assertEquals("Type resolved to a module but not to 'mercurial.droid'",
+				droid, ((TModule) type).getModuleInstance());
+	}
+
+	/**
+	 * Imports module from a relative package.
+	 */
+	@Test
+	public void fromImportModuleFromPackageRelative() {
+		Module fetch = model.lookupModule("hgext.fetch");
+
+		assertTrue("fetch's symbol table doesn't include 'me'", table.symbols(
+				fetch).containsKey("me"));
+
+		Type type = table.symbols(fetch).get("me");
+		assertTrue("fetch's symbol table contains 'me' but it isn't "
+				+ "recognised as referring to a module",
+				type instanceof TModule);
+
+		Module me = model.lookupModule("hgext.catch.me");
+		assertEquals("Type resolved to a module but not to "
+				+ "'hgext.catch.me'", me, ((TModule) type).getModuleInstance());
+	}
+
+	/**
+	 * Imports function from a relative module.
+	 */
+	@Test
+	public void fromImportFunctionFromModuleRelative() {
+		Module fetch = model.lookupModule("hgext.fetch");
+
+		assertTrue("fetch's symbol table doesn't include 'hamstring'", table
+				.symbols(fetch).containsKey("hamstring"));
+
+		Type type = table.symbols(fetch).get("hamstring");
+		assertTrue("fetch's symbol table contains 'hamstring' but it isn't "
+				+ "recognised as referring to a function",
+				type instanceof TFunction);
+
+		Function hamstring = model.lookupModule("hgext.stretch").getFunctions()
+				.get("hamstring");
+		assertEquals("Type resolved to a function but not to "
+				+ "'hamstring' in 'hgext.stretch'", hamstring,
+				((TFunction) type).getFunctionInstance());
 	}
 
 	// ./children/maggie.py: import bobby
@@ -283,7 +378,6 @@ public class SymbolTableTest {
 	// ./start.py: import stepchildren
 	// ./start.py: import stepchildren.uglychild as william
 	// ./adopted_children/jake.py/fatty: import adopted_children
-
 
 	@Test
 	public void symbolsTopLevel() {

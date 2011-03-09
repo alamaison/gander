@@ -23,7 +23,7 @@ import uk.ac.ic.doc.gander.model.Package;
  */
 abstract class ScopedModuleBuilder extends VisitorBase {
 
-	private Stack<BuildableScope> scopes = new Stack<BuildableScope>();
+	private Stack<BuildableNamespace> scopes = new Stack<BuildableNamespace>();
 	private String moduleName;
 	private Package parent;
 
@@ -32,7 +32,7 @@ abstract class ScopedModuleBuilder extends VisitorBase {
 		this.parent = parent;
 	}
 
-	protected void traverseScope(BuildableScope scope, SimpleNode node)
+	protected void traverseScope(BuildableNamespace scope, SimpleNode node)
 			throws Exception {
 		scopes.push(scope);
 		node.traverse(this);
@@ -40,9 +40,9 @@ abstract class ScopedModuleBuilder extends VisitorBase {
 	}
 
 	/**
-	 * Return parent scope of last scope created.
+	 * Return parent scope of last namespace created.
 	 */
-	protected BuildableScope getScope() {
+	protected BuildableNamespace getScope() {
 		return (!scopes.empty()) ? scopes.peek() : null;
 	}
 

@@ -17,52 +17,30 @@ import uk.ac.ic.doc.gander.model.Class;
 import uk.ac.ic.doc.gander.model.Function;
 import uk.ac.ic.doc.gander.model.Module;
 import uk.ac.ic.doc.gander.model.Package;
-import uk.ac.ic.doc.gander.model.Scope;
+import uk.ac.ic.doc.gander.model.Namespace;
 
 abstract class ImportSimulator {
 
-	private Scope importReceiver;
+	private Namespace importReceiver;
 	private Package topLevel;
 
-	ImportSimulator(Scope importReceiver, Package topLevel) {
+	ImportSimulator(Namespace importReceiver, Package topLevel) {
 		this.importReceiver = importReceiver;
 		this.topLevel = topLevel;
 	}
 
-	void simulateImportFrom(Module module, String itemName) {
-		simulateImportFromAs(module, itemName, itemName);
+	void simulateImportFrom(String fromName, String itemName) {
+		simulateImportFromAs(fromName, itemName, itemName);
 	}
 
-	void simulateImportFromAs(Module module, String itemName, String asName) {
-		Type type = null;
+	void simulateImportFromAs(String fromName, String itemName, String asName) {
+		List<String> tokens = new LinkedList<String>(SymbolTable
+				.dottedNameToImportTokens(fromName));
 
-		// Resolve item name to an item inside the module
-		Package pkg = module.getPackages().get(itemName);
-		if (pkg != null) {
-			type = new TPackage(pkg);
-		} else {
-			Module submodule = module.getModules().get(itemName);
-			if (submodule != null) {
-				type = new TModule(submodule);
-			} else {
-				Class klass = module.getClasses().get(itemName);
-				if (klass != null) {
-					type = new TClass(klass);
-				} else {
-					Function function = module.getFunctions().get(itemName);
-					if (function != null) {
-						type = new TFunction(function);
-					}
+		Package parentPackage = findParentPackage(importReceiver);
 
-					// TODO: The target of the 'from foo import bar' can
-					// be a variable.
-				}
-			}
-		}
-
-		if (type != null) {
-			importInto(importReceiver, type, asName);
-		}
+		simulateImportFromAs(tokens, itemName, parentPackage, importReceiver,
+				asName);
 	}
 
 	void simulateImportAs(String importName, String asName) {
@@ -82,17 +60,6 @@ abstract class ImportSimulator {
 		simulateImport(tokens, parentPackage, importReceiver);
 	}
 
-	private Package findParentPackage(Scope scope) {
-		Scope parent = scope.getParentScope();
-		if (parent == null)
-			return null;
-
-		if (parent instanceof Package)
-			return (Package) parent;
-		else
-			return findParentPackage(parent.getParentScope());
-	}
-
 	/**
 	 * Import a module as in {@code import foo.bar.baz}.
 	 * 
@@ -108,12 +75,12 @@ abstract class ImportSimulator {
 	 * {@code y} in {@code x}.
 	 */
 	private void simulateImport(List<String> importPath,
-			Package relativeToPackage, Scope localNamespace) {
+			Package relativeToPackage, Namespace localNamespace) {
 		simulateImportHelper(importPath, relativeToPackage, localNamespace);
 	}
 
 	private void simulateImportAs(List<String> importPath,
-			Package relativeToPackage, Scope localNamespace, String as) {
+			Package relativeToPackage, Namespace localNamespace, String as) {
 
 		TImportable loaded = simulateImportHelper(importPath,
 				relativeToPackage, null);
@@ -122,7 +89,7 @@ abstract class ImportSimulator {
 	}
 
 	private TImportable simulateImportHelper(List<String> importPath,
-			Package relativeToPackage, Scope importReceiver) {
+			Package relativeToPackage, Namespace importReceiver) {
 
 		List<String> processed = new LinkedList<String>();
 		TImportable loaded = null;
@@ -131,10 +98,47 @@ abstract class ImportSimulator {
 			loaded = simulateLoad(processed, relativeToPackage);
 			if (importReceiver != null)
 				importInto(importReceiver, loaded, token);
-			importReceiver = loaded.getScopeInstance();
+			importReceiver = loaded.getNamespaceInstance();
 		}
 
 		return loaded;
+	}
+
+	void simulateImportFromAs(List<String> fromPath, String itemName,
+			Package relativeToPackage, Namespace localNamespace, String asName) {
+
+		Namespace namespaceToImportFrom = simulateImportHelper(fromPath,
+				relativeToPackage, null).getNamespaceInstance();
+
+		// Resolve item name to an item inside the namespace
+		Type type = null;
+		Package pkg = namespaceToImportFrom.getPackages().get(itemName);
+		if (pkg != null) {
+			type = new TPackage(pkg);
+		} else {
+			Module submodule = namespaceToImportFrom.getModules().get(itemName);
+			if (submodule != null) {
+				type = new TModule(submodule);
+			} else {
+				Class klass = namespaceToImportFrom.getClasses().get(itemName);
+				if (klass != null) {
+					type = new TClass(klass);
+				} else {
+					Function function = namespaceToImportFrom.getFunctions()
+							.get(itemName);
+					if (function != null) {
+						type = new TFunction(function);
+					}
+
+					// TODO: The target of the 'from foo import bar' can
+					// be a variable.
+				}
+			}
+		}
+
+		if (type != null) {
+			importInto(importReceiver, type, asName);
+		}
 	}
 
 	/**
@@ -190,6 +194,17 @@ abstract class ImportSimulator {
 		return null;
 	}
 
-	protected abstract void importInto(Scope scope, Type loadedImportable,
+	private Package findParentPackage(Namespace scope) {
+		Namespace parent = scope.getParentScope();
+		if (parent == null)
+			return null;
+
+		if (parent instanceof Package)
+			return (Package) parent;
+		else
+			return findParentPackage(parent.getParentScope());
+	}
+
+	protected abstract void importInto(Namespace scope, Type loadedImportable,
 			String as);
 }

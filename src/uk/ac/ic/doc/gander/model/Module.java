@@ -6,9 +6,9 @@ import java.util.Map;
 
 import org.python.pydev.parser.jython.SimpleNode;
 
-import uk.ac.ic.doc.gander.model.build.BuildableScope;
+import uk.ac.ic.doc.gander.model.build.BuildableNamespace;
 
-public class Module implements Importable, BuildableScope {
+public class Module implements Importable, BuildableNamespace {
 
 	private Map<String, Class> classes = new HashMap<String, Class>();
 	private Map<String, Function> functions = new HashMap<String, Function>();
@@ -48,7 +48,7 @@ public class Module implements Importable, BuildableScope {
 		return parent;
 	}
 
-	public Scope getParentScope() {
+	public Namespace getParentScope() {
 		return getParentPackage();
 	}
 

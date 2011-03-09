@@ -8,18 +8,18 @@ import org.python.pydev.parser.jython.ast.FunctionDef;
 import org.python.pydev.parser.jython.ast.NameTok;
 
 import uk.ac.ic.doc.gander.cfg.model.Cfg;
-import uk.ac.ic.doc.gander.model.build.BuildableScope;
+import uk.ac.ic.doc.gander.model.build.BuildableNamespace;
 
-public class Function implements BuildableScope {
+public class Function implements BuildableNamespace {
 
 	private FunctionDef function;
-	private Scope parent;
+	private Namespace parent;
 	private Map<String, Function> functions = new HashMap<String, Function>();
 	private Map<String, Class> classes = new HashMap<String, Class>();
 
 	private Cfg graph = null;
 
-	public Function(FunctionDef function, Scope parent) {
+	public Function(FunctionDef function, Namespace parent) {
 		this.function = function;
 		this.parent = parent;
 	}
@@ -42,7 +42,7 @@ public class Function implements BuildableScope {
 		return function;
 	}
 
-	public Scope getParentScope() {
+	public Namespace getParentScope() {
 		return parent;
 	}
 

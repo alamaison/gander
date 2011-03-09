@@ -1,9 +1,9 @@
 package uk.ac.ic.doc.gander.flowinference.types;
 
 import uk.ac.ic.doc.gander.model.Class;
-import uk.ac.ic.doc.gander.model.Scope;
+import uk.ac.ic.doc.gander.model.Namespace;
 
-public class TClass implements ScopeType {
+public class TClass implements TNamespace {
 	
 	private Class classInstance;
 
@@ -16,7 +16,7 @@ public class TClass implements ScopeType {
 		return classInstance;
 	}
 
-	public Scope getScopeInstance() {
+	public Namespace getNamespaceInstance() {
 		return getClassInstance();
 	}
 

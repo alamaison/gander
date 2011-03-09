@@ -7,17 +7,17 @@ import java.util.Map;
 import org.python.pydev.parser.jython.ast.ClassDef;
 import org.python.pydev.parser.jython.ast.NameTok;
 
-import uk.ac.ic.doc.gander.model.build.BuildableScope;
+import uk.ac.ic.doc.gander.model.build.BuildableNamespace;
 
-public class Class implements BuildableScope {
+public class Class implements BuildableNamespace {
 
 	private Map<String, Function> methods = new HashMap<String, Function>();
 	private Map<String, Class> classes = new HashMap<String, Class>();
 
 	private ClassDef cls;
-	private Scope parent;
+	private Namespace parent;
 
-	public Class(ClassDef cls, Scope parent) {
+	public Class(ClassDef cls, Namespace parent) {
 		this.cls = cls;
 		this.parent = parent;
 	}
@@ -34,7 +34,7 @@ public class Class implements BuildableScope {
 		return cls;
 	}
 
-	public Scope getParentScope() {
+	public Namespace getParentScope() {
 		return parent;
 	}
 

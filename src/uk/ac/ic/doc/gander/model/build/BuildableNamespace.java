@@ -4,9 +4,9 @@ import uk.ac.ic.doc.gander.model.Class;
 import uk.ac.ic.doc.gander.model.Function;
 import uk.ac.ic.doc.gander.model.Module;
 import uk.ac.ic.doc.gander.model.Package;
-import uk.ac.ic.doc.gander.model.Scope;
+import uk.ac.ic.doc.gander.model.Namespace;
 
-public interface BuildableScope extends Scope {
+public interface BuildableNamespace extends Namespace {
 
 	public void addPackage(Package pkg);
 

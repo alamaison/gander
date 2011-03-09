@@ -10,9 +10,9 @@ import java.util.Queue;
 
 import org.python.pydev.parser.jython.ParseException;
 
-import uk.ac.ic.doc.gander.model.build.BuildableScope;
+import uk.ac.ic.doc.gander.model.build.BuildableNamespace;
 
-public class Package implements Importable, BuildableScope {
+public class Package implements Importable, BuildableNamespace {
 
 	private HashMap<String, Module> modules = new HashMap<String, Module>();
 	private HashMap<String, Package> packages = new HashMap<String, Package>();
@@ -20,8 +20,8 @@ public class Package implements Importable, BuildableScope {
 	private Package parent;
 	private Module initPy;
 
-	public Package(String name, Package parent, Module initPy) throws IOException,
-			ParseException, InvalidElementException {
+	public Package(String name, Package parent, Module initPy)
+			throws IOException, ParseException, InvalidElementException {
 		this.name = name;
 		this.parent = parent;
 		this.initPy = initPy;
@@ -43,8 +43,13 @@ public class Package implements Importable, BuildableScope {
 	public String getFullName() {
 		if (isTopLevel())
 			return getName();
-		else
-			return parent.getFullName() + "." + getName();
+		else {
+			String parentName = parent.getFullName();
+			if ("".equals(parentName))
+				return getName();
+			else
+				return parentName + "." + getName();
+		}
 	}
 
 	public Map<String, Package> getPackages() {
@@ -66,7 +71,7 @@ public class Package implements Importable, BuildableScope {
 			return Collections.emptyMap();
 		return initPy.getFunctions();
 	}
-	
+
 	public Module lookupModule(List<String> importNameTokens) {
 		Queue<String> tokens = new LinkedList<String>(importNameTokens);
 
@@ -101,7 +106,7 @@ public class Package implements Importable, BuildableScope {
 		return parent;
 	}
 
-	public Scope getParentScope() {
+	public Namespace getParentScope() {
 		return getParentPackage();
 	}
 

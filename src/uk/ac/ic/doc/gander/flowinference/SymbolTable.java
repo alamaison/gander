@@ -23,14 +23,14 @@ import uk.ac.ic.doc.gander.model.Class;
 import uk.ac.ic.doc.gander.model.Function;
 import uk.ac.ic.doc.gander.model.Model;
 import uk.ac.ic.doc.gander.model.Module;
+import uk.ac.ic.doc.gander.model.Namespace;
 import uk.ac.ic.doc.gander.model.Package;
-import uk.ac.ic.doc.gander.model.Scope;
 
 public class SymbolTable {
 
-	private Stack<Scope> scopes = new Stack<Scope>();
+	private Stack<Namespace> scopes = new Stack<Namespace>();
 
-	private Map<Scope, Map<String, Type>> symbols = new HashMap<Scope, Map<String, Type>>();
+	private Map<Namespace, Map<String, Type>> symbols = new HashMap<Namespace, Map<String, Type>>();
 
 	private Model model;
 
@@ -39,7 +39,7 @@ public class SymbolTable {
 		processScope(model.getTopLevelPackage());
 	}
 
-	public Map<String, Type> symbols(Scope scope) {
+	public Map<String, Type> symbols(Namespace scope) {
 		Map<String, Type> bindings = symbols.get(scope);
 		if (bindings == null)
 			bindings = Collections.emptyMap();
@@ -74,23 +74,29 @@ public class SymbolTable {
 
 		@Override
 		public Object visitImport(Import node) throws Exception {
-			new ImportSymbols().resolveImport(node);
+			try {
+				new ImportSymbols().resolveImport(node);
+			} catch (UnresolvedImportError e) {
+			}
 			return null;
 		}
 
 		@Override
 		public Object visitImportFrom(ImportFrom node) throws Exception {
-			new ImportSymbols().resolveImportFrom(node);
+			try {
+				new ImportSymbols().resolveImportFrom(node);
+			} catch (UnresolvedImportError e) {
+			}
 			return null;
 		}
 
 		@Override
 		public void traverse(SimpleNode node) throws Exception {
-			
+
 			// Do not traverse. This has already been taken care of while
 			// building the model. processScope() does the equivalent of
 			// traversing the elements using the model instead of the AST.
-			
+
 		}
 
 		@Override
@@ -142,19 +148,18 @@ public class SymbolTable {
 		}
 
 		public void resolveImportFrom(ImportFrom node) throws Exception {
-			Module module = model.lookupModule(((NameTok) node.module).id);
-			if (module == null)
-				return;
 
 			for (aliasType alias : node.names) {
 				if (alias.asname != null) {
 					new ImportResolver(scopes.peek(), model
-							.getTopLevelPackage()).simulateImportFromAs(module,
+							.getTopLevelPackage()).simulateImportFromAs(
+							((NameTok) node.module).id,
 							((NameTok) alias.name).id,
 							((NameTok) alias.asname).id);
 				} else {
 					new ImportResolver(scopes.peek(), model
-							.getTopLevelPackage()).simulateImportFrom(module,
+							.getTopLevelPackage()).simulateImportFrom(
+							((NameTok) node.module).id,
 							((NameTok) alias.name).id);
 				}
 			}
@@ -164,17 +169,18 @@ public class SymbolTable {
 	}
 
 	private class ImportResolver extends ImportSimulator {
-		private ImportResolver(Scope importReceiver, Package topLevel) {
+		private ImportResolver(Namespace importReceiver, Package topLevel) {
 			super(importReceiver, topLevel);
 		}
 
 		@Override
-		protected void importInto(Scope scope, Type loadedImportable, String as) {
+		protected void importInto(Namespace scope, Type loadedImportable,
+				String as) {
 			put(scope, as, loadedImportable);
 		}
 	}
 
-	private void processScope(Scope scope) throws Exception {
+	private void processScope(Namespace scope) throws Exception {
 		scopes.push(scope);
 
 		for (Package pkg : scope.getPackages().values()) {
@@ -216,7 +222,7 @@ public class SymbolTable {
 		return Arrays.asList(importPath.split("\\."));
 	}
 
-	private void put(Scope scope, String name, Type type) {
+	private void put(Namespace scope, String name, Type type) {
 		assert type != null;
 
 		Map<String, Type> scopeMapping = symbols.get(scope);

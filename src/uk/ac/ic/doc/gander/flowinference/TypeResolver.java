@@ -9,21 +9,21 @@ import org.python.pydev.parser.jython.ast.Name;
 import org.python.pydev.parser.jython.ast.NameTok;
 import org.python.pydev.parser.jython.ast.VisitorBase;
 
-import uk.ac.ic.doc.gander.flowinference.types.ScopeType;
+import uk.ac.ic.doc.gander.flowinference.types.TNamespace;
 import uk.ac.ic.doc.gander.flowinference.types.Type;
 import uk.ac.ic.doc.gander.model.Model;
-import uk.ac.ic.doc.gander.model.Scope;
+import uk.ac.ic.doc.gander.model.Namespace;
 
 public class TypeResolver extends VisitorBase {
 
-	private Stack<Scope> scopes = new Stack<Scope>();
+	private Stack<Namespace> scopes = new Stack<Namespace>();
 	private SymbolTable table;
 
 	public TypeResolver(Model model) throws Exception {
 		this.table = new SymbolTable(model);
 	}
 
-	public Type typeOf(SimpleNode node, Scope scope) throws Exception {
+	public Type typeOf(SimpleNode node, Namespace scope) throws Exception {
 		try {
 			scopes.push(scope);
 			return (Type) node.accept(this);
@@ -43,9 +43,13 @@ public class TypeResolver extends VisitorBase {
 
 		Type valueType = typeOf(node.value, scopes.peek());
 
-		if (valueType != null && valueType instanceof ScopeType) {
-			Scope scope = ((ScopeType) valueType).getScopeInstance();
-			return table.symbols(scope).get(((NameTok) node.attr).id);
+		if (valueType != null && valueType instanceof TNamespace) {
+			try {
+				Namespace scope = ((TNamespace) valueType)
+						.getNamespaceInstance();
+				return table.symbols(scope).get(((NameTok) node.attr).id);
+			} catch (UnresolvedImportError e) {
+			}
 		}
 
 		return null;
@@ -63,10 +67,10 @@ public class TypeResolver extends VisitorBase {
 
 	private static class LexicalTokenResolver {
 
-		private Scope scope;
+		private Namespace scope;
 		private SymbolTable table;
 
-		public LexicalTokenResolver(Scope scope, SymbolTable table) {
+		public LexicalTokenResolver(Namespace scope, SymbolTable table) {
 			this.scope = scope;
 			this.table = table;
 		}
@@ -75,7 +79,8 @@ public class TypeResolver extends VisitorBase {
 			return resolveTokenInScopeRecursively(token, scope);
 		}
 
-		private Type resolveTokenInScopeRecursively(String token, Scope scope) {
+		private Type resolveTokenInScopeRecursively(String token,
+				Namespace scope) {
 			Type type = null;
 
 			if (scope != null) {

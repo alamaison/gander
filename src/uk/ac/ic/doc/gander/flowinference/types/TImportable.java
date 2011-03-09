@@ -1,4 +1,4 @@
 package uk.ac.ic.doc.gander.flowinference.types;
 
-public interface TImportable extends ScopeType {
+public interface TImportable extends TNamespace {
 }
