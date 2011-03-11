@@ -2,59 +2,55 @@ package uk.ac.ic.doc.gander.model.build;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.URISyntaxException;
 import java.net.URL;
 
 import org.python.pydev.parser.jython.ParseException;
 
+import uk.ac.ic.doc.gander.hierarchy.Hierarchy;
 import uk.ac.ic.doc.gander.model.Class;
+import uk.ac.ic.doc.gander.model.Function;
+import uk.ac.ic.doc.gander.model.InvalidElementException;
+import uk.ac.ic.doc.gander.model.Model;
+import uk.ac.ic.doc.gander.model.Module;
 import uk.ac.ic.doc.gander.model.Package;
-import uk.ac.ic.doc.gander.model.*;
 
 public class PackageBuilder {
 
-	private static final String PACKAGE_TAG_NAME = "__init__";
-	private static final String PACKAGE_TAG_FILENAME = PACKAGE_TAG_NAME + ".py";
-
 	private BuildablePackage pkg;
-	private boolean isTopLevel;
 
-	public PackageBuilder(File directory, Package parent, Model model)
-			throws Exception {
-		isTopLevel = parent == null;
+	public PackageBuilder(File directory, Model model) throws Exception {
 
-		if (!directory.isDirectory()
-				|| (!isTopLevel && !isPythonPackage(directory)))
-			throw new InvalidElementException("Not a package", directory);
+		Hierarchy hierarchy = new Hierarchy(directory);
 
-		String name = (isTopLevel) ? "" : directory.getName();
-		pkg = new BuildablePackage(name, parent);
+		pkg = new BuildablePackage("", null);
 
-		if (!isTopLevel) {
-			buildNormalPackage(directory, parent, name);
-		} else {
-			buildTopLevelPackage(parent, model, name);
-		}
+		buildTopLevelPackage(model);
 
-		processDirectory(directory, model);
+		processHierarchyPackage(hierarchy.getTopLevelPackage(), model);
+	}
+
+	private PackageBuilder(uk.ac.ic.doc.gander.hierarchy.Package hierarchy,
+			Package parent, Model model) throws Exception {
+
+		assert parent != null;
+
+		pkg = new BuildablePackage(hierarchy.getName(), parent);
+
+		copyModuleContents(parseFile(hierarchy.getName(), parent, hierarchy
+				.getInitFile()));
+
+		processHierarchyPackage(hierarchy, model);
 	}
 
 	public Package getPackage() {
 		return pkg;
 	}
 
-	private void buildTopLevelPackage(Package parent, Model model, String name)
-			throws Exception {
-		assert "".equals(name);
-		assert parent == null;
+	private void buildTopLevelPackage(Model model) throws Exception {
 		assert model.getTopLevelPackage() == null;
 		model.setTopLevelPackage(pkg);
 		copyModuleContents(createDummyBuiltins());
-	}
-
-	private void buildNormalPackage(File directory, Package parent, String name)
-			throws Exception {
-		copyModuleContents(createInitPy(directory, name, parent));
+		// processPythonPath(model);
 	}
 
 	private void copyModuleContents(Module module) {
@@ -62,12 +58,6 @@ public class PackageBuilder {
 			pkg.addClass(klass);
 		for (Function function : module.getFunctions().values())
 			pkg.addFunction(function);
-	}
-
-	private Module createInitPy(File directory, String name, Package parent)
-			throws Exception {
-		File initFile = new File(directory, PACKAGE_TAG_FILENAME);
-		return parseFile(name, parent, initFile);
 	}
 
 	private Module parseFile(String name, Package parent, File moduleFile)
@@ -85,38 +75,45 @@ public class PackageBuilder {
 		return parseFile("__builtins__", null, new File(builtins.toURI()));
 	}
 
-	private void processDirectory(File directory, Model model) throws Exception {
+	private void processHierarchyPackage(
+			uk.ac.ic.doc.gander.hierarchy.Package hierarchy, Model model)
+			throws Exception {
 
-		for (File f : directory.listFiles()) {
-			try {
-				if (f.isDirectory()) {
-					PackageBuilder builder = new PackageBuilder(f, pkg, model);
-					pkg.addPackage(builder.getPackage());
-				} else if (f.isFile()) {
-					if (f.getName().equals(PACKAGE_TAG_FILENAME))
-						continue;
-					ModuleBuilder builder = new ModuleBuilder(f, pkg);
-					pkg.addModule(builder.getModule());
-				}
-			} catch (InvalidElementException e) {
-				/* carry on */
-			}
+		for (uk.ac.ic.doc.gander.hierarchy.Package subPackage : hierarchy
+				.getPackages().values()) {
+
+			PackageBuilder builder = new PackageBuilder(subPackage, pkg, model);
+			pkg.addPackage(builder.getPackage());
 		}
+
+		for (uk.ac.ic.doc.gander.hierarchy.Module subModule : hierarchy
+				.getModules().values()) {
+
+			ModuleBuilder builder = new ModuleBuilder(subModule, pkg);
+			pkg.addModule(builder.getModule());
+		}
+
 	}
 
-	/**
-	 * Is the given directory a Python package? Does it contain an __init__.py?
-	 */
-	private static boolean isPythonPackage(File directory) {
-		if (!directory.isDirectory())
-			return false;
+	private void processPythonPath(Model model) throws Exception {
+		String[] pythonPath = { "/usr/lib/python2.6",
+				"/usr/lib/python2.6/plat-linux2", "/usr/lib/python2.6/lib-tk",
+				"/usr/lib/python2.6/lib-old", "/usr/lib/python2.6/lib-dynload",
+				"/usr/lib/python2.6/dist-packages",
+				"/usr/lib/python2.6/dist-packages/PIL",
+				"/usr/lib/python2.6/dist-packages/gst-0.10",
+				"/usr/lib/pymodules/python2.6",
+				"/usr/lib/python2.6/dist-packages/gtk-2.0",
+				"/usr/lib/pymodules/python2.6/gtk-2.0",
+				"/usr/lib/python2.6/dist-packages/wx-2.8-gtk2-unicode",
+				"/usr/local/lib/python2.6/dist-packages", };
+		String[] pythonPath2 = { "/usr/lib/python2.6" };
+		for (String path : pythonPath2) {
+			File directory = new File(path);
+			if (directory == null || !directory.isDirectory())
+				continue; // directory doesn't exist
 
-		for (File f : directory.listFiles()) {
-			String name = ModuleParser.moduleNameFromFile(f);
-			if (name != null && name.equals(PACKAGE_TAG_NAME))
-				return true;
+			// processDirectory(directory, model);
 		}
-
-		return false;
 	}
 }

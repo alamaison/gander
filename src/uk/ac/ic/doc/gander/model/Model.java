@@ -12,7 +12,7 @@ public class Model {
 	private Package topLevelPackage;
 
 	public Model(File topLevelDirectory) throws Exception {
-		new PackageBuilder(topLevelDirectory, null, this).getPackage();
+		new PackageBuilder(topLevelDirectory, this).getPackage();
 	}
 
 	public Package getTopLevelPackage() {
