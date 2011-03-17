@@ -12,7 +12,7 @@ public class Module {
 		assert file != null;
 		assert file.isFile();
 		assert parent != null;
-		
+
 		this.name = name;
 		this.file = file;
 		this.parent = parent;
@@ -24,6 +24,14 @@ public class Module {
 
 	public String getName() {
 		return name;
+	}
+
+	public String getFullyQualifiedName() {
+		String parentName = parent.getFullyQualifiedName();
+		if ("".equals(parentName))
+			return getName();
+		else
+			return parentName + "." + getName();
 	}
 
 	public File getFile() {

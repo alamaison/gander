@@ -158,7 +158,10 @@ abstract class ImportSimulator {
 	 */
 	private TImportable simulateLoad(List<String> importPath,
 			Package relativeToPackage) {
-		TImportable loaded = simulateRelativeLoad(importPath, relativeToPackage);
+		TImportable loaded = null;
+		
+		if (relativeToPackage != null)
+			loaded = simulateRelativeLoad(importPath, relativeToPackage);
 
 		if (loaded == null)
 			loaded = simulateRelativeLoad(importPath, topLevel);

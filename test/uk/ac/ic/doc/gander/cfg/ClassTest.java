@@ -8,6 +8,7 @@ import java.net.URL;
 import org.junit.Test;
 
 import uk.ac.ic.doc.gander.cfg.model.Cfg;
+import uk.ac.ic.doc.gander.hierarchy.Hierarchy;
 import uk.ac.ic.doc.gander.model.Function;
 import uk.ac.ic.doc.gander.model.Model;
 
@@ -21,16 +22,16 @@ public class ClassTest {
 		URL topLevel = getClass().getResource(projectPath);
 
 		File topLevelDirectory = new File(topLevel.toURI());
-
-		Model model = new Model(topLevelDirectory);
+		Hierarchy hierarchy = new Hierarchy(topLevelDirectory);
+		Model model = new Model(hierarchy);
 		return model;
 	}
 
 	public void initialise(String className, String methodName)
 			throws Throwable, Exception {
 		Model model = createTestModel(CONTROL_FLOW_PROJ);
-		Function method = model.getTopLevelPackage().getModules().get("classes")
-				.getClasses().get(className).getFunctions().get(methodName);
+		Function method = model.loadModule("classes").getClasses().get(
+				className).getFunctions().get(methodName);
 		assertTrue("No function " + methodName, method != null);
 
 		graph = method.getCfg();

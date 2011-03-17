@@ -24,20 +24,20 @@ public class Hierarchy {
 		return topLevel;
 	}
 
-	public Module lookupModule(String fullyQualifiedName) {
-		return getTopLevelPackage().lookupModule(fullyQualifiedName);
+	public Module findModule(String fullyQualifiedName) {
+		return getTopLevelPackage().findModule(fullyQualifiedName);
 	}
 
-	public Package lookupPackage(String fullyQualifiedName) {
-		return getTopLevelPackage().lookupPackage(fullyQualifiedName);
+	public Package findPackage(String fullyQualifiedName) {
+		return getTopLevelPackage().findPackage(fullyQualifiedName);
 	}
 
-	public Module lookupModule(List<String> fullyQualifiedName) {
-		return getTopLevelPackage().lookupModule(fullyQualifiedName);
+	public Module findModule(List<String> fullyQualifiedName) {
+		return getTopLevelPackage().findModule(fullyQualifiedName);
 	}
 
-	public Package lookupPackage(List<String> fullyQualifiedName) {
-		return getTopLevelPackage().lookupPackage(fullyQualifiedName);
+	public Package findPackage(List<String> fullyQualifiedName) {
+		return getTopLevelPackage().findPackage(fullyQualifiedName);
 	}
 
 	private static List<File> directoryToList(File directory) {

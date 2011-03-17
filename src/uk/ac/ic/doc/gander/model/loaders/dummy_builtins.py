@@ -6,8 +6,8 @@
 #__package__
 
 
-def abs():
-    pass
+def abs(o):
+	return o.__abs__()
 
 def all():
     pass
@@ -45,8 +45,8 @@ def chr():
 def classmethod():
     pass
 
-def cmp():
-    pass
+def cmp(lhs, rhs):
+	lhs.__eq__(rhs)
 
 def coerce():
     pass
@@ -142,7 +142,7 @@ def iter():
     pass
 
 def len(iterable):
-    pass
+	return iterable.__len__()
 
 def license():
     pass
@@ -256,5 +256,6 @@ def xrange():
     pass
 
 def zip():
-    pass
+	pass
+	
 

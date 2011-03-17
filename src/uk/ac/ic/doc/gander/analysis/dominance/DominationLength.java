@@ -17,11 +17,11 @@ import uk.ac.ic.doc.gander.analysis.BasicBlockTraverser;
 import uk.ac.ic.doc.gander.analysis.SignatureBuilder;
 import uk.ac.ic.doc.gander.cfg.model.BasicBlock;
 import uk.ac.ic.doc.gander.flowinference.TypeResolver;
+import uk.ac.ic.doc.gander.hierarchy.Hierarchy;
 import uk.ac.ic.doc.gander.model.Class;
 import uk.ac.ic.doc.gander.model.Function;
 import uk.ac.ic.doc.gander.model.Model;
 import uk.ac.ic.doc.gander.model.Module;
-import uk.ac.ic.doc.gander.model.Package;
 
 public class DominationLength {
 
@@ -180,20 +180,25 @@ public class DominationLength {
 	private SameVariableOnlyAnalysis matching = new SameVariableOnlyAnalysis();
 	private Model model;
 
-	public DominationLength(Model model) throws Exception {
-		this.model = model;
-		Package pack = model.getTopLevelPackage();
+	public DominationLength(Hierarchy hierarchy) throws Exception {
+		this.model = new Model(hierarchy);
+		uk.ac.ic.doc.gander.hierarchy.Package pack = hierarchy
+				.getTopLevelPackage();
 		analysePackage(pack);
 	}
 
-	private void analysePackage(Package pack) throws Exception {
-		for (Module module : pack.getModules().values())
-			analyseModule(module);
-		for (Package subpackage : pack.getPackages().values())
+	private void analysePackage(uk.ac.ic.doc.gander.hierarchy.Package pack)
+			throws Exception {
+		for (uk.ac.ic.doc.gander.hierarchy.Module module : pack.getModules()
+				.values())
+			analyseModule(module.getFullyQualifiedName());
+		for (uk.ac.ic.doc.gander.hierarchy.Package subpackage : pack
+				.getPackages().values())
 			analysePackage(subpackage);
 	}
 
-	private void analyseModule(Module module) throws Exception {
+	private void analyseModule(String moduleName) throws Exception {
+		Module module = model.loadModule(moduleName);
 		for (Function function : module.getFunctions().values())
 			analyseFunction(function);
 

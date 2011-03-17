@@ -1,21 +1,57 @@
+/**
+ * 
+ */
 package uk.ac.ic.doc.gander.model.build;
 
-public class ModuleBuilder {
+import org.python.pydev.parser.jython.SimpleNode;
 
-	private uk.ac.ic.doc.gander.model.Module module;
+import uk.ac.ic.doc.gander.model.Class;
+import uk.ac.ic.doc.gander.model.Function;
+import uk.ac.ic.doc.gander.model.Model;
+import uk.ac.ic.doc.gander.model.Module;
 
-	public ModuleBuilder(uk.ac.ic.doc.gander.hierarchy.Module hierarchyModule,
-			BuildablePackage parent) throws Exception {
-		ModuleParser parser = new ModuleParser(hierarchyModule.getFile());
-		ModuleBuilderVisitor builder = new ModuleBuilderVisitor(parser
-				.getName(), parent);
-		parser.getAst().accept(builder);
-		module = builder.getModule();
-		parent.addModule(module);
+public final class ModuleBuilder extends ImportAwareBuilder {
+
+	private Module module;
+
+	public ModuleBuilder(String moduleName, Model model, BuildablePackage parent) {
+		super(moduleName, model, parent);
 	}
 
-	public uk.ac.ic.doc.gander.model.Module getModule() {
+	public Module getModule() {
 		return module;
+	}
+
+	@Override
+	protected void onCreatedClass(Class scope) {
+		BuildableNamespace parent = (BuildableNamespace) getScope();
+		if (parent != null)
+			parent.addClass(scope);
+	}
+
+	@Override
+	protected void onCreatedFunction(Function scope) {
+		BuildableNamespace parent = (BuildableNamespace) getScope();
+		if (parent != null)
+			parent.addFunction(scope);
+	}
+
+	@Override
+	protected void onCreatedModule(Module scope) {
+		BuildableNamespace parent = (BuildableNamespace) getScope();
+		if (parent != null)
+			parent.addModule(scope);
+		module = scope;
+	}
+
+	@Override
+	public void traverse(SimpleNode node) throws Exception {
+		node.traverse(this);
+	}
+
+	@Override
+	protected Object unhandled_node(SimpleNode node) throws Exception {
+		return null;
 	}
 
 }

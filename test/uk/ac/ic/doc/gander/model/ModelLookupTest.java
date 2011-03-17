@@ -54,6 +54,7 @@ public class ModelLookupTest extends AbstractModelTest {
 
 	@Test
 	public void submoduleLookup() throws Throwable {
+		getModel().loadModule("my_package.my_submodule");
 		Module module = getModel().lookupModule("my_package.my_submodule");
 		Module expectedModule = getModel().getTopLevelPackage().getPackages()
 				.get("my_package").getModules().get("my_submodule");
@@ -64,8 +65,17 @@ public class ModelLookupTest extends AbstractModelTest {
 	@Test
 	public void packageLookup() throws Throwable {
 		Package pkg = getModel().lookupPackage("my_package");
-		Package expectedPackage= getModel().getTopLevelPackage().getPackages()
+		Package expectedPackage = getModel().getTopLevelPackage().getPackages()
 				.get("my_package");
+		assertEquals(expectedPackage, pkg);
+	}
+
+	@Test
+	public void subpackageLookup() throws Throwable {
+		getModel().loadPackage("my_package.my_subpackage");
+		Package pkg = getModel().lookupPackage("my_package.my_subpackage");
+		Package expectedPackage = getModel().getTopLevelPackage().getPackages()
+				.get("my_package").getPackages().get("my_subpackage");
 		assertEquals(expectedPackage, pkg);
 	}
 }

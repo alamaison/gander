@@ -35,11 +35,11 @@ public abstract class Package {
 		return name;
 	}
 
-	public String getFullName() {
+	public String getFullyQualifiedName() {
 		if (isTopLevel())
 			return getName();
 		else {
-			String parentName = parent.getFullName();
+			String parentName = parent.getFullyQualifiedName();
 			if ("".equals(parentName))
 				return getName();
 			else
@@ -55,15 +55,15 @@ public abstract class Package {
 		return initFile;
 	}
 
-	public Module lookupModule(String relativeName) {
-		return lookupModule(dottedNameToImportTokens(relativeName));
+	public Module findModule(String relativeName) {
+		return findModule(dottedNameToImportTokens(relativeName));
 	}
 
-	public Package lookupPackage(String relativeName) {
-		return lookupPackage(dottedNameToImportTokens(relativeName));
+	public Package findPackage(String relativeName) {
+		return findPackage(dottedNameToImportTokens(relativeName));
 	}
 
-	public Module lookupModule(List<String> relativeName) {
+	public Module findModule(List<String> relativeName) {
 		Queue<String> tokens = new LinkedList<String>(relativeName);
 
 		Package scope = this;
@@ -78,7 +78,7 @@ public abstract class Package {
 		return null;
 	}
 
-	public Package lookupPackage(List<String> importNameTokens) {
+	public Package findPackage(List<String> importNameTokens) {
 		Queue<String> tokens = new LinkedList<String>(importNameTokens);
 
 		Package scope = this;

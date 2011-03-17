@@ -83,4 +83,9 @@ public class Module implements Importable, BuildableNamespace {
 	public void addFunction(Function function) {
 		functions.put(function.getName(), function);
 	}
+
+	@Override
+	public String toString() {
+		return "Module["+getFullName()+"]";
+	}
 }

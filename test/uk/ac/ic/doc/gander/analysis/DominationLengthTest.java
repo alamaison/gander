@@ -12,11 +12,12 @@ import java.util.List;
 import org.junit.Test;
 
 import uk.ac.ic.doc.gander.analysis.dominance.DominationLength;
-import uk.ac.ic.doc.gander.model.Model;
+import uk.ac.ic.doc.gander.hierarchy.Hierarchy;
 
 public class DominationLengthTest {
 
 	private static final String TEST_FOLDER = "python_test_code/dom_length";
+	private Hierarchy hierarchy;
 
 	@Test
 	public void inline() throws Throwable {
@@ -46,8 +47,8 @@ public class DominationLengthTest {
 	private void check(String caseName, List<Integer> expectedCounts,
 			int expectedMin, int expectedMax, double expectedAverage)
 			throws Throwable {
-		Model model = initialise(caseName);
-		DominationLength counter = new DominationLength(model);
+		initialise(caseName);
+		DominationLength counter = new DominationLength(hierarchy);
 		assertEquals(asSortedList(expectedCounts), asSortedList(counter
 				.counts()));
 		assertEquals("Incorrect min", expectedMin, counter.min());
@@ -63,13 +64,13 @@ public class DominationLengthTest {
 		return copy;
 	}
 
-	private Model initialise(String caseName) throws Throwable {
+	private void initialise(String caseName) throws Throwable {
 		URL domLength = getClass().getResource(TEST_FOLDER);
 
 		File domLengthDirectory = new File(domLength.toURI());
 		File topLevelDirectory = new File(domLengthDirectory, caseName);
 
-		return new Model(topLevelDirectory);
+		hierarchy = new Hierarchy(topLevelDirectory);
 	}
 
 }

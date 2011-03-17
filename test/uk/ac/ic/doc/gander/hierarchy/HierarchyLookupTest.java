@@ -8,13 +8,13 @@ public class HierarchyLookupTest extends AbstractHierarchyTest {
 
 	@Test
 	public void moduleLookup() throws Throwable {
-		Module module = getHierarchy().lookupModule("my_module1");
+		Module module = getHierarchy().findModule("my_module1");
 		Module expectedModule = getHierarchy().getTopLevelPackage()
 				.getModules().get("my_module1");
 
 		assertEquals(expectedModule, module);
 
-		module = getHierarchy().lookupModule("my_module2");
+		module = getHierarchy().findModule("my_module2");
 		expectedModule = getHierarchy().getTopLevelPackage().getModules().get(
 				"my_module2");
 
@@ -27,7 +27,7 @@ public class HierarchyLookupTest extends AbstractHierarchyTest {
 	 */
 	@Test
 	public void moduleLookupError1() throws Throwable {
-		assertEquals(null, getHierarchy().lookupModule(""));
+		assertEquals(null, getHierarchy().findModule(""));
 	}
 
 	/**
@@ -35,7 +35,7 @@ public class HierarchyLookupTest extends AbstractHierarchyTest {
 	 */
 	@Test
 	public void moduleLookupError2() throws Throwable {
-		assertEquals(null, getHierarchy().lookupModule("blahkdfkj"));
+		assertEquals(null, getHierarchy().findModule("blahkdfkj"));
 	}
 
 	/**
@@ -43,12 +43,12 @@ public class HierarchyLookupTest extends AbstractHierarchyTest {
 	 */
 	@Test
 	public void moduleLookupError3() throws Throwable {
-		assertEquals(null, getHierarchy().lookupModule("not_a_module"));
+		assertEquals(null, getHierarchy().findModule("not_a_module"));
 	}
 
 	@Test
 	public void submoduleLookup() throws Throwable {
-		Module module = getHierarchy().lookupModule("my_package.my_submodule");
+		Module module = getHierarchy().findModule("my_package.my_submodule");
 		Module expectedModule = getHierarchy().getTopLevelPackage()
 				.getPackages().get("my_package").getModules().get(
 						"my_submodule");
@@ -58,7 +58,7 @@ public class HierarchyLookupTest extends AbstractHierarchyTest {
 
 	@Test
 	public void packageLookup() throws Throwable {
-		Package pkg = getHierarchy().lookupPackage("my_package");
+		Package pkg = getHierarchy().findPackage("my_package");
 		Package expectedPackage = getHierarchy().getTopLevelPackage()
 				.getPackages().get("my_package");
 		assertEquals(expectedPackage, pkg);

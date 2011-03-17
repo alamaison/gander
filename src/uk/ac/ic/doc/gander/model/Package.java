@@ -71,4 +71,10 @@ public abstract class Package implements Importable {
 	public Namespace getParentScope() {
 		return getParentPackage();
 	}
+
+	@Override
+	public String toString() {
+		return "Package["+getFullName()+"]";
+	}
+	
 }

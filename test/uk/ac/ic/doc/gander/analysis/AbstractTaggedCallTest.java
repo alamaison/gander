@@ -7,6 +7,7 @@ import java.net.URL;
 
 import uk.ac.ic.doc.gander.cfg.model.BasicBlock;
 import uk.ac.ic.doc.gander.cfg.model.Cfg;
+import uk.ac.ic.doc.gander.hierarchy.Hierarchy;
 import uk.ac.ic.doc.gander.model.Function;
 import uk.ac.ic.doc.gander.model.Model;
 import uk.ac.ic.doc.gander.model.Module;
@@ -29,9 +30,9 @@ public abstract class AbstractTaggedCallTest {
 
 		File topLevelDirectory = new File(topLevel.toURI());
 
-		model = new Model(topLevelDirectory);
-		module = model.getTopLevelPackage().getModules()
-				.get("case");
+		Hierarchy hierarchy = new Hierarchy(topLevelDirectory);
+		model = new Model(hierarchy);
+		module = model.loadModule("case");
 		function = module.getFunctions().get(caseName);
 		graph = function.getCfg();
 

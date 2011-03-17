@@ -14,6 +14,7 @@ import uk.ac.ic.doc.gander.analysis.dominance.DomMethod;
 import uk.ac.ic.doc.gander.analysis.dominance.DomFront.DomInfo;
 import uk.ac.ic.doc.gander.cfg.model.BasicBlock;
 import uk.ac.ic.doc.gander.cfg.model.Cfg;
+import uk.ac.ic.doc.gander.hierarchy.Hierarchy;
 import uk.ac.ic.doc.gander.model.Model;
 
 public class DomFrontTest {
@@ -54,9 +55,9 @@ public class DomFrontTest {
 
 		File topLevelDirectory = new File(topLevel.toURI());
 
-		graph = new Model(topLevelDirectory).getTopLevelPackage().getModules()
-				.get("my_module").getFunctions().get("test_" + caseName)
-				.getCfg();
+		Hierarchy hierarchy = new Hierarchy(topLevelDirectory);
+		graph = new Model(hierarchy).loadModule("my_module").getFunctions()
+				.get("test_" + caseName).getCfg();
 	}
 
 	@Test

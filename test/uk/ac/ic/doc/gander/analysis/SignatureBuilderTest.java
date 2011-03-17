@@ -215,6 +215,13 @@ public class SignatureBuilderTest extends AbstractTaggedCallTest {
 		checkChains(chains);
 	}
 
+	@Test
+	public void testCallBuiltin() throws Throwable {
+		initialise("call_builtin", 1);
+		String[][] chains = { { "y.a(tag)", "a", "__len__" } };
+		checkChains(chains);
+	}
+
 	private void checkChains(String[]... descriptors) throws Exception {
 		for (String[] descriptor : descriptors) {
 			Set<String> expected = new HashSet<String>();

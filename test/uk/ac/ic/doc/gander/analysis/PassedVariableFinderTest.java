@@ -16,6 +16,7 @@ import org.python.pydev.parser.jython.ast.Name;
 
 import uk.ac.ic.doc.gander.analysis.PassedVariableFinder.PassedVar;
 import uk.ac.ic.doc.gander.cfg.model.BasicBlock;
+import uk.ac.ic.doc.gander.hierarchy.Hierarchy;
 import uk.ac.ic.doc.gander.model.Function;
 import uk.ac.ic.doc.gander.model.Model;
 
@@ -247,14 +248,14 @@ public class PassedVariableFinderTest {
 
 		File topLevelDirectory = new File(topLevel.toURI());
 
-		Model model = new Model(topLevelDirectory);
-		return model;
+		Hierarchy hierarchy = new Hierarchy(topLevelDirectory);
+		return new Model(hierarchy);
 	}
 
 	private void initialise(String testFuncName) throws Throwable, Exception {
 		Model model = createTestModel(TEST_PROJ);
-		Function function = model.getTopLevelPackage().getModules().get(
-				"passed_var").getFunctions().get(testFuncName);
+		Function function = model.loadModule("passed_var").getFunctions().get(
+				testFuncName);
 		assertTrue("No function " + testFuncName, function != null);
 
 		blocks = function.getCfg().getBlocks();

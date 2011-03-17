@@ -197,3 +197,7 @@ def recurse_into_call_imported_from_package_module_clever():
 	subpackage.submodule.call_me_auntie_and_see_how_clever_i_am(y)
 	y.a("tag")
 
+def call_builtin():
+	y = x
+	print len(y)
+	y.a("tag")
