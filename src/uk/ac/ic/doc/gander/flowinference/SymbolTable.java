@@ -1,5 +1,6 @@
 package uk.ac.ic.doc.gander.flowinference;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -16,11 +17,17 @@ import org.python.pydev.parser.jython.ast.NameTok;
 import org.python.pydev.parser.jython.ast.VisitorBase;
 import org.python.pydev.parser.jython.ast.aliasType;
 
+import uk.ac.ic.doc.gander.DottedName;
 import uk.ac.ic.doc.gander.flowinference.types.TClass;
 import uk.ac.ic.doc.gander.flowinference.types.TFunction;
+import uk.ac.ic.doc.gander.flowinference.types.TModule;
+import uk.ac.ic.doc.gander.flowinference.types.TPackage;
+import uk.ac.ic.doc.gander.flowinference.types.TUnresolvedImport;
 import uk.ac.ic.doc.gander.flowinference.types.Type;
+import uk.ac.ic.doc.gander.importing.ImportSimulator;
 import uk.ac.ic.doc.gander.model.Class;
 import uk.ac.ic.doc.gander.model.Function;
+import uk.ac.ic.doc.gander.model.Importable;
 import uk.ac.ic.doc.gander.model.Model;
 import uk.ac.ic.doc.gander.model.Module;
 import uk.ac.ic.doc.gander.model.Namespace;
@@ -174,9 +181,61 @@ public class SymbolTable {
 		}
 
 		@Override
-		protected void importInto(Namespace scope, Type loadedImportable,
+		protected void bindName(Namespace importReceiver, Namespace loaded,
 				String as) {
-			put(scope, as, loadedImportable);
+			assert loaded != null;
+			assert importReceiver != null;
+			assert !as.isEmpty();
+
+			Type type = null;
+			if (loaded instanceof Package)
+				type = new TPackage((Package) loaded);
+			else if (loaded instanceof Module)
+				type = new TModule((Module) loaded);
+			else if (loaded instanceof Class)
+				type = new TClass((Class) loaded);
+			else if (loaded instanceof Function)
+				type = new TFunction((Function) loaded);
+
+			// TODO: The target of the 'from foo import bar' can
+			// be a variable.
+
+			put(importReceiver, as, type);
+		}
+
+		@Override
+		protected Importable simulateLoad(List<String> importPath,
+				Package relativeToPackage) throws Exception {
+			List<String> name = new ArrayList<String>(DottedName
+					.toImportTokens(relativeToPackage.getFullName()));
+			name.addAll(importPath);
+
+			Importable loaded = getModel().loadPackage(name);
+			if (loaded == null)
+				loaded = getModel().loadModule(name);
+
+			return loaded;
+		}
+
+		private Model getModel() {
+			return model;
+		}
+
+		@Override
+		protected void onUnresolvedImport(List<String> importPath,
+				Package relativeToPackage, Namespace importReceiver, String as) {
+
+			put(importReceiver, as, new TUnresolvedImport(importPath,
+					relativeToPackage));
+		}
+
+		@Override
+		protected void onUnresolvedImportFrom(List<String> fromPath,
+				String itemName, Package relativeToPackage,
+				Namespace importReceiver, String as) {
+
+			put(importReceiver, as, new TUnresolvedImport(fromPath, itemName,
+					relativeToPackage));
 		}
 	}
 

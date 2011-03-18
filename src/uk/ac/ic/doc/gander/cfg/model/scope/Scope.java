@@ -14,11 +14,13 @@ import org.python.pydev.parser.jython.ast.Compare;
 import org.python.pydev.parser.jython.ast.Continue;
 import org.python.pydev.parser.jython.ast.Delete;
 import org.python.pydev.parser.jython.ast.Dict;
+import org.python.pydev.parser.jython.ast.Exec;
 import org.python.pydev.parser.jython.ast.Expr;
 import org.python.pydev.parser.jython.ast.For;
 import org.python.pydev.parser.jython.ast.FunctionDef;
 import org.python.pydev.parser.jython.ast.Global;
 import org.python.pydev.parser.jython.ast.If;
+import org.python.pydev.parser.jython.ast.IfExp;
 import org.python.pydev.parser.jython.ast.Import;
 import org.python.pydev.parser.jython.ast.ImportFrom;
 import org.python.pydev.parser.jython.ast.Lambda;
@@ -31,6 +33,7 @@ import org.python.pydev.parser.jython.ast.Print;
 import org.python.pydev.parser.jython.ast.Raise;
 import org.python.pydev.parser.jython.ast.Return;
 import org.python.pydev.parser.jython.ast.Str;
+import org.python.pydev.parser.jython.ast.StrJoin;
 import org.python.pydev.parser.jython.ast.Subscript;
 import org.python.pydev.parser.jython.ast.TryExcept;
 import org.python.pydev.parser.jython.ast.TryFinally;
@@ -88,6 +91,12 @@ abstract class Scope extends VisitorBase {
 	}
 
 	@Override
+	public Object visitIfExp(IfExp node) throws Exception {
+		return delegateScope(new IfExpScope(node, _previousStatement, _trajectory,
+				_startInNewBlock, this));
+	}
+
+	@Override
 	public Object visitWhile(While node) throws Exception {
 		return delegateScope(new WhileScope(node, _previousStatement,
 				_trajectory, _startInNewBlock, this));
@@ -95,7 +104,8 @@ abstract class Scope extends VisitorBase {
 
 	@Override
 	public Object visitAssign(Assign node) throws Exception {
-		return delegateSelfAddingScope(node);
+		return delegateScope(new AssignScope(node, _previousStatement,
+				_trajectory, _startInNewBlock, this));
 	}
 
 	@Override
@@ -147,6 +157,11 @@ abstract class Scope extends VisitorBase {
 
 	@Override
 	public Object visitStr(Str node) throws Exception {
+		return delegateSelfAddingScope(node);
+	}
+
+	@Override
+	public Object visitStrJoin(StrJoin node) throws Exception {
 		return delegateSelfAddingScope(node);
 	}
 
@@ -304,6 +319,12 @@ abstract class Scope extends VisitorBase {
 
 	@Override
 	public Object visitGlobal(Global node) throws Exception {
+		return delegateScope(new PassScope(_previousStatement, _trajectory,
+				_startInNewBlock, this));
+	}
+
+	@Override
+	public Object visitExec(Exec node) throws Exception {
 		return delegateScope(new PassScope(_previousStatement, _trajectory,
 				_startInNewBlock, this));
 	}

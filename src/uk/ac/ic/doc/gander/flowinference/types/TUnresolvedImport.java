@@ -10,10 +10,18 @@ public class TUnresolvedImport implements TImportable, TNamespace {
 
 	private List<String> importPath;
 	private Package relativeToPackage;
+	private String fromTarget;
 
 	public TUnresolvedImport(List<String> importPath, Package relativeToPackage) {
 		this.importPath = importPath;
 		this.relativeToPackage = relativeToPackage;
+	}
+
+	public TUnresolvedImport(List<String> fromPath, String itemName,
+			Package relativeToPackage) {
+		this.importPath = fromPath;
+		this.relativeToPackage = relativeToPackage;
+		this.fromTarget = itemName;
 	}
 
 	public Namespace getNamespaceInstance() {
@@ -26,5 +34,9 @@ public class TUnresolvedImport implements TImportable, TNamespace {
 
 	public Package getRelativeToPackage() {
 		return relativeToPackage;
+	}
+	
+	public String getFromTarget() {
+		return fromTarget;
 	}
 }

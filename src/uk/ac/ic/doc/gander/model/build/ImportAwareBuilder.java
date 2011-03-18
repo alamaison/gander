@@ -65,11 +65,11 @@ abstract class ImportAwareBuilder extends ModuleNamespaceBuilder {
 	private class Importer extends ImportSimulator {
 
 		public Importer() {
-			super(getScope());
+			super(getScope(), getModel().getTopLevelPackage());
 		}
 
 		@Override
-		protected void importInto(Namespace scope, Namespace loadedImportable,
+		protected void bindName(Namespace scope, Namespace loadedImportable,
 				String as) {
 			// This is called by the simulator to instruct us to make whatever
 			// changes are necessary for a name to be considered imported into
@@ -80,37 +80,7 @@ abstract class ImportAwareBuilder extends ModuleNamespaceBuilder {
 		}
 
 		/**
-		 * Try to load a module or package. As in Python, this attempts to load
-		 * the importable relative to the given package, {@code
-		 * relativeToPackage}, and if this fails attempts relative to the
-		 * top-level package.
-		 * 
-		 * If neither of these succeeds it returns a special type to indicate
-		 * import resolution failed.
-		 * 
-		 * @param importPath
-		 *            Path of importable. Either relative or absolute.
-		 * @param relativeToPackage
-		 *            Package to begin relative importing in.
-		 * @return {@link Module} or {@link Package} if loading succeeded,
-		 *         {@code null} otherwise.
-		 */
-		protected Importable simulateLoad(List<String> importPath,
-				Package relativeToPackage) throws Exception {
-			Importable loaded = null;
-
-			if (relativeToPackage != null)
-				loaded = simulateRelativeLoad(importPath, relativeToPackage);
-
-			if (loaded == null)
-				loaded = simulateRelativeLoad(importPath, getModel()
-						.getTopLevelPackage());
-
-			return loaded;
-		}
-
-		/**
-		 * Try to load a module or package looking <em>exclusively</em> at the
+		 * Load a module or package looking <em>exclusively</em> at the
 		 * parts of the model below {@code relativeToPackage}.
 		 * 
 		 * @param importPath
@@ -122,7 +92,7 @@ abstract class ImportAwareBuilder extends ModuleNamespaceBuilder {
 		 *         {@code null} otherwise.
 		 * @throws Exception
 		 */
-		private Importable simulateRelativeLoad(List<String> importPath,
+		protected Importable simulateLoad(List<String> importPath,
 				Package relativeToPackage) throws Exception {
 			List<String> name = new ArrayList<String>(DottedName
 					.toImportTokens(relativeToPackage.getFullName()));
@@ -133,6 +103,17 @@ abstract class ImportAwareBuilder extends ModuleNamespaceBuilder {
 				loaded = getModel().loadModule(name);
 
 			return loaded;
+		}
+
+		@Override
+		protected void onUnresolvedImport(List<String> importPath,
+				Package relativeToPackage, Namespace importReceiver, String as) {
+		}
+
+		@Override
+		protected void onUnresolvedImportFrom(List<String> fromPath,
+				String itemName, Package relativeToPackage,
+				Namespace importReceiver, String as) {
 		}
 	}
 
