@@ -1,0 +1,2 @@
+def hamstring():
+	print "ouch"
