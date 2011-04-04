@@ -1,1 +1,0 @@
-from sibling_package import child_package
