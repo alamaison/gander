@@ -10,7 +10,7 @@ import java.util.Set;
 import org.junit.Test;
 
 import uk.ac.ic.doc.gander.analysis.GlobalsAndDefsFinder;
-import uk.ac.ic.doc.gander.cfg.model.BasicBlock;
+import uk.ac.ic.doc.gander.cfg.BasicBlock;
 
 public class GlobalAndDefsFinderTest extends AbstractTaggedCallTest {
 

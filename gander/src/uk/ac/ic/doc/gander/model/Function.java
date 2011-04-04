@@ -7,7 +7,7 @@ import java.util.Map;
 import org.python.pydev.parser.jython.ast.FunctionDef;
 import org.python.pydev.parser.jython.ast.NameTok;
 
-import uk.ac.ic.doc.gander.cfg.model.Cfg;
+import uk.ac.ic.doc.gander.cfg.Cfg;
 import uk.ac.ic.doc.gander.model.build.BuildableNamespace;
 
 public class Function implements BuildableNamespace {

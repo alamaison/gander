@@ -15,7 +15,7 @@ import org.python.pydev.parser.jython.ast.Call;
 import org.python.pydev.parser.jython.ast.Name;
 
 import uk.ac.ic.doc.gander.analysis.PassedVariableFinder.PassedVar;
-import uk.ac.ic.doc.gander.cfg.model.BasicBlock;
+import uk.ac.ic.doc.gander.cfg.BasicBlock;
 import uk.ac.ic.doc.gander.hierarchy.Hierarchy;
 import uk.ac.ic.doc.gander.model.Function;
 import uk.ac.ic.doc.gander.model.Model;

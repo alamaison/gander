@@ -23,7 +23,7 @@ import java.util.Map;
 import java.util.Set;
 
 import uk.ac.ic.doc.gander.analysis.dominance.DomMethod;
-import uk.ac.ic.doc.gander.cfg.model.BasicBlock;
+import uk.ac.ic.doc.gander.cfg.BasicBlock;
 
 /**
  * Calculates the dominance-frontiers of a methot's basic blocks. Algorithm from

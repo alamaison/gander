@@ -21,7 +21,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 
-import uk.ac.ic.doc.gander.cfg.model.BasicBlock;
+import uk.ac.ic.doc.gander.cfg.BasicBlock;
 
 /**
  * This class computes dominator and post-dominator information using the

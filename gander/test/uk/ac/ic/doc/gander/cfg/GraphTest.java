@@ -13,7 +13,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import uk.ac.ic.doc.gander.cfg.model.BasicBlock;
+import uk.ac.ic.doc.gander.cfg.BasicBlock;
 
 public abstract class GraphTest {
 	private Map<String, Collection<String>> links;

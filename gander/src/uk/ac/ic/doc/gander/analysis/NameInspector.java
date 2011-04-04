@@ -3,7 +3,7 @@ package uk.ac.ic.doc.gander.analysis;
 import org.python.pydev.parser.jython.ast.Name;
 import org.python.pydev.parser.jython.ast.expr_contextType;
 
-import uk.ac.ic.doc.gander.cfg.model.BasicBlock;
+import uk.ac.ic.doc.gander.cfg.BasicBlock;
 
 public abstract class NameInspector {
 

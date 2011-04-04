@@ -13,8 +13,8 @@ import org.python.pydev.parser.jython.ast.exprType;
 import uk.ac.ic.doc.gander.analysis.PassedVariableFinder.PassedVar;
 import uk.ac.ic.doc.gander.analysis.dominance.Domination;
 import uk.ac.ic.doc.gander.analysis.dominance.Postdomination;
-import uk.ac.ic.doc.gander.cfg.model.BasicBlock;
-import uk.ac.ic.doc.gander.cfg.model.Cfg;
+import uk.ac.ic.doc.gander.cfg.BasicBlock;
+import uk.ac.ic.doc.gander.cfg.Cfg;
 import uk.ac.ic.doc.gander.model.Function;
 import uk.ac.ic.doc.gander.model.Model;
 

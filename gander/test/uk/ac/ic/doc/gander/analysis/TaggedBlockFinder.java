@@ -13,8 +13,8 @@ import org.python.pydev.parser.jython.ast.Str;
 import org.python.pydev.parser.jython.ast.VisitorBase;
 import org.python.pydev.parser.jython.ast.exprType;
 
-import uk.ac.ic.doc.gander.cfg.model.BasicBlock;
-import uk.ac.ic.doc.gander.cfg.model.Cfg;
+import uk.ac.ic.doc.gander.cfg.BasicBlock;
+import uk.ac.ic.doc.gander.cfg.Cfg;
 
 public class TaggedBlockFinder {
 

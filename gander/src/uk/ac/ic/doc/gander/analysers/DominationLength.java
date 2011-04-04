@@ -13,7 +13,7 @@ import org.python.pydev.parser.jython.ast.NameTok;
 
 import uk.ac.ic.doc.gander.analysis.BasicBlockTraverser;
 import uk.ac.ic.doc.gander.analysis.SignatureBuilder;
-import uk.ac.ic.doc.gander.cfg.model.BasicBlock;
+import uk.ac.ic.doc.gander.cfg.BasicBlock;
 import uk.ac.ic.doc.gander.flowinference.TypeResolver;
 import uk.ac.ic.doc.gander.hierarchy.Hierarchy;
 import uk.ac.ic.doc.gander.model.Class;

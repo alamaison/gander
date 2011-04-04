@@ -11,8 +11,8 @@ import java.util.Set;
 import uk.ac.ic.doc.gander.analysis.dominance.DomFront;
 import uk.ac.ic.doc.gander.analysis.dominance.DomMethod;
 import uk.ac.ic.doc.gander.analysis.dominance.DomFront.DomInfo;
-import uk.ac.ic.doc.gander.cfg.model.BasicBlock;
-import uk.ac.ic.doc.gander.cfg.model.Cfg;
+import uk.ac.ic.doc.gander.cfg.BasicBlock;
+import uk.ac.ic.doc.gander.cfg.Cfg;
 
 public class PhiPlacement {
 

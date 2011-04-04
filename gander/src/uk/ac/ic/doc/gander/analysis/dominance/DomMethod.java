@@ -20,9 +20,9 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.Stack;
 
-import uk.ac.ic.doc.gander.cfg.model.BasicBlock;
-import uk.ac.ic.doc.gander.cfg.model.Cfg;
-import uk.ac.ic.doc.gander.cfg.model.BasicBlock.Visitor;
+import uk.ac.ic.doc.gander.cfg.BasicBlock;
+import uk.ac.ic.doc.gander.cfg.Cfg;
+import uk.ac.ic.doc.gander.cfg.BasicBlock.Visitor;
 
 public class DomMethod {
 

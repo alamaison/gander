@@ -9,7 +9,7 @@ import java.util.Set;
 import org.junit.Test;
 
 import uk.ac.ic.doc.gander.analysis.PhiPlacement;
-import uk.ac.ic.doc.gander.cfg.model.BasicBlock;
+import uk.ac.ic.doc.gander.cfg.BasicBlock;
 
 public class PhiPlacementTest extends AbstractTaggedCallTest {
 

@@ -9,8 +9,8 @@ import java.util.Stack;
 import org.python.pydev.parser.jython.ast.Name;
 
 import uk.ac.ic.doc.gander.analysis.dominance.DomFront.DomInfo;
-import uk.ac.ic.doc.gander.cfg.model.BasicBlock;
-import uk.ac.ic.doc.gander.cfg.model.Cfg;
+import uk.ac.ic.doc.gander.cfg.BasicBlock;
+import uk.ac.ic.doc.gander.cfg.Cfg;
 
 /**
  * Based on Figure 9.13, p169 Engineering a Compiler.

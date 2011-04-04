@@ -2,8 +2,8 @@ package uk.ac.ic.doc.gander.analysis.dominance;
 
 import java.util.Map;
 
-import uk.ac.ic.doc.gander.cfg.model.BasicBlock;
-import uk.ac.ic.doc.gander.cfg.model.Cfg;
+import uk.ac.ic.doc.gander.cfg.BasicBlock;
+import uk.ac.ic.doc.gander.cfg.Cfg;
 
 public class Domination extends AbstractDomination {
 
