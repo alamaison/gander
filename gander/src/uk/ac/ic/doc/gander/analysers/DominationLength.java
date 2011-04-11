@@ -9,29 +9,21 @@ import org.python.pydev.parser.jython.SimpleNode;
 import org.python.pydev.parser.jython.ast.Attribute;
 import org.python.pydev.parser.jython.ast.Call;
 import org.python.pydev.parser.jython.ast.Name;
-import org.python.pydev.parser.jython.ast.NameTok;
 
+import uk.ac.ic.doc.gander.MethodCallHelper;
 import uk.ac.ic.doc.gander.analysis.BasicBlockTraverser;
 import uk.ac.ic.doc.gander.analysis.signatures.SignatureBuilder;
 import uk.ac.ic.doc.gander.cfg.BasicBlock;
 import uk.ac.ic.doc.gander.flowinference.TypeResolver;
 import uk.ac.ic.doc.gander.hierarchy.Hierarchy;
+import uk.ac.ic.doc.gander.hierarchy.HierarchyWalker;
+import uk.ac.ic.doc.gander.hierarchy.Package;
 import uk.ac.ic.doc.gander.model.Class;
 import uk.ac.ic.doc.gander.model.Function;
 import uk.ac.ic.doc.gander.model.Model;
 import uk.ac.ic.doc.gander.model.Module;
 
-public class DominationLength {
-
-	private static Name extractMethodCallTarget(Call call) {
-		Attribute fieldAccess = (Attribute) call.func;
-		return (Name) fieldAccess.value;
-	}
-
-	private static NameTok extractMethodCallName(Call call) {
-		Attribute fieldAccess = (Attribute) call.func;
-		return (NameTok) fieldAccess.attr;
-	}
+public class DominationLength extends HierarchyWalker {
 
 	private class SameVariableOnlyAnalysis {
 
@@ -68,9 +60,9 @@ public class DominationLength {
 					if (!isMethodCallOnName(call, function))
 						continue;
 
-					Collection<Call> dependentCalls = chainAnalyser
-							.signature(extractMethodCallTarget(call), sub,
-									function, model);
+					Collection<Call> dependentCalls = chainAnalyser.signature(
+							MethodCallHelper.extractMethodCallTarget(call),
+							sub, function, model);
 
 					if (dependentCalls != null) {
 						int count = countUniqueMethodNames(dependentCalls);
@@ -116,7 +108,7 @@ public class DominationLength {
 		private int countUniqueMethodNames(Iterable<Call> calls) {
 			Set<String> methods = new HashSet<String>();
 			for (Call call : calls) {
-				methods.add(extractMethodCallName(call).id);
+				methods.add(MethodCallHelper.extractMethodCallName(call).id);
 			}
 			return methods.size();
 		}
@@ -128,31 +120,32 @@ public class DominationLength {
 
 	public DominationLength(Hierarchy hierarchy) throws Exception {
 		this.model = new Model(hierarchy);
-		uk.ac.ic.doc.gander.hierarchy.Package pack = hierarchy
-				.getTopLevelPackage();
-		analysePackage(pack);
+		this.walk(hierarchy);
 	}
-	
+
 	public Tallies getResult() {
 		return matching.stats;
 	}
 
-	private void analysePackage(uk.ac.ic.doc.gander.hierarchy.Package pack)
+	@Override
+	protected void visitModule(uk.ac.ic.doc.gander.hierarchy.Module value)
 			throws Exception {
-		for (uk.ac.ic.doc.gander.hierarchy.Module module : pack.getModules()
-				.values())
-			analyseModule(module.getFullyQualifiedName());
-		for (uk.ac.ic.doc.gander.hierarchy.Package subpackage : pack
-				.getPackages().values())
-			analysePackage(subpackage);
-	}
-
-	private void analyseModule(String moduleName) throws Exception {
-		Module module = model.loadModule(moduleName);
+		Module module = model.loadModule(value.getFullyQualifiedName());
 		for (Function function : module.getFunctions().values())
 			analyseFunction(function);
 
 		for (Class klass : module.getClasses().values())
+			analyseClass(klass);
+	}
+
+	@Override
+	protected void visitPackage(Package value) throws Exception {
+		uk.ac.ic.doc.gander.model.Package pkg = model.loadPackage(value
+				.getFullyQualifiedName());
+		for (Function function : pkg.getFunctions().values())
+			analyseFunction(function);
+
+		for (Class klass : pkg.getClasses().values())
 			analyseClass(klass);
 	}
 

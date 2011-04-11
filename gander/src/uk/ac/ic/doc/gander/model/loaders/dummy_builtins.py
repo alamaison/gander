@@ -7,7 +7,7 @@
 
 
 def abs(o):
-	return o.__abs__()
+	pass #return o.__abs__()
 
 def all():
     pass
@@ -46,7 +46,7 @@ def classmethod():
     pass
 
 def cmp(lhs, rhs):
-	lhs.__eq__(rhs)
+	pass #lhs.__eq__(rhs)
 
 def coerce():
     pass
@@ -142,7 +142,7 @@ def iter():
     pass
 
 def len(iterable):
-	return iterable.__len__()
+	pass #return iterable.__len__()
 
 def license():
     pass
