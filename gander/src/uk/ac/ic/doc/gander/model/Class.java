@@ -1,6 +1,5 @@
 package uk.ac.ic.doc.gander.model;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -23,7 +22,7 @@ public class Class implements BuildableNamespace {
 		this.cls = cls;
 		this.parent = parent;
 	}
-	
+
 	public exprType[] inheritsFrom() {
 		return cls.bases;
 	}
@@ -74,5 +73,10 @@ public class Class implements BuildableNamespace {
 
 	public void addFunction(Function function) {
 		methods.put(function.getName(), function);
+	}
+
+	@Override
+	public String toString() {
+		return "Class[" + getFullName() + "]";
 	}
 }

@@ -77,4 +77,9 @@ public class Function implements BuildableNamespace {
 	public void addFunction(Function function) {
 		functions.put(function.getName(), function);
 	}
+
+	@Override
+	public String toString() {
+		return "Function[" + getFullName() + "]";
+	}
 }
