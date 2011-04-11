@@ -1,4 +1,4 @@
-package uk.ac.ic.doc.gander.analysis;
+package uk.ac.ic.doc.gander.analysis.ssa;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -7,6 +7,7 @@ import org.python.pydev.parser.jython.SimpleNode;
 import org.python.pydev.parser.jython.ast.Assign;
 import org.python.pydev.parser.jython.ast.Name;
 
+import uk.ac.ic.doc.gander.analysis.BasicBlockTraverser;
 import uk.ac.ic.doc.gander.cfg.BasicBlock;
 
 public class NameExtractor extends BasicBlockTraverser {

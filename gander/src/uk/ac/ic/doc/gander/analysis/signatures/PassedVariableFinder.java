@@ -1,4 +1,4 @@
-package uk.ac.ic.doc.gander.analysis;
+package uk.ac.ic.doc.gander.analysis.signatures;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -10,12 +10,13 @@ import org.python.pydev.parser.jython.ast.NameTok;
 import org.python.pydev.parser.jython.ast.exprType;
 import org.python.pydev.parser.jython.ast.keywordType;
 
+import uk.ac.ic.doc.gander.analysis.BasicBlockTraverser;
 import uk.ac.ic.doc.gander.cfg.BasicBlock;
 
 /**
  * Find where the given variable is passed to calls as a parameter.
  */
-class PassedVariableFinder extends BasicBlockTraverser {
+public class PassedVariableFinder extends BasicBlockTraverser {
 
 	/**
 	 * Details of a variable's passing to a call.
@@ -23,7 +24,7 @@ class PassedVariableFinder extends BasicBlockTraverser {
 	 * A variable may be passed more than once to a single call and can appear
 	 * by position and/or by keyword.
 	 */
-	class PassedVar {
+	public class PassedVar {
 
 		private Set<Integer> positions = new HashSet<Integer>();
 		private Set<String> keywords = new HashSet<String>();

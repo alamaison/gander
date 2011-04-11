@@ -6,7 +6,7 @@ import java.util.Set;
 import org.python.pydev.parser.jython.ast.Call;
 
 import uk.ac.ic.doc.gander.MethodCallHelper;
-import uk.ac.ic.doc.gander.analysis.SignatureBuilder;
+import uk.ac.ic.doc.gander.analysis.signatures.SignatureBuilder;
 import uk.ac.ic.doc.gander.cfg.BasicBlock;
 import uk.ac.ic.doc.gander.flowinference.types.TClass;
 import uk.ac.ic.doc.gander.flowinference.types.Type;

@@ -11,13 +11,13 @@ import uk.ac.ic.doc.gander.model.Model;
 /**
  * Given a call, attempt to find the function being called.
  */
-class FunctionResolver {
+public class FunctionResolver {
 
 	private Function function;
 	private Model model;
 	private Function enclosingFunction;
 
-	FunctionResolver(Call call, Function enclosingFunction, Model model)
+	public FunctionResolver(Call call, Function enclosingFunction, Model model)
 			throws Exception {
 		this.enclosingFunction = enclosingFunction;
 		this.model = model;

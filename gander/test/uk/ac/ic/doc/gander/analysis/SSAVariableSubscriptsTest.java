@@ -14,6 +14,7 @@ import org.python.pydev.parser.jython.ast.Name;
 
 import uk.ac.ic.doc.gander.AbstractTaggedCallTest;
 import uk.ac.ic.doc.gander.MethodCallHelper;
+import uk.ac.ic.doc.gander.analysis.ssa.SSAVariableSubscripts;
 
 public class SSAVariableSubscriptsTest extends AbstractTaggedCallTest {
 

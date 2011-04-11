@@ -1,4 +1,4 @@
-package uk.ac.ic.doc.gander.analysis;
+package uk.ac.ic.doc.gander.analysis.ssa;
 
 import org.python.pydev.parser.jython.ast.Name;
 import org.python.pydev.parser.jython.ast.expr_contextType;

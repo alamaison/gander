@@ -1,4 +1,4 @@
-package uk.ac.ic.doc.gander.analysis;
+package uk.ac.ic.doc.gander.analysis.ssa;
 
 import java.util.Collection;
 import java.util.HashMap;

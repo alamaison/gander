@@ -15,6 +15,7 @@ import org.python.pydev.parser.jython.ast.NameTok;
 
 import uk.ac.ic.doc.gander.AbstractTaggedCallTest;
 import uk.ac.ic.doc.gander.Statement;
+import uk.ac.ic.doc.gander.analysis.signatures.SignatureBuilder;
 
 public class SignatureBuilderTest extends AbstractTaggedCallTest {
 
