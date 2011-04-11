@@ -1,4 +1,4 @@
-package uk.ac.ic.doc.gander.analysis;
+package uk.ac.ic.doc.gander;
 
 import org.python.pydev.parser.jython.ast.Call;
 

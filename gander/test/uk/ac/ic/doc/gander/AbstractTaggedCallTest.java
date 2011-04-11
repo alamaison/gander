@@ -1,4 +1,4 @@
-package uk.ac.ic.doc.gander.analysis;
+package uk.ac.ic.doc.gander;
 
 import static org.junit.Assert.assertEquals;
 
@@ -32,11 +32,15 @@ public abstract class AbstractTaggedCallTest {
 
 		Hierarchy hierarchy = new Hierarchy(topLevelDirectory);
 		model = new Model(hierarchy);
-		module = model.loadModule("case");
+		module = model.loadModule(moduleToLoad());
 		function = module.getFunctions().get(caseName);
 		graph = function.getCfg();
 
 		tagFinder = new TaggedBlockFinder(graph);
+	}
+
+	protected String moduleToLoad() {
+		return "case";
 	}
 
 	protected void initialise(String caseName, int expectedBlockCount)

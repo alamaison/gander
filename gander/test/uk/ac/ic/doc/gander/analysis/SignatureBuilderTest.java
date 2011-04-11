@@ -13,6 +13,9 @@ import org.python.pydev.parser.jython.ast.Call;
 import org.python.pydev.parser.jython.ast.Name;
 import org.python.pydev.parser.jython.ast.NameTok;
 
+import uk.ac.ic.doc.gander.AbstractTaggedCallTest;
+import uk.ac.ic.doc.gander.Statement;
+
 public class SignatureBuilderTest extends AbstractTaggedCallTest {
 
 	private static final String TEST_FOLDER = "python_test_code/matching_dom_length/basic";
