@@ -40,12 +40,12 @@ public abstract class ModelWalker {
 	protected void visitPackage(Package pkg) {
 	}
 
-	protected void visitModule(Module value) {
+	protected void visitModule(Module module) {
 	}
 
-	protected void visitClass(Class value) {
+	protected void visitClass(Class klass) {
 	}
 
-	protected void visitFunction(Function value) {
+	protected void visitFunction(Function function) {
 	}
 }
