@@ -3,8 +3,6 @@
  */
 package uk.ac.ic.doc.gander.model.build;
 
-import org.python.pydev.parser.jython.SimpleNode;
-
 import uk.ac.ic.doc.gander.model.Class;
 import uk.ac.ic.doc.gander.model.Function;
 import uk.ac.ic.doc.gander.model.Model;
@@ -43,15 +41,4 @@ public final class PackageModuleBuilder extends ImportAwareBuilder {
 		// package as we will just copy the stuff out of it later
 		module = scope;
 	}
-
-	@Override
-	public void traverse(SimpleNode node) throws Exception {
-		node.traverse(this);
-	}
-
-	@Override
-	protected Object unhandled_node(SimpleNode node) throws Exception {
-		return null;
-	}
-
 }
