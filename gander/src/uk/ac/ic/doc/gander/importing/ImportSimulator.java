@@ -56,7 +56,7 @@ public abstract class ImportSimulator {
 	 *         null} otherwise.
 	 */
 	protected abstract Importable simulateLoad(List<String> importPath,
-			Package relativeToPackage) throws Exception;
+			Package relativeToPackage);
 
 	protected abstract void bindName(Namespace importReceiver,
 			Namespace loaded, String as);
@@ -68,13 +68,12 @@ public abstract class ImportSimulator {
 	protected abstract void onUnresolvedImport(List<String> importPath,
 			Package relativeToPackage, Namespace importReceiver, String as);
 
-	public void simulateImportFrom(String fromName, String itemName)
-			throws Exception {
+	public void simulateImportFrom(String fromName, String itemName) {
 		simulateImportFromAs(fromName, itemName, itemName);
 	}
 
 	public void simulateImportFromAs(String fromName, String itemName,
-			String asName) throws Exception {
+			String asName) {
 		List<String> tokens = new LinkedList<String>(DottedName
 				.toImportTokens(fromName));
 
@@ -84,8 +83,7 @@ public abstract class ImportSimulator {
 				asName);
 	}
 
-	public void simulateImportAs(String importName, String asName)
-			throws Exception {
+	public void simulateImportAs(String importName, String asName) {
 		List<String> tokens = new LinkedList<String>(DottedName
 				.toImportTokens(importName));
 
@@ -94,7 +92,7 @@ public abstract class ImportSimulator {
 		simulateImportAs(tokens, parentPackage, importReceiver, asName);
 	}
 
-	public void simulateImport(String importName) throws Exception {
+	public void simulateImport(String importName) {
 		List<String> tokens = new LinkedList<String>(DottedName
 				.toImportTokens(importName));
 
@@ -117,14 +115,12 @@ public abstract class ImportSimulator {
 	 * {@code y} in {@code x}.
 	 */
 	private void simulateImport(List<String> importPath,
-			Package relativeToPackage, Namespace importReceiver)
-			throws Exception {
+			Package relativeToPackage, Namespace importReceiver) {
 		simulateImportHelper(importPath, relativeToPackage, importReceiver);
 	}
 
 	private void simulateImportAs(List<String> importPath,
-			Package relativeToPackage, Namespace importReceiver, String as)
-			throws Exception {
+			Package relativeToPackage, Namespace importReceiver, String as) {
 
 		Importable loaded = simulateImportHelper(importPath, relativeToPackage,
 				null);
@@ -132,8 +128,7 @@ public abstract class ImportSimulator {
 	}
 
 	private void simulateImportFromAs(List<String> fromPath, String itemName,
-			Package relativeToPackage, Namespace importReceiver, String asName)
-			throws Exception {
+			Package relativeToPackage, Namespace importReceiver, String asName) {
 
 		Namespace namespaceToImportFrom = simulateImportHelper(fromPath,
 				relativeToPackage, null);
@@ -161,8 +156,7 @@ public abstract class ImportSimulator {
 	}
 
 	private Importable simulateImportHelper(List<String> importPath,
-			Package relativeToPackage, Namespace importReceiver)
-			throws Exception {
+			Package relativeToPackage, Namespace importReceiver) {
 
 		List<String> processed = new LinkedList<String>();
 		Importable loaded = null;
@@ -199,7 +193,7 @@ public abstract class ImportSimulator {
 	 *         null} otherwise.
 	 */
 	private Importable simulateTwoStepLoad(List<String> importPath,
-			Package relativeToPackage) throws Exception {
+			Package relativeToPackage) {
 		Importable loaded = null;
 
 		if (relativeToPackage != null)

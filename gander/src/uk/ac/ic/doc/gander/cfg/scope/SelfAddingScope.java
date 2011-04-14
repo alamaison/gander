@@ -13,7 +13,7 @@ class SelfAddingScope<T extends SimpleNode> extends ScopeWithParent {
 	}
 
 	@Override
-	protected Statement doProcess() throws Exception {
+	protected Statement doProcess() {
 		addToCurrentBlock(node);
 
 		Statement exits = new Statement();

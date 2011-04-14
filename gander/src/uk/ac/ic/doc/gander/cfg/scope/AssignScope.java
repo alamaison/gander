@@ -15,7 +15,7 @@ public class AssignScope extends ScopeWithParent {
 	}
 
 	@Override
-	protected Statement doProcess() throws Exception {
+	protected Statement doProcess() {
 		Statement exits = new Statement();
 		
 		Statement rhs = delegate(node.value);

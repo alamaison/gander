@@ -17,14 +17,13 @@ public class FunctionResolver {
 	private Model model;
 	private Function enclosingFunction;
 
-	public FunctionResolver(Call call, Function enclosingFunction, Model model)
-			throws Exception {
+	public FunctionResolver(Call call, Function enclosingFunction, Model model) {
 		this.enclosingFunction = enclosingFunction;
 		this.model = model;
 		function = resolveCall(call);
 	}
 
-	private Function resolveCall(Call call) throws Exception {
+	private Function resolveCall(Call call) {
 		TypeResolver resolver = new TypeResolver(model);
 		Type type = resolver.typeOf(call.func, enclosingFunction);
 		if (type != null && type instanceof TFunction) {

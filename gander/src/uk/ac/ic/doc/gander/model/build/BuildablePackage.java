@@ -1,15 +1,11 @@
 package uk.ac.ic.doc.gander.model.build;
 
-import java.io.IOException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.python.pydev.parser.jython.ParseException;
-
 import uk.ac.ic.doc.gander.model.Class;
 import uk.ac.ic.doc.gander.model.Function;
-import uk.ac.ic.doc.gander.model.InvalidElementException;
 import uk.ac.ic.doc.gander.model.Module;
 import uk.ac.ic.doc.gander.model.Package;
 
@@ -20,8 +16,7 @@ public class BuildablePackage extends Package implements BuildableNamespace {
 	private HashMap<String, Class> classes = new HashMap<String, Class>();
 	private HashMap<String, Function> functions = new HashMap<String, Function>();
 
-	public BuildablePackage(String name, Package parent) throws IOException,
-			ParseException, InvalidElementException {
+	public BuildablePackage(String name, Package parent) {
 		super(name, parent);
 	}
 

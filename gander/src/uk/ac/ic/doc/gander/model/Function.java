@@ -32,7 +32,7 @@ public class Function implements BuildableNamespace {
 		return parent.getFullName() + "." + getName();
 	}
 
-	public Cfg getCfg() throws Exception {
+	public Cfg getCfg() {
 		if (graph == null)
 			graph = new Cfg(function);
 		return graph;

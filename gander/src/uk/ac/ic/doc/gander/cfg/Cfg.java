@@ -11,7 +11,7 @@ public class Cfg {
 
 	private FunctionDefScope scope;
 
-	public Cfg(SimpleNode ast) throws Exception {
+	public Cfg(SimpleNode ast) {
 		scope = new FunctionDefScope((FunctionDef) ast);
 		scope.process();
 	}

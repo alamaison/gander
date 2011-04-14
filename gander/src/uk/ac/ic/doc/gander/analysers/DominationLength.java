@@ -1,17 +1,17 @@
 package uk.ac.ic.doc.gander.analysers;
 
-import java.util.ArrayList;
+import java.io.IOException;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.python.pydev.parser.jython.SimpleNode;
+import org.python.pydev.parser.jython.ParseException;
 import org.python.pydev.parser.jython.ast.Attribute;
 import org.python.pydev.parser.jython.ast.Call;
 import org.python.pydev.parser.jython.ast.Name;
 
 import uk.ac.ic.doc.gander.MethodCallHelper;
-import uk.ac.ic.doc.gander.analysis.BasicBlockTraverser;
+import uk.ac.ic.doc.gander.analysis.MethodFinder;
 import uk.ac.ic.doc.gander.analysis.signatures.SignatureBuilder;
 import uk.ac.ic.doc.gander.cfg.BasicBlock;
 import uk.ac.ic.doc.gander.flowinference.TypeResolver;
@@ -29,34 +29,12 @@ public class DominationLength extends HierarchyWalker {
 
 		private Tallies stats = new Tallies();
 
-		private class CallFinder extends BasicBlockTraverser {
-
-			private ArrayList<Call> calls = new ArrayList<Call>();
-
-			public CallFinder(BasicBlock block) throws Exception {
-				for (SimpleNode statement : block)
-					statement.accept(this);
-			}
-
-			@Override
-			public Object visitCall(Call node) throws Exception {
-				if (node.func instanceof Attribute)
-					calls.add(node);
-				node.traverse(this);
-				return null;
-			}
-
-			Iterable<Call> calls() {
-				return calls;
-			}
-		}
-
-		public void analyse(Function function, Model model) throws Exception {
+		public void analyse(Function function, Model model) {
 
 			SignatureBuilder chainAnalyser = new SignatureBuilder();
 
 			for (BasicBlock sub : function.getCfg().getBlocks()) {
-				for (Call call : new CallFinder(sub).calls()) {
+				for (Call call : new MethodFinder(sub).calls()) {
 					if (!isMethodCallOnName(call, function))
 						continue;
 
@@ -88,8 +66,7 @@ public class DominationLength extends HierarchyWalker {
 			}
 		}
 
-		private boolean isMethodCallOnName(Call call, Function function)
-				throws Exception {
+		private boolean isMethodCallOnName(Call call, Function function) {
 			if (!(call.func instanceof Attribute))
 				return false;
 
@@ -118,7 +95,8 @@ public class DominationLength extends HierarchyWalker {
 	private SameVariableOnlyAnalysis matching = new SameVariableOnlyAnalysis();
 	private Model model;
 
-	public DominationLength(Hierarchy hierarchy) throws Exception {
+	public DominationLength(Hierarchy hierarchy) throws ParseException,
+			IOException {
 		this.model = new Model(hierarchy);
 		this.walk(hierarchy);
 	}
@@ -128,9 +106,24 @@ public class DominationLength extends HierarchyWalker {
 	}
 
 	@Override
-	protected void visitModule(uk.ac.ic.doc.gander.hierarchy.Module value)
-			throws Exception {
-		Module module = model.loadModule(value.getFullyQualifiedName());
+	protected void visitModule(uk.ac.ic.doc.gander.hierarchy.Module value) {
+		Module module;
+		try {
+			module = model.loadModule(value.getFullyQualifiedName());
+		} catch (ParseException e) {
+			System.err
+					.println("MISSED DATA WARNING: error while parsing module"
+							+ value.getFullyQualifiedName());
+			System.err.println(e);
+			return;
+		} catch (IOException e) {
+			System.err
+					.println("MISSED DATA WARNING: error while finding module"
+							+ value.getFullyQualifiedName());
+			System.err.println(e);
+			return;
+		}
+
 		for (Function function : module.getFunctions().values())
 			analyseFunction(function);
 
@@ -139,9 +132,24 @@ public class DominationLength extends HierarchyWalker {
 	}
 
 	@Override
-	protected void visitPackage(Package value) throws Exception {
-		uk.ac.ic.doc.gander.model.Package pkg = model.loadPackage(value
-				.getFullyQualifiedName());
+	protected void visitPackage(Package value) {
+		uk.ac.ic.doc.gander.model.Package pkg;
+		try {
+			pkg = model.loadPackage(value.getFullyQualifiedName());
+		} catch (ParseException e) {
+			System.err
+					.println("MISSED DATA WARNING: error while parsing package"
+							+ value.getFullyQualifiedName());
+			System.err.println(e);
+			return;
+		} catch (IOException e) {
+			System.err
+					.println("MISSED DATA WARNING: error while finding package"
+							+ value.getFullyQualifiedName());
+			System.err.println(e);
+			return;
+		}
+
 		for (Function function : pkg.getFunctions().values())
 			analyseFunction(function);
 
@@ -149,12 +157,12 @@ public class DominationLength extends HierarchyWalker {
 			analyseClass(klass);
 	}
 
-	private void analyseClass(Class klass) throws Exception {
+	private void analyseClass(Class klass) {
 		for (Function method : klass.getFunctions().values())
 			analyseFunction(method);
 	}
 
-	private void analyseFunction(Function function) throws Exception {
+	private void analyseFunction(Function function) {
 		// System.err.println("Processing " + function.getFullName());
 		matching.analyse(function, model);
 	}

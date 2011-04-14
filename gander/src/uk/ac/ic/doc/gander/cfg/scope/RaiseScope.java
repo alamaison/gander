@@ -13,7 +13,7 @@ class RaiseScope extends ScopeWithParent {
 	}
 
 	@Override
-	protected Statement doProcess() throws Exception {
+	protected Statement doProcess() {
 		Statement type = delegate(node.type);
 
 		Statement inst = buildGraph(node.inst, type, type.fallthroughs());

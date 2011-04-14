@@ -1,11 +1,14 @@
 package uk.ac.ic.doc.gander.model.build;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.python.pydev.parser.jython.ParseException;
 import org.python.pydev.parser.jython.SimpleNode;
 import org.python.pydev.parser.jython.ast.Import;
 import org.python.pydev.parser.jython.ast.ImportFrom;
+import org.python.pydev.parser.jython.ast.Module;
 import org.python.pydev.parser.jython.ast.NameTok;
 import org.python.pydev.parser.jython.ast.aliasType;
 
@@ -80,8 +83,8 @@ abstract class ImportAwareBuilder extends ModuleNamespaceBuilder {
 		}
 
 		/**
-		 * Load a module or package looking <em>exclusively</em> at the
-		 * parts of the model below {@code relativeToPackage}.
+		 * Load a module or package looking <em>exclusively</em> at the parts of
+		 * the model below {@code relativeToPackage}.
 		 * 
 		 * @param importPath
 		 *            Path to search for relative to root, {@code
@@ -93,14 +96,21 @@ abstract class ImportAwareBuilder extends ModuleNamespaceBuilder {
 		 * @throws Exception
 		 */
 		protected Importable simulateLoad(List<String> importPath,
-				Package relativeToPackage) throws Exception {
+				Package relativeToPackage) {
 			List<String> name = new ArrayList<String>(DottedName
 					.toImportTokens(relativeToPackage.getFullName()));
 			name.addAll(importPath);
 
-			Importable loaded = getModel().loadPackage(name);
-			if (loaded == null)
-				loaded = getModel().loadModule(name);
+			Importable loaded = null;
+			try {
+				loaded = getModel().loadPackage(name);
+				if (loaded == null)
+					loaded = getModel().loadModule(name);
+				// ignore exceptions as parse errors should be treated the same
+				// way as any other unresolved import; by returning null
+			} catch (ParseException e) {
+			} catch (IOException e) {
+			}
 
 			return loaded;
 		}

@@ -13,7 +13,7 @@ class YieldScope extends ScopeWithParent {
 	}
 
 	@Override
-	protected Statement doProcess() throws Exception {
+	protected Statement doProcess() {
 
 		Statement value = delegate(node.value);
 

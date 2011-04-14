@@ -13,7 +13,7 @@ abstract class ScopeWithParent extends Scope {
 	}
 
 	@Override
-	protected Statement process() throws Exception {
+	protected Statement process() {
 		assert !trajectory().isEmpty(); // Don't process unreachable code
 
 		Statement exits = doProcess();
@@ -24,7 +24,7 @@ abstract class ScopeWithParent extends Scope {
 		return exits;
 	}
 
-	protected abstract Statement doProcess() throws Exception;
+	protected abstract Statement doProcess();
 
 	@Override
 	protected BasicBlock newBlock() {

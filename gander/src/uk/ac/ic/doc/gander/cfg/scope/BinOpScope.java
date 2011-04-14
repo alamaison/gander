@@ -16,7 +16,7 @@ public class BinOpScope extends ScopeWithParent {
 	}
 
 	@Override
-	protected Statement doProcess() throws Exception {
+	protected Statement doProcess() {
 		return delegate(new SimpleNode[]{ node.left, node.right });
 	}
 

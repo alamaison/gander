@@ -7,7 +7,7 @@ import uk.ac.ic.doc.gander.cfg.BasicBlock;
 
 public abstract class NameInspector {
 
-	public Object inspect(BasicBlock block) throws Exception {
+	public Object inspect(BasicBlock block) {
 
 		NameExtractor names = new NameExtractor(block);
 
@@ -54,39 +54,39 @@ public abstract class NameInspector {
 		return null;
 	}
 
-	protected void seenKwOnlyParam(Name name) throws Exception {
+	protected void seenKwOnlyParam(Name name) {
 		unhandledName(name);
 	}
 
-	protected void seenArtificial(Name name) throws Exception {
+	protected void seenArtificial(Name name) {
 		unhandledName(name);
 	}
 
-	protected void seenParam(Name name) throws Exception {
+	protected void seenParam(Name name) {
 		unhandledName(name);
 	}
 
-	protected void seenDel(Name name) throws Exception {
+	protected void seenDel(Name name) {
 		unhandledName(name);
 	}
 
-	protected void seenAugLoad(Name name) throws Exception {
+	protected void seenAugLoad(Name name) {
 		unhandledName(name);
 	}
 
-	protected void seenAugStore(Name name) throws Exception {
+	protected void seenAugStore(Name name) {
 		unhandledName(name);
 	}
 
-	protected void seenStore(Name name) throws Exception {
+	protected void seenStore(Name name) {
 		unhandledName(name);
 	}
 
-	protected void seenLoad(Name name) throws Exception {
+	protected void seenLoad(Name name) {
 		unhandledName(name);
 	}
 
-	protected void unhandledName(Name name) throws Exception {
+	protected void unhandledName(Name name) {
 		System.err.println("WARNING unhandled name-use context: "
 				+ expr_contextType.expr_contextTypeNames[name.ctx]);
 	}

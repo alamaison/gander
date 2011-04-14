@@ -4,12 +4,12 @@ import java.util.Map.Entry;
 
 public abstract class HierarchyWalker {
 
-	public final void walk(Hierarchy hierarchy) throws Exception {
+	public final void walk(Hierarchy hierarchy) {
 		visitPackage(hierarchy.getTopLevelPackage());
 		walkThroughPackage(hierarchy.getTopLevelPackage());
 	}
 
-	private void walkThroughPackage(Package pkg) throws Exception {
+	private void walkThroughPackage(Package pkg) {
 		for (Entry<String, Package> subpkg : pkg.getPackages().entrySet()) {
 			visitPackage(subpkg.getValue());
 			walkThroughPackage(subpkg.getValue());
@@ -19,9 +19,9 @@ public abstract class HierarchyWalker {
 		}
 	}
 
-	protected void visitPackage(Package pkg) throws Exception {
+	protected void visitPackage(Package pkg) {
 	}
 
-	protected void visitModule(Module value) throws Exception {
+	protected void visitModule(Module module) {
 	}
 }

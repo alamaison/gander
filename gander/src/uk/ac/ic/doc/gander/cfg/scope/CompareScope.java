@@ -16,7 +16,7 @@ public class CompareScope extends ScopeWithParent {
 	}
 
 	@Override
-	protected Statement doProcess() throws Exception {
+	protected Statement doProcess() {
 		SimpleNode[] nodes = new SimpleNode[node.comparators.length + 1];
 		nodes[0] = node.left;
 		System.arraycopy(node.comparators, 0, nodes, 1, node.comparators.length);

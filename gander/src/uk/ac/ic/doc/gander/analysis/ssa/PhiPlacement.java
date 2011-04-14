@@ -20,7 +20,7 @@ public class PhiPlacement {
 	private Map<BasicBlock, DomInfo> domInfo;
 	private Map<BasicBlock, Set<String>> phis = new HashMap<BasicBlock, Set<String>>();
 
-	public PhiPlacement(Cfg graph) throws Exception {
+	public PhiPlacement(Cfg graph) {
 		finder = new GlobalsAndDefsFinder(graph);
 		domInfo = new DomFront(new DomMethod(graph)).run();
 

@@ -13,7 +13,7 @@ class ExprScope extends ScopeWithParent {
 	}
 
 	@Override
-	protected Statement doProcess() throws Exception {
+	protected Statement doProcess() {
 		// Expr nodes are just wrappers for any expression node. These
 		// nodes need processing in their own right.
 

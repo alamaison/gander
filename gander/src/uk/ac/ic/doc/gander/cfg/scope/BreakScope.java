@@ -10,7 +10,7 @@ class BreakScope extends ScopeWithParent {
 	}
 
 	@Override
-	protected Statement doProcess() throws Exception {
+	protected Statement doProcess() {
 		Statement statement = new Statement();
 		statement.inlinks().inherit(trajectory());
 		statement.breakouts().inherit(trajectory());

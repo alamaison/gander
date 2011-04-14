@@ -16,7 +16,7 @@ import uk.ac.ic.doc.gander.cfg.BasicBlock;
 /**
  * Find where the given variable is passed to calls as a parameter.
  */
-public class PassedVariableFinder extends BasicBlockTraverser {
+public class PassedVariableFinder {
 
 	/**
 	 * Details of a variable's passing to a call.
@@ -39,7 +39,7 @@ public class PassedVariableFinder extends BasicBlockTraverser {
 				if (isNameMatch(kw.value))
 					keywords.add(((NameTok) kw.arg).id);
 		}
-		
+
 		public Call getCall() {
 			return function;
 		}
@@ -56,24 +56,30 @@ public class PassedVariableFinder extends BasicBlockTraverser {
 	private Set<PassedVar> calls = new HashSet<PassedVar>();
 	private String variable;
 
-	public PassedVariableFinder(String variable, Iterable<BasicBlock> blocks)
-			throws Exception {
+	public PassedVariableFinder(String variable, Iterable<BasicBlock> blocks) {
 		this.variable = variable;
 		for (BasicBlock block : blocks) {
 			for (SimpleNode node : block) {
-				node.accept(this);
+				try {
+					node.accept(new FinderVisitor());
+				} catch (Exception e) {
+					throw new RuntimeException(e);
+				}
 			}
 		}
 	}
 
-	@Override
-	public Object visitCall(Call node) throws Exception {
-		if (isVariablePassed(node))
-			calls.add(new PassedVar(node));
-		
-		// Some arguments may themselves be calls so we need to dig deeper
-		node.traverse(this);
-		return null;
+	private final class FinderVisitor extends BasicBlockTraverser {
+
+		@Override
+		public Object visitCall(Call node) throws Exception {
+			if (isVariablePassed(node))
+				calls.add(new PassedVar(node));
+
+			// Some arguments may themselves be calls so we need to dig deeper
+			node.traverse(this);
+			return null;
+		}
 	}
 
 	private boolean isNameMatch(exprType candidate) {

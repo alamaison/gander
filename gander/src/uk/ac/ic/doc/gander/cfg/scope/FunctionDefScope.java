@@ -17,12 +17,12 @@ public class FunctionDefScope extends Scope {
 	private FunctionDef node;
 	private Set<BasicBlock> blocks = new HashSet<BasicBlock>();
 
-	public FunctionDefScope(FunctionDef node) throws Exception {
+	public FunctionDefScope(FunctionDef node) {
 		super();
 		this.node = node;
 	}
 
-	public Statement process() throws Exception {
+	public Statement process() {
 
 		start = new EmptyScope(this, newTerminatorBlock()).process();
 		end = new EmptyScope(this, newTerminatorBlock()).process();

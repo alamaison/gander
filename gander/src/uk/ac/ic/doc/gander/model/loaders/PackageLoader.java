@@ -1,6 +1,9 @@
 package uk.ac.ic.doc.gander.model.loaders;
 
 import java.io.File;
+import java.io.IOException;
+
+import org.python.pydev.parser.jython.ParseException;
 
 import uk.ac.ic.doc.gander.model.Class;
 import uk.ac.ic.doc.gander.model.Function;
@@ -21,7 +24,8 @@ public class PackageLoader {
 	}
 
 	public PackageLoader(uk.ac.ic.doc.gander.hierarchy.Package hierarchy,
-			BuildablePackage parent, Model model) throws Exception {
+			BuildablePackage parent, Model model) throws ParseException,
+			IOException {
 
 		assert parent != null;
 
@@ -42,12 +46,13 @@ public class PackageLoader {
 	}
 
 	private Module parseInitFile(String name, BuildablePackage parent,
-			File moduleFile) throws Exception {
+			File moduleFile) throws ParseException, IOException {
 		ModuleParser parser = new ModuleParser(moduleFile);
 
 		PackageModuleBuilder builder = new PackageModuleBuilder(name, model,
 				pkg);
-		parser.getAst().accept(builder);
+		builder.build(parser.getAst());
+
 		return builder.getModule();
 	}
 }

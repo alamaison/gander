@@ -1,7 +1,11 @@
 package uk.ac.ic.doc.gander.model.loaders;
 
 import java.io.File;
+import java.io.IOException;
+import java.net.URISyntaxException;
 import java.net.URL;
+
+import org.python.pydev.parser.jython.ParseException;
 
 import uk.ac.ic.doc.gander.model.Class;
 import uk.ac.ic.doc.gander.model.Function;
@@ -15,7 +19,7 @@ public class TopLevelPackageLoader {
 
 	private BuildablePackage pkg;
 
-	public TopLevelPackageLoader() throws Exception {
+	public TopLevelPackageLoader() throws ParseException, IOException {
 
 		pkg = new BuildablePackage("", null);
 
@@ -34,16 +38,20 @@ public class TopLevelPackageLoader {
 	}
 
 	private Module parseBuiltinsFile(String name, File moduleFile)
-			throws Exception {
+			throws ParseException, IOException {
 		ModuleParser parser = new ModuleParser(moduleFile);
 
 		DumbModuleBuilder builder = new DumbModuleBuilder(name, pkg);
-		parser.getAst().accept(builder);
+		builder.build(parser.getAst());
 		return builder.getModule();
 	}
 
-	private Module createDummyBuiltins() throws Exception {
+	private Module createDummyBuiltins() throws ParseException, IOException {
 		URL builtins = getClass().getResource("dummy_builtins.py");
-		return parseBuiltinsFile("__builtins__", new File(builtins.toURI()));
+		try {
+			return parseBuiltinsFile("__builtins__", new File(builtins.toURI()));
+		} catch (URISyntaxException e) {
+			throw new RuntimeException("builtins definitions not found", e);
+		}
 	}
 }

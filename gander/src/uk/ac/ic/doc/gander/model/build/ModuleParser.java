@@ -10,6 +10,7 @@ import org.python.pydev.parser.grammar26.PythonGrammar26;
 import org.python.pydev.parser.jython.CharStream;
 import org.python.pydev.parser.jython.FastCharStream;
 import org.python.pydev.parser.jython.ParseException;
+import org.python.pydev.parser.jython.TokenMgrError;
 import org.python.pydev.parser.jython.ast.Module;
 import org.python.pydev.parser.jython.ast.stmtType;
 
@@ -31,6 +32,9 @@ public class ModuleParser {
 						null);
 				this.module.body = new stmtType[] {};
 			}
+		} catch (TokenMgrError e) {
+			System.err.println("PARSING FAILED: " + module);
+			throw new ParseException(e.toString(), e.errorLine, e.errorColumn);
 		} catch (Error e) {
 			System.err.println("PARSING FAILED: " + module);
 			throw e;

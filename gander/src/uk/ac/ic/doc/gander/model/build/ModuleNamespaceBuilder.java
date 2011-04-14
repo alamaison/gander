@@ -1,5 +1,9 @@
 package uk.ac.ic.doc.gander.model.build;
 
+import java.io.IOException;
+
+import org.python.pydev.parser.jython.ParseException;
+import org.python.pydev.parser.jython.SimpleNode;
 import org.python.pydev.parser.jython.ast.ClassDef;
 import org.python.pydev.parser.jython.ast.FunctionDef;
 
@@ -16,6 +20,23 @@ public abstract class ModuleNamespaceBuilder extends ScopedVisitor<Namespace> {
 	public ModuleNamespaceBuilder(String moduleName, Package parent) {
 		super(parent);
 		this.moduleName = moduleName;
+	}
+	
+	public void build(SimpleNode ast) throws ParseException, IOException {
+
+		// The builder should never throw any checked exception apart from
+		// parse and io errors.
+		// Therefore we swallow any other types of exception and abort
+		// noisily (by throwing an unchecked exception) if one occurrs.
+		try {
+			ast.accept(this);
+		} catch (ParseException e) {
+			throw e;
+		} catch (IOException e) {
+			throw e;
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 	protected void onCreatedModule(Module module) {

@@ -1,5 +1,6 @@
 package uk.ac.ic.doc.gander.flowinference;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -8,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Stack;
 
+import org.python.pydev.parser.jython.ParseException;
 import org.python.pydev.parser.jython.SimpleNode;
 import org.python.pydev.parser.jython.ast.ClassDef;
 import org.python.pydev.parser.jython.ast.FunctionDef;
@@ -41,7 +43,7 @@ public class SymbolTable {
 
 	private Model model;
 
-	public SymbolTable(Model model) throws Exception {
+	public SymbolTable(Model model) {
 		this.model = model;
 		processScope(model.getTopLevelPackage());
 	}
@@ -54,7 +56,17 @@ public class SymbolTable {
 		return bindings;
 	}
 
-	private class SymbolTableAstVisitor extends VisitorBase {
+	private final class SymbolTableAstVisitor extends VisitorBase {
+
+		public SymbolTableAstVisitor(SimpleNode ast) {
+			try {
+				ast.traverse(this);
+			} catch (Exception e) {
+				// No checked exceptions thrown by visit methods so any caught
+				// here are unexpected
+				throw new RuntimeException(e);
+			}
+		}
 
 		@Override
 		public Object visitClassDef(ClassDef node) throws Exception {
@@ -114,7 +126,7 @@ public class SymbolTable {
 	}
 
 	private class ImportSymbols {
-		public void resolveImport(Import node) throws Exception {
+		public void resolveImport(Import node) {
 			// The import name is a string which may contain dots to indicate
 			// a package module as in "package.subpackage.submodule". Python
 			// will import each segment of the name as a package before
@@ -205,14 +217,21 @@ public class SymbolTable {
 
 		@Override
 		protected Importable simulateLoad(List<String> importPath,
-				Package relativeToPackage) throws Exception {
+				Package relativeToPackage) {
 			List<String> name = new ArrayList<String>(DottedName
 					.toImportTokens(relativeToPackage.getFullName()));
 			name.addAll(importPath);
 
-			Importable loaded = getModel().loadPackage(name);
-			if (loaded == null)
-				loaded = getModel().loadModule(name);
+			Importable loaded = null;
+			try {
+				loaded = getModel().loadPackage(name);
+				if (loaded == null)
+					loaded = getModel().loadModule(name);
+				// ignore exceptions as parse errors should be treated the same
+				// way as any other unresolved import; by returning null
+			} catch (ParseException e) {
+			} catch (IOException e) {
+			}
 
 			return loaded;
 		}
@@ -239,7 +258,7 @@ public class SymbolTable {
 		}
 	}
 
-	private void processScope(Namespace scope) throws Exception {
+	private void processScope(Namespace scope) {
 		scopes.push(scope);
 
 		for (Package pkg : scope.getPackages().values()) {
@@ -248,7 +267,7 @@ public class SymbolTable {
 
 		for (Module module : scope.getModules().values()) {
 			scopes.push(module);
-			module.getAst().traverse(new SymbolTableAstVisitor());
+			new SymbolTableAstVisitor(module.getAst());
 			scopes.pop();
 
 			processScope(module);
@@ -258,7 +277,7 @@ public class SymbolTable {
 			put(scopes.peek(), klass.getName(), new TClass(klass));
 
 			scopes.push(klass);
-			klass.getClassDef().traverse(new SymbolTableAstVisitor());
+			new SymbolTableAstVisitor(klass.getClassDef());
 			scopes.pop();
 
 			processScope(klass);
@@ -268,7 +287,7 @@ public class SymbolTable {
 			put(scopes.peek(), function.getName(), new TFunction(function));
 
 			scopes.push(function);
-			function.getFunctionDef().traverse(new SymbolTableAstVisitor());
+			new SymbolTableAstVisitor(function.getFunctionDef());
 			scopes.pop();
 
 			processScope(function);

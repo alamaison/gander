@@ -45,7 +45,7 @@ public class SignatureBuilder {
 	 * Finds calls that target a given SSA subscripted variable in a single
 	 * basic block.
 	 */
-	private static class IntraBlockVariableMatcher extends BasicBlockTraverser {
+	private static class IntraBlockVariableMatcher {
 
 		private Set<Call> calls = new HashSet<Call>();
 		private Name target;
@@ -53,33 +53,39 @@ public class SignatureBuilder {
 		private SSAVariableSubscripts renamer;
 
 		public IntraBlockVariableMatcher(BasicBlock containingBlock,
-				Name target, int subscript, SSAVariableSubscripts renamer)
-				throws Exception {
+				Name target, int subscript, SSAVariableSubscripts renamer) {
 			this.target = target;
 			this.subscript = subscript;
 			this.renamer = renamer;
 			for (SimpleNode node : containingBlock) {
-				node.accept(this);
+				try {
+					node.accept(new VariableMatcherVisitor());
+				} catch (Exception e) {
+					throw new RuntimeException(e);
+				}
 			}
 		}
 
-		@Override
-		public Object visitCall(Call node) throws Exception {
-			if (node.func instanceof Attribute) {
-				Attribute fieldAccess = (Attribute) node.func;
-				if (fieldAccess.value instanceof Name) {
-					Name candidate = (Name) fieldAccess.value;
+		private class VariableMatcherVisitor extends BasicBlockTraverser {
 
-					if (isMatch(candidate))
-						calls.add(node);
+			@Override
+			public Object visitCall(Call node) throws Exception {
+				if (node.func instanceof Attribute) {
+					Attribute fieldAccess = (Attribute) node.func;
+					if (fieldAccess.value instanceof Name) {
+						Name candidate = (Name) fieldAccess.value;
+
+						if (isMatch(candidate))
+							calls.add(node);
+					}
 				}
+
+				// Calls may contain other calls as parameters so continue
+				// digging into AST
+				node.traverse(this);
+
+				return null;
 			}
-
-			// Calls may contain other calls as parameters so continue
-			// digging into AST
-			node.traverse(this);
-
-			return null;
 		}
 
 		private boolean isMatch(Name candidate) {
@@ -110,7 +116,7 @@ public class SignatureBuilder {
 	 * calls which may happen after re-assigning to a variable aren't included.
 	 */
 	public Set<Call> signature(Name variable, BasicBlock containingBlock,
-			Function enclosingFunction, Model model) throws Exception {
+			Function enclosingFunction, Model model) {
 		return buildSignature(variable, containingBlock, enclosingFunction,
 				model);
 	}
@@ -120,8 +126,7 @@ public class SignatureBuilder {
 	 * and recursing into any calls they make.
 	 */
 	private static Set<Call> buildSignature(Name variable,
-			BasicBlock controlBlock, Function function, Model model)
-			throws Exception {
+			BasicBlock controlBlock, Function function, Model model) {
 
 		// FIXME: This will loop infinitely with recursive calls
 
@@ -142,7 +147,7 @@ public class SignatureBuilder {
 	 */
 	private static Set<Call> getPartialSignatureFromVariableUseInFunction(
 			Name variableAtLocation, Set<BasicBlock> blocksToSearch,
-			Function function) throws Exception {
+			Function function) {
 		Set<Call> calls = new HashSet<Call>();
 
 		SSAVariableSubscripts ssa = new SSAVariableSubscripts(function.getCfg());
@@ -163,7 +168,7 @@ public class SignatureBuilder {
 	 */
 	private static Set<Call> getPartialSignatureFromPassingVariableToCalls(
 			String variable, Iterable<BasicBlock> blocksToSearch,
-			Function enclosingFunction, Model model) throws Exception {
+			Function enclosingFunction, Model model) {
 
 		Set<Call> calls = new HashSet<Call>();
 
@@ -176,13 +181,15 @@ public class SignatureBuilder {
 				calls.addAll(getSignatureForPassedVariable(pass, function,
 						model));
 			}
+
+			return calls;
 		}
 
 		return calls;
 	}
 
 	private static Function resolveFunction(Model model,
-			Function enclosingFunction, Call call) throws Exception {
+			Function enclosingFunction, Call call) {
 		Function function = new FunctionResolver(call, enclosingFunction, model)
 				.getFunction();
 
@@ -197,7 +204,7 @@ public class SignatureBuilder {
 	 * Return signature implied by passing variable to call.
 	 */
 	private static Set<Call> getSignatureForPassedVariable(PassedVar pass,
-			Function function, Model model) throws Exception {
+			Function function, Model model) {
 
 		Set<Call> calls = new HashSet<Call>();
 
@@ -217,7 +224,7 @@ public class SignatureBuilder {
 	 * function.
 	 */
 	private static Set<Call> getSignatureForParameter(Name param,
-			Function function, Model model) throws Exception {
+			Function function, Model model) {
 		Cfg graph = function.getCfg();
 		return buildSignature(param, graph.getStart(), function, model);
 	}

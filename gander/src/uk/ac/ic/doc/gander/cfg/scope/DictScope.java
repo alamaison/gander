@@ -16,7 +16,7 @@ public class DictScope extends ScopeWithParent {
 	}
 
 	@Override
-	protected Statement doProcess() throws Exception {
+	protected Statement doProcess() {
 		assert node.keys.length == node.values.length;
 		int len = node.keys.length;
 

@@ -13,7 +13,7 @@ class WhileScope extends ScopeWithParent {
 	}
 
 	@Override
-	protected Statement doProcess() throws Exception {
+	protected Statement doProcess() {
 		Statement exits = new Statement();
 
 		// while

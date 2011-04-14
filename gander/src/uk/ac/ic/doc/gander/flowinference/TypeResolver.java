@@ -19,14 +19,16 @@ public class TypeResolver extends VisitorBase {
 	private Stack<Namespace> scopes = new Stack<Namespace>();
 	private SymbolTable table;
 
-	public TypeResolver(Model model) throws Exception {
+	public TypeResolver(Model model) {
 		this.table = new SymbolTable(model);
 	}
 
-	public Type typeOf(SimpleNode node, Namespace scope) throws Exception {
+	public Type typeOf(SimpleNode node, Namespace scope) {
 		try {
 			scopes.push(scope);
 			return (Type) node.accept(this);
+		} catch (Exception e) {
+			throw new RuntimeException(e);
 		} finally {
 			scopes.pop();
 		}

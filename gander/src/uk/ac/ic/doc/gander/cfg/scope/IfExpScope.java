@@ -14,7 +14,7 @@ class IfExpScope extends ScopeWithParent {
 	}
 
 	@Override
-	protected Statement doProcess() throws Exception {
+	protected Statement doProcess() {
 
 		Statement exits = new Statement();
 
@@ -42,10 +42,9 @@ class IfExpScope extends ScopeWithParent {
 		return exits;
 	}
 
-	private Statement processBranch(exprType branch, Statement condition)
-			throws Exception {
+	private Statement processBranch(exprType branch, Statement condition) {
 
-		return buildGraphForceNewBlock(branch, condition,
-				condition.fallthroughs());
+		return buildGraphForceNewBlock(branch, condition, condition
+				.fallthroughs());
 	}
 }

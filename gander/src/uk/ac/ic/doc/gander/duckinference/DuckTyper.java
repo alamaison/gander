@@ -19,12 +19,12 @@ public class DuckTyper {
 
 	private Model model;
 
-	DuckTyper(Model model) {
+	public DuckTyper(Model model) {
 		this.model = model;
 	}
 
 	public Set<Type> typeOf(Call call, BasicBlock containingBlock,
-			Namespace scope) throws Exception {
+			Namespace scope) {
 
 		Set<String> methods = calculateDependentMethodNames(call,
 				containingBlock, scope);
@@ -42,7 +42,7 @@ public class DuckTyper {
 	}
 
 	private Set<String> calculateDependentMethodNames(Call call,
-			BasicBlock containingBlock, Namespace scope) throws Exception {
+			BasicBlock containingBlock, Namespace scope) {
 		SignatureBuilder chainAnalyser = new SignatureBuilder();
 		Set<Call> dependentCalls = chainAnalyser.signature(MethodCallHelper
 				.extractMethodCallTarget(call), containingBlock,

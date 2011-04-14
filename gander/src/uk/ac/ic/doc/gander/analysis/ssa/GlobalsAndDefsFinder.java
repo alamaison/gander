@@ -17,7 +17,7 @@ public class GlobalsAndDefsFinder {
 		private Set<String> varKill = new HashSet<String>();
 		private BasicBlock block;
 
-		public GlobalAndDefsInspector(BasicBlock block) throws Exception {
+		public GlobalAndDefsInspector(BasicBlock block) {
 			this.block = block;
 			inspect(block);
 		}
@@ -65,7 +65,7 @@ public class GlobalsAndDefsFinder {
 	private Set<String> globals = new HashSet<String>();
 	private Map<String, Set<BasicBlock>> defLocations = new HashMap<String, Set<BasicBlock>>();
 
-	public GlobalsAndDefsFinder(Cfg graph) throws Exception {
+	public GlobalsAndDefsFinder(Cfg graph) {
 		for (BasicBlock block : graph.getBlocks()) {
 			new GlobalAndDefsInspector(block);
 		}

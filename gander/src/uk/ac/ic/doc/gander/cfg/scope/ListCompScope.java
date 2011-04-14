@@ -15,7 +15,7 @@ public class ListCompScope extends ScopeWithParent {
 	}
 
 	@Override
-	protected Statement doProcess() throws Exception {
+	protected Statement doProcess() {
 		return delegate(node.elt);
 		// XXX: How do we get at the generators?! The AST doesn't seem to
 		// provide them!

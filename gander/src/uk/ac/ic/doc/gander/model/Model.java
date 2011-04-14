@@ -1,9 +1,12 @@
 package uk.ac.ic.doc.gander.model;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
+
+import org.python.pydev.parser.jython.ParseException;
 
 import uk.ac.ic.doc.gander.DottedName;
 import uk.ac.ic.doc.gander.hierarchy.Hierarchy;
@@ -17,7 +20,7 @@ public class Model {
 	private Package topLevelPackage;
 	private Hierarchy hierarchy;
 
-	public Model(Hierarchy hierarchy) throws Exception {
+	public Model(Hierarchy hierarchy) throws ParseException, IOException {
 		this.hierarchy = hierarchy;
 		topLevelPackage = new TopLevelPackageLoader().getPackage();
 	}
@@ -42,7 +45,8 @@ public class Model {
 		return imported;
 	}
 
-	public Importable load(String importName) throws Exception {
+	public Importable load(String importName) throws ParseException,
+			IOException {
 		List<String> tokens = DottedName.toImportTokens(importName);
 		Importable imported = loadPackage(tokens);
 		if (imported == null)
@@ -58,11 +62,13 @@ public class Model {
 		return getTopLevelPackage().lookupPackage(importNameTokens);
 	}
 
-	public Module loadModule(String fullyQualifiedName) throws Exception {
+	public Module loadModule(String fullyQualifiedName) throws ParseException,
+			IOException {
 		return loadModule(DottedName.toImportTokens(fullyQualifiedName));
 	}
 
-	public Package loadPackage(String fullyQualifiedName) throws Exception {
+	public Package loadPackage(String fullyQualifiedName)
+			throws ParseException, IOException {
 		return loadPackage(DottedName.toImportTokens(fullyQualifiedName));
 	}
 
@@ -71,7 +77,8 @@ public class Model {
 	 * 
 	 * Will also load any parent packages if they haven't been loaded yet.
 	 */
-	public Module loadModule(List<String> fullyQualifiedPath) throws Exception {
+	public Module loadModule(List<String> fullyQualifiedPath)
+			throws ParseException, IOException {
 		// Loading must be idempotent so if the module is already loaded we
 		// must return the same instance
 		Module loaded = lookupModule(fullyQualifiedPath);
@@ -86,7 +93,7 @@ public class Model {
 	 * already.
 	 */
 	private Module reallyLoadModule(List<String> fullyQualifiedPath)
-			throws Exception {
+			throws ParseException, IOException {
 		List<String> path = new ArrayList<String>();
 
 		// Loading a module means also loading any packages above it in the
@@ -113,7 +120,7 @@ public class Model {
 	 * Will also load any parent packages if they haven't been loaded yet.
 	 */
 	public Package loadPackage(List<String> fullyQualifiedPath)
-			throws Exception {
+			throws ParseException, IOException {
 		Queue<String> tokens = new LinkedList<String>(fullyQualifiedPath);
 		List<String> loadedPath = new ArrayList<String>();
 
@@ -133,7 +140,7 @@ public class Model {
 	}
 
 	private Module loadModuleIntoParent(List<String> fullyQualifiedPath,
-			Package parent) throws Exception {
+			Package parent) throws ParseException, IOException {
 
 		uk.ac.ic.doc.gander.hierarchy.Module pkg = hierarchy
 				.findModule(fullyQualifiedPath);
@@ -144,7 +151,7 @@ public class Model {
 	}
 
 	private Package loadPackageIntoParent(List<String> fullyQualifiedPath,
-			Package parent) throws Exception {
+			Package parent) throws ParseException, IOException {
 
 		uk.ac.ic.doc.gander.hierarchy.Package pkg = hierarchy
 				.findPackage(fullyQualifiedPath);

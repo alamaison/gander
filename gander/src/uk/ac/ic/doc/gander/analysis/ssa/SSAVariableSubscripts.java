@@ -22,7 +22,7 @@ public class SSAVariableSubscripts {
 	 */
 	private class Renamer extends NameInspector {
 
-		public Renamer(BasicBlock block) throws Exception {
+		public Renamer(BasicBlock block) {
 			inspect(block);
 		}
 
@@ -51,7 +51,7 @@ public class SSAVariableSubscripts {
 	 */
 	private class Popper extends NameInspector {
 
-		public Popper(BasicBlock block) throws Exception {
+		public Popper(BasicBlock block) {
 			inspect(block);
 		}
 
@@ -76,7 +76,7 @@ public class SSAVariableSubscripts {
 	private Map<BasicBlock, Set<BasicBlock>> domSuccessors = new HashMap<BasicBlock, Set<BasicBlock>>();
 	private PhiPlacement phis;
 
-	public SSAVariableSubscripts(Cfg graph) throws Exception {
+	public SSAVariableSubscripts(Cfg graph) {
 		phis = new PhiPlacement(graph);
 		buildDomTree(graph);
 
@@ -106,7 +106,7 @@ public class SSAVariableSubscripts {
 		// renamed.
 	}
 
-	private void rename(BasicBlock node) throws Exception {
+	private void rename(BasicBlock node) {
 
 		// for each phi-function in b, "x <- phi(...)", rename x as NewName(x)
 		Iterable<String> targets = phis.phiTargets(node);

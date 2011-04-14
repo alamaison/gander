@@ -13,7 +13,7 @@ class ReturnScope extends ScopeWithParent {
 	}
 
 	@Override
-	protected Statement doProcess() throws Exception {
+	protected Statement doProcess() {
 		Statement returnValue = delegate(node.value);
 
 		Statement statement = new Statement();

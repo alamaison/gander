@@ -15,7 +15,7 @@ public class TupleScope extends ScopeWithParent {
 	}
 
 	@Override
-	protected Statement doProcess() throws Exception {
+	protected Statement doProcess() {
 		return delegate(node.elts);
 	}
 

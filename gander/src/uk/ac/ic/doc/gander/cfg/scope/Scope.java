@@ -92,8 +92,8 @@ abstract class Scope extends VisitorBase {
 
 	@Override
 	public Object visitIfExp(IfExp node) throws Exception {
-		return delegateScope(new IfExpScope(node, _previousStatement, _trajectory,
-				_startInNewBlock, this));
+		return delegateScope(new IfExpScope(node, _previousStatement,
+				_trajectory, _startInNewBlock, this));
 	}
 
 	@Override
@@ -342,7 +342,7 @@ abstract class Scope extends VisitorBase {
 	}
 
 	private Statement buildGraph(SimpleNode node, Statement previous,
-			Exit trajectory, boolean startInNewBlock) throws Exception {
+			Exit trajectory, boolean startInNewBlock) {
 		if (node == null) {
 			Statement statement = new Statement();
 			statement.inlinks().inherit(trajectory());
@@ -360,6 +360,9 @@ abstract class Scope extends VisitorBase {
 			_startInNewBlock = startInNewBlock;
 
 			return (Statement) node.accept(this);
+		} catch (Exception e) {
+			throw new RuntimeException(
+					"Failure while generating control-flow graph", e);
 		} finally {
 			_previousStatement = null;
 			_trajectory = null;
@@ -368,48 +371,46 @@ abstract class Scope extends VisitorBase {
 	}
 
 	private Statement buildGraph(SimpleNode[] nodes, Statement previous,
-			Exit trajectory, boolean startInNewBlock) throws Exception {
+			Exit trajectory, boolean startInNewBlock) {
 		return new BodyScope(nodes, previous, trajectory, startInNewBlock, this)
 				.process();
 	}
 
-	protected Statement delegate(SimpleNode node) throws Exception {
+	protected Statement delegate(SimpleNode node) {
 		return buildGraph(node, previousStatement(), trajectory(),
 				getStartInNewBlock());
 	}
 
-	protected Statement delegate(SimpleNode[] nodes) throws Exception {
+	protected Statement delegate(SimpleNode[] nodes) {
 		return buildGraph(nodes, previousStatement(), trajectory(),
 				getStartInNewBlock());
 	}
 
 	protected Statement buildGraph(SimpleNode node, Statement previous,
-			Exit trajectory) throws Exception {
+			Exit trajectory) {
 		return buildGraph(node, previous, trajectory, false);
 	}
 
 	protected Statement buildGraph(SimpleNode[] nodes, Statement previous,
-			Exit trajectory) throws Exception {
+			Exit trajectory) {
 		return buildGraph(nodes, previous, trajectory, false);
 	}
 
-	protected Statement delegateButForceNewBlock(SimpleNode node)
-			throws Exception {
+	protected Statement delegateButForceNewBlock(SimpleNode node){
 		return buildGraph(node, previousStatement(), trajectory(), true);
 	}
 
-	protected Statement delegateButForceNewBlock(SimpleNode[] nodes)
-			throws Exception {
+	protected Statement delegateButForceNewBlock(SimpleNode[] nodes) {
 		return buildGraph(nodes, previousStatement(), trajectory(), true);
 	}
 
 	protected Statement buildGraphForceNewBlock(SimpleNode node,
-			Statement previous, Exit trajectory) throws Exception {
+			Statement previous, Exit trajectory){
 		return buildGraph(node, previous, trajectory, true);
 	}
 
 	protected Statement buildGraphForceNewBlock(SimpleNode[] nodes,
-			Statement previous, Exit trajectory) throws Exception {
+			Statement previous, Exit trajectory) {
 		return buildGraph(nodes, previous, trajectory, true);
 	}
 
@@ -432,7 +433,7 @@ abstract class Scope extends VisitorBase {
 		return previousStatement().uniqueFallthrough();
 	}
 
-	protected abstract Statement process() throws Exception;
+	protected abstract Statement process();
 
 	protected abstract BasicBlock newBlock();
 
