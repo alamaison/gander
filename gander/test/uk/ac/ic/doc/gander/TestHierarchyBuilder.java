@@ -18,12 +18,20 @@ public class TestHierarchyBuilder {
 	public static final String PYTHON_PATH_PROGRAM = "import sys\n"
 			+ "for x in sys.path:\n    print x\n\n";
 
-	public static Hierarchy createHierarchy(String caseName, File topLevel)
+	public static Hierarchy createHierarchy(File topLevel)
 			throws URISyntaxException, InvalidElementException {
 		List<File> paths = new ArrayList<File>();
 		for (String sysPath : TestHierarchyBuilder.queryPythonPath()) {
 			paths.add(new File(sysPath));
 		}
+		paths.add(topLevel);
+
+		return new Hierarchy(paths);
+	}
+
+	public static Hierarchy createHierarchyNoLibrary(String caseName,
+			File topLevel) throws URISyntaxException, InvalidElementException {
+		List<File> paths = new ArrayList<File>();
 		paths.add(topLevel);
 
 		return new Hierarchy(paths);

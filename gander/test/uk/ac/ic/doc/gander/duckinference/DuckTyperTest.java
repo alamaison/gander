@@ -22,7 +22,7 @@ import uk.ac.ic.doc.gander.model.Model;
 import uk.ac.ic.doc.gander.model.Module;
 import uk.ac.ic.doc.gander.model.Namespace;
 
-public class DuckInferenceTest {
+public class DuckTyperTest {
 
 	private static final String TEST_FOLDER = "python_test_code";
 	private Model model;
@@ -32,7 +32,7 @@ public class DuckInferenceTest {
 		URL testFolder = getClass().getResource(TEST_FOLDER);
 		File topLevel = new File(new File(testFolder.toURI()), caseName);
 
-		hierarchy = TestHierarchyBuilder.createHierarchy(caseName, topLevel);
+		hierarchy = TestHierarchyBuilder.createHierarchy(topLevel);
 		model = new Model(hierarchy);
 	}
 

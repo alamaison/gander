@@ -27,7 +27,7 @@ public class TypeDefinitionsTest {
 		URL testFolder = getClass().getResource(TEST_FOLDER);
 		File topLevel = new File(new File(testFolder.toURI()), caseName);
 
-		hierarchy = TestHierarchyBuilder.createHierarchy(caseName, topLevel);
+		hierarchy = TestHierarchyBuilder.createHierarchy(topLevel);
 		model = new Model(hierarchy);
 	}
 
@@ -51,7 +51,7 @@ public class TypeDefinitionsTest {
 		expected.addAll(builtins);
 
 		assertEquals("Types collected don't match expected classes", expected,
-				new ArrayList<Class>(new TypeDefinitions(model)
-						.getDefinitions()));
+				new ArrayList<Class>(new LoadedTypeDefinitions(model)
+						.collectDefinitions()));
 	}
 }

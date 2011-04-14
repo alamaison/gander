@@ -29,11 +29,11 @@ public class DuckTyper {
 		Set<String> methods = calculateDependentMethodNames(call,
 				containingBlock, scope);
 
-		TypeDefinitions definitions = new TypeDefinitions(model);
+		LoadedTypeDefinitions definitions = new LoadedTypeDefinitions(model);
 		Set<Type> type = new HashSet<Type>();
 		// XXX: We only compare by name. Matching parameter numbers etc
 		// will require more complex logic.
-		for (Class klass : definitions.getDefinitions()) {
+		for (Class klass : definitions.collectDefinitions()) {
 			if (klass.getFunctions().keySet().containsAll(methods))
 				type.add(new TClass(klass));
 		}

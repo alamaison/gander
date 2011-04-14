@@ -8,21 +8,21 @@ import uk.ac.ic.doc.gander.model.Class;
 import uk.ac.ic.doc.gander.model.Model;
 import uk.ac.ic.doc.gander.model.ModelWalker;
 
-public class TypeDefinitions {
+public class LoadedTypeDefinitions {
 
 	private Model model;
 
-	public TypeDefinitions(Model model) {
+	public LoadedTypeDefinitions(Model model) {
 		this.model = model;
 	}
 
-	public Collection<Class> getDefinitions() {
+	public Collection<Class> collectDefinitions() {
 		return new ClassDefinitionCollector(model).getClasses();
 	}
 
-	private class ClassDefinitionCollector extends ModelWalker {
+	private final class ClassDefinitionCollector extends ModelWalker {
 
-		final List<Class> classes = new ArrayList<Class>();
+		private final List<Class> classes = new ArrayList<Class>();
 		
 		ClassDefinitionCollector(Model model) {
 			walk(model);
