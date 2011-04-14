@@ -1,6 +1,7 @@
 package uk.ac.ic.doc.gander;
 
 import java.io.File;
+import java.util.Set;
 
 import uk.ac.ic.doc.gander.analysers.Tallies;
 
@@ -21,11 +22,24 @@ public abstract class TallyRunner extends MultiProjectRunner {
 		System.out.println("Maximum: " + result.max());
 		System.out.println("Average: " + result.average());
 		System.out.println("Median: " + result.median());
-		System.out.println();
+		printMode(result.mode());
 
 		if (plotter == null)
 			plotter = new FrequencyPlotter(getTitle(), getCategoryTitle());
 		plotter.plot(result, projectRoot.getName());
+	}
+
+	private void printMode(Set<Integer> mode) {
+		if (mode.size() == 1) {
+			System.out.println("Mode: " + mode.iterator().next());
+		} else {
+			System.out.print("Modes: ");
+			for (int m : mode) {
+				System.out.print(m + " ");
+			}
+			System.out.println();
+		}
+
 	}
 
 	protected abstract String getTitle();

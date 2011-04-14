@@ -5,7 +5,12 @@ package uk.ac.ic.doc.gander.analysers;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.Map.Entry;
 
 public class Tallies {
 
@@ -33,6 +38,28 @@ public class Tallies {
 		} else {
 			return counts.get(middle);
 		}
+	}
+	
+	public Set<Integer> mode() {
+		Map<Integer, Integer> occurrences = new HashMap<Integer, Integer>();
+		for (Integer c : counts) {
+			Integer m = occurrences.get(c);
+			if (m == null) {
+				m = new Integer(0);
+			}
+			
+			occurrences.put(c, m + 1);
+		}
+		
+		int maximumOccurrence = Collections.max(occurrences.values());
+		
+		Set<Integer> modes = new HashSet<Integer>();
+		for (Entry<Integer, Integer> e : occurrences.entrySet()) {
+			if (e.getValue() == maximumOccurrence)
+				modes.add(e.getKey());
+		}
+		
+		return modes;
 	}
 
 	public double average() {
