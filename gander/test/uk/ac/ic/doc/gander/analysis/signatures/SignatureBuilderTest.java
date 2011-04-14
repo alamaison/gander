@@ -1,4 +1,4 @@
-package uk.ac.ic.doc.gander.analysis;
+package uk.ac.ic.doc.gander.analysis.signatures;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -19,7 +19,7 @@ import uk.ac.ic.doc.gander.analysis.signatures.SignatureBuilder;
 
 public class SignatureBuilderTest extends AbstractTaggedCallTest {
 
-	private static final String TEST_FOLDER = "python_test_code/matching_dom_length/basic";
+	private static final String TEST_FOLDER = "../python_test_code/matching_dom_length/basic";
 	private SignatureBuilder analyser = new SignatureBuilder();
 
 	public SignatureBuilderTest() {
@@ -168,53 +168,51 @@ public class SignatureBuilderTest extends AbstractTaggedCallTest {
 	}
 
 	@Test
-	public void testRecurseIntoCall() throws Throwable {
-		initialise("recurse_into_call", 1);
+	public void testDigIntoCall() throws Throwable {
+		initialise("dig_into_call", 1);
 		String[][] chains = { { "y.b(tag)", "a", "b", "p", "q" } };
 		checkChains(chains);
 	}
 
 	@Test
-	public void testRecurseIntoCallWithSomeNonPostdomStatements()
-			throws Throwable {
-		initialise("recurse_into_call_with_some_non_postdom_statements", 1);
+	public void testDigIntoCallWithSomeNonPostdomStatements() throws Throwable {
+		initialise("dig_into_call_with_some_non_postdom_statements", 1);
 		String[][] chains = { { "g.b(tag)", "a", "b", "r", "t" } };
 		checkChains(chains);
 	}
 
 	@Test
-	public void testRecurseTwoLevels() throws Throwable {
-		initialise("recurse_two_levels", 1);
+	public void testDigTwoLevels() throws Throwable {
+		initialise("dig_two_levels", 1);
 		String[][] chains = { { "y.a(tag)", "a", "bob", "sally", "r", "t" } };
 		checkChains(chains);
 	}
 
 	@Test
-	public void testRecurseIntoCallImportedFromSiblingModule() throws Throwable {
-		initialise("recurse_into_call_imported_from_sibling_module", 1);
+	public void testDigIntoCallImportedFromSiblingModule() throws Throwable {
+		initialise("dig_into_call_imported_from_sibling_module", 1);
 		String[][] chains = { { "y.a(tag)", "a", "f", "g", "billy" } };
 		checkChains(chains);
 	}
 
 	@Test
-	public void testRecurseIntoCallImportedFromSiblingModuleDeep()
-			throws Throwable {
-		initialise("recurse_into_call_imported_from_sibling_module_deep", 1);
+	public void testDigIntoCallImportedFromSiblingModuleDeep() throws Throwable {
+		initialise("dig_into_call_imported_from_sibling_module_deep", 1);
 		String[][] chains = { { "y.a(tag)", "a", "f", "g", "goose" } };
 		checkChains(chains);
 	}
 
 	@Test
-	public void testRecurseIntoCallImportedFromPackageModule() throws Throwable {
-		initialise("recurse_into_call_imported_from_package_module", 1);
+	public void testDigIntoCallImportedFromPackageModule() throws Throwable {
+		initialise("dig_into_call_imported_from_package_module", 1);
 		String[][] chains = { { "y.a(tag)", "a", "show", "baaa" } };
 		checkChains(chains);
 	}
 
 	@Test
-	public void testRecurseIntoCallImportedFromPackageModuleClever()
+	public void testDigIntoCallImportedFromPackageModuleClever()
 			throws Throwable {
-		initialise("recurse_into_call_imported_from_package_module_clever", 1);
+		initialise("dig_into_call_imported_from_package_module_clever", 1);
 		String[][] chains = { { "y.a(tag)", "a", "gurgle", "f", "g", "goose" } };
 		checkChains(chains);
 	}
@@ -223,6 +221,20 @@ public class SignatureBuilderTest extends AbstractTaggedCallTest {
 	public void testCallBuiltin() throws Throwable {
 		initialise("call_builtin", 1);
 		String[][] chains = { { "y.a(tag)", "a", "__len__" } };
+		checkChains(chains);
+	}
+
+	@Test
+	public void testDigIntoRecursiveFunction() throws Throwable {
+		initialise("dig_into_recursive_function", 1);
+		String[][] chains = { { "y.a(tag)", "a", "z" } };
+		checkChains(chains);
+	}
+
+	@Test
+	public void testDigIntoIndirectlyRecursiveFunction() throws Throwable {
+		initialise("dig_into_indirectly_recursive_function", 1);
+		String[][] chains = { { "y.a(tag)", "a", "p", "q" } };
 		checkChains(chains);
 	}
 

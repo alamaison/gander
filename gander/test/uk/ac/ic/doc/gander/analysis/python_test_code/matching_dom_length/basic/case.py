@@ -147,7 +147,7 @@ def callme(z):
 	z.p()
 	z.q()
 
-def recurse_into_call():
+def dig_into_call():
 	y.a()
 	y.b("tag")
 	callme(y)
@@ -157,7 +157,7 @@ def callme_not_all_postdom(w):
 		w.s()
 	w.t()
 
-def recurse_into_call_with_some_non_postdom_statements():
+def dig_into_call_with_some_non_postdom_statements():
 	g.a()
 	g.b("tag")
 	callme_not_all_postdom(g)
@@ -168,31 +168,31 @@ def call_me_and_i_call_someone_else(t):
 	if (t.sally()):
 		callme(t)
 
-def recurse_two_levels():
+def dig_two_levels():
 	y = x
 	call_me_and_i_call_someone_else(y)
 	y.a("tag")
 
 import sibling_module
 
-def recurse_into_call_imported_from_sibling_module():
+def dig_into_call_imported_from_sibling_module():
 	y = x
 	sibling_module.call_me_my_brother(y)
 	y.a("tag")
 
-def recurse_into_call_imported_from_sibling_module_deep():
+def dig_into_call_imported_from_sibling_module_deep():
 	y = x
 	sibling_module.call_me_my_brother_deep(y)
 	y.a("tag")
 
 import subpackage.submodule
 
-def recurse_into_call_imported_from_package_module():
+def dig_into_call_imported_from_package_module():
 	y = x
 	subpackage.submodule.call_me_auntie(y)
 	y.a("tag")
 
-def recurse_into_call_imported_from_package_module_clever():
+def dig_into_call_imported_from_package_module_clever():
 	y = x
 	subpackage.submodule.call_me_auntie_and_see_how_clever_i_am(y)
 	y.a("tag")
@@ -201,3 +201,25 @@ def call_builtin():
 	y = x
 	print len(y)
 	y.a("tag")
+
+def dig_into_recursive_function():
+	y = x
+	im_recursive(y)
+	y.a("tag")
+
+def im_recursive(w):
+	w.z()
+	im_recursive(w)
+
+def dig_into_indirectly_recursive_function():
+	y = x
+	im_indirectly_recursive(y)
+	y.a("tag")
+
+def im_indirectly_recursive(w):
+	w.p()
+	im_also_indirectly_recursive(w)
+
+def im_also_indirectly_recursive(w):
+	w.q()
+	im_indirectly_recursive(w)

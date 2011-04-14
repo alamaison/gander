@@ -1,4 +1,4 @@
-package uk.ac.ic.doc.gander.analysis;
+package uk.ac.ic.doc.gander.analysis.signatures;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -23,7 +23,7 @@ import uk.ac.ic.doc.gander.model.Model;
 
 public class PassedVariableFinderTest {
 
-	private static final String TEST_PROJ = "python_test_code/passed_var";
+	private static final String TEST_PROJ = "../python_test_code/passed_var";
 	private Set<BasicBlock> blocks;
 
 	@Test

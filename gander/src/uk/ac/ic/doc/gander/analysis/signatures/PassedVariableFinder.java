@@ -16,7 +16,24 @@ import uk.ac.ic.doc.gander.cfg.BasicBlock;
 /**
  * Find where the given variable is passed to calls as a parameter.
  */
-public class PassedVariableFinder {
+class PassedVariableFinder {
+
+	PassedVariableFinder(String variable, Iterable<BasicBlock> blocks) {
+		this.variable = variable;
+		for (BasicBlock block : blocks) {
+			for (SimpleNode node : block) {
+				try {
+					node.accept(new FinderVisitor());
+				} catch (Exception e) {
+					throw new RuntimeException(e);
+				}
+			}
+		}
+	}
+
+	Set<PassedVar> passes() {
+		return calls;
+	}
 
 	/**
 	 * Details of a variable's passing to a call.
@@ -24,7 +41,7 @@ public class PassedVariableFinder {
 	 * A variable may be passed more than once to a single call and can appear
 	 * by position and/or by keyword.
 	 */
-	public class PassedVar {
+	final class PassedVar {
 
 		private Set<Integer> positions = new HashSet<Integer>();
 		private Set<String> keywords = new HashSet<String>();
@@ -55,19 +72,6 @@ public class PassedVariableFinder {
 
 	private Set<PassedVar> calls = new HashSet<PassedVar>();
 	private String variable;
-
-	public PassedVariableFinder(String variable, Iterable<BasicBlock> blocks) {
-		this.variable = variable;
-		for (BasicBlock block : blocks) {
-			for (SimpleNode node : block) {
-				try {
-					node.accept(new FinderVisitor());
-				} catch (Exception e) {
-					throw new RuntimeException(e);
-				}
-			}
-		}
-	}
 
 	private final class FinderVisitor extends BasicBlockTraverser {
 
@@ -100,9 +104,5 @@ public class PassedVariableFinder {
 		// TODO: Deal with starargs
 
 		return false;
-	}
-
-	public Set<PassedVar> passes() {
-		return calls;
 	}
 }
