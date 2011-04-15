@@ -43,76 +43,81 @@ public class DuckHunt {
 
 		@Override
 		protected void visitFunction(Function function) {
-			for (BasicBlock sub : function.getCfg().getBlocks()) {
-				for (Call call : new MethodFinder(sub).calls()) {
+			for (BasicBlock block : function.getCfg().getBlocks()) {
+				for (Call call : new MethodFinder(block).calls()) {
 					if (!isExternalMethodCallOnName(call, function))
 						continue;
 
-					Set<Type> type = new DuckTyper(model).typeOf(call, sub,
-							function);
-					counts.addTally(type.size());
-					if (type.size() == 0) {
-						System.out.println("unable to infer type from " + call
-								+ " in " + function.getFullName());
-					}
+					countNumberOfTypesInferredFor(call, function, block);
 				}
 			}
 		}
+	}
 
-		private boolean isMethodCallOnName(Call call, Function function) {
-			if (!(call.func instanceof Attribute))
-				return false;
+	private void countNumberOfTypesInferredFor(Call call, Function function,
+			BasicBlock block) {
+		Set<Type> type = new DuckTyper(model).typeOf(call, block, function);
+		counts.addTally(type.size());
 
-			Attribute attr = (Attribute) call.func;
-			if (!(attr.value instanceof Name))
-				return false;
-
-			Name variable = (Name) attr.value;
-
-			// skip calls to module functions - they look like method calls but
-			// we want to treat then differently
-
-			return !(typer.typeOf(variable, function) instanceof uk.ac.ic.doc.gander.flowinference.types.TImportable);
+		if (type.size() == 0) {
+			System.out.println("unable to infer type from " + call + " in "
+					+ function.getFullName());
 		}
+	}
 
-		private boolean isExternalMethodCallOnName(Call call, Function function) {
-			if (!(call.func instanceof Attribute))
-				return false;
+	private boolean isMethodCallOnName(Call call, Function function) {
+		if (!(call.func instanceof Attribute))
+			return false;
 
-			Attribute attr = (Attribute) call.func;
-			if (!(attr.value instanceof Name))
-				return false;
+		Attribute attr = (Attribute) call.func;
+		if (!(attr.value instanceof Name))
+			return false;
 
-			Name variable = (Name) attr.value;
+		Name variable = (Name) attr.value;
 
-			// if function is a method of a class, skip calls to self (or
-			// whatever the first parameter to a method
-			// is called. We already know the type of these.
-			if (function.getParentScope() instanceof uk.ac.ic.doc.gander.model.Class) {
-				if (function.getFunctionDef().args.args.length > 0) {
-					if (function.getFunctionDef().args.args[0] instanceof Name) {
-						if (((Name) function.getFunctionDef().args.args[0]).id
-								.equals(variable.id)) {
-							return false;
-						}
+		// skip calls to module functions - they look like method calls but
+		// we want to treat then differently
 
-					} else {
-						System.err.println("WARNING: method with "
-								+ "non-name first parameter? "
-								+ function.getFullName());
+		return !(typer.typeOf(variable, function) instanceof uk.ac.ic.doc.gander.flowinference.types.TImportable);
+	}
 
+	private boolean isExternalMethodCallOnName(Call call, Function function) {
+		if (!(call.func instanceof Attribute))
+			return false;
+
+		Attribute attr = (Attribute) call.func;
+		if (!(attr.value instanceof Name))
+			return false;
+
+		Name variable = (Name) attr.value;
+
+		// if function is a method of a class, skip calls to self (or
+		// whatever the first parameter to a method
+		// is called. We already know the type of these.
+		if (function.getParentScope() instanceof uk.ac.ic.doc.gander.model.Class) {
+			if (function.getFunctionDef().args.args.length > 0) {
+				if (function.getFunctionDef().args.args[0] instanceof Name) {
+					if (((Name) function.getFunctionDef().args.args[0]).id
+							.equals(variable.id)) {
+						return false;
 					}
+
 				} else {
 					System.err.println("WARNING: method with "
-							+ "no object parameter? " + function.getFullName());
+							+ "non-name first parameter? "
+							+ function.getFullName());
+
 				}
+			} else {
+				System.err.println("WARNING: method with "
+						+ "no object parameter? " + function.getFullName());
 			}
-
-			// skip calls to module functions - they look like method calls but
-			// we want to treat then differently
-
-			return !(typer.typeOf(variable, function) instanceof uk.ac.ic.doc.gander.flowinference.types.TImportable);
 		}
+
+		// skip calls to module functions - they look like method calls but
+		// we want to treat then differently
+
+		return !(typer.typeOf(variable, function) instanceof uk.ac.ic.doc.gander.flowinference.types.TImportable);
 	}
 
 	/**
