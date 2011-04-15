@@ -1,27 +1,23 @@
-package uk.ac.ic.doc.gander;
+package uk.ac.ic.doc.gander.hierarchy;
 
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import uk.ac.ic.doc.gander.hierarchy.Hierarchy;
-import uk.ac.ic.doc.gander.hierarchy.InvalidElementException;
+public class HierarchyFactory {
 
-public class TestHierarchyBuilder {
-
-	public static final String PYTHON_PATH_PROGRAM = "import sys\n"
+	private static final String PYTHON_PATH_PROGRAM = "import sys\n"
 			+ "for x in sys.path:\n    print x\n\n";
 
 	public static Hierarchy createHierarchy(File topLevel)
-			throws URISyntaxException, InvalidElementException {
+			throws InvalidElementException {
 		List<File> paths = new ArrayList<File>();
-		for (String sysPath : TestHierarchyBuilder.queryPythonPath()) {
+		for (String sysPath : HierarchyFactory.queryPythonPath()) {
 			paths.add(new File(sysPath));
 		}
 		paths.add(topLevel);
@@ -29,8 +25,8 @@ public class TestHierarchyBuilder {
 		return new Hierarchy(paths);
 	}
 
-	public static Hierarchy createHierarchyNoLibrary(String caseName,
-			File topLevel) throws URISyntaxException, InvalidElementException {
+	public static Hierarchy createHierarchyNoLibrary(File topLevel)
+			throws InvalidElementException {
 		List<File> paths = new ArrayList<File>();
 		paths.add(topLevel);
 

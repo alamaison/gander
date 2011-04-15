@@ -11,8 +11,8 @@ import java.util.List;
 
 import org.junit.Test;
 
-import uk.ac.ic.doc.gander.TestHierarchyBuilder;
 import uk.ac.ic.doc.gander.hierarchy.Hierarchy;
+import uk.ac.ic.doc.gander.hierarchy.HierarchyFactory;
 import uk.ac.ic.doc.gander.model.Class;
 import uk.ac.ic.doc.gander.model.Model;
 import uk.ac.ic.doc.gander.model.Module;
@@ -27,7 +27,7 @@ public class TypeDefinitionsTest {
 		URL testFolder = getClass().getResource(TEST_FOLDER);
 		File topLevel = new File(new File(testFolder.toURI()), caseName);
 
-		hierarchy = TestHierarchyBuilder.createHierarchy(topLevel);
+		hierarchy = HierarchyFactory.createHierarchy(topLevel);
 		model = new Model(hierarchy);
 	}
 

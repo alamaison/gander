@@ -11,11 +11,11 @@ import org.junit.Test;
 
 import uk.ac.ic.doc.gander.Statement;
 import uk.ac.ic.doc.gander.TaggedBlockFinder;
-import uk.ac.ic.doc.gander.TestHierarchyBuilder;
 import uk.ac.ic.doc.gander.cfg.Cfg;
 import uk.ac.ic.doc.gander.flowinference.types.TClass;
 import uk.ac.ic.doc.gander.flowinference.types.Type;
 import uk.ac.ic.doc.gander.hierarchy.Hierarchy;
+import uk.ac.ic.doc.gander.hierarchy.HierarchyFactory;
 import uk.ac.ic.doc.gander.model.Class;
 import uk.ac.ic.doc.gander.model.Function;
 import uk.ac.ic.doc.gander.model.Model;
@@ -32,7 +32,7 @@ public class DuckTyperTest {
 		URL testFolder = getClass().getResource(TEST_FOLDER);
 		File topLevel = new File(new File(testFolder.toURI()), caseName);
 
-		hierarchy = TestHierarchyBuilder.createHierarchy(topLevel);
+		hierarchy = HierarchyFactory.createHierarchy(topLevel);
 		model = new Model(hierarchy);
 	}
 
