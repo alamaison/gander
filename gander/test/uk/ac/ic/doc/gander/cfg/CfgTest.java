@@ -7,21 +7,15 @@ import static org.junit.Assert.assertTrue;
 
 import java.io.File;
 import java.net.URL;
-import java.util.Collection;
 import java.util.Iterator;
 
 import org.junit.Test;
 import org.python.pydev.parser.jython.SimpleNode;
-import org.python.pydev.parser.jython.ast.Assign;
-import org.python.pydev.parser.jython.ast.Attribute;
 import org.python.pydev.parser.jython.ast.Call;
 import org.python.pydev.parser.jython.ast.Name;
-import org.python.pydev.parser.jython.ast.NameTok;
-import org.python.pydev.parser.jython.ast.Num;
 
-import uk.ac.ic.doc.gander.cfg.BasicBlock;
-import uk.ac.ic.doc.gander.cfg.Cfg;
 import uk.ac.ic.doc.gander.hierarchy.Hierarchy;
+import uk.ac.ic.doc.gander.hierarchy.HierarchyFactory;
 import uk.ac.ic.doc.gander.model.Function;
 import uk.ac.ic.doc.gander.model.Model;
 
@@ -35,7 +29,7 @@ public class CfgTest {
 		URL topLevel = getClass().getResource(projectPath);
 
 		File topLevelDirectory = new File(topLevel.toURI());
-		Hierarchy hierarchy = new Hierarchy(topLevelDirectory);
+		Hierarchy hierarchy = HierarchyFactory.createHierarchy(topLevelDirectory);
 		Model model = new Model(hierarchy);
 		return model;
 	}

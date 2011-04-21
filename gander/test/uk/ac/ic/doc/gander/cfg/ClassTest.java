@@ -9,6 +9,7 @@ import org.junit.Test;
 
 import uk.ac.ic.doc.gander.cfg.Cfg;
 import uk.ac.ic.doc.gander.hierarchy.Hierarchy;
+import uk.ac.ic.doc.gander.hierarchy.HierarchyFactory;
 import uk.ac.ic.doc.gander.model.Function;
 import uk.ac.ic.doc.gander.model.Model;
 
@@ -22,7 +23,8 @@ public class ClassTest {
 		URL topLevel = getClass().getResource(projectPath);
 
 		File topLevelDirectory = new File(topLevel.toURI());
-		Hierarchy hierarchy = new Hierarchy(topLevelDirectory);
+		Hierarchy hierarchy = HierarchyFactory
+				.createHierarchy(topLevelDirectory);
 		Model model = new Model(hierarchy);
 		return model;
 	}

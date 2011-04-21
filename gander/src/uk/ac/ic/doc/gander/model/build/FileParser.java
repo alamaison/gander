@@ -14,11 +14,11 @@ import org.python.pydev.parser.jython.TokenMgrError;
 import org.python.pydev.parser.jython.ast.Module;
 import org.python.pydev.parser.jython.ast.stmtType;
 
-public class ModuleParser {
+public class FileParser {
 
 	private Module module;
 
-	public ModuleParser(File module) throws ParseException, IOException {
+	public FileParser(File module) throws ParseException, IOException {
 
 		try {
 			if (module.length() > 0) {

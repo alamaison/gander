@@ -1,7 +1,6 @@
 package uk.ac.ic.doc.gander.hierarchy;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.List;
 
 import uk.ac.ic.doc.gander.hierarchy.build.PackageBuilder;
@@ -10,13 +9,11 @@ public class Hierarchy {
 
 	private Package topLevel;
 
-	public Hierarchy(File topLevelDirectory) throws InvalidElementException {
-		this(directoryToList(topLevelDirectory));
-	}
-
-	public Hierarchy(Iterable<File> topLevelDirectories)
+	Hierarchy(Iterable<File> topLevelDirectories,
+			Iterable<File> topLevelSystemDirectories)
 			throws InvalidElementException {
-		PackageBuilder builder = new PackageBuilder(topLevelDirectories);
+		PackageBuilder builder = new PackageBuilder(topLevelDirectories,
+				topLevelSystemDirectories);
 		this.topLevel = builder.getPackage();
 	}
 
@@ -38,11 +35,5 @@ public class Hierarchy {
 
 	public Package findPackage(List<String> fullyQualifiedName) {
 		return getTopLevelPackage().findPackage(fullyQualifiedName);
-	}
-
-	private static List<File> directoryToList(File directory) {
-		List<File> directories = new ArrayList<File>();
-		directories.add(directory);
-		return directories;
 	}
 }

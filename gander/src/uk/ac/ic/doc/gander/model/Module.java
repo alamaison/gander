@@ -4,28 +4,30 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.python.pydev.parser.jython.SimpleNode;
-
-import uk.ac.ic.doc.gander.model.build.BuildableNamespace;
-
-public class Module implements Importable, BuildableNamespace {
+public class Module implements Loadable {
 
 	private Map<String, Class> classes = new HashMap<String, Class>();
 	private Map<String, Function> functions = new HashMap<String, Function>();
 
 	private String name;
-	private org.python.pydev.parser.jython.ast.Module module;
+	private org.python.pydev.parser.jython.ast.Module ast;
 	private Package parent;
+	private boolean isSystem;
 
-	public Module(org.python.pydev.parser.jython.ast.Module module,
-			String name, Package parent) {
-		assert module != null;
+	public Module(org.python.pydev.parser.jython.ast.Module ast, String name,
+			Package parent, boolean isSystem) {
+		assert ast != null;
 		assert parent != null;
 		assert !name.isEmpty();
-		
-		this.module = module;
+
+		this.ast = ast;
 		this.name = name;
 		this.parent = parent;
+		this.isSystem = isSystem;
+	}
+
+	public boolean isSystem() {
+		return isSystem;
 	}
 
 	/*
@@ -43,10 +45,6 @@ public class Module implements Importable, BuildableNamespace {
 			return getName();
 		else
 			return parentName + "." + getName();
-	}
-
-	public SimpleNode getAst() {
-		return module;
 	}
 
 	public Package getParentPackage() {
@@ -92,5 +90,9 @@ public class Module implements Importable, BuildableNamespace {
 	@Override
 	public String toString() {
 		return "Module[" + getFullName() + "]";
+	}
+
+	public org.python.pydev.parser.jython.ast.Module getAst() {
+		return ast;
 	}
 }

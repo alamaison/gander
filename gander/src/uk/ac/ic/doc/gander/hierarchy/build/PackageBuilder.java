@@ -12,16 +12,26 @@ public class PackageBuilder extends Builder {
 
 	private BuildablePackage pkg;
 
-	public PackageBuilder(Iterable<File> topLevelDirectories) {
+	public PackageBuilder(Iterable<File> topLevelDirectories,
+			Iterable<File> topLevelSystemDirectories) {
 
-		pkg = new BuildablePackage("", null, null);
+		// Top level package is a system package
+		pkg = new BuildablePackage("", null, null, true);
 
 		for (File directory : topLevelDirectories) {
 			// Some directories on the Python path may not exist. Skip them.
 			if (!directory.isDirectory())
 				continue;
 
-			processDirectory(directory);
+			processDirectory(directory, false);
+		}
+
+		for (File directory : topLevelSystemDirectories) {
+			// Some directories on the Python path may not exist. Skip them.
+			if (!directory.isDirectory())
+				continue;
+
+			processDirectory(directory, true);
 		}
 	}
 
@@ -29,7 +39,7 @@ public class PackageBuilder extends Builder {
 		return pkg;
 	}
 
-	private PackageBuilder(File directory, Package parent)
+	private PackageBuilder(File directory, Package parent, boolean isSystem)
 			throws InvalidElementException {
 		assert parent != null;
 
@@ -40,22 +50,38 @@ public class PackageBuilder extends Builder {
 		if (initFile == null)
 			throw new InvalidElementException("Not a package", directory);
 
-		pkg = new BuildablePackage(directory.getName(), initFile, parent);
+		pkg = new BuildablePackage(directory.getName(), initFile, parent,
+				isSystem);
 
-		processDirectory(directory);
+		processDirectory(directory, isSystem);
 	}
 
-	private void processDirectory(File directory) {
+	private void processDirectory(File directory, boolean isSystem) {
 
 		for (File f : directory.listFiles()) {
 			try {
+				// Don't process a module/package that already exists in the
+				// hierarchy. This ensures that modules/packages appearing
+				// earlier in the Python path take precedence over those
+				// appearing later.
 				if (f.isDirectory()) {
-					PackageBuilder builder = new PackageBuilder(f, pkg);
+					// XXX: Hack assumes packages are indexed by directory name.
+					// Even if that assumption is ok, we now have name
+					// extraction in two places - here and in the package about
+					// to be created.
+					if (pkg.getPackages().containsKey(f.getName()))
+						continue;
+
+					PackageBuilder builder = new PackageBuilder(f, pkg,
+							isSystem);
 					pkg.addPackage(builder.getPackage());
 				} else if (f.isFile()) {
 					if (f.getName().equals(PACKAGE_TAG_FILENAME))
 						continue;
-					ModuleBuilder builder = new ModuleBuilder(f, pkg);
+					if (pkg.getModules().containsKey(f.getName()))
+						continue;
+
+					ModuleBuilder builder = new ModuleBuilder(f, pkg, isSystem);
 					pkg.addModule(builder.getModule());
 				}
 			} catch (InvalidElementException e) {

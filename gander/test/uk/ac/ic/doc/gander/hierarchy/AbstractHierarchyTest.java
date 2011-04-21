@@ -33,9 +33,11 @@ public abstract class AbstractHierarchyTest {
 
 		List<File> dirs = new ArrayList<File>();
 		dirs.add(topLevelDirectory);
-		dirs.add(stdlib);
-		dirs.add(new File("nonexistentdir"));
-		hierarchy = new Hierarchy(dirs);
+		
+		List<File> stdLibDirs = new ArrayList<File>();
+		stdLibDirs.add(stdlib);
+		stdLibDirs.add(new File("nonexistentdir"));
+		hierarchy = HierarchyFactory.createHierarchy(dirs, stdLibDirs);
 	}
 
 	protected static <T> void assertKeys(Map<String, T> keys, String... expected) {

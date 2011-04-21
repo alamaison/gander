@@ -13,8 +13,9 @@ class BuildablePackage extends Package {
 	private HashMap<String, Module> modules = new HashMap<String, Module>();
 	private HashMap<String, Package> packages = new HashMap<String, Package>();
 
-	public BuildablePackage(String name, File initFile, Package parent) {
-		super(name, initFile, parent);
+	public BuildablePackage(String name, File initFile, Package parent,
+			boolean isSystem) {
+		super(name, initFile, parent, isSystem);
 	}
 
 	public Map<String, Package> getPackages() {

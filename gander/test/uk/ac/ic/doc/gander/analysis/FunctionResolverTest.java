@@ -16,6 +16,7 @@ import org.python.pydev.parser.jython.ast.Str;
 import org.python.pydev.parser.jython.ast.VisitorBase;
 
 import uk.ac.ic.doc.gander.hierarchy.Hierarchy;
+import uk.ac.ic.doc.gander.hierarchy.HierarchyFactory;
 import uk.ac.ic.doc.gander.model.Function;
 import uk.ac.ic.doc.gander.model.Model;
 import uk.ac.ic.doc.gander.model.Module;
@@ -72,7 +73,8 @@ public class FunctionResolverTest {
 
 		File topLevelDirectory = new File(topLevel.toURI());
 
-		Hierarchy hierarchy = new Hierarchy(topLevelDirectory);
+		Hierarchy hierarchy = HierarchyFactory
+				.createHierarchy(topLevelDirectory);
 		model = new Model(hierarchy);
 		module = model.loadModule("resolve");
 	}

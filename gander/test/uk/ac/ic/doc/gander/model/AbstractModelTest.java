@@ -9,6 +9,7 @@ import java.util.HashSet;
 import java.util.Map;
 
 import uk.ac.ic.doc.gander.hierarchy.Hierarchy;
+import uk.ac.ic.doc.gander.hierarchy.HierarchyFactory;
 
 public abstract class AbstractModelTest {
 
@@ -27,7 +28,8 @@ public abstract class AbstractModelTest {
 
 		File topLevelDirectory = new File(topLevel.toURI());
 
-		Hierarchy hierarchy = new Hierarchy(topLevelDirectory);
+		Hierarchy hierarchy = HierarchyFactory
+				.createHierarchy(topLevelDirectory);
 		model = new Model(hierarchy);
 	}
 

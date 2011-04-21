@@ -29,7 +29,7 @@ import uk.ac.ic.doc.gander.flowinference.types.Type;
 import uk.ac.ic.doc.gander.importing.ImportSimulator;
 import uk.ac.ic.doc.gander.model.Class;
 import uk.ac.ic.doc.gander.model.Function;
-import uk.ac.ic.doc.gander.model.Importable;
+import uk.ac.ic.doc.gander.model.Loadable;
 import uk.ac.ic.doc.gander.model.Model;
 import uk.ac.ic.doc.gander.model.Module;
 import uk.ac.ic.doc.gander.model.Namespace;
@@ -216,13 +216,13 @@ public class SymbolTable {
 		}
 
 		@Override
-		protected Importable simulateLoad(List<String> importPath,
+		protected Loadable simulateLoad(List<String> importPath,
 				Package relativeToPackage) {
 			List<String> name = new ArrayList<String>(DottedName
 					.toImportTokens(relativeToPackage.getFullName()));
 			name.addAll(importPath);
 
-			Importable loaded = null;
+			Loadable loaded = null;
 			try {
 				loaded = getModel().loadPackage(name);
 				if (loaded == null)

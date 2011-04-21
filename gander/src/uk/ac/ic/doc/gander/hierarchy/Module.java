@@ -4,11 +4,12 @@ import java.io.File;
 
 public class Module {
 
-	String name;
-	File file;
-	Package parent;
+	private String name;
+	private File file;
+	private Package parent;
+	private boolean isSystem;
 
-	public Module(String name, File file, Package parent) {
+	public Module(String name, File file, Package parent, boolean isSystem) {
 		assert file != null;
 		assert file.isFile();
 		assert parent != null;
@@ -16,6 +17,7 @@ public class Module {
 		this.name = name;
 		this.file = file;
 		this.parent = parent;
+		this.isSystem = isSystem;
 	}
 
 	public Package getParentPackage() {
@@ -36,6 +38,10 @@ public class Module {
 
 	public File getFile() {
 		return file;
+	}
+
+	public boolean isSystem() {
+		return isSystem;
 	}
 
 }

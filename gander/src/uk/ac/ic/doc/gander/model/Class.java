@@ -4,13 +4,12 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.python.pydev.parser.jython.SimpleNode;
 import org.python.pydev.parser.jython.ast.ClassDef;
 import org.python.pydev.parser.jython.ast.NameTok;
 import org.python.pydev.parser.jython.ast.exprType;
 
-import uk.ac.ic.doc.gander.model.build.BuildableNamespace;
-
-public class Class implements BuildableNamespace {
+public class Class implements Namespace {
 
 	private Map<String, Function> methods = new HashMap<String, Function>();
 	private Map<String, Class> classes = new HashMap<String, Class>();
@@ -78,5 +77,26 @@ public class Class implements BuildableNamespace {
 	@Override
 	public String toString() {
 		return "Class[" + getFullName() + "]";
+	}
+
+	/**
+	 * Classes inherit their systemness from their parent.
+	 * 
+	 * It isn't possible for a class to be system if it's containing module
+	 * isn't a system module. In other words, the resolution of systemness is at
+	 * the module level and all namespaces below that, inherit from their
+	 * parent.
+	 * 
+	 * XXX: Another way to look at this is that systemness is a property of the
+	 * associated <b>hierarchy</b> element so perhaps we should link model
+	 * element to their hierarchy parent. However, some model elements don't
+	 * have a hierarchy element. For example the dummy_builtin module.
+	 */
+	public boolean isSystem() {
+		return parent.isSystem();
+	}
+
+	public SimpleNode getAst() {
+		return getClassDef();
 	}
 }

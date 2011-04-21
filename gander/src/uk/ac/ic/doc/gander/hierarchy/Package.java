@@ -13,14 +13,16 @@ public abstract class Package {
 	private String name;
 	private File initFile;
 	private Package parent;
+	private boolean isSystem;
 
-	public Package(String name, File initFile, Package parent) {
+	public Package(String name, File initFile, Package parent, boolean isSystem) {
 		assert initFile == null || initFile.isFile();
 		assert parent == null || initFile != null;
 
 		this.name = name;
 		this.initFile = initFile;
 		this.parent = parent;
+		this.isSystem = isSystem;
 	}
 
 	public abstract Map<String, Module> getModules();
@@ -29,6 +31,10 @@ public abstract class Package {
 
 	public boolean isTopLevel() {
 		return getParentPackage() == null;
+	}
+	
+	public boolean isSystem() {
+		return isSystem;
 	}
 
 	public String getName() {

@@ -10,13 +10,13 @@ class ModuleBuilder extends Builder {
 
 	private Module module;
 
-	ModuleBuilder(File moduleFile, Package parent)
+	ModuleBuilder(File moduleFile, Package parent, boolean isSystem)
 			throws InvalidElementException {
 		String name = moduleNameFromFile(moduleFile);
 		if (name == null)
 			throw new InvalidElementException("Not a module", moduleFile);
 
-		this.module = new Module(name, moduleFile, parent);
+		this.module = new Module(name, moduleFile, parent, isSystem);
 	}
 
 	Module getModule() {

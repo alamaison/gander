@@ -10,7 +10,7 @@ import java.util.List;
 import uk.ac.ic.doc.gander.DottedName;
 import uk.ac.ic.doc.gander.flowinference.types.TModule;
 import uk.ac.ic.doc.gander.flowinference.types.TPackage;
-import uk.ac.ic.doc.gander.model.Importable;
+import uk.ac.ic.doc.gander.model.Loadable;
 import uk.ac.ic.doc.gander.model.Module;
 import uk.ac.ic.doc.gander.model.Namespace;
 import uk.ac.ic.doc.gander.model.Package;
@@ -27,7 +27,7 @@ import uk.ac.ic.doc.gander.model.Package;
  * import mechanism. First, modules and packages are loaded. Subclasses are
  * given a path relative to a previously loaded package but they are free to
  * implement the loading operation however they choose. All that is required is
- * that they return an {@link Importable} if the load succeeded or null if it
+ * that they return an {@link Loadable} if the load succeeded or null if it
  * fails. The second aspect is name binding. The whole point of importing is to
  * bind a name to a loaded module or other namespace. Subclasses are free to
  * interpret name binding however makes sense for their task or even ignore it
@@ -55,7 +55,7 @@ public abstract class ImportSimulator {
 	 * @return {@link Module} or {@link Package} if loading succeeded, {@code
 	 *         null} otherwise.
 	 */
-	protected abstract Importable simulateLoad(List<String> importPath,
+	protected abstract Loadable simulateLoad(List<String> importPath,
 			Package relativeToPackage);
 
 	protected abstract void bindName(Namespace importReceiver,
@@ -122,7 +122,7 @@ public abstract class ImportSimulator {
 	private void simulateImportAs(List<String> importPath,
 			Package relativeToPackage, Namespace importReceiver, String as) {
 
-		Importable loaded = simulateImportHelper(importPath, relativeToPackage,
+		Loadable loaded = simulateImportHelper(importPath, relativeToPackage,
 				null);
 		handleBind(importPath, relativeToPackage, importReceiver, as, loaded);
 	}
@@ -155,11 +155,11 @@ public abstract class ImportSimulator {
 				asName, loaded);
 	}
 
-	private Importable simulateImportHelper(List<String> importPath,
+	private Loadable simulateImportHelper(List<String> importPath,
 			Package relativeToPackage, Namespace importReceiver) {
 
 		List<String> processed = new LinkedList<String>();
-		Importable loaded = null;
+		Loadable loaded = null;
 		for (String token : importPath) {
 			processed.add(token);
 			loaded = simulateTwoStepLoad(processed, relativeToPackage);
@@ -192,9 +192,9 @@ public abstract class ImportSimulator {
 	 * @return {@link Module} or {@link Package} if loading succeeded, {@code
 	 *         null} otherwise.
 	 */
-	private Importable simulateTwoStepLoad(List<String> importPath,
+	private Loadable simulateTwoStepLoad(List<String> importPath,
 			Package relativeToPackage) {
-		Importable loaded = null;
+		Loadable loaded = null;
 
 		if (relativeToPackage != null)
 			loaded = simulateLoad(importPath, relativeToPackage);
@@ -206,7 +206,7 @@ public abstract class ImportSimulator {
 	}
 
 	private void handleBind(List<String> importPath, Package relativeToPackage,
-			Namespace importReceiver, String as, Importable loaded) {
+			Namespace importReceiver, String as, Loadable loaded) {
 		if (loaded != null)
 			bindName(importReceiver, loaded, as);
 		else

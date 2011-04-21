@@ -13,6 +13,7 @@ import org.junit.Test;
 
 import uk.ac.ic.doc.gander.analysers.DominationLength;
 import uk.ac.ic.doc.gander.hierarchy.Hierarchy;
+import uk.ac.ic.doc.gander.hierarchy.HierarchyFactory;
 
 public class DominationLengthTest {
 
@@ -68,7 +69,7 @@ public class DominationLengthTest {
 		File domLengthDirectory = new File(domLength.toURI());
 		File topLevelDirectory = new File(domLengthDirectory, caseName);
 
-		hierarchy = new Hierarchy(topLevelDirectory);
+		hierarchy = HierarchyFactory.createHierarchy(topLevelDirectory);
 	}
 
 }

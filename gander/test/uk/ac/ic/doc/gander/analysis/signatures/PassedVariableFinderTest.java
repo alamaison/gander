@@ -18,6 +18,7 @@ import uk.ac.ic.doc.gander.analysis.signatures.PassedVariableFinder;
 import uk.ac.ic.doc.gander.analysis.signatures.PassedVariableFinder.PassedVar;
 import uk.ac.ic.doc.gander.cfg.BasicBlock;
 import uk.ac.ic.doc.gander.hierarchy.Hierarchy;
+import uk.ac.ic.doc.gander.hierarchy.HierarchyFactory;
 import uk.ac.ic.doc.gander.model.Function;
 import uk.ac.ic.doc.gander.model.Model;
 
@@ -249,7 +250,8 @@ public class PassedVariableFinderTest {
 
 		File topLevelDirectory = new File(topLevel.toURI());
 
-		Hierarchy hierarchy = new Hierarchy(topLevelDirectory);
+		Hierarchy hierarchy = HierarchyFactory
+				.createHierarchy(topLevelDirectory);
 		return new Model(hierarchy);
 	}
 

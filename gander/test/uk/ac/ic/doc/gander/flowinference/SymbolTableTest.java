@@ -4,16 +4,9 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -26,9 +19,10 @@ import uk.ac.ic.doc.gander.flowinference.types.TModule;
 import uk.ac.ic.doc.gander.flowinference.types.TPackage;
 import uk.ac.ic.doc.gander.flowinference.types.Type;
 import uk.ac.ic.doc.gander.hierarchy.Hierarchy;
+import uk.ac.ic.doc.gander.hierarchy.HierarchyFactory;
 import uk.ac.ic.doc.gander.model.Class;
 import uk.ac.ic.doc.gander.model.Function;
-import uk.ac.ic.doc.gander.model.Importable;
+import uk.ac.ic.doc.gander.model.Loadable;
 import uk.ac.ic.doc.gander.model.Model;
 import uk.ac.ic.doc.gander.model.Module;
 import uk.ac.ic.doc.gander.model.Namespace;
@@ -43,14 +37,7 @@ public class SymbolTableTest {
 	@Before
 	public void setup() throws Throwable {
 		URL topLevel = getClass().getResource(TEST_FOLDER);
-
-		List<File> paths = new ArrayList<File>();
-		for (String sysPath : queryPythonPath()) {
-			paths.add(new File(sysPath));
-		}
-		paths.add(new File(topLevel.toURI()));
-
-		hierarchy = new Hierarchy(paths);
+		hierarchy = HierarchyFactory.createHierarchy(new File(topLevel.toURI()));
 		model = new Model(hierarchy);
 	}
 
@@ -428,7 +415,7 @@ public class SymbolTableTest {
 
 	@Test
 	public void symbolsTopLevel() throws Throwable {
-		Importable module = model.load("");
+		Loadable module = model.load("");
 		assertEquals(model.getTopLevelPackage(), module);
 		assertSymbols(module, "abs", "all", "any", "apply", "basestring",
 				"bin", "bool", "buffer", "bytearray", "bytes", "callable",
@@ -448,90 +435,65 @@ public class SymbolTableTest {
 
 	@Test
 	public void symbolsStart() throws Throwable {
-		Importable module = model.load("start");
+		Loadable module = model.load("start");
 		assertSymbols(module, "gertrude", "children", "stepchildren",
 				"william", "alice", "Bob");
 	}
 
 	@Test
 	public void symbolsGertrude() throws Throwable {
-		Importable module = model.load("gertrude");
+		Loadable module = model.load("gertrude");
 		assertSymbols(module, "harry", "Iris");
 	}
 
 	@Test
 	public void symbolsChildren() throws Throwable {
-		Importable module = model.load("children");
+		Loadable module = model.load("children");
 		assertSymbols(module);
 	}
 
 	@Test
 	public void symbolsChildrenBobby() throws Throwable {
-		Importable module = model.load("children.bobby");
+		Loadable module = model.load("children.bobby");
 		assertSymbols(module);
 	}
 
 	@Test
 	public void symbolsChildrenMaggie() throws Throwable {
-		Importable module = model.load("children.maggie");
+		Loadable module = model.load("children.maggie");
 		assertSymbols(module, "bobby", "children", "iris");
 	}
 
 	@Test
 	public void symbolsChildrenChildren() throws Throwable {
-		Importable module = model.load("children.children");
+		Loadable module = model.load("children.children");
 		assertSymbols(module);
 	}
 
 	@Test
 	public void symbolsChildrenChildrenGrandchild() throws Throwable {
-		Importable module = model.load("children.children.grandchild");
+		Loadable module = model.load("children.children.grandchild");
 		assertSymbols(module);
 	}
 
 	@Test
 	public void symbolsStepchildren() throws Throwable {
-		Importable module = model.load("stepchildren");
+		Loadable module = model.load("stepchildren");
 		assertSymbols(module);
 	}
 
 	@Test
 	public void symbolsStepchildrenUglyChild() throws Throwable {
-		Importable module = model.load("stepchildren.uglycild");
+		Loadable module = model.load("stepchildren.uglycild");
 		assertSymbols(module);
 	}
 
-	private void assertSymbols(Importable module, String... expected)
+	private void assertSymbols(Loadable module, String... expected)
 			throws Exception {
 		Set<String> ex = new HashSet<String>();
 		for (String token : expected)
 			ex.add(token);
 		assertEquals("Symbols don't match expected", ex, symbols(module)
 				.keySet());
-	}
-
-	private static final String PYTHON_PATH_PROGRAM = "import sys\n"
-			+ "for x in sys.path:\n" + "    print x\n\n";
-
-	private Iterable<String> queryPythonPath() {
-		try {
-			String[] commands = { "python", "-c", PYTHON_PATH_PROGRAM };
-			Process python = Runtime.getRuntime().exec(commands);
-			InputStream output = python.getInputStream();
-			BufferedReader reader = new BufferedReader(new InputStreamReader(
-					output));
-
-			List<String> path = new ArrayList<String>();
-
-			for (String line = reader.readLine(); line != null; line = reader
-					.readLine()) {
-				path.add(line);
-			}
-			return path;
-		} catch (IOException e) {
-			// If we fail because, for instance Python doesn't exist on the
-			// system use empty Python path.
-			return Collections.emptyList();
-		}
 	}
 }

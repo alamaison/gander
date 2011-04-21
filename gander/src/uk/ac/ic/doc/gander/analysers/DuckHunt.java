@@ -39,10 +39,14 @@ public class DuckHunt {
 		return counts;
 	}
 
-	private class ModelDucker extends ModelWalker {
+	private final class ModelDucker extends ModelWalker {
 
 		@Override
 		protected void visitFunction(Function function) {
+			// only analyse methods within our target project's namespace
+			if (function.isSystem())
+				return;
+				
 			for (BasicBlock block : function.getCfg().getBlocks()) {
 				for (Call call : new MethodFinder(block).calls()) {
 					if (!isExternalMethodCallOnName(call, function))
@@ -128,7 +132,8 @@ public class DuckHunt {
 		@Override
 		protected void visitModule(Module module) {
 			try {
-				model.loadModule(module.getFullyQualifiedName());
+				if (!module.isSystem())
+					model.loadModule(module.getFullyQualifiedName());
 			} catch (ParseException e) {
 				System.err.println("MISSED DATA WARNING: error while "
 						+ "parsing module" + module.getFullyQualifiedName());
@@ -144,7 +149,8 @@ public class DuckHunt {
 		@Override
 		protected void visitPackage(Package pkg) {
 			try {
-				model.loadPackage(pkg.getFullyQualifiedName());
+				if (!pkg.isSystem())
+					model.loadPackage(pkg.getFullyQualifiedName());
 			} catch (ParseException e) {
 				System.err.println("MISSED DATA WARNING: error while "
 						+ "parsing package" + pkg.getFullyQualifiedName());

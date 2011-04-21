@@ -106,20 +106,24 @@ public class DominationLength extends HierarchyWalker {
 	}
 
 	@Override
-	protected void visitModule(uk.ac.ic.doc.gander.hierarchy.Module value) {
+	protected void visitModule(
+			uk.ac.ic.doc.gander.hierarchy.Module hierarchyModule) {
+		if (hierarchyModule.isSystem())
+			return;
+
 		Module module;
 		try {
-			module = model.loadModule(value.getFullyQualifiedName());
+			module = model.loadModule(hierarchyModule.getFullyQualifiedName());
 		} catch (ParseException e) {
 			System.err
 					.println("MISSED DATA WARNING: error while parsing module"
-							+ value.getFullyQualifiedName());
+							+ hierarchyModule.getFullyQualifiedName());
 			System.err.println(e);
 			return;
 		} catch (IOException e) {
 			System.err
 					.println("MISSED DATA WARNING: error while finding module"
-							+ value.getFullyQualifiedName());
+							+ hierarchyModule.getFullyQualifiedName());
 			System.err.println(e);
 			return;
 		}
@@ -132,20 +136,23 @@ public class DominationLength extends HierarchyWalker {
 	}
 
 	@Override
-	protected void visitPackage(Package value) {
+	protected void visitPackage(Package hierarchyPackage) {
+		if (hierarchyPackage.isSystem())
+			return;
+
 		uk.ac.ic.doc.gander.model.Package pkg;
 		try {
-			pkg = model.loadPackage(value.getFullyQualifiedName());
+			pkg = model.loadPackage(hierarchyPackage.getFullyQualifiedName());
 		} catch (ParseException e) {
 			System.err
 					.println("MISSED DATA WARNING: error while parsing package"
-							+ value.getFullyQualifiedName());
+							+ hierarchyPackage.getFullyQualifiedName());
 			System.err.println(e);
 			return;
 		} catch (IOException e) {
 			System.err
 					.println("MISSED DATA WARNING: error while finding package"
-							+ value.getFullyQualifiedName());
+							+ hierarchyPackage.getFullyQualifiedName());
 			System.err.println(e);
 			return;
 		}

@@ -10,10 +10,9 @@ import org.python.pydev.parser.jython.ParseException;
 
 import uk.ac.ic.doc.gander.DottedName;
 import uk.ac.ic.doc.gander.hierarchy.Hierarchy;
-import uk.ac.ic.doc.gander.model.build.BuildablePackage;
-import uk.ac.ic.doc.gander.model.loaders.ModuleLoader;
-import uk.ac.ic.doc.gander.model.loaders.PackageLoader;
-import uk.ac.ic.doc.gander.model.loaders.TopLevelPackageLoader;
+import uk.ac.ic.doc.gander.model.build.ModuleLoader;
+import uk.ac.ic.doc.gander.model.build.PackageLoader;
+import uk.ac.ic.doc.gander.model.build.TopLevelPackageLoader;
 
 public class Model {
 
@@ -37,18 +36,17 @@ public class Model {
 		return lookupPackage(DottedName.toImportTokens(importName));
 	}
 
-	public Importable lookup(String importName) {
+	public Loadable lookup(String importName) {
 		List<String> tokens = DottedName.toImportTokens(importName);
-		Importable imported = lookupPackage(tokens);
+		Loadable imported = lookupPackage(tokens);
 		if (imported == null)
 			imported = lookupModule(tokens);
 		return imported;
 	}
 
-	public Importable load(String importName) throws ParseException,
-			IOException {
+	public Loadable load(String importName) throws ParseException, IOException {
 		List<String> tokens = DottedName.toImportTokens(importName);
-		Importable imported = loadPackage(tokens);
+		Loadable imported = loadPackage(tokens);
 		if (imported == null)
 			imported = loadModule(tokens);
 		return imported;
@@ -142,12 +140,11 @@ public class Model {
 	private Module loadModuleIntoParent(List<String> fullyQualifiedPath,
 			Package parent) throws ParseException, IOException {
 
-		uk.ac.ic.doc.gander.hierarchy.Module pkg = hierarchy
+		uk.ac.ic.doc.gander.hierarchy.Module module = hierarchy
 				.findModule(fullyQualifiedPath);
-		if (pkg == null)
+		if (module == null)
 			return null;
-		return new ModuleLoader(pkg, (BuildablePackage) parent, this)
-				.getModule();
+		return new ModuleLoader(module, (Package) parent, this).getModule();
 	}
 
 	private Package loadPackageIntoParent(List<String> fullyQualifiedPath,
@@ -157,7 +154,6 @@ public class Model {
 				.findPackage(fullyQualifiedPath);
 		if (pkg == null)
 			return null;
-		return new PackageLoader(pkg, (BuildablePackage) parent, this)
-				.getPackage();
+		return new PackageLoader(pkg, (Package) parent, this).getPackage();
 	}
 }

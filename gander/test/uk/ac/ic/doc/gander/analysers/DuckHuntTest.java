@@ -26,6 +26,13 @@ public class DuckHuntTest {
 		check("infile", counts, 1, 2, 1.6);
 	}
 
+	@Test
+	public void stdlib() throws Throwable {
+
+		Integer[] counts = { 1, 1 };
+		check("stdlib", counts, 1, 1, 1);
+	}
+
 	private void check(String caseName, Integer[] expectedCounts,
 			int expectedMin, int expectedMax, double expectedAverage)
 			throws Throwable {
@@ -48,7 +55,7 @@ public class DuckHuntTest {
 		URL testFolder = getClass().getResource(TEST_FOLDER);
 		File topLevel = new File(new File(testFolder.toURI()), caseName);
 
-		hierarchy = HierarchyFactory.createHierarchyNoLibrary(topLevel);
+		hierarchy = HierarchyFactory.createHierarchy(topLevel);
 	}
 
 	private <T extends Comparable<? super T>> List<T> asSortedList(

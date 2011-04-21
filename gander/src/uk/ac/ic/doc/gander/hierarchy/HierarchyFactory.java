@@ -14,15 +14,24 @@ public class HierarchyFactory {
 	private static final String PYTHON_PATH_PROGRAM = "import sys\n"
 			+ "for x in sys.path:\n    print x\n\n";
 
+	public static Hierarchy createHierarchy(Iterable<File> topLevelPaths,
+			Iterable<File> topLevelSystemPaths) throws InvalidElementException {
+		return new Hierarchy(topLevelPaths, topLevelSystemPaths);
+	}
+
+	public static Hierarchy createHierarchy(Iterable<File> topLevelPaths)
+			throws InvalidElementException {
+		List<File> systemTopLevelPaths = new ArrayList<File>();
+		for (String sysPath : HierarchyFactory.queryPythonPath()) {
+			systemTopLevelPaths.add(new File(sysPath));
+		}
+
+		return createHierarchy(topLevelPaths, systemTopLevelPaths);
+	}
+
 	public static Hierarchy createHierarchy(File topLevel)
 			throws InvalidElementException {
-		List<File> paths = new ArrayList<File>();
-		for (String sysPath : HierarchyFactory.queryPythonPath()) {
-			paths.add(new File(sysPath));
-		}
-		paths.add(topLevel);
-
-		return new Hierarchy(paths);
+		return createHierarchy(directoryToList(topLevel));
 	}
 
 	public static Hierarchy createHierarchyNoLibrary(File topLevel)
@@ -30,7 +39,7 @@ public class HierarchyFactory {
 		List<File> paths = new ArrayList<File>();
 		paths.add(topLevel);
 
-		return new Hierarchy(paths);
+		return createHierarchy(paths, new ArrayList<File>());
 	}
 
 	private static Iterable<String> queryPythonPath() {
@@ -53,5 +62,11 @@ public class HierarchyFactory {
 			// system use empty Python path.
 			return Collections.emptyList();
 		}
+	}
+
+	private static List<File> directoryToList(File directory) {
+		List<File> directories = new ArrayList<File>();
+		directories.add(directory);
+		return directories;
 	}
 }

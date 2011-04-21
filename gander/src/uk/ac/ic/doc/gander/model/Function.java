@@ -4,13 +4,13 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.python.pydev.parser.jython.SimpleNode;
 import org.python.pydev.parser.jython.ast.FunctionDef;
 import org.python.pydev.parser.jython.ast.NameTok;
 
 import uk.ac.ic.doc.gander.cfg.Cfg;
-import uk.ac.ic.doc.gander.model.build.BuildableNamespace;
 
-public class Function implements BuildableNamespace {
+public class Function implements Namespace {
 
 	private FunctionDef function;
 	private Namespace parent;
@@ -81,5 +81,26 @@ public class Function implements BuildableNamespace {
 	@Override
 	public String toString() {
 		return "Function[" + getFullName() + "]";
+	}
+
+	/**
+	 * Functions inherit their systemness from their parent.
+	 * 
+	 * It isn't possible for a function to be system if it's containing module
+	 * isn't a system module. In other words, the resolution of systemness is at
+	 * the module level and all namespaces below that, inherit from their
+	 * parent.
+	 * 
+	 * XXX: Another way to look at this is that systemness is a property of the
+	 * associated <b>hierarchy</b> element so perhaps we should link model
+	 * element to their hierarchy parent. However, some model elements don't
+	 * have a hierarchy element. For example the dummy_builtin module.
+	 */
+	public boolean isSystem() {
+		return parent.isSystem();
+	}
+
+	public SimpleNode getAst() {
+		return getFunctionDef();
 	}
 }

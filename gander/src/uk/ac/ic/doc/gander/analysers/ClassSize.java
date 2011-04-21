@@ -31,14 +31,20 @@ public class ClassSize {
 			throws Exception {
 		for (uk.ac.ic.doc.gander.hierarchy.Module module : pack.getModules()
 				.values())
-			analyseModule(module.getFullyQualifiedName());
+			analyseModule(module);
 		for (uk.ac.ic.doc.gander.hierarchy.Package subpackage : pack
 				.getPackages().values())
 			analysePackage(subpackage);
 	}
 
-	private void analyseModule(String moduleName) throws Exception {
-		Module module = model.loadModule(moduleName);
+	private void analyseModule(
+			uk.ac.ic.doc.gander.hierarchy.Module hierarchyModule)
+			throws Exception {
+		if (hierarchyModule.isSystem())
+			return;
+		
+		Module module = model.loadModule(hierarchyModule
+				.getFullyQualifiedName());
 
 		for (Class klass : module.getClasses().values())
 			analyseClass(klass);

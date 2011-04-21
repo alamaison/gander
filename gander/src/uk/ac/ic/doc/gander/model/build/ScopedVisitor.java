@@ -33,7 +33,8 @@ public abstract class ScopedVisitor<T> extends VisitorBase {
 	/**
 	 * Construct with an initial scope already set up on the stack.
 	 * 
-	 * @param initialScope  First scope on the stack.
+	 * @param initialScope
+	 *            First scope on the stack.
 	 */
 	public ScopedVisitor(T initialScope) {
 		scopes.push(initialScope);
@@ -46,28 +47,28 @@ public abstract class ScopedVisitor<T> extends VisitorBase {
 		return (!scopes.empty()) ? scopes.peek() : null;
 	}
 
-	protected abstract T createScope(Module node);
+	protected abstract T atScope(Module node);
 
-	protected abstract T createScope(FunctionDef node);
+	protected abstract T atScope(FunctionDef node);
 
-	protected abstract T createScope(ClassDef node);
+	protected abstract T atScope(ClassDef node);
 
 	@Override
-	public final Object visitModule(org.python.pydev.parser.jython.ast.Module node)
-			throws Exception {
-		traverseScope(createScope(node), node);
+	public final Object visitModule(
+			org.python.pydev.parser.jython.ast.Module node) throws Exception {
+		traverseScope(atScope(node), node);
 		return null;
 	}
 
 	@Override
 	public final Object visitClassDef(ClassDef node) throws Exception {
-		traverseScope(createScope(node), node);
+		traverseScope(atScope(node), node);
 		return null;
 	}
 
 	@Override
 	public final Object visitFunctionDef(FunctionDef node) throws Exception {
-		traverseScope(createScope(node), node);
+		traverseScope(atScope(node), node);
 		return null;
 	}
 

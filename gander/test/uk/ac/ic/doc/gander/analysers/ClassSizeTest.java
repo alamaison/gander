@@ -12,6 +12,7 @@ import java.util.List;
 import org.junit.Test;
 
 import uk.ac.ic.doc.gander.hierarchy.Hierarchy;
+import uk.ac.ic.doc.gander.hierarchy.HierarchyFactory;
 
 public class ClassSizeTest {
 
@@ -42,7 +43,7 @@ public class ClassSizeTest {
 		File classSizeDirectory = new File(classSize.toURI());
 		File topLevelDirectory = new File(classSizeDirectory, caseName);
 
-		hierarchy = new Hierarchy(topLevelDirectory);
+		hierarchy = HierarchyFactory.createHierarchy(topLevelDirectory);
 	}
 
 	private void check(String caseName, Integer[] expectedCounts,

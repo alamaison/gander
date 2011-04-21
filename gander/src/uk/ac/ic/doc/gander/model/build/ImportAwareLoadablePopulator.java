@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.python.pydev.parser.jython.ParseException;
-import org.python.pydev.parser.jython.SimpleNode;
 import org.python.pydev.parser.jython.ast.Import;
 import org.python.pydev.parser.jython.ast.ImportFrom;
 import org.python.pydev.parser.jython.ast.Module;
@@ -14,7 +13,7 @@ import org.python.pydev.parser.jython.ast.aliasType;
 
 import uk.ac.ic.doc.gander.DottedName;
 import uk.ac.ic.doc.gander.importing.ImportSimulator;
-import uk.ac.ic.doc.gander.model.Importable;
+import uk.ac.ic.doc.gander.model.Loadable;
 import uk.ac.ic.doc.gander.model.Model;
 import uk.ac.ic.doc.gander.model.Namespace;
 import uk.ac.ic.doc.gander.model.Package;
@@ -23,18 +22,19 @@ import uk.ac.ic.doc.gander.model.Package;
  * This class loads a module but also follows any import statements and loads
  * their targets as well.
  */
-abstract class ImportAwareBuilder extends ModuleNamespaceBuilder {
+class ImportAwareLoadablePopulator extends LoadablePopulator {
 
 	private Model model;
 
-	public ImportAwareBuilder(String moduleName, Model model, Package parent) {
-		super(moduleName, parent);
+	ImportAwareLoadablePopulator(Loadable loadable, Model model) {
+		super(loadable);
 		this.model = model;
 	}
 
 	@Override
 	public Object visitImport(Import node) throws Exception {
-		ImportSimulator simulator = new Importer();
+		ImportSimulator simulator = new Importer(getScope(), model);
+
 		for (aliasType alias : node.names) {
 			if (alias.asname == null) {
 				simulator.simulateImport(((NameTok) alias.name).id);
@@ -48,7 +48,8 @@ abstract class ImportAwareBuilder extends ModuleNamespaceBuilder {
 
 	@Override
 	public Object visitImportFrom(ImportFrom node) throws Exception {
-		ImportSimulator simulator = new Importer();
+		ImportSimulator simulator = new Importer(getScope(), model);
+
 		for (aliasType alias : node.names) {
 			if (alias.asname == null) {
 				simulator.simulateImportFrom(((NameTok) node.module).id,
@@ -61,14 +62,13 @@ abstract class ImportAwareBuilder extends ModuleNamespaceBuilder {
 		return null;
 	}
 
-	private Model getModel() {
-		return model;
-	}
+	private static class Importer extends ImportSimulator {
 
-	private class Importer extends ImportSimulator {
+		private Model model;
 
-		public Importer() {
-			super(getScope(), getModel().getTopLevelPackage());
+		public Importer(Namespace scope, Model model) {
+			super(scope, model.getTopLevelPackage());
+			this.model = model;
 		}
 
 		@Override
@@ -95,17 +95,17 @@ abstract class ImportAwareBuilder extends ModuleNamespaceBuilder {
 		 *         {@code null} otherwise.
 		 * @throws Exception
 		 */
-		protected Importable simulateLoad(List<String> importPath,
+		protected Loadable simulateLoad(List<String> importPath,
 				Package relativeToPackage) {
 			List<String> name = new ArrayList<String>(DottedName
 					.toImportTokens(relativeToPackage.getFullName()));
 			name.addAll(importPath);
 
-			Importable loaded = null;
+			Loadable loaded = null;
 			try {
-				loaded = getModel().loadPackage(name);
+				loaded = model.loadPackage(name);
 				if (loaded == null)
-					loaded = getModel().loadModule(name);
+					loaded = model.loadModule(name);
 				// ignore exceptions as parse errors should be treated the same
 				// way as any other unresolved import; by returning null
 			} catch (ParseException e) {
@@ -125,15 +125,5 @@ abstract class ImportAwareBuilder extends ModuleNamespaceBuilder {
 				String itemName, Package relativeToPackage,
 				Namespace importReceiver, String as) {
 		}
-	}
-
-	@Override
-	public void traverse(SimpleNode node) throws Exception {
-		node.traverse(this);
-	}
-
-	@Override
-	protected Object unhandled_node(SimpleNode node) throws Exception {
-		return null;
 	}
 }
