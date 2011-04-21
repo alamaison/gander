@@ -5,6 +5,7 @@ import java.io.File;
 import uk.ac.ic.doc.gander.analysers.DominationLength;
 import uk.ac.ic.doc.gander.analysers.Tallies;
 import uk.ac.ic.doc.gander.hierarchy.Hierarchy;
+import uk.ac.ic.doc.gander.hierarchy.HierarchyFactory;
 
 public class RunDomLengthAnalysis extends TallyRunner {
 
@@ -24,7 +25,7 @@ public class RunDomLengthAnalysis extends TallyRunner {
 
 	@Override
 	protected Tallies analyse(File directory) throws Exception {
-		Hierarchy hierarchy = new Hierarchy(directory);
+		Hierarchy hierarchy = HierarchyFactory.createHierarchy(directory);
 		DominationLength analysis = new DominationLength(hierarchy);
 		return analysis.getResult();
 	}

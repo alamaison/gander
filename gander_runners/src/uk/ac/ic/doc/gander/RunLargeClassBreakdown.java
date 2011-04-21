@@ -3,7 +3,7 @@ package uk.ac.ic.doc.gander;
 import java.io.File;
 
 import uk.ac.ic.doc.gander.analysers.LargeClassBreakdown;
-import uk.ac.ic.doc.gander.hierarchy.Hierarchy;
+import uk.ac.ic.doc.gander.hierarchy.HierarchyFactory;
 
 public class RunLargeClassBreakdown extends MultiProjectRunner {
 
@@ -13,6 +13,6 @@ public class RunLargeClassBreakdown extends MultiProjectRunner {
 
 	@Override
 	protected void analyseProject(File projectRoot) throws Exception {
-		new LargeClassBreakdown(new Hierarchy(projectRoot));
+		new LargeClassBreakdown(HierarchyFactory.createHierarchy(projectRoot));
 	}
 }
