@@ -80,6 +80,12 @@ public class FunctionResolverTest {
 				"module_tag_expected", "module_tag");
 	}
 
+	@Test
+	public void callViaNestedImport() throws Throwable {
+		check("test_call_via_nested_import", "brother_keeper_expected",
+				"brother_keeper_tag");
+	}
+
 	@Before
 	public void setup() throws Throwable {
 		URL topLevel = getClass().getResource(TEST_FOLDER);

@@ -49,3 +49,7 @@ class ClassScope:
 			above doesn't resolve the function to this method as it isn't 
 			prefixed with 'self'"""
 		pass
+
+def test_call_via_nested_import():
+	import brother
+	brother.keeper("brother_keeper_expected")
