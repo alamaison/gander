@@ -77,6 +77,10 @@ public class SymbolTable {
 				throw new Error("Class found while scoping that doesn't "
 						+ "exist in the model: " + ((NameTok) node.name).id);
 			return null;
+
+			// Do not traverse. This has already been taken care of while
+			// building the model. processScope() does the equivalent of
+			// traversing the elements using the model instead of the AST.
 		}
 
 		@Override
@@ -89,6 +93,10 @@ public class SymbolTable {
 				throw new Error("Function found while scoping that doesn't "
 						+ "exist in the model: " + ((NameTok) node.name).id);
 			return null;
+
+			// Do not traverse. This has already been taken care of while
+			// building the model. processScope() does the equivalent of
+			// traversing the elements using the model instead of the AST.
 		}
 
 		@Override
@@ -111,18 +119,16 @@ public class SymbolTable {
 
 		@Override
 		public void traverse(SimpleNode node) throws Exception {
-
-			// Do not traverse. This has already been taken care of while
-			// building the model. processScope() does the equivalent of
-			// traversing the elements using the model instead of the AST.
-
+			// Traverse everywhere except function and class definition nodes as
+			// they have their own symbol tables and are processed separately
+			// using the model.
+			node.traverse(this);
 		}
 
 		@Override
 		protected Object unhandled_node(SimpleNode node) throws Exception {
 			return null;
 		}
-
 	}
 
 	private class ImportSymbols {

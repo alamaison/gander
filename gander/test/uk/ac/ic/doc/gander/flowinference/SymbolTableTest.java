@@ -458,6 +458,47 @@ public class SymbolTableTest {
 				b64encode, ((TFunction) type).getFunctionInstance());
 	}
 
+	/**
+	 * Imports should be found whereever they are, even if that means traversing
+	 * down into the AST a bit. For example, an import in a try/catch.
+	 */
+	@Test
+	public void astTraversalImport() throws Throwable {
+		Module start = model.loadModule("traversal");
+		assertTrue("traversal's symbol table doesn't include 'p'", symbols(
+				start).containsKey("p"));
+
+		Type type = symbols(start).get("p");
+		assertTrue("start's symbol table contains 'p' but it isn't "
+				+ "recognised as referring to a module",
+				type instanceof TModule);
+
+		Module gertrude = model.lookupModule("gertrude");
+		assertEquals("'p' resolved to a module but not to 'gertrude'",
+				gertrude, ((TModule) type).getModuleInstance());
+
+		assertFalse("traversal's symbol table mustn't include 'gertrude'",
+				symbols(start).containsKey("gertrude"));
+	}
+
+	/**
+	 * Although imports should be found by traversing the AST, this shouldn't
+	 * include imports nested in functions or classes because these have their
+	 * own tables and are processes separately.
+	 */
+	@Test
+	public void astNonTraversalImport() throws Throwable {
+		Module start = model.loadModule("traversal");
+		
+		assertFalse("traversal's symbol table mustn't include 'q'", symbols(
+				start).containsKey("q"));
+		assertFalse("traversal's symbol table mustn't include 'r'", symbols(
+				start).containsKey("r"));
+
+		assertFalse("traversal's symbol table mustn't include 'gertrude'",
+				symbols(start).containsKey("gertrude"));
+	}
+
 	// ./children/maggie.py: import bobby
 	// ./children/maggie.py: import children.grandchild
 	// ./children/maggie.py: import children.grandchild as iris
