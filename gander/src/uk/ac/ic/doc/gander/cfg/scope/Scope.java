@@ -275,10 +275,8 @@ abstract class Scope extends VisitorBase {
 
 	@Override
 	public Object visitImport(Import node) throws Exception {
-		// TODO: actually handle imports
-		System.err.println("WARNING: nested import");
-		return delegateScope(new PassScope(_previousStatement, _trajectory,
-				_startInNewBlock, this));
+		// XXX: can importing throw an exception?  Do we care?
+		return delegateSelfAddingScope(node);
 	}
 
 	@Override

@@ -67,6 +67,19 @@ public class FunctionResolverTest {
 		check("test_call_builtin", "iterable_expected", "iterable");
 	}
 
+	@Test
+	public void resolutionInMethod() throws Throwable {
+		checkMethod("ClassScope", "test_resolution_in_method",
+				"scope_tag_expected", "scope_tag");
+	}
+
+	@Test
+	public void resolutionInMethodWithClashingMethodName() throws Throwable {
+		checkMethod("ClassScope",
+				"test_resolution_in_method_with_clashing_method_name",
+				"module_tag_expected", "module_tag");
+	}
+
 	@Before
 	public void setup() throws Throwable {
 		URL topLevel = getClass().getResource(TEST_FOLDER);
@@ -87,6 +100,20 @@ public class FunctionResolverTest {
 			throws Exception {
 		Function function = module.getFunctions().get(caseName);
 
+		doCheck(callTag, parameterTag, function);
+	}
+
+	private void checkMethod(String className, String caseName, String callTag,
+			String parameterTag) throws Exception {
+
+		Function function = module.getClasses().get(className).getFunctions()
+				.get(caseName);
+
+		doCheck(callTag, parameterTag, function);
+	}
+
+	private void doCheck(String callTag, String parameterTag, Function function)
+			throws Exception {
 		Call call = new CallFinderByCallTag(callTag, function).getCall();
 		assertTrue("Unable to find tagged call in test: '" + callTag + "'",
 				call != null);

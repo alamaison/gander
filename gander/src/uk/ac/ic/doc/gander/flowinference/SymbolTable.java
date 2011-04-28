@@ -265,7 +265,7 @@ public class SymbolTable {
 			scopes.push(pkg);
 			new SymbolTableAstVisitor(pkg.getAst());
 			scopes.pop();
-			
+
 			processScope(pkg);
 		}
 
@@ -288,7 +288,12 @@ public class SymbolTable {
 		}
 
 		for (Function function : scope.getFunctions().values()) {
-			put(scopes.peek(), function.getName(), new TFunction(function));
+			// Methods are not in the symbol table of their enclosing class.
+			// They can only be accessed by dereferencing 'self'
+			// TODO: Does it make sense to add a 'self' token to the symbol
+			// table of the methods? What type would it have?
+			if (!(scopes.peek() instanceof Class))
+				put(scopes.peek(), function.getName(), new TFunction(function));
 
 			scopes.push(function);
 			new SymbolTableAstVisitor(function.getFunctionDef());

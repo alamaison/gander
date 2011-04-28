@@ -80,23 +80,64 @@ public class SymbolTableTest {
 				((TClass) type).getClassInstance());
 	}
 
+	/**
+	 * Methods do <b>not</b> appear in their parent class's symbol table.
+	 */
 	@Test
 	public void localClassMethod() throws Throwable {
 		Module start = model.loadModule("start");
-		assertTrue("start.Bob's symbol table doesn't contain 'charles'",
-				symbols(start.getClasses().get("Bob")).containsKey("charles"));
 
 		Class bob = start.getClasses().get("Bob");
+		assertFalse("start.Bob's symbol table must not contain "
+				+ "'charles' - it can only be accessed via self", symbols(bob)
+				.containsKey("charles"));
+		assertTrue("start.Bob's symbol table should be empty", symbols(bob)
+				.isEmpty());
+	}
 
-		Type type = symbols(bob).get("charles");
-		assertTrue("start.Bob's symbol table contains 'charles' but it isn't "
-				+ "recognised as referring to a function",
-				type instanceof TFunction);
+	/**
+	 * Symbols bound by a nested import should only exist in the scope of the
+	 * import.
+	 */
+	@Test
+	public void nestedImport() throws Throwable {
+		Module start = model.loadModule("start");
 
-		Function charles = bob.getFunctions().get("charles");
+		Function charles = start.getClasses().get("Bob").getFunctions().get(
+				"charles");
 
-		assertEquals("Type resolved to a function but not to 'charles'",
-				charles, ((TFunction) type).getFunctionInstance());
+		// import mercurial
+
+		assertTrue("start.Bob.charles's symbol table should contain "
+				+ "'mercurial' imported locally", symbols(charles).containsKey(
+				"mercurial"));
+
+		Type type = symbols(charles).get("mercurial");
+		assertTrue("start.Bob.charles's symbol table contains 'mercurial' but"
+				+ " it isn't recognised as referring to a package",
+				type instanceof TPackage);
+
+		Package mercurial = model.lookupPackage("mercurial");
+		assertEquals("Type resolved to a package but not to 'mercurial'",
+				mercurial, ((TPackage) type).getPackageInstance());
+
+		// from gertrude import Iris
+
+		assertTrue("start.Bob.charles's symbol table should contain "
+				+ "'Iris' imported locally", symbols(charles).containsKey(
+				"Iris"));
+
+		type = symbols(charles).get("Iris");
+		assertTrue("start.Bob.charles's symbol table contains 'Iris' but"
+				+ " it isn't recognised as referring to a class",
+				type instanceof TClass);
+
+		Class iris = model.lookupModule("gertrude").getClasses().get("Iris");
+		assertEquals("Type resolved to a class but not to 'Iris'", iris,
+				((TClass) type).getClassInstance());
+
+		// only two symbols
+		assertEquals(2, symbols(charles).size());
 	}
 
 	@Test
