@@ -19,11 +19,13 @@ public class Package implements Loadable {
 	private HashMap<String, Package> packages = new HashMap<String, Package>();
 	private HashMap<String, Class> classes = new HashMap<String, Class>();
 	private HashMap<String, Function> functions = new HashMap<String, Function>();
+	private org.python.pydev.parser.jython.ast.Module ast;
 
 	public Package(org.python.pydev.parser.jython.ast.Module ast, String name,
 			Package parent, boolean isSystem) {
 		assert ast != null;
 
+		this.ast = ast;
 		this.name = name;
 		this.parent = parent;
 		this.isSystem = isSystem;
@@ -129,8 +131,6 @@ public class Package implements Loadable {
 	}
 
 	public SimpleNode getAst() {
-		// TODO Auto-generated method stub
-		return null;
+		return ast;
 	}
-
 }

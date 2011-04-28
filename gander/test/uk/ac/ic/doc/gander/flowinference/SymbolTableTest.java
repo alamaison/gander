@@ -37,7 +37,8 @@ public class SymbolTableTest {
 	@Before
 	public void setup() throws Throwable {
 		URL topLevel = getClass().getResource(TEST_FOLDER);
-		hierarchy = HierarchyFactory.createHierarchy(new File(topLevel.toURI()));
+		hierarchy = HierarchyFactory
+				.createHierarchy(new File(topLevel.toURI()));
 		model = new Model(hierarchy);
 	}
 
@@ -131,6 +132,18 @@ public class SymbolTableTest {
 		Package stepchildren = model.lookupPackage("stepchildren");
 		assertEquals("Type resolved to a package but not to 'stepchildren'",
 				stepchildren, ((TPackage) type).getPackageInstance());
+
+		assertTrue("stepchildren's symbol table doesn't contain 'gertrude'",
+				symbols(stepchildren).containsKey("gertrude"));
+
+		type = symbols(stepchildren).get("gertrude");
+		assertTrue("stepchildren's symbol table contains 'gertrude' but"
+				+ " it isn't recognised as referring to a module",
+				type instanceof TModule);
+
+		Module gertrude = model.lookupModule("gertrude");
+		assertEquals("Type resolved to a module but not to 'gertrude'",
+				gertrude, ((TModule) type).getModuleInstance());
 	}
 
 	@Test
@@ -479,7 +492,7 @@ public class SymbolTableTest {
 	@Test
 	public void symbolsStepchildren() throws Throwable {
 		Loadable module = model.load("stepchildren");
-		assertSymbols(module);
+		assertSymbols(module, "gertrude");
 	}
 
 	@Test

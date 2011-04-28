@@ -262,6 +262,10 @@ public class SymbolTable {
 		scopes.push(scope);
 
 		for (Package pkg : scope.getPackages().values()) {
+			scopes.push(pkg);
+			new SymbolTableAstVisitor(pkg.getAst());
+			scopes.pop();
+			
 			processScope(pkg);
 		}
 
