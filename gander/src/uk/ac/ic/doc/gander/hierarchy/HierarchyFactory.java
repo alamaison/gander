@@ -34,14 +34,6 @@ public class HierarchyFactory {
 		return createHierarchy(directoryToList(topLevel));
 	}
 
-	public static Hierarchy createHierarchyNoLibrary(File topLevel)
-			throws InvalidElementException {
-		List<File> paths = new ArrayList<File>();
-		paths.add(topLevel);
-
-		return createHierarchy(paths, new ArrayList<File>());
-	}
-
 	private static Iterable<String> queryPythonPath() {
 		try {
 			String[] commands = { "python", "-c", PYTHON_PATH_PROGRAM };

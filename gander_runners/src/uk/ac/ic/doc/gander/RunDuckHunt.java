@@ -16,8 +16,7 @@ public class RunDuckHunt extends TallyRunner {
 	@Override
 	protected Tallies analyse(File directory) throws Exception {
 
-		Hierarchy hierarchy = HierarchyFactory
-				.createHierarchyNoLibrary(directory);
+		Hierarchy hierarchy = HierarchyFactory.createHierarchy(directory);
 		DuckHunt analysis = new DuckHunt(hierarchy);
 		return analysis.getResult();
 	}
