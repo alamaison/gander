@@ -5,7 +5,6 @@ import java.util.Set;
 
 import org.python.pydev.parser.jython.ast.exprType;
 
-import uk.ac.ic.doc.gander.analysis.inheritance.InheritanceTree.Node;
 import uk.ac.ic.doc.gander.model.Class;
 
 public class InheritedMethods {
@@ -39,8 +38,8 @@ public class InheritedMethods {
 		this(tree, new DoNothingErrorHandler());
 	}
 
-	public Set<String> methodsInTree() throws Exception {
-		InheritanceTree.Node root = tree.getTree();
+	public Set<String> methodsInTree() {
+		Node root = tree.getTree();
 		Set<String> methodNames = new HashSet<String>(root.getKlass()
 				.getFunctions().keySet());
 
@@ -56,10 +55,10 @@ public class InheritedMethods {
 
 		methodNames.addAll(klass.getFunctions().keySet());
 
-		InheritanceTree.Node[] bases = root.getBases();
+		Node[] bases = root.getBases();
 
 		for (int i = 0; i < bases.length; ++i) {
-			InheritanceTree.Node base = bases[i];
+			Node base = bases[i];
 
 			if (base == null) {
 				errorHandler

@@ -6,6 +6,8 @@ import java.util.Set;
 import org.python.pydev.parser.jython.ast.Call;
 
 import uk.ac.ic.doc.gander.MethodCallHelper;
+import uk.ac.ic.doc.gander.analysis.inheritance.CachingInheritanceTree;
+import uk.ac.ic.doc.gander.analysis.inheritance.InheritedMethods;
 import uk.ac.ic.doc.gander.analysis.signatures.SignatureBuilder;
 import uk.ac.ic.doc.gander.cfg.BasicBlock;
 import uk.ac.ic.doc.gander.flowinference.types.TClass;
@@ -31,10 +33,14 @@ public class DuckTyper {
 
 		LoadedTypeDefinitions definitions = new LoadedTypeDefinitions(model);
 		Set<Type> type = new HashSet<Type>();
-		// XXX: We only compare by name. Matching parameter numbers etc
-		// will require more complex logic.
+
 		for (Class klass : definitions.collectDefinitions()) {
-			if (klass.getFunctions().keySet().containsAll(methods))
+			InheritedMethods inheritance = new InheritedMethods(
+					new CachingInheritanceTree(klass, model));
+
+			// XXX: We only compare by name. Matching parameter numbers etc
+			// will require more complex logic.
+			if (inheritance.methodsInTree().containsAll(methods))
 				type.add(new TClass(klass));
 		}
 

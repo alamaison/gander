@@ -4,10 +4,10 @@ import static org.junit.Assert.assertEquals;
 
 import java.io.File;
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 import org.junit.Test;
 
@@ -43,15 +43,28 @@ public class TypeDefinitionsTest {
 		assertCollectedClasses(expected);
 	}
 
+	@Test
+	public void inherited() throws Throwable {
+		setup("inherited");
+
+		Module start = model.loadModule("start");
+
+		Class expected[] = { start.getClasses().get("A"),
+				start.getClasses().get("B"), start.getClasses().get("C"),
+				start.getClasses().get("Base") };
+
+		assertCollectedClasses(expected);
+	}
+
 	private void assertCollectedClasses(Class[] specifiedExpected) {
 		Collection<Class> builtins = model.getTopLevelPackage().getClasses()
 				.values();
-		List<Class> expected = new ArrayList<Class>(Arrays
+		Set<Class> expected = new HashSet<Class>(Arrays
 				.asList(specifiedExpected));
 		expected.addAll(builtins);
 
 		assertEquals("Types collected don't match expected classes", expected,
-				new ArrayList<Class>(new LoadedTypeDefinitions(model)
+				new HashSet<Class>(new LoadedTypeDefinitions(model)
 						.collectDefinitions()));
 	}
 }

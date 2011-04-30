@@ -2,8 +2,9 @@ package uk.ac.ic.doc.gander.analysers;
 
 import java.util.Set;
 
-import uk.ac.ic.doc.gander.analysis.inheritance.InheritanceTree;
+import uk.ac.ic.doc.gander.analysis.inheritance.FreshInheritanceTree;
 import uk.ac.ic.doc.gander.analysis.inheritance.InheritedMethods;
+import uk.ac.ic.doc.gander.analysis.inheritance.Node;
 import uk.ac.ic.doc.gander.hierarchy.Hierarchy;
 import uk.ac.ic.doc.gander.model.Class;
 import uk.ac.ic.doc.gander.model.Model;
@@ -38,7 +39,7 @@ public class LargeClassBreakdown {
 	}
 
 	private void analyseClass(Class klass) throws Exception {
-		InheritanceTree tree = new InheritanceTree(klass, model);
+		FreshInheritanceTree tree = new FreshInheritanceTree(klass, model);
 		int size = measureTree(tree);
 		if (size > 50) {
 			System.out.println("Class size " + size);
@@ -46,15 +47,15 @@ public class LargeClassBreakdown {
 		}
 	}
 
-	private void printTree(InheritanceTree tree) {
-		InheritanceTree.Node node = tree.getTree();
+	private void printTree(FreshInheritanceTree tree) {
+		Node node = tree.getTree();
 		System.out.println("Methods of " + node.getKlass().getFullName() + ":");
 		printTree(node, 1);
 	}
 
-	private void printTree(InheritanceTree.Node node, int indentCount) {
+	private void printTree(Node node, int indentCount) {
 		printClass(node.getKlass(), indentCount);
-		for (InheritanceTree.Node baseNode : node.getBases()) {
+		for (Node baseNode : node.getBases()) {
 			if (baseNode == null) {
 				System.out.println(indent(indentCount)
 						+ "[Inherits from unresolved base]");
@@ -81,7 +82,7 @@ public class LargeClassBreakdown {
 		return s;
 	}
 
-	private int measureTree(InheritanceTree tree) throws Exception {
+	private int measureTree(FreshInheritanceTree tree) throws Exception {
 		int count = 0;
 		for (String name : methodsInTree(tree)) {
 			if (!name.startsWith("_"))
@@ -90,7 +91,7 @@ public class LargeClassBreakdown {
 		return count;
 	}
 
-	private Set<String> methodsInTree(InheritanceTree tree) throws Exception {
+	private Set<String> methodsInTree(FreshInheritanceTree tree) throws Exception {
 		return new InheritedMethods(tree).methodsInTree();
 	}
 }

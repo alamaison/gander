@@ -4,7 +4,7 @@ import java.util.Set;
 
 import org.python.pydev.parser.jython.ast.exprType;
 
-import uk.ac.ic.doc.gander.analysis.inheritance.InheritanceTree;
+import uk.ac.ic.doc.gander.analysis.inheritance.FreshInheritanceTree;
 import uk.ac.ic.doc.gander.analysis.inheritance.InheritedMethods;
 import uk.ac.ic.doc.gander.hierarchy.Hierarchy;
 import uk.ac.ic.doc.gander.model.Class;
@@ -77,13 +77,13 @@ public class ClassSize {
 
 	}
 
-	private Set<String> methodsInTree(InheritanceTree tree) throws Exception {
+	private Set<String> methodsInTree(FreshInheritanceTree tree) throws Exception {
 		return new InheritedMethods(tree, new SysErrErrorHandler())
 				.methodsInTree();
 	}
 
 	private Set<String> methodsInClass(Class klass) throws Exception {
-		InheritanceTree tree = new InheritanceTree(klass, model);
+		FreshInheritanceTree tree = new FreshInheritanceTree(klass, model);
 		return methodsInTree(tree);
 	}
 }

@@ -13,19 +13,18 @@ import uk.ac.ic.doc.gander.model.Namespace;
  * Given an expression, attempt to find the class definition it refers to.
  */
 public class ClassResolver {
-	
+
 	private Namespace enclosingScope;
 	private Model model;
 	private Class klass;
 
-	public ClassResolver(exprType expr, Namespace enclosingScope, Model model) throws Exception {
+	public ClassResolver(exprType expr, Namespace enclosingScope, Model model) {
 		this.enclosingScope = enclosingScope;
 		this.model = model;
 		klass = resolveClass(expr);
 	}
 
-
-	private Class resolveClass(exprType expr) throws Exception {
+	private Class resolveClass(exprType expr) {
 		TypeResolver resolver = new TypeResolver(model);
 		Type type = resolver.typeOf(expr, enclosingScope);
 		if (type != null && type instanceof TClass) {

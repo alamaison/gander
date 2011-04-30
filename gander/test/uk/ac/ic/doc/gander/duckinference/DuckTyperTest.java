@@ -138,6 +138,23 @@ public class DuckTyperTest {
 				new TClass(start.getClasses().get("A")));
 	}
 
+	@Test
+	public void inherited() throws Throwable {
+		setup("inherited");
+
+		Module start = model.loadModule("start");
+
+		assertInference("x.a(tag1)", start.getFunctions().get("main"),
+				new TClass(start.getClasses().get("A")));
+
+		assertInference("x.b(tag2)", start.getFunctions().get("main"),
+				new TClass(start.getClasses().get("A")));
+
+		assertInference("x.c(tag3)", start.getFunctions().get("main"),
+				new TClass(start.getClasses().get("A")));
+	}
+
+
 	private void assertInference(String tag, Namespace scope, Type... expected)
 			throws Exception {
 		Set<Type> type = typeOf(tag, (Function) scope);
