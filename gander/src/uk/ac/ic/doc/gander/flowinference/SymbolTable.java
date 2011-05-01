@@ -43,7 +43,9 @@ public class SymbolTable {
 
 	public SymbolTable(Model model) {
 		this.model = model;
+		scopes.push(model.getTopLevelPackage());
 		processScope(model.getTopLevelPackage());
+		scopes.pop();
 	}
 
 	public Map<String, Type> symbols(Namespace scope) {
@@ -257,8 +259,6 @@ public class SymbolTable {
 	}
 
 	private void processScope(Namespace scope) {
-		scopes.push(scope);
-
 		for (Package pkg : scope.getPackages().values()) {
 			// Loadable must be part of existing runtime model.
 			// If it weren't then we couldn't guarantee that the modules it
@@ -269,9 +269,8 @@ public class SymbolTable {
 			
 			scopes.push(pkg);
 			new SymbolTableAstVisitor(pkg.getAst());
-			scopes.pop();
-
 			processScope(pkg);
+			scopes.pop();
 		}
 
 		for (Module module : scope.getModules().values()) {
@@ -284,9 +283,8 @@ public class SymbolTable {
 			
 			scopes.push(module);
 			new SymbolTableAstVisitor(module.getAst());
-			scopes.pop();
-
 			processScope(module);
+			scopes.pop();
 		}
 
 		for (Class klass : scope.getClasses().values()) {
@@ -294,9 +292,8 @@ public class SymbolTable {
 
 			scopes.push(klass);
 			new SymbolTableAstVisitor(klass.getClassDef());
-			scopes.pop();
-
 			processScope(klass);
+			scopes.pop();
 		}
 
 		for (Function function : scope.getFunctions().values()) {
@@ -309,12 +306,9 @@ public class SymbolTable {
 
 			scopes.push(function);
 			new SymbolTableAstVisitor(function.getFunctionDef());
-			scopes.pop();
-
 			processScope(function);
+			scopes.pop();
 		}
-
-		scopes.pop();
 	}
 
 	static List<String> dottedNameToImportTokens(String importPath) {
