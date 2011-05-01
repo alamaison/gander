@@ -18,14 +18,14 @@ import uk.ac.ic.doc.gander.hierarchy.Hierarchy;
 import uk.ac.ic.doc.gander.hierarchy.HierarchyFactory;
 import uk.ac.ic.doc.gander.model.Class;
 import uk.ac.ic.doc.gander.model.Function;
-import uk.ac.ic.doc.gander.model.Model;
+import uk.ac.ic.doc.gander.model.MutableModel;
 import uk.ac.ic.doc.gander.model.Module;
 import uk.ac.ic.doc.gander.model.Namespace;
 
 public class DuckTyperTest {
 
 	private static final String TEST_FOLDER = "python_test_code";
-	private Model model;
+	private MutableModel model;
 	private Hierarchy hierarchy;
 
 	public void setup(String caseName) throws Throwable {
@@ -33,7 +33,7 @@ public class DuckTyperTest {
 		File topLevel = new File(new File(testFolder.toURI()), caseName);
 
 		hierarchy = HierarchyFactory.createHierarchy(topLevel);
-		model = new Model(hierarchy);
+		model = new MutableModel(hierarchy);
 	}
 
 	private Set<Type> typeOf(String tag, Function enclosingFunction)

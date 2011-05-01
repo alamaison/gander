@@ -7,15 +7,15 @@ import uk.ac.ic.doc.gander.analysis.inheritance.InheritedMethods;
 import uk.ac.ic.doc.gander.analysis.inheritance.Node;
 import uk.ac.ic.doc.gander.hierarchy.Hierarchy;
 import uk.ac.ic.doc.gander.model.Class;
-import uk.ac.ic.doc.gander.model.Model;
+import uk.ac.ic.doc.gander.model.MutableModel;
 import uk.ac.ic.doc.gander.model.Module;
 
 public class LargeClassBreakdown {
 
-	private Model model;
+	private MutableModel model;
 
 	public LargeClassBreakdown(Hierarchy hierarchy) throws Exception {
-		this.model = new Model(hierarchy);
+		this.model = new MutableModel(hierarchy);
 		uk.ac.ic.doc.gander.hierarchy.Package pack = hierarchy
 				.getTopLevelPackage();
 		analysePackage(pack);

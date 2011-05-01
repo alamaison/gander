@@ -1,6 +1,5 @@
 package uk.ac.ic.doc.gander.flowinference;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -9,7 +8,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Stack;
 
-import org.python.pydev.parser.jython.ParseException;
 import org.python.pydev.parser.jython.SimpleNode;
 import org.python.pydev.parser.jython.ast.ClassDef;
 import org.python.pydev.parser.jython.ast.FunctionDef;
@@ -229,22 +227,15 @@ public class SymbolTable {
 					.toImportTokens(relativeToPackage.getFullName()));
 			name.addAll(importPath);
 
-			Loadable loaded = null;
-			try {
-				loaded = getModel().loadPackage(name);
-				if (loaded == null)
-					loaded = getModel().loadModule(name);
-				// ignore exceptions as parse errors should be treated the same
-				// way as any other unresolved import; by returning null
-			} catch (ParseException e) {
-			} catch (IOException e) {
-			}
+			// The imported module/package will always exist in the model
+			// already if it exists (on disk) at all as the model must have
+			// tried to import it already. Therefore we only do a lookup here
+			// rather than attempting a load.
+			Loadable loaded = model.lookupPackage(name);
+			if (loaded == null)
+				loaded = model.lookupModule(name);
 
 			return loaded;
-		}
-
-		private Model getModel() {
-			return model;
 		}
 
 		@Override
@@ -269,6 +260,13 @@ public class SymbolTable {
 		scopes.push(scope);
 
 		for (Package pkg : scope.getPackages().values()) {
+			// Loadable must be part of existing runtime model.
+			// If it weren't then we couldn't guarantee that the modules it
+			// imports would already have been loaded. This is something we rely
+			// on when resolving the import name to a parsed Module object
+			// later.
+			assert model.lookupPackage(pkg.getFullName()) != null;
+			
 			scopes.push(pkg);
 			new SymbolTableAstVisitor(pkg.getAst());
 			scopes.pop();
@@ -277,6 +275,13 @@ public class SymbolTable {
 		}
 
 		for (Module module : scope.getModules().values()) {
+			// Loadable must be part of existing runtime model.
+			// If it weren't then we couldn't guarantee that the modules it
+			// imports would already have been loaded. This is something we rely
+			// on when resolving the import name to a parsed Module object
+			// later.
+			assert model.lookupModule(module.getFullName()) != null;
+			
 			scopes.push(module);
 			new SymbolTableAstVisitor(module.getAst());
 			scopes.pop();

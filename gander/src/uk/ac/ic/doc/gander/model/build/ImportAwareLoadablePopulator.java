@@ -14,7 +14,7 @@ import org.python.pydev.parser.jython.ast.aliasType;
 import uk.ac.ic.doc.gander.DottedName;
 import uk.ac.ic.doc.gander.importing.ImportSimulator;
 import uk.ac.ic.doc.gander.model.Loadable;
-import uk.ac.ic.doc.gander.model.Model;
+import uk.ac.ic.doc.gander.model.MutableModel;
 import uk.ac.ic.doc.gander.model.Namespace;
 import uk.ac.ic.doc.gander.model.Package;
 
@@ -24,9 +24,9 @@ import uk.ac.ic.doc.gander.model.Package;
  */
 class ImportAwareLoadablePopulator extends LoadablePopulator {
 
-	private Model model;
+	private MutableModel model;
 
-	ImportAwareLoadablePopulator(Loadable loadable, Model model) {
+	ImportAwareLoadablePopulator(Loadable loadable, MutableModel model) {
 		super(loadable);
 		this.model = model;
 	}
@@ -64,9 +64,9 @@ class ImportAwareLoadablePopulator extends LoadablePopulator {
 
 	private static class Importer extends ImportSimulator {
 
-		private Model model;
+		private MutableModel model;
 
-		public Importer(Namespace scope, Model model) {
+		public Importer(Namespace scope, MutableModel model) {
 			super(scope, model.getTopLevelPackage());
 			this.model = model;
 		}

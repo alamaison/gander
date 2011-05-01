@@ -23,7 +23,7 @@ import uk.ac.ic.doc.gander.hierarchy.HierarchyFactory;
 import uk.ac.ic.doc.gander.model.Class;
 import uk.ac.ic.doc.gander.model.Function;
 import uk.ac.ic.doc.gander.model.Loadable;
-import uk.ac.ic.doc.gander.model.Model;
+import uk.ac.ic.doc.gander.model.MutableModel;
 import uk.ac.ic.doc.gander.model.Module;
 import uk.ac.ic.doc.gander.model.Namespace;
 import uk.ac.ic.doc.gander.model.Package;
@@ -31,7 +31,7 @@ import uk.ac.ic.doc.gander.model.Package;
 public class SymbolTableTest {
 
 	private static final String TEST_FOLDER = "python_test_code/symbol_table";
-	private Model model;
+	private MutableModel model;
 	private Hierarchy hierarchy;
 
 	@Before
@@ -39,7 +39,7 @@ public class SymbolTableTest {
 		URL topLevel = getClass().getResource(TEST_FOLDER);
 		hierarchy = HierarchyFactory
 				.createHierarchy(new File(topLevel.toURI()));
-		model = new Model(hierarchy);
+		model = new MutableModel(hierarchy);
 	}
 
 	private Map<String, Type> symbols(Namespace scope) throws Exception {

@@ -11,7 +11,7 @@ import uk.ac.ic.doc.gander.cfg.Cfg;
 import uk.ac.ic.doc.gander.hierarchy.Hierarchy;
 import uk.ac.ic.doc.gander.hierarchy.HierarchyFactory;
 import uk.ac.ic.doc.gander.model.Function;
-import uk.ac.ic.doc.gander.model.Model;
+import uk.ac.ic.doc.gander.model.MutableModel;
 
 public class ClassTest {
 
@@ -19,19 +19,19 @@ public class ClassTest {
 
 	private Cfg graph;
 
-	private Model createTestModel(String projectPath) throws Throwable {
+	private MutableModel createTestModel(String projectPath) throws Throwable {
 		URL topLevel = getClass().getResource(projectPath);
 
 		File topLevelDirectory = new File(topLevel.toURI());
 		Hierarchy hierarchy = HierarchyFactory
 				.createHierarchy(topLevelDirectory);
-		Model model = new Model(hierarchy);
+		MutableModel model = new MutableModel(hierarchy);
 		return model;
 	}
 
 	public void initialise(String className, String methodName)
 			throws Throwable, Exception {
-		Model model = createTestModel(CONTROL_FLOW_PROJ);
+		MutableModel model = createTestModel(CONTROL_FLOW_PROJ);
 		Function method = model.loadModule("classes").getClasses().get(
 				className).getFunctions().get(methodName);
 		assertTrue("No function " + methodName, method != null);

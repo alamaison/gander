@@ -4,7 +4,7 @@ import java.io.IOException;
 
 import org.python.pydev.parser.jython.ParseException;
 
-import uk.ac.ic.doc.gander.model.Model;
+import uk.ac.ic.doc.gander.model.MutableModel;
 import uk.ac.ic.doc.gander.model.Module;
 import uk.ac.ic.doc.gander.model.Package;
 
@@ -23,7 +23,7 @@ public final class ModuleLoader {
 	 * Load a runtime-model module given a hierarchy package.
 	 */
 	public ModuleLoader(uk.ac.ic.doc.gander.hierarchy.Module hierarchyModule,
-			Package parent, Model model) throws ParseException, IOException {
+			Package parent, MutableModel model) throws ParseException, IOException {
 		assert parent != null;
 
 		// Parse module first so that parse errors abort loading immediately

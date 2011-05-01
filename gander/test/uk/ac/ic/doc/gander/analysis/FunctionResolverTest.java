@@ -18,7 +18,7 @@ import org.python.pydev.parser.jython.ast.VisitorBase;
 import uk.ac.ic.doc.gander.hierarchy.Hierarchy;
 import uk.ac.ic.doc.gander.hierarchy.HierarchyFactory;
 import uk.ac.ic.doc.gander.model.Function;
-import uk.ac.ic.doc.gander.model.Model;
+import uk.ac.ic.doc.gander.model.MutableModel;
 import uk.ac.ic.doc.gander.model.Module;
 
 public class FunctionResolverTest {
@@ -28,7 +28,7 @@ public class FunctionResolverTest {
 
 	private static final String TEST_FOLDER = "python_test_code/function_resolution";
 	private FunctionResolver resolver;
-	private Model model;
+	private MutableModel model;
 	private Module module;
 
 	@Test
@@ -94,7 +94,7 @@ public class FunctionResolverTest {
 
 		Hierarchy hierarchy = HierarchyFactory
 				.createHierarchy(topLevelDirectory);
-		model = new Model(hierarchy);
+		model = new MutableModel(hierarchy);
 		module = model.loadModule("resolve");
 	}
 

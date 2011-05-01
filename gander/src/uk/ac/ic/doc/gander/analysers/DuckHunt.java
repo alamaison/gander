@@ -18,17 +18,17 @@ import uk.ac.ic.doc.gander.hierarchy.HierarchyWalker;
 import uk.ac.ic.doc.gander.hierarchy.Module;
 import uk.ac.ic.doc.gander.hierarchy.Package;
 import uk.ac.ic.doc.gander.model.Function;
-import uk.ac.ic.doc.gander.model.Model;
+import uk.ac.ic.doc.gander.model.MutableModel;
 import uk.ac.ic.doc.gander.model.ModelWalker;
 
 public class DuckHunt {
 
-	private Model model;
+	private MutableModel model;
 	private Tallies counts;
 	private TypeResolver typer;
 
 	public DuckHunt(Hierarchy hierarchy) throws Exception {
-		this.model = new Model(hierarchy);
+		this.model = new MutableModel(hierarchy);
 		this.counts = new Tallies();
 		new HierarchyLoader().walk(hierarchy);
 		this.typer = new TypeResolver(model);

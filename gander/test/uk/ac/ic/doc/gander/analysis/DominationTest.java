@@ -20,7 +20,7 @@ import uk.ac.ic.doc.gander.cfg.Cfg;
 import uk.ac.ic.doc.gander.hierarchy.Hierarchy;
 import uk.ac.ic.doc.gander.hierarchy.HierarchyFactory;
 import uk.ac.ic.doc.gander.model.Function;
-import uk.ac.ic.doc.gander.model.Model;
+import uk.ac.ic.doc.gander.model.MutableModel;
 
 public class DominationTest {
 
@@ -88,18 +88,18 @@ public class DominationTest {
 	private Domination domAnalyser;
 	private Postdomination postdomAnalyser;
 
-	private Model createTestModel(String projectPath) throws Throwable {
+	private MutableModel createTestModel(String projectPath) throws Throwable {
 		URL topLevel = getClass().getResource(projectPath);
 
 		File topLevelDirectory = new File(topLevel.toURI());
 
 		Hierarchy hierarchy = HierarchyFactory
 				.createHierarchy(topLevelDirectory);
-		return new Model(hierarchy);
+		return new MutableModel(hierarchy);
 	}
 
 	public void initialise(String testFuncName) throws Throwable, Exception {
-		Model model = createTestModel(DOMINATION_PROJ);
+		MutableModel model = createTestModel(DOMINATION_PROJ);
 		Function function = model.loadModule("my_module").getFunctions().get(
 				testFuncName);
 		assertTrue("No function " + testFuncName, function != null);

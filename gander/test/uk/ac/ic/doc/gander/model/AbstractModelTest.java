@@ -13,9 +13,9 @@ import uk.ac.ic.doc.gander.hierarchy.HierarchyFactory;
 
 public abstract class AbstractModelTest {
 
-	private Model model = null;
+	private MutableModel model = null;
 
-	protected Model getModel() {
+	protected MutableModel getModel() {
 		return model;
 	}
 
@@ -30,7 +30,7 @@ public abstract class AbstractModelTest {
 
 		Hierarchy hierarchy = HierarchyFactory
 				.createHierarchy(topLevelDirectory);
-		model = new Model(hierarchy);
+		model = new MutableModel(hierarchy);
 	}
 
 	protected static <T> void assertKeys(String message, Map<String, T> keys,

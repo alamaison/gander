@@ -4,7 +4,7 @@ import java.io.IOException;
 
 import org.python.pydev.parser.jython.ParseException;
 
-import uk.ac.ic.doc.gander.model.Model;
+import uk.ac.ic.doc.gander.model.MutableModel;
 import uk.ac.ic.doc.gander.model.Package;
 
 /**
@@ -23,7 +23,7 @@ public final class PackageLoader {
 	 */
 	public PackageLoader(
 			uk.ac.ic.doc.gander.hierarchy.Package hierarchyPackage,
-			Package parent, Model model) throws ParseException, IOException {
+			Package parent, MutableModel model) throws ParseException, IOException {
 		assert parent != null;
 
 		// Parse __init__ file first so that parse errors abort loading
