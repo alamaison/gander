@@ -10,14 +10,14 @@ import uk.ac.ic.doc.gander.model.ModelWalker;
 
 public class LoadedTypeDefinitions {
 
-	private Model model;
+	private Collection<Class> definitions;
 
 	public LoadedTypeDefinitions(Model model) {
-		this.model = model;
+		this.definitions = new ClassDefinitionCollector(model).getClasses();
 	}
 
-	public Collection<Class> collectDefinitions() {
-		return new ClassDefinitionCollector(model).getClasses();
+	public Collection<Class> getDefinitions() {
+		return definitions;
 	}
 
 	private final class ClassDefinitionCollector extends ModelWalker {

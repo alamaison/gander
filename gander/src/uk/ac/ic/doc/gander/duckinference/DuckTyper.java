@@ -20,9 +20,11 @@ import uk.ac.ic.doc.gander.model.Namespace;
 public class DuckTyper {
 
 	private Model model;
+	private final LoadedTypeDefinitions definitions;
 
 	public DuckTyper(Model model) {
 		this.model = model;
+		definitions = new LoadedTypeDefinitions(model);
 	}
 
 	public Set<Type> typeOf(Call call, BasicBlock containingBlock,
@@ -31,10 +33,9 @@ public class DuckTyper {
 		Set<String> methods = calculateDependentMethodNames(call,
 				containingBlock, scope);
 
-		LoadedTypeDefinitions definitions = new LoadedTypeDefinitions(model);
 		Set<Type> type = new HashSet<Type>();
 
-		for (Class klass : definitions.collectDefinitions()) {
+		for (Class klass : definitions.getDefinitions()) {
 			InheritedMethods inheritance = new InheritedMethods(
 					new CachingInheritanceTree(klass, model));
 

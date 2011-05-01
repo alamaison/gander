@@ -65,6 +65,6 @@ public class TypeDefinitionsTest {
 
 		assertEquals("Types collected don't match expected classes", expected,
 				new HashSet<Class>(new LoadedTypeDefinitions(model)
-						.collectDefinitions()));
+						.getDefinitions()));
 	}
 }
