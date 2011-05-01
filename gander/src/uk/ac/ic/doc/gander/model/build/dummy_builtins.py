@@ -404,7 +404,7 @@ class dict:
     def copy(self):
         if self.__class__ is UserDict:
             return UserDict(self.data.copy())
-        import copy
+        #import copy
         data = self.data
         try:
             self.data = {}
@@ -636,7 +636,7 @@ class _BaseSet(object):
         # to this same set.  A set can't be an element of itself, but
         # it can certainly contain an object that has a reference to
         # itself.
-        from copy import deepcopy
+        #from copy import deepcopy
         result = self.__class__()
         memo[id(self)] = result
         data = result._data
