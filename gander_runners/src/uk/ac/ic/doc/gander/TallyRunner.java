@@ -15,9 +15,10 @@ public abstract class TallyRunner extends MultiProjectRunner {
 
 	protected void analyseProject(File projectRoot) throws Exception {
 
-		Tallies result = analyse(projectRoot);
-
 		System.out.println("== " + projectRoot.getName() + " ==");
+		
+		Tallies result = analyse(projectRoot);
+		
 		System.out.println("Minimum: " + result.min());
 		System.out.println("Maximum: " + result.max());
 		System.out.println("Average: " + result.average());

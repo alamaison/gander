@@ -1,24 +1,13 @@
 package uk.ac.ic.doc.gander;
 
-import java.io.File;
-
 import uk.ac.ic.doc.gander.analysers.DuckHunt;
 import uk.ac.ic.doc.gander.analysers.Tallies;
 import uk.ac.ic.doc.gander.hierarchy.Hierarchy;
-import uk.ac.ic.doc.gander.hierarchy.HierarchyFactory;
 
-public class RunDuckHunt extends TallyRunner {
+public class RunDuckHunt extends HierarchyTallyRunner {
 
 	public static void main(String[] args) throws Exception {
 		new RunDuckHunt().run(args);
-	}
-
-	@Override
-	protected Tallies analyse(File directory) throws Exception {
-
-		Hierarchy hierarchy = HierarchyFactory.createHierarchy(directory);
-		DuckHunt analysis = new DuckHunt(hierarchy);
-		return analysis.getResult();
 	}
 
 	@Override
@@ -29,5 +18,11 @@ public class RunDuckHunt extends TallyRunner {
 	@Override
 	protected String getTitle() {
 		return "Uniqueness of duck-inferred types";
+	}
+
+	@Override
+	protected Tallies analyse(Hierarchy hierarchy) throws Exception {
+		DuckHunt analysis = new DuckHunt(hierarchy);
+		return analysis.getResult();
 	}
 }

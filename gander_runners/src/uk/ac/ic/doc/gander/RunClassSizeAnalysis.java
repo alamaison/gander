@@ -1,13 +1,10 @@
 package uk.ac.ic.doc.gander;
 
-import java.io.File;
-
 import uk.ac.ic.doc.gander.analysers.ClassSize;
 import uk.ac.ic.doc.gander.analysers.Tallies;
 import uk.ac.ic.doc.gander.hierarchy.Hierarchy;
-import uk.ac.ic.doc.gander.hierarchy.HierarchyFactory;
 
-public class RunClassSizeAnalysis extends TallyRunner {
+public class RunClassSizeAnalysis extends HierarchyTallyRunner {
 
 	public static void main(String[] args) throws Exception {
 		new RunClassSizeAnalysis().run(args);
@@ -24,8 +21,7 @@ public class RunClassSizeAnalysis extends TallyRunner {
 	}
 
 	@Override
-	protected Tallies analyse(File directory) throws Exception {
-		Hierarchy hierarchy = HierarchyFactory.createHierarchy(directory);
+	protected Tallies analyse(Hierarchy hierarchy) throws Exception {
 		ClassSize analysis = new ClassSize(hierarchy);
 		return analysis.getResult();
 	}
