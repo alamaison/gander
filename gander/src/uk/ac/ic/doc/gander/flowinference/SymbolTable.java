@@ -6,7 +6,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Stack;
 
 import org.python.pydev.parser.jython.SimpleNode;
 import org.python.pydev.parser.jython.ast.ClassDef;
@@ -35,17 +34,13 @@ import uk.ac.ic.doc.gander.model.Package;
 
 public class SymbolTable {
 
-	private Stack<Namespace> scopes = new Stack<Namespace>();
-
 	private Map<Namespace, Map<String, Type>> symbols = new HashMap<Namespace, Map<String, Type>>();
 
 	private Model model;
 
 	public SymbolTable(Model model) {
 		this.model = model;
-		scopes.push(model.getTopLevelPackage());
 		processScope(model.getTopLevelPackage());
-		scopes.pop();
 	}
 
 	public Map<String, Type> symbols(Namespace scope) {
@@ -58,7 +53,10 @@ public class SymbolTable {
 
 	private final class SymbolTableAstVisitor extends VisitorBase {
 
-		public SymbolTableAstVisitor(SimpleNode ast) {
+		private Namespace currentScope;
+
+		SymbolTableAstVisitor(SimpleNode ast, Namespace currentScope) {
+			this.currentScope = currentScope;
 			try {
 				ast.traverse(this);
 			} catch (Exception e) {
@@ -70,7 +68,7 @@ public class SymbolTable {
 
 		@Override
 		public Object visitClassDef(ClassDef node) throws Exception {
-			Class scope = scopes.peek().getClasses().get(
+			Class scope = currentScope.getClasses().get(
 					((NameTok) node.name).id);
 			// FIXME: Make this assert pass with conditional function decls
 			// assert node == scope.getClassDef();
@@ -86,7 +84,7 @@ public class SymbolTable {
 
 		@Override
 		public Object visitFunctionDef(FunctionDef node) throws Exception {
-			Function scope = scopes.peek().getFunctions().get(
+			Function scope = currentScope.getFunctions().get(
 					((NameTok) node.name).id);
 			// FIXME: Make this assert pass with conditional function decls
 			// assert node == scope.getFunctionDef();
@@ -103,7 +101,7 @@ public class SymbolTable {
 		@Override
 		public Object visitImport(Import node) throws Exception {
 			try {
-				new ImportSymbols().resolveImport(node);
+				new ImportSymbols(currentScope).resolveImport(node);
 			} catch (UnresolvedImportError e) {
 			}
 			return null;
@@ -112,7 +110,7 @@ public class SymbolTable {
 		@Override
 		public Object visitImportFrom(ImportFrom node) throws Exception {
 			try {
-				new ImportSymbols().resolveImportFrom(node);
+				new ImportSymbols(currentScope).resolveImportFrom(node);
 			} catch (UnresolvedImportError e) {
 			}
 			return null;
@@ -133,7 +131,13 @@ public class SymbolTable {
 	}
 
 	private class ImportSymbols {
-		public void resolveImport(Import node) {
+		private Namespace currentScope;
+
+		ImportSymbols(Namespace currentScope) {
+			this.currentScope = currentScope;
+		}
+
+		void resolveImport(Import node) {
 			// The import name is a string which may contain dots to indicate
 			// a package module as in "package.subpackage.submodule". Python
 			// will import each segment of the name as a package before
@@ -161,32 +165,28 @@ public class SymbolTable {
 			// apart and each to the inferred types
 			for (aliasType alias : node.names) {
 				if (alias.asname != null) {
-					new ImportResolver(scopes.peek(), model
-							.getTopLevelPackage()).simulateImportAs(
-							((NameTok) alias.name).id,
-							((NameTok) alias.asname).id);
+					new ImportResolver(currentScope, model.getTopLevelPackage())
+							.simulateImportAs(((NameTok) alias.name).id,
+									((NameTok) alias.asname).id);
 				} else {
-					new ImportResolver(scopes.peek(), model
-							.getTopLevelPackage())
+					new ImportResolver(currentScope, model.getTopLevelPackage())
 							.simulateImport(((NameTok) alias.name).id);
 				}
 			}
 		}
 
-		public void resolveImportFrom(ImportFrom node) throws Exception {
+		void resolveImportFrom(ImportFrom node) throws Exception {
 
 			for (aliasType alias : node.names) {
 				if (alias.asname != null) {
-					new ImportResolver(scopes.peek(), model
-							.getTopLevelPackage()).simulateImportFromAs(
-							((NameTok) node.module).id,
-							((NameTok) alias.name).id,
-							((NameTok) alias.asname).id);
+					new ImportResolver(currentScope, model.getTopLevelPackage())
+							.simulateImportFromAs(((NameTok) node.module).id,
+									((NameTok) alias.name).id,
+									((NameTok) alias.asname).id);
 				} else {
-					new ImportResolver(scopes.peek(), model
-							.getTopLevelPackage()).simulateImportFrom(
-							((NameTok) node.module).id,
-							((NameTok) alias.name).id);
+					new ImportResolver(currentScope, model.getTopLevelPackage())
+							.simulateImportFrom(((NameTok) node.module).id,
+									((NameTok) alias.name).id);
 				}
 			}
 
@@ -259,6 +259,8 @@ public class SymbolTable {
 	}
 
 	private void processScope(Namespace scope) {
+		new SymbolTableAstVisitor(scope.getAst(), scope);
+
 		for (Package pkg : scope.getPackages().values()) {
 			// Loadable must be part of existing runtime model.
 			// If it weren't then we couldn't guarantee that the modules it
@@ -266,11 +268,8 @@ public class SymbolTable {
 			// on when resolving the import name to a parsed Module object
 			// later.
 			assert model.lookupPackage(pkg.getFullName()) != null;
-			
-			scopes.push(pkg);
-			new SymbolTableAstVisitor(pkg.getAst());
+
 			processScope(pkg);
-			scopes.pop();
 		}
 
 		for (Module module : scope.getModules().values()) {
@@ -280,20 +279,14 @@ public class SymbolTable {
 			// on when resolving the import name to a parsed Module object
 			// later.
 			assert model.lookupModule(module.getFullName()) != null;
-			
-			scopes.push(module);
-			new SymbolTableAstVisitor(module.getAst());
+
 			processScope(module);
-			scopes.pop();
 		}
 
 		for (Class klass : scope.getClasses().values()) {
-			put(scopes.peek(), klass.getName(), new TClass(klass));
+			put(scope, klass.getName(), new TClass(klass));
 
-			scopes.push(klass);
-			new SymbolTableAstVisitor(klass.getClassDef());
 			processScope(klass);
-			scopes.pop();
 		}
 
 		for (Function function : scope.getFunctions().values()) {
@@ -301,18 +294,11 @@ public class SymbolTable {
 			// They can only be accessed by dereferencing 'self'
 			// TODO: Does it make sense to add a 'self' token to the symbol
 			// table of the methods? What type would it have?
-			if (!(scopes.peek() instanceof Class))
-				put(scopes.peek(), function.getName(), new TFunction(function));
+			if (!(scope instanceof Class))
+				put(scope, function.getName(), new TFunction(function));
 
-			scopes.push(function);
-			new SymbolTableAstVisitor(function.getFunctionDef());
 			processScope(function);
-			scopes.pop();
 		}
-	}
-
-	static List<String> dottedNameToImportTokens(String importPath) {
-		return Arrays.asList(importPath.split("\\."));
 	}
 
 	private void put(Namespace scope, String name, Type type) {
