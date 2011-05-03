@@ -29,7 +29,11 @@ public class Function implements Namespace {
 	}
 
 	public String getFullName() {
-		return parent.getFullName() + "." + getName();
+		String parentName = parent.getFullName();
+		if (parentName.isEmpty())
+			return getName();
+		else
+			return parentName + "." + getName();
 	}
 
 	public Cfg getCfg() {

@@ -31,7 +31,11 @@ public class Class implements Namespace {
 	}
 
 	public String getFullName() {
-		return parent.getFullName() + "." + getName();
+		String parentName = parent.getFullName();
+		if (parentName.isEmpty())
+			return getName();
+		else
+			return parentName + "." + getName();
 	}
 
 	public ClassDef getClassDef() {
