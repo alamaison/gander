@@ -489,7 +489,7 @@ public class SymbolTableTest {
 	@Test
 	public void astNonTraversalImport() throws Throwable {
 		Module start = model.loadModule("traversal");
-		
+
 		assertFalse("traversal's symbol table mustn't include 'q'", symbols(
 				start).containsKey("q"));
 		assertFalse("traversal's symbol table mustn't include 'r'", symbols(
@@ -525,7 +525,8 @@ public class SymbolTableTest {
 				"range", "raw_input", "reduce", "reload", "repr", "reversed",
 				"round", "set", "setattr", "slice", "sorted", "staticmethod",
 				"str", "sum", "super", "tuple", "type", "unichr", "unicode",
-				"vars", "xrange", "zip", "Exception");
+				"vars", "xrange", "zip", "BaseException", "Exception",
+				"_BaseSet");
 	}
 
 	@Test
