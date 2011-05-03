@@ -112,7 +112,7 @@ def hasattr():
     pass
 
 def hash():
-    pass
+    return 42;
 
 def help():
     pass
@@ -250,12 +250,127 @@ def zip():
     pass
     
 class object:
+    
+    def __init__(obj, *args, **keywords):
+        pass
+    
+    __class__ = class()
+    
+    def __delattr__(self, name):
+        #del self.name
+        pass
+    
+    __dict__ = {}
+    __doc__ = "Most base class"
+    
+    def __format__(self, *args, **keywords):# no in pypy
+        pass
+    
+    def __getattribute__(self, name):
+        return self.__dict__[name]
+    
+    def __hash__(self):
+        return hash(self)
+
+    __module__ = "__builtin__"
+
+    def __new__(type, *args, **keywords):
+        pass
+    
+    def __reduce__(self, proto=0):
+        pass
+    
+    def __reduce_ex__(self, proto=0):
+        pass
+
+    def __repr__(self):
+        return repr(self)
+
+    def __setattr__(self, name, value):
+        self.__dict__[name] = value
+
+    def __sizeof__(self): not in pypy
+        return 42
+    
+    def __str__(self):
+        return str(self)
+
+    # __subclasshook__ not in pypy
+    
+    __weakref__ = None
+
+class BaseException(object):
+    
+    def __getitem__(self, i):
+        return self.data[i]
+
+    def __getslice__(self, i, j): # not in pypy
+        pass
+    
+    def __setstate__(self, dict):
+        pass
+    
+    def __unicode__(self, *args, **keywords): #not in pypy
+        pass
+    
+    args = ()
+    message = ""
+
+class Exception(BaseException):
     pass
 
-class Exception:
+class basestring(object):
     pass
-
-class string:
+    
+class str(basestring):
+    def __add__(self, x):
+        self.data = self.data + x
+    
+    def __contains__(self, item):
+        return item in self.data
+    
+    def __eq__(self, other):
+        return self.data == other.data
+    
+    def __ge__(self, other):
+        return self.data >= other.data
+    
+    def __gt__(self, other):
+        return self.data > other.data
+    
+    def __le__(self, other):
+        return self.data <= other.data
+    
+    def __lt__(self, other):
+        return self.data < other.data
+    
+    def __getitem__(self, i):
+        return self.data[i]
+    
+    def __getnewargs__(self, *args, **keywords):
+        pass
+    
+    def __getslice__(self, i, j):
+        return self.data[i:j]
+    
+    def __len__(self):
+        return len(self.data)
+    
+    def __mod__(self, x):
+        return self.data % x
+    
+    def __mul__(self, x):
+        return self.data * x
+    
+    def __ne__(self, other):
+        return self.data != other.data
+    
+    def __rmod__(self, x):
+        return x % self.data
+    
+    def __rmul__(self, x):
+        return x * self.data
+    
     def capitalize(self):
         pass
 
@@ -370,14 +485,14 @@ class string:
     def zfill(self, width):
         pass
 
-class unicode(str):
+class unicode(str): # really inherits from basestring and duplicates str methods
     def isnumeric(self):
         pass
 
     def isdecimal(self):
         pass
 
-class dict:
+class dict(object):
 # was class UserDict:
     def __init__(self, dict=None, **kwargs):
         self.data = {}
@@ -453,7 +568,7 @@ class dict:
             d[key] = value
         return d
 
-class list:
+class list(object):
 # was class UserList(collections.MutableSequence):
     def __init__(self, initlist=None):
         self.data = []
