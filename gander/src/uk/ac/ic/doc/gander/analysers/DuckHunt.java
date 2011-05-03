@@ -1,6 +1,7 @@
 package uk.ac.ic.doc.gander.analysers;
 
 import java.io.IOException;
+import java.util.HashSet;
 import java.util.Set;
 
 import org.python.pydev.parser.jython.ParseException;
@@ -9,7 +10,9 @@ import org.python.pydev.parser.jython.ast.Call;
 import org.python.pydev.parser.jython.ast.Name;
 import org.python.pydev.parser.jython.ast.NameTok;
 
+import uk.ac.ic.doc.gander.MethodCallHelper;
 import uk.ac.ic.doc.gander.analysis.MethodFinder;
+import uk.ac.ic.doc.gander.analysis.signatures.SignatureBuilder;
 import uk.ac.ic.doc.gander.cfg.BasicBlock;
 import uk.ac.ic.doc.gander.duckinference.DuckTyper;
 import uk.ac.ic.doc.gander.flowinference.TypeResolver;
@@ -22,6 +25,7 @@ import uk.ac.ic.doc.gander.hierarchy.Package;
 import uk.ac.ic.doc.gander.model.Function;
 import uk.ac.ic.doc.gander.model.ModelWalker;
 import uk.ac.ic.doc.gander.model.MutableModel;
+import uk.ac.ic.doc.gander.model.Namespace;
 
 public class DuckHunt {
 
@@ -30,10 +34,14 @@ public class DuckHunt {
 	private TypeResolver typer;
 
 	public DuckHunt(Hierarchy hierarchy) throws Exception {
+		System.out.println("Creating model from hierarchy");
 		this.model = new MutableModel(hierarchy);
 		this.counts = new Tallies();
+		System.out.println("Loading all non-system modules in hierarchy");
 		new HierarchyLoader().walk(hierarchy);
+		System.out.println("Performing flow-based type inference");
 		this.typer = new TypeResolver(model);
+		System.out.println("Running signature analysis");
 		new ModelDucker().walk(model);
 	}
 
@@ -67,8 +75,37 @@ public class DuckHunt {
 
 		if (type.size() == 0) {
 			System.out.println("unable to infer type from " + call + " in "
-					+ function.getFullName());
+					+ function.getFullName() + "(signature "
+					+ calculateDependentMethodNames(call, block, function)
+					+ ")");
 		}
+
+		if (type.size() > 80) {
+			System.out.println("large number (" + type.size()
+					+ ") of types inferred from " + call + " in "
+					+ function.getFullName() + " \n\t(signature "
+					+ calculateDependentMethodNames(call, block, function)
+					+ ")");
+		}
+	}
+
+	private Set<String> calculateDependentMethodNames(Call call,
+			BasicBlock containingBlock, Namespace scope) {
+		SignatureBuilder chainAnalyser = new SignatureBuilder();
+		Set<Call> dependentCalls = chainAnalyser.signature(MethodCallHelper
+				.extractMethodCallTarget(call), containingBlock,
+				(Function) scope, typer);
+
+		return convertCallsToMethodNames(dependentCalls);
+	}
+
+	private Set<String> convertCallsToMethodNames(Set<Call> dependentCalls) {
+		Set<String> methods = new HashSet<String>();
+
+		for (Call c : dependentCalls)
+			methods.add(MethodCallHelper.extractMethodCallName(c).id);
+
+		return methods;
 	}
 
 	private boolean isExternalMethodCallOnName(Call call, Function function) {
