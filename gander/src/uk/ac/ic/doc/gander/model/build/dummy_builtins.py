@@ -18,9 +18,6 @@ def any():
 def apply():
     pass
 
-def basestring():
-    pass
-
 def bin():
     pass
 
@@ -64,9 +61,6 @@ def credits():
     pass
 
 def delattr():
-    pass
-
-def dict():
     pass
 
 def dir():
@@ -147,9 +141,6 @@ def len(iterable):
 def license():
     pass
 
-def list():
-    pass
-
 def locals():
     pass
 
@@ -208,9 +199,6 @@ def reversed():
     pass
 
 def round():
-    pass
-
-def set():
     pass
 
 def setattr():
@@ -965,7 +953,7 @@ class _BaseSet(object):
                         raise # re-raise the TypeError exception we caught
                     data[transform()] = value
 
-class set(BaseSet):
+class set(_BaseSet):
 # was class Set(BaseSet):
     """ Mutable set class."""
 
