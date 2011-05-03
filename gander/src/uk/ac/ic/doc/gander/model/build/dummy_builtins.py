@@ -242,7 +242,7 @@ class object:
     def __init__(obj, *args, **keywords):
         pass
     
-    __class__ = class()
+    __class__ = object
     
     def __delattr__(self, name):
         #del self.name
