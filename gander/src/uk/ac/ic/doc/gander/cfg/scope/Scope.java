@@ -31,6 +31,7 @@ import org.python.pydev.parser.jython.ast.Num;
 import org.python.pydev.parser.jython.ast.Pass;
 import org.python.pydev.parser.jython.ast.Print;
 import org.python.pydev.parser.jython.ast.Raise;
+import org.python.pydev.parser.jython.ast.Repr;
 import org.python.pydev.parser.jython.ast.Return;
 import org.python.pydev.parser.jython.ast.Str;
 import org.python.pydev.parser.jython.ast.StrJoin;
@@ -167,6 +168,12 @@ abstract class Scope extends VisitorBase {
 
 	@Override
 	public Object visitNum(Num node) throws Exception {
+		return delegateSelfAddingScope(node);
+	}
+
+	// Python backticks: `object` equivalent to repr(object)
+	@Override
+	public Object visitRepr(Repr node) throws Exception {
 		return delegateSelfAddingScope(node);
 	}
 
