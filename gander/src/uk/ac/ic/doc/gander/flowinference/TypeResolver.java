@@ -5,10 +5,15 @@ import java.util.Stack;
 
 import org.python.pydev.parser.jython.SimpleNode;
 import org.python.pydev.parser.jython.ast.Attribute;
+import org.python.pydev.parser.jython.ast.Dict;
+import org.python.pydev.parser.jython.ast.List;
 import org.python.pydev.parser.jython.ast.Name;
 import org.python.pydev.parser.jython.ast.NameTok;
+import org.python.pydev.parser.jython.ast.Set;
+import org.python.pydev.parser.jython.ast.Str;
 import org.python.pydev.parser.jython.ast.VisitorBase;
 
+import uk.ac.ic.doc.gander.flowinference.types.TClass;
 import uk.ac.ic.doc.gander.flowinference.types.TNamespace;
 import uk.ac.ic.doc.gander.flowinference.types.Type;
 import uk.ac.ic.doc.gander.model.Model;
@@ -18,8 +23,10 @@ public class TypeResolver extends VisitorBase {
 
 	private Stack<Namespace> scopes = new Stack<Namespace>();
 	private SymbolTable table;
+	private final Model model;
 
 	public TypeResolver(Model model) {
+		this.model = model;
 		this.table = new SymbolTable(model);
 	}
 
@@ -55,6 +62,26 @@ public class TypeResolver extends VisitorBase {
 		}
 
 		return null;
+	}
+
+	@Override
+	public Object visitStr(Str node) throws Exception {
+		return new TClass(model.getTopLevelPackage().getClasses().get("str"));
+	}
+
+	@Override
+	public Object visitDict(Dict node) throws Exception {
+		return new TClass(model.getTopLevelPackage().getClasses().get("dict"));
+	}
+
+	@Override
+	public Object visitList(List node) throws Exception {
+		return new TClass(model.getTopLevelPackage().getClasses().get("list"));
+	}
+
+	@Override
+	public Object visitSet(Set node) throws Exception {
+		return new TClass(model.getTopLevelPackage().getClasses().get("set"));
 	}
 
 	@Override
