@@ -7,6 +7,7 @@ import org.python.pydev.parser.jython.ParseException;
 import org.python.pydev.parser.jython.ast.Attribute;
 import org.python.pydev.parser.jython.ast.Call;
 import org.python.pydev.parser.jython.ast.Name;
+import org.python.pydev.parser.jython.ast.NameTok;
 
 import uk.ac.ic.doc.gander.analysis.MethodFinder;
 import uk.ac.ic.doc.gander.cfg.BasicBlock;
@@ -94,6 +95,11 @@ public class DuckHunt {
 			return false;
 
 		Name variable = (Name) attr.value;
+
+		// Explicit calls to constructors are not method calls
+		if (!(attr.attr instanceof NameTok)
+				|| ((NameTok) attr.attr).id.equals("__init__"))
+			return false;
 
 		// if function is a method of a class, skip calls to self (or
 		// whatever the first parameter to a method
