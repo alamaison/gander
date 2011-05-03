@@ -22,7 +22,10 @@ public class HierarchyFactory {
 	public static Hierarchy createHierarchy(Iterable<File> topLevelPaths)
 			throws InvalidElementException {
 		List<File> systemTopLevelPaths = new ArrayList<File>();
-		for (String sysPath : HierarchyFactory.queryPythonPath()) {
+		for (String sysPath : HierarchyFactory.queryPythonPath("./pypy")) {
+			systemTopLevelPaths.add(new File(sysPath));
+		}
+		for (String sysPath : HierarchyFactory.queryPythonPath("python")) {
 			systemTopLevelPaths.add(new File(sysPath));
 		}
 
@@ -34,9 +37,9 @@ public class HierarchyFactory {
 		return createHierarchy(directoryToList(topLevel));
 	}
 
-	private static Iterable<String> queryPythonPath() {
+	private static Iterable<String> queryPythonPath(String pythonCommand) {
 		try {
-			String[] commands = { "python", "-c", PYTHON_PATH_PROGRAM };
+			String[] commands = { pythonCommand, "-c", PYTHON_PATH_PROGRAM };
 			Process python = Runtime.getRuntime().exec(commands);
 			InputStream output = python.getInputStream();
 			BufferedReader reader = new BufferedReader(new InputStreamReader(
