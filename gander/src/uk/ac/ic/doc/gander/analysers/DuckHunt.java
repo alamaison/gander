@@ -13,14 +13,15 @@ import uk.ac.ic.doc.gander.analysis.MethodFinder;
 import uk.ac.ic.doc.gander.cfg.BasicBlock;
 import uk.ac.ic.doc.gander.duckinference.DuckTyper;
 import uk.ac.ic.doc.gander.flowinference.TypeResolver;
+import uk.ac.ic.doc.gander.flowinference.types.TImportable;
 import uk.ac.ic.doc.gander.flowinference.types.Type;
 import uk.ac.ic.doc.gander.hierarchy.Hierarchy;
 import uk.ac.ic.doc.gander.hierarchy.HierarchyWalker;
 import uk.ac.ic.doc.gander.hierarchy.Module;
 import uk.ac.ic.doc.gander.hierarchy.Package;
 import uk.ac.ic.doc.gander.model.Function;
-import uk.ac.ic.doc.gander.model.MutableModel;
 import uk.ac.ic.doc.gander.model.ModelWalker;
+import uk.ac.ic.doc.gander.model.MutableModel;
 
 public class DuckHunt {
 
@@ -47,7 +48,7 @@ public class DuckHunt {
 			// only analyse methods within our target project's namespace
 			if (function.isSystem())
 				return;
-				
+
 			for (BasicBlock block : function.getCfg().getBlocks()) {
 				for (Call call : new MethodFinder(block).calls()) {
 					if (!isExternalMethodCallOnName(call, function))
@@ -68,22 +69,6 @@ public class DuckHunt {
 			System.out.println("unable to infer type from " + call + " in "
 					+ function.getFullName());
 		}
-	}
-
-	private boolean isMethodCallOnName(Call call, Function function) {
-		if (!(call.func instanceof Attribute))
-			return false;
-
-		Attribute attr = (Attribute) call.func;
-		if (!(attr.value instanceof Name))
-			return false;
-
-		Name variable = (Name) attr.value;
-
-		// skip calls to module functions - they look like method calls but
-		// we want to treat then differently
-
-		return !(typer.typeOf(variable, function) instanceof uk.ac.ic.doc.gander.flowinference.types.TImportable);
 	}
 
 	private boolean isExternalMethodCallOnName(Call call, Function function) {
@@ -127,7 +112,7 @@ public class DuckHunt {
 		// skip calls to module functions - they look like method calls but
 		// we want to treat then differently
 
-		return !(typer.typeOf(variable, function) instanceof uk.ac.ic.doc.gander.flowinference.types.TImportable);
+		return !(typer.typeOf(variable, function) instanceof TImportable);
 	}
 
 	/**
