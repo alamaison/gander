@@ -6,10 +6,11 @@ import org.python.pydev.parser.jython.ast.exprType;
 
 import uk.ac.ic.doc.gander.analysis.inheritance.FreshInheritanceTree;
 import uk.ac.ic.doc.gander.analysis.inheritance.InheritedMethods;
+import uk.ac.ic.doc.gander.flowinference.TypeResolver;
 import uk.ac.ic.doc.gander.hierarchy.Hierarchy;
 import uk.ac.ic.doc.gander.model.Class;
-import uk.ac.ic.doc.gander.model.MutableModel;
 import uk.ac.ic.doc.gander.model.Module;
+import uk.ac.ic.doc.gander.model.MutableModel;
 
 public class ClassSize {
 
@@ -42,7 +43,7 @@ public class ClassSize {
 			throws Exception {
 		if (hierarchyModule.isSystem())
 			return;
-		
+
 		Module module = model.loadModule(hierarchyModule
 				.getFullyQualifiedName());
 
@@ -77,13 +78,15 @@ public class ClassSize {
 
 	}
 
-	private Set<String> methodsInTree(FreshInheritanceTree tree) throws Exception {
+	private Set<String> methodsInTree(FreshInheritanceTree tree)
+			throws Exception {
 		return new InheritedMethods(tree, new SysErrErrorHandler())
 				.methodsInTree();
 	}
 
 	private Set<String> methodsInClass(Class klass) throws Exception {
-		FreshInheritanceTree tree = new FreshInheritanceTree(klass, model);
+		FreshInheritanceTree tree = new FreshInheritanceTree(klass,
+				new TypeResolver(model));
 		return methodsInTree(tree);
 	}
 }

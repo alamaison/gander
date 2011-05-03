@@ -15,7 +15,7 @@ import org.python.pydev.parser.jython.ast.NameTok;
 
 import uk.ac.ic.doc.gander.AbstractTaggedCallTest;
 import uk.ac.ic.doc.gander.Statement;
-import uk.ac.ic.doc.gander.analysis.signatures.SignatureBuilder;
+import uk.ac.ic.doc.gander.flowinference.TypeResolver;
 
 public class SignatureBuilderTest extends AbstractTaggedCallTest {
 
@@ -257,7 +257,7 @@ public class SignatureBuilderTest extends AbstractTaggedCallTest {
 
 		Iterable<Call> chain = analyser.signature(
 				extractMethodCallTarget(statement.getCall()), statement
-						.getBlock(), function, model);
+						.getBlock(), function, new TypeResolver(model));
 
 		// Test that all expected calls are in the chain and no unexpected calls
 		// are in the chain.
@@ -283,7 +283,8 @@ public class SignatureBuilderTest extends AbstractTaggedCallTest {
 				statement != null);
 
 		Set<Call> chain = analyser.signature(extractMethodCallTarget(statement
-				.getCall()), statement.getBlock(), function, model);
+				.getCall()), statement.getBlock(), function, new TypeResolver(
+				model));
 		assertTrue(
 				"Tagged function '" + antiTag
 						+ "' has a dependence chain when we don't expect one: "

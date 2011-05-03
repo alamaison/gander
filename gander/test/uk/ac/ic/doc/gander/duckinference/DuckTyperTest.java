@@ -12,14 +12,15 @@ import org.junit.Test;
 import uk.ac.ic.doc.gander.Statement;
 import uk.ac.ic.doc.gander.TaggedBlockFinder;
 import uk.ac.ic.doc.gander.cfg.Cfg;
+import uk.ac.ic.doc.gander.flowinference.TypeResolver;
 import uk.ac.ic.doc.gander.flowinference.types.TClass;
 import uk.ac.ic.doc.gander.flowinference.types.Type;
 import uk.ac.ic.doc.gander.hierarchy.Hierarchy;
 import uk.ac.ic.doc.gander.hierarchy.HierarchyFactory;
 import uk.ac.ic.doc.gander.model.Class;
 import uk.ac.ic.doc.gander.model.Function;
-import uk.ac.ic.doc.gander.model.MutableModel;
 import uk.ac.ic.doc.gander.model.Module;
+import uk.ac.ic.doc.gander.model.MutableModel;
 import uk.ac.ic.doc.gander.model.Namespace;
 
 public class DuckTyperTest {
@@ -41,7 +42,7 @@ public class DuckTyperTest {
 		Statement stmt = findCall(enclosingFunction.getCfg(), tag);
 		assertTrue("TEST ERROR: tag not found", stmt != null);
 
-		DuckTyper typer = new DuckTyper(model);
+		DuckTyper typer = new DuckTyper(model, new TypeResolver(model));
 		return typer.typeOf(stmt.getCall(), stmt.getBlock(), enclosingFunction);
 	}
 

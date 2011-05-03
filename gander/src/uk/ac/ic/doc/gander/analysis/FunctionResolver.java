@@ -6,7 +6,6 @@ import uk.ac.ic.doc.gander.flowinference.TypeResolver;
 import uk.ac.ic.doc.gander.flowinference.types.TFunction;
 import uk.ac.ic.doc.gander.flowinference.types.Type;
 import uk.ac.ic.doc.gander.model.Function;
-import uk.ac.ic.doc.gander.model.Model;
 
 /**
  * Given a call, attempt to find the function being called.
@@ -14,18 +13,18 @@ import uk.ac.ic.doc.gander.model.Model;
 public class FunctionResolver {
 
 	private Function function;
-	private Model model;
 	private Function enclosingFunction;
+	private TypeResolver types;
 
-	public FunctionResolver(Call call, Function enclosingFunction, Model model) {
+	public FunctionResolver(Call call, Function enclosingFunction,
+			TypeResolver types) {
 		this.enclosingFunction = enclosingFunction;
-		this.model = model;
+		this.types = types;
 		function = resolveCall(call);
 	}
 
 	private Function resolveCall(Call call) {
-		TypeResolver resolver = new TypeResolver(model);
-		Type type = resolver.typeOf(call.func, enclosingFunction);
+		Type type = types.typeOf(call.func, enclosingFunction);
 		if (type != null && type instanceof TFunction) {
 			return ((TFunction) type).getFunctionInstance();
 		}

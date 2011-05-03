@@ -10,6 +10,7 @@ import uk.ac.ic.doc.gander.analysis.inheritance.CachingInheritanceTree;
 import uk.ac.ic.doc.gander.analysis.inheritance.InheritedMethods;
 import uk.ac.ic.doc.gander.analysis.signatures.SignatureBuilder;
 import uk.ac.ic.doc.gander.cfg.BasicBlock;
+import uk.ac.ic.doc.gander.flowinference.TypeResolver;
 import uk.ac.ic.doc.gander.flowinference.types.TClass;
 import uk.ac.ic.doc.gander.flowinference.types.Type;
 import uk.ac.ic.doc.gander.model.Class;
@@ -18,12 +19,11 @@ import uk.ac.ic.doc.gander.model.Model;
 import uk.ac.ic.doc.gander.model.Namespace;
 
 public class DuckTyper {
-
-	private Model model;
 	private final LoadedTypeDefinitions definitions;
+	private TypeResolver resolver;
 
-	public DuckTyper(Model model) {
-		this.model = model;
+	public DuckTyper(Model model, TypeResolver resolver) {
+		this.resolver = resolver;
 		definitions = new LoadedTypeDefinitions(model);
 	}
 
@@ -37,7 +37,7 @@ public class DuckTyper {
 
 		for (Class klass : definitions.getDefinitions()) {
 			InheritedMethods inheritance = new InheritedMethods(
-					new CachingInheritanceTree(klass, model));
+					new CachingInheritanceTree(klass, resolver));
 
 			// XXX: We only compare by name. Matching parameter numbers etc
 			// will require more complex logic.
@@ -53,7 +53,7 @@ public class DuckTyper {
 		SignatureBuilder chainAnalyser = new SignatureBuilder();
 		Set<Call> dependentCalls = chainAnalyser.signature(MethodCallHelper
 				.extractMethodCallTarget(call), containingBlock,
-				(Function) scope, model);
+				(Function) scope, resolver);
 
 		return convertCallsToMethodNames(dependentCalls);
 	}

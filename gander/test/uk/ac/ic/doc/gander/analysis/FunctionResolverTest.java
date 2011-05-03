@@ -15,6 +15,7 @@ import org.python.pydev.parser.jython.ast.Name;
 import org.python.pydev.parser.jython.ast.Str;
 import org.python.pydev.parser.jython.ast.VisitorBase;
 
+import uk.ac.ic.doc.gander.flowinference.TypeResolver;
 import uk.ac.ic.doc.gander.hierarchy.Hierarchy;
 import uk.ac.ic.doc.gander.hierarchy.HierarchyFactory;
 import uk.ac.ic.doc.gander.model.Function;
@@ -124,7 +125,7 @@ public class FunctionResolverTest {
 		assertTrue("Unable to find tagged call in test: '" + callTag + "'",
 				call != null);
 
-		resolver = new FunctionResolver(call, function, model);
+		resolver = new FunctionResolver(call, function, new TypeResolver(model));
 		assertTrue("Function wasn't resolved: '" + call + "'", resolver
 				.getFunction() != null);
 

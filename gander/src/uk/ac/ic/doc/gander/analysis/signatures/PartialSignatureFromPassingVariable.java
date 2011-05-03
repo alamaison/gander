@@ -17,8 +17,8 @@ import uk.ac.ic.doc.gander.analysis.dominance.Postdomination;
 import uk.ac.ic.doc.gander.analysis.signatures.PassedVariableFinder.PassedVar;
 import uk.ac.ic.doc.gander.cfg.BasicBlock;
 import uk.ac.ic.doc.gander.cfg.Cfg;
+import uk.ac.ic.doc.gander.flowinference.TypeResolver;
 import uk.ac.ic.doc.gander.model.Function;
-import uk.ac.ic.doc.gander.model.Model;
 
 /**
  * Given a variable name, return the part of its signature that is derived from
@@ -65,7 +65,7 @@ final class PartialSignatureFromPassingVariable {
 	 */
 	Set<Call> buildSignature(String variable,
 			Iterable<BasicBlock> blocksToSearch, Function enclosingFunction,
-			Model model) {
+			TypeResolver resolver) {
 		enclosingFunctions.push(enclosingFunction);
 
 		Set<Call> calls = new HashSet<Call>();
@@ -74,7 +74,8 @@ final class PartialSignatureFromPassingVariable {
 				blocksToSearch).passes();
 		for (PassedVar pass : passes) {
 			Call call = pass.getCall();
-			Function function = resolveFunction(model, enclosingFunction, call);
+			Function function = resolveFunction(resolver, enclosingFunction,
+					call);
 			if (function != null) {
 				// Must stop if we have already processed a call to the
 				// resolved function
@@ -82,7 +83,7 @@ final class PartialSignatureFromPassingVariable {
 				// passed at the same position too.
 				if (!enclosingFunctions.contains(function)) {
 					calls.addAll(calculateSignatureForPassedVariable(pass,
-							function, model));
+							function, resolver));
 				}
 			}
 		}
@@ -99,13 +100,13 @@ final class PartialSignatureFromPassingVariable {
 	 * function.
 	 */
 	private Set<Call> buildSignatureForFunctionParameter(Name param,
-			Function function, Model model) {
+			Function function, TypeResolver resolver) {
 		Set<BasicBlock> blocks = inevitableBlocks(function);
 
 		Set<Call> calls = new PartialSignatureFromUsingVariable()
 				.buildSignature(param, blocks, function);
 
-		calls.addAll(buildSignature(param.id, blocks, function, model));
+		calls.addAll(buildSignature(param.id, blocks, function, resolver));
 		return calls;
 	}
 
@@ -113,23 +114,22 @@ final class PartialSignatureFromPassingVariable {
 	 * Return signature implied by passing variable to call.
 	 */
 	private Set<Call> calculateSignatureForPassedVariable(PassedVar pass,
-			Function function, Model model) {
+			Function function, TypeResolver resolver) {
 
 		Set<Call> calls = new HashSet<Call>();
 
 		for (Name param : resolveParameterNames(pass, function.getFunctionDef())) {
-			calls
-					.addAll(buildSignatureForFunctionParameter(param, function,
-							model));
+			calls.addAll(buildSignatureForFunctionParameter(param, function,
+					resolver));
 		}
 
 		return calls;
 	}
 
-	private static Function resolveFunction(Model model,
+	private static Function resolveFunction(TypeResolver resolver,
 			Function enclosingFunction, Call call) {
-		Function function = new FunctionResolver(call, enclosingFunction, model)
-				.getFunction();
+		Function function = new FunctionResolver(call, enclosingFunction,
+				resolver).getFunction();
 
 		if (function == null)
 			System.err.println("Warning: unable to resolve function: "

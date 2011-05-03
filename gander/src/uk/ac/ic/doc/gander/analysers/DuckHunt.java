@@ -70,7 +70,8 @@ public class DuckHunt {
 
 	private void countNumberOfTypesInferredFor(Call call, Function function,
 			BasicBlock block) {
-		Set<Type> type = new DuckTyper(model).typeOf(call, block, function);
+		Set<Type> type = new DuckTyper(model, typer).typeOf(call, block,
+				function);
 		counts.addTally(type.size());
 
 		if (type.size() == 0) {

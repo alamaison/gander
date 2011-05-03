@@ -6,7 +6,6 @@ import uk.ac.ic.doc.gander.flowinference.TypeResolver;
 import uk.ac.ic.doc.gander.flowinference.types.TClass;
 import uk.ac.ic.doc.gander.flowinference.types.Type;
 import uk.ac.ic.doc.gander.model.Class;
-import uk.ac.ic.doc.gander.model.Model;
 import uk.ac.ic.doc.gander.model.Namespace;
 
 /**
@@ -15,18 +14,17 @@ import uk.ac.ic.doc.gander.model.Namespace;
 public class ClassResolver {
 
 	private Namespace enclosingScope;
-	private Model model;
 	private Class klass;
+	private final TypeResolver types;
 
-	public ClassResolver(exprType expr, Namespace enclosingScope, Model model) {
+	public ClassResolver(exprType expr, Namespace enclosingScope, TypeResolver types) {
 		this.enclosingScope = enclosingScope;
-		this.model = model;
+		this.types = types;
 		klass = resolveClass(expr);
 	}
 
 	private Class resolveClass(exprType expr) {
-		TypeResolver resolver = new TypeResolver(model);
-		Type type = resolver.typeOf(expr, enclosingScope);
+		Type type = types.typeOf(expr, enclosingScope);
 		if (type != null && type instanceof TClass) {
 			return ((TClass) type).getClassInstance();
 		}

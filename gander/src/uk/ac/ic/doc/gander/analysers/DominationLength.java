@@ -15,85 +15,18 @@ import uk.ac.ic.doc.gander.analysis.MethodFinder;
 import uk.ac.ic.doc.gander.analysis.signatures.SignatureBuilder;
 import uk.ac.ic.doc.gander.cfg.BasicBlock;
 import uk.ac.ic.doc.gander.flowinference.TypeResolver;
+import uk.ac.ic.doc.gander.flowinference.types.TImportable;
 import uk.ac.ic.doc.gander.hierarchy.Hierarchy;
 import uk.ac.ic.doc.gander.hierarchy.HierarchyWalker;
 import uk.ac.ic.doc.gander.hierarchy.Package;
 import uk.ac.ic.doc.gander.model.Class;
 import uk.ac.ic.doc.gander.model.Function;
-import uk.ac.ic.doc.gander.model.Model;
-import uk.ac.ic.doc.gander.model.MutableModel;
 import uk.ac.ic.doc.gander.model.Module;
+import uk.ac.ic.doc.gander.model.MutableModel;
 
 public class DominationLength extends HierarchyWalker {
 
-	private class SameVariableOnlyAnalysis {
-
-		private Tallies stats = new Tallies();
-
-		public void analyse(Function function, Model model) {
-
-			SignatureBuilder chainAnalyser = new SignatureBuilder();
-
-			for (BasicBlock sub : function.getCfg().getBlocks()) {
-				for (Call call : new MethodFinder(sub).calls()) {
-					if (!isMethodCallOnName(call, function))
-						continue;
-
-					Collection<Call> dependentCalls = chainAnalyser.signature(
-							MethodCallHelper.extractMethodCallTarget(call),
-							sub, function, model);
-
-					if (dependentCalls != null) {
-						int count = countUniqueMethodNames(dependentCalls);
-						// if (count > 1)
-						// printChain(call, dependentCalls);
-
-						stats.addTally(new Integer(count));
-					}
-					// If no dependent calls, this isn't a chain length of 0.
-					// It means the call wasn't a method call at all! Something
-					// like a function being called on a module rather than
-					// an object method.
-				}
-			}
-		}
-
-		private void printChain(int count, Call call,
-				Collection<Call> dependentCalls) {
-			if (dependentCalls != null) {
-				System.err.println("Chain length: " + count);
-				System.err.println("'" + call + "' chain:\n" + dependentCalls
-						+ "\n\n");
-			}
-		}
-
-		private boolean isMethodCallOnName(Call call, Function function) {
-			if (!(call.func instanceof Attribute))
-				return false;
-
-			Attribute attr = (Attribute) call.func;
-			if (!(attr.value instanceof Name))
-				return false;
-
-			Name variable = (Name) attr.value;
-
-			// skip calls to module functions - they look like method calls but
-			// we want to treat then differently
-			TypeResolver typer = new TypeResolver(model);
-			return !(typer.typeOf(variable, function) instanceof uk.ac.ic.doc.gander.flowinference.types.TImportable);
-		}
-
-		private int countUniqueMethodNames(Iterable<Call> calls) {
-			Set<String> methods = new HashSet<String>();
-			for (Call call : calls) {
-				methods.add(MethodCallHelper.extractMethodCallName(call).id);
-			}
-			return methods.size();
-		}
-
-	}
-
-	private SameVariableOnlyAnalysis matching = new SameVariableOnlyAnalysis();
+	private Tallies stats = new Tallies();
 	private MutableModel model;
 
 	public DominationLength(Hierarchy hierarchy) throws ParseException,
@@ -103,7 +36,72 @@ public class DominationLength extends HierarchyWalker {
 	}
 
 	public Tallies getResult() {
-		return matching.stats;
+		return stats;
+	}
+
+	private void analyseClass(Class klass) {
+		for (Function method : klass.getFunctions().values())
+			analyseFunction(method);
+	}
+
+	private void analyseFunction(Function function) {
+		SignatureBuilder chainAnalyser = new SignatureBuilder();
+
+		TypeResolver typer = new TypeResolver(model);
+
+		for (BasicBlock sub : function.getCfg().getBlocks()) {
+			for (Call call : new MethodFinder(sub).calls()) {
+				if (!isMethodCallOnName(call, function, typer))
+					continue;
+
+				Collection<Call> dependentCalls = chainAnalyser.signature(
+						MethodCallHelper.extractMethodCallTarget(call), sub,
+						function, typer);
+
+				if (dependentCalls != null) {
+					int count = countUniqueMethodNames(dependentCalls);
+					// if (count > 1)
+					// printChain(call, dependentCalls);
+
+					stats.addTally(new Integer(count));
+				}
+				// If no dependent calls, this isn't a chain length of 0.
+				// It means the call wasn't a method call at all! Something
+				// like a function being called on a module rather than
+				// an object method.
+			}
+		}
+	}
+
+	private void printChain(int count, Call call,
+			Collection<Call> dependentCalls) {
+		if (dependentCalls != null) {
+			System.err.println("Chain length: " + count);
+			System.err.println("'" + call + "' chain:\n" + dependentCalls
+					+ "\n\n");
+		}
+	}
+
+	private boolean isMethodCallOnName(Call call, Function function,
+			TypeResolver typer) {
+		if (!(call.func instanceof Attribute))
+			return false;
+
+		Attribute attr = (Attribute) call.func;
+		if (!(attr.value instanceof Name))
+			return false;
+
+		Name variable = (Name) attr.value;
+
+		return !(typer.typeOf(variable, function) instanceof TImportable);
+	}
+
+	private int countUniqueMethodNames(Iterable<Call> calls) {
+		Set<String> methods = new HashSet<String>();
+		for (Call call : calls) {
+			methods.add(MethodCallHelper.extractMethodCallName(call).id);
+		}
+		return methods.size();
 	}
 
 	@Override
@@ -163,15 +161,5 @@ public class DominationLength extends HierarchyWalker {
 
 		for (Class klass : pkg.getClasses().values())
 			analyseClass(klass);
-	}
-
-	private void analyseClass(Class klass) {
-		for (Function method : klass.getFunctions().values())
-			analyseFunction(method);
-	}
-
-	private void analyseFunction(Function function) {
-		// System.err.println("Processing " + function.getFullName());
-		matching.analyse(function, model);
 	}
 }
