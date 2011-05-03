@@ -61,12 +61,12 @@ public abstract class ImportSimulator {
 	protected abstract void bindName(Namespace importReceiver,
 			Namespace loaded, String as);
 
-	protected abstract void onUnresolvedImportFrom(List<String> fromPath,
-			String itemName, Package relativeToPackage,
-			Namespace importReceiver, String as);
-
 	protected abstract void onUnresolvedImport(List<String> importPath,
 			Package relativeToPackage, Namespace importReceiver, String as);
+
+	protected abstract void onUnresolvedImportFromItem(List<String> fromPath,
+			String itemName, Package relativeToPackage,
+			Namespace importReceiver, String as);
 
 	public void simulateImportFrom(String fromName, String itemName) {
 		simulateImportFromAs(fromName, itemName, itemName);
@@ -133,6 +133,7 @@ public abstract class ImportSimulator {
 		Namespace namespaceToImportFrom = simulateImportHelper(fromPath,
 				relativeToPackage, null);
 		if (namespaceToImportFrom == null)
+			// Reporting this failure is handled by simulateImportHelper
 			return;
 
 		List<String> itemPath = new ArrayList<String>(fromPath);
@@ -220,7 +221,7 @@ public abstract class ImportSimulator {
 		if (loaded != null)
 			bindName(importReceiver, loaded, as);
 		else
-			onUnresolvedImportFrom(fromPath, itemName, relativeToPackage,
+			onUnresolvedImportFromItem(fromPath, itemName, relativeToPackage,
 					importReceiver, as);
 	}
 

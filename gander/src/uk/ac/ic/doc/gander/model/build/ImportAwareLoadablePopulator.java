@@ -121,9 +121,27 @@ class ImportAwareLoadablePopulator extends LoadablePopulator {
 		}
 
 		@Override
-		protected void onUnresolvedImportFrom(List<String> fromPath,
+		protected void onUnresolvedImportFromItem(List<String> fromPath,
 				String itemName, Package relativeToPackage,
 				Namespace importReceiver, String as) {
+			// FIXME: This gets fired when 'from x import a' occurs inside a
+			// module that x is currently importing as x is not yet complete.
+			// That's fine, that's what's supposed to happen. However, it also
+			// happens when the import statement in x is couched in a function
+			// or class def that occurs before the definition of a. This
+			// shouldn't happen as in the real Python interpreter the module has
+			// been fully constructed by the time the function/class bodies are
+			// executed, but we combine the two things and do it depth-first
+			// (like the AST) causing this problem.
+			//
+			// It doesn't really matter at the moment as the model doesn't care
+			// if the from-style imports can't find their 'item' (the model
+			// never does anything with the item when it's a function, class or
+			// variable; and it always will be one of those three in this case
+			// as submodules/packages are loaded on demand when their import is
+			// encountered - they aren't affected by being part way through
+			// building their parent) but its worth bearing in mind for the
+			// future
 		}
 	}
 }

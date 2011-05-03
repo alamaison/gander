@@ -31,7 +31,7 @@ import uk.ac.ic.doc.gander.model.Module;
 import uk.ac.ic.doc.gander.model.Namespace;
 import uk.ac.ic.doc.gander.model.Package;
 
-public class SymbolTable {
+class SymbolTable {
 
 	private Map<Namespace, Map<String, Type>> symbols = new HashMap<Namespace, Map<String, Type>>();
 
@@ -242,16 +242,34 @@ public class SymbolTable {
 		@Override
 		protected void onUnresolvedImport(List<String> importPath,
 				Package relativeToPackage, Namespace importReceiver, String as) {
+			System.err.print("WARNING: unresolved import ");
+			if (importReceiver != null)
+				System.err.print("in " + importReceiver.getFullName() + " ");
+
+			System.err.println("'import " + DottedName.toDottedName(importPath)
+					+ "'");
 
 			put(importReceiver, as, new TUnresolvedImport(importPath,
 					relativeToPackage));
 		}
 
 		@Override
-		protected void onUnresolvedImportFrom(List<String> fromPath,
+		protected void onUnresolvedImportFromItem(List<String> fromPath,
 				String itemName, Package relativeToPackage,
 				Namespace importReceiver, String as) {
+			System.err.print("WARNING: unresolved import ");
+			if (importReceiver != null)
+				System.err.print("in " + importReceiver.getFullName() + " ");
 
+			System.err
+					.println("'from " + DottedName.toDottedName(fromPath)
+							+ " import " + itemName + "': '" + itemName
+							+ "' not found");
+
+			// XXX: This isn't really correct. Unlike the other two cases, we
+			// don't actually know that the missing item is a module or a
+			// package. It _could_ be but equally it could be a class, function
+			// or even a variable.
 			put(importReceiver, as, new TUnresolvedImport(fromPath, itemName,
 					relativeToPackage));
 		}
