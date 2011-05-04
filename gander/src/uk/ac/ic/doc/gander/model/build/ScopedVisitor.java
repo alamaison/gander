@@ -9,7 +9,7 @@ import org.python.pydev.parser.jython.ast.Module;
 import org.python.pydev.parser.jython.ast.VisitorBase;
 
 /**
- * Build and maintain a stack of scopes while visiting a module's AST.
+ * Maintain a stack of scopes while visiting a module's AST.
  * 
  * This abstract base class allows subclasses to visit nodes while always have
  * access to the node's containing scope (namespace).
