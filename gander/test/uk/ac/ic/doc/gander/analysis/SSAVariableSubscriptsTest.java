@@ -13,7 +13,7 @@ import org.python.pydev.parser.jython.ast.Call;
 import org.python.pydev.parser.jython.ast.Name;
 
 import uk.ac.ic.doc.gander.AbstractTaggedCallTest;
-import uk.ac.ic.doc.gander.MethodCallHelper;
+import uk.ac.ic.doc.gander.CallHelper;
 import uk.ac.ic.doc.gander.analysis.ssa.SSAVariableSubscripts;
 
 public class SSAVariableSubscriptsTest extends AbstractTaggedCallTest {
@@ -73,7 +73,7 @@ public class SSAVariableSubscriptsTest extends AbstractTaggedCallTest {
 		Map<String, Set<Integer>> seenSubscripts = new HashMap<String, Set<Integer>>();
 		for (String[] group : renameGroups) {
 			Call call = findTaggedStatement(group[0]).getCall();
-			Name variable = MethodCallHelper.extractMethodCallTarget(call);
+			Name variable = (Name) CallHelper.indirectCallTarget(call);
 			int subscript = renamer.subscript(variable);
 
 			Set<Integer> seen = seenSubscripts.get(variable.id);
@@ -88,8 +88,7 @@ public class SSAVariableSubscriptsTest extends AbstractTaggedCallTest {
 			for (int i = 1; i < group.length; ++i) {
 
 				call = findTaggedStatement(group[i]).getCall();
-				Name nextVariable = MethodCallHelper
-						.extractMethodCallTarget(call);
+				Name nextVariable = (Name) CallHelper.indirectCallTarget(call);
 				assertEquals(
 						"Test convention violation: mixed target variables "
 								+ "in group", variable.id, nextVariable.id);

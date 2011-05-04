@@ -6,16 +6,14 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.python.pydev.parser.jython.ParseException;
-import org.python.pydev.parser.jython.ast.Attribute;
 import org.python.pydev.parser.jython.ast.Call;
 import org.python.pydev.parser.jython.ast.Name;
 
-import uk.ac.ic.doc.gander.MethodCallHelper;
+import uk.ac.ic.doc.gander.CallHelper;
 import uk.ac.ic.doc.gander.analysis.MethodFinder;
 import uk.ac.ic.doc.gander.analysis.signatures.SignatureBuilder;
 import uk.ac.ic.doc.gander.cfg.BasicBlock;
 import uk.ac.ic.doc.gander.flowinference.TypeResolver;
-import uk.ac.ic.doc.gander.flowinference.types.TImportable;
 import uk.ac.ic.doc.gander.hierarchy.Hierarchy;
 import uk.ac.ic.doc.gander.hierarchy.HierarchyWalker;
 import uk.ac.ic.doc.gander.hierarchy.Package;
@@ -51,11 +49,11 @@ public class DominationLength extends HierarchyWalker {
 
 		for (BasicBlock sub : function.getCfg().getBlocks()) {
 			for (Call call : new MethodFinder(sub).calls()) {
-				if (!isMethodCallOnName(call, function, typer))
+				if (!CallHelper.isMethodCallOnName(call, function, typer))
 					continue;
 
 				Collection<Call> dependentCalls = chainAnalyser.signature(
-						MethodCallHelper.extractMethodCallTarget(call), sub,
+						(Name) CallHelper.indirectCallTarget(call), sub,
 						function, typer);
 
 				if (dependentCalls != null) {
@@ -82,24 +80,10 @@ public class DominationLength extends HierarchyWalker {
 		}
 	}
 
-	private boolean isMethodCallOnName(Call call, Function function,
-			TypeResolver typer) {
-		if (!(call.func instanceof Attribute))
-			return false;
-
-		Attribute attr = (Attribute) call.func;
-		if (!(attr.value instanceof Name))
-			return false;
-
-		Name variable = (Name) attr.value;
-
-		return !(typer.typeOf(variable, function) instanceof TImportable);
-	}
-
 	private int countUniqueMethodNames(Iterable<Call> calls) {
 		Set<String> methods = new HashSet<String>();
 		for (Call call : calls) {
-			methods.add(MethodCallHelper.extractMethodCallName(call).id);
+			methods.add(CallHelper.indirectCallName(call));
 		}
 		return methods.size();
 	}

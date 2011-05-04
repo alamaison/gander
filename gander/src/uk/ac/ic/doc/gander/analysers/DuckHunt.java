@@ -5,18 +5,15 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.python.pydev.parser.jython.ParseException;
-import org.python.pydev.parser.jython.ast.Attribute;
 import org.python.pydev.parser.jython.ast.Call;
 import org.python.pydev.parser.jython.ast.Name;
-import org.python.pydev.parser.jython.ast.NameTok;
 
-import uk.ac.ic.doc.gander.MethodCallHelper;
+import uk.ac.ic.doc.gander.CallHelper;
 import uk.ac.ic.doc.gander.analysis.MethodFinder;
 import uk.ac.ic.doc.gander.analysis.signatures.SignatureBuilder;
 import uk.ac.ic.doc.gander.cfg.BasicBlock;
 import uk.ac.ic.doc.gander.duckinference.DuckTyper;
 import uk.ac.ic.doc.gander.flowinference.TypeResolver;
-import uk.ac.ic.doc.gander.flowinference.types.TImportable;
 import uk.ac.ic.doc.gander.flowinference.types.Type;
 import uk.ac.ic.doc.gander.hierarchy.Hierarchy;
 import uk.ac.ic.doc.gander.hierarchy.HierarchyWalker;
@@ -59,7 +56,12 @@ public class DuckHunt {
 
 			for (BasicBlock block : function.getCfg().getBlocks()) {
 				for (Call call : new MethodFinder(block).calls()) {
-					if (!isExternalMethodCallOnName(call, function))
+
+					// if function is a method of a class, skip calls to self
+					// (or whatever the first parameter to a method
+					// is called. We already know the type of these.
+					if (!CallHelper.isExternalMethodCallOnName(call, function,
+							typer))
 						continue;
 
 					countNumberOfTypesInferredFor(call, function, block);
@@ -92,10 +94,23 @@ public class DuckHunt {
 
 	private Set<String> calculateDependentMethodNames(Call call,
 			BasicBlock containingBlock, Namespace scope) {
-		SignatureBuilder chainAnalyser = new SignatureBuilder();
-		Set<Call> dependentCalls = chainAnalyser.signature(MethodCallHelper
-				.extractMethodCallTarget(call), containingBlock,
-				(Function) scope, typer);
+
+		Set<Call> dependentCalls;
+
+		// if the call target isn't a simple variable name, we can still use
+		// the name of the method being called as a single-item signature
+		// TODO: This should be handled by the signature builder which shouldn't
+		// insist the the call target be a Name. It should accept any expression
+		// and return as much of the signature as it can calculate.
+		if (!(CallHelper.indirectCallTarget(call) instanceof Name)) {
+			dependentCalls = new HashSet<Call>();
+			dependentCalls.add(call);
+		} else {
+			SignatureBuilder chainAnalyser = new SignatureBuilder();
+			dependentCalls = chainAnalyser.signature((Name) CallHelper
+					.indirectCallTarget(call), containingBlock,
+					(Function) scope, typer);
+		}
 
 		return convertCallsToMethodNames(dependentCalls);
 	}
@@ -104,53 +119,9 @@ public class DuckHunt {
 		Set<String> methods = new HashSet<String>();
 
 		for (Call c : dependentCalls)
-			methods.add(MethodCallHelper.extractMethodCallName(c).id);
+			methods.add(CallHelper.indirectCallName(c));
 
 		return methods;
-	}
-
-	private boolean isExternalMethodCallOnName(Call call, Function function) {
-		if (!(call.func instanceof Attribute))
-			return false;
-
-		Attribute attr = (Attribute) call.func;
-		if (!(attr.value instanceof Name))
-			return false;
-
-		Name variable = (Name) attr.value;
-
-		// Explicit calls to constructors are not method calls
-		if (!(attr.attr instanceof NameTok)
-				|| ((NameTok) attr.attr).id.equals("__init__"))
-			return false;
-
-		// if function is a method of a class, skip calls to self (or
-		// whatever the first parameter to a method
-		// is called. We already know the type of these.
-		if (function.getParentScope() instanceof uk.ac.ic.doc.gander.model.Class) {
-			if (function.getFunctionDef().args.args.length > 0) {
-				if (function.getFunctionDef().args.args[0] instanceof Name) {
-					if (((Name) function.getFunctionDef().args.args[0]).id
-							.equals(variable.id)) {
-						return false;
-					}
-
-				} else {
-					System.err.println("WARNING: method with "
-							+ "non-name first parameter? "
-							+ function.getFullName());
-
-				}
-			} else {
-				System.err.println("WARNING: method with "
-						+ "no object parameter? " + function.getFullName());
-			}
-		}
-
-		// skip calls to module functions - they look like method calls but
-		// we want to treat then differently
-
-		return !(typer.typeOf(variable, function) instanceof TImportable);
 	}
 
 	/**

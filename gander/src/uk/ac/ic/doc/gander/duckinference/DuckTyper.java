@@ -4,8 +4,9 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.python.pydev.parser.jython.ast.Call;
+import org.python.pydev.parser.jython.ast.Name;
 
-import uk.ac.ic.doc.gander.MethodCallHelper;
+import uk.ac.ic.doc.gander.CallHelper;
 import uk.ac.ic.doc.gander.analysis.inheritance.CachingInheritanceTree;
 import uk.ac.ic.doc.gander.analysis.inheritance.InheritedMethods;
 import uk.ac.ic.doc.gander.analysis.signatures.SignatureBuilder;
@@ -50,10 +51,23 @@ public class DuckTyper {
 
 	private Set<String> calculateDependentMethodNames(Call call,
 			BasicBlock containingBlock, Namespace scope) {
-		SignatureBuilder chainAnalyser = new SignatureBuilder();
-		Set<Call> dependentCalls = chainAnalyser.signature(MethodCallHelper
-				.extractMethodCallTarget(call), containingBlock,
-				(Function) scope, resolver);
+
+		Set<Call> dependentCalls;
+
+		// if the call target isn't a simple variable name, we can still use
+		// the name of the method being called as a single-item signature
+		// TODO: This should be handled by the signature builder which shouldn't
+		// insist the the call target be a Name. It should accept any expression
+		// and return as much of the signature as it can calculate.
+		if (!(CallHelper.indirectCallTarget(call) instanceof Name)) {
+			dependentCalls = new HashSet<Call>();
+			dependentCalls.add(call);
+		} else {
+			SignatureBuilder chainAnalyser = new SignatureBuilder();
+			dependentCalls = chainAnalyser.signature((Name) CallHelper
+					.indirectCallTarget(call), containingBlock,
+					(Function) scope, resolver);
+		}
 
 		return convertCallsToMethodNames(dependentCalls);
 	}
@@ -62,7 +76,7 @@ public class DuckTyper {
 		Set<String> methods = new HashSet<String>();
 
 		for (Call c : dependentCalls)
-			methods.add(MethodCallHelper.extractMethodCallName(c).id);
+			methods.add(CallHelper.indirectCallName(c));
 
 		return methods;
 	}
