@@ -4,6 +4,8 @@ import java.util.Map;
 
 import org.python.pydev.parser.jython.SimpleNode;
 
+import uk.ac.ic.doc.gander.cfg.Cfg;
+
 public interface Namespace {
 
 	public String getName();
@@ -31,4 +33,6 @@ public interface Namespace {
 	public boolean isSystem();
 
 	public SimpleNode getAst();
+
+	public Cfg getCfg();
 }

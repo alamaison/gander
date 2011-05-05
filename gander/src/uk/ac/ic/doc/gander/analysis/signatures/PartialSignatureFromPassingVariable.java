@@ -19,6 +19,7 @@ import uk.ac.ic.doc.gander.cfg.BasicBlock;
 import uk.ac.ic.doc.gander.cfg.Cfg;
 import uk.ac.ic.doc.gander.flowinference.TypeResolver;
 import uk.ac.ic.doc.gander.model.Function;
+import uk.ac.ic.doc.gander.model.Namespace;
 
 /**
  * Given a variable name, return the part of its signature that is derived from
@@ -30,7 +31,7 @@ import uk.ac.ic.doc.gander.model.Function;
  */
 final class PartialSignatureFromPassingVariable {
 
-	private Stack<Function> enclosingFunctions = new Stack<Function>();
+	private Stack<Namespace> enclosingScopes = new Stack<Namespace>();
 
 	/**
 	 * Return the signature produced by passing the given variable as a
@@ -55,7 +56,7 @@ final class PartialSignatureFromPassingVariable {
 	 *            Control-dependent blocks within the enclosing function,
 	 *            {@code enclosingFunction}, that are searched for calls to
 	 *            which {@code variable} is passed as a parameter.
-	 * @param enclosingFunction
+	 * @param enclosingScope
 	 *            Function being searched for uses of {@code variable} as a
 	 *            function parameter.
 	 * @param model
@@ -64,9 +65,9 @@ final class PartialSignatureFromPassingVariable {
 	 * @return Partial signature of 'uses' as a set of method calls.
 	 */
 	Set<Call> buildSignature(String variable,
-			Iterable<BasicBlock> blocksToSearch, Function enclosingFunction,
+			Iterable<BasicBlock> blocksToSearch, Namespace enclosingScope,
 			TypeResolver resolver) {
-		enclosingFunctions.push(enclosingFunction);
+		enclosingScopes.push(enclosingScope);
 
 		Set<Call> calls = new HashSet<Call>();
 
@@ -74,14 +75,13 @@ final class PartialSignatureFromPassingVariable {
 				blocksToSearch).passes();
 		for (PassedVar pass : passes) {
 			Call call = pass.getCall();
-			Function function = resolveFunction(resolver, enclosingFunction,
-					call);
+			Function function = resolveFunction(resolver, enclosingScope, call);
 			if (function != null) {
 				// Must stop if we have already processed a call to the
 				// resolved function
 				// FIXME: should only really stop if the parameter was
 				// passed at the same position too.
-				if (!enclosingFunctions.contains(function)) {
+				if (!enclosingScopes.contains(function)) {
 					calls.addAll(calculateSignatureForPassedVariable(pass,
 							function, resolver));
 				}
@@ -104,7 +104,7 @@ final class PartialSignatureFromPassingVariable {
 		Set<BasicBlock> blocks = inevitableBlocks(function);
 
 		Set<Call> calls = new PartialSignatureFromUsingVariable()
-				.buildSignature(param, blocks, function);
+				.buildSignature(param, blocks, function.getCfg());
 
 		calls.addAll(buildSignature(param.id, blocks, function, resolver));
 		return calls;
@@ -127,9 +127,9 @@ final class PartialSignatureFromPassingVariable {
 	}
 
 	private static Function resolveFunction(TypeResolver resolver,
-			Function enclosingFunction, Call call) {
-		Function function = new FunctionResolver(call, enclosingFunction,
-				resolver).getFunction();
+			Namespace enclosingScope, Call call) {
+		Function function = new FunctionResolver(call, enclosingScope, resolver)
+				.getFunction();
 
 		if (function == null)
 			System.err.println("Warning: unable to resolve function: "

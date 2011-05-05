@@ -11,7 +11,7 @@ import uk.ac.ic.doc.gander.analysis.dominance.Postdomination;
 import uk.ac.ic.doc.gander.cfg.BasicBlock;
 import uk.ac.ic.doc.gander.cfg.Cfg;
 import uk.ac.ic.doc.gander.flowinference.TypeResolver;
-import uk.ac.ic.doc.gander.model.Function;
+import uk.ac.ic.doc.gander.model.Namespace;
 
 public class SignatureBuilder {
 
@@ -26,17 +26,16 @@ public class SignatureBuilder {
 	 * calls which may happen after re-assigning to a variable aren't included.
 	 */
 	public Set<Call> signature(Name variable, BasicBlock containingBlock,
-			Function enclosingFunction, TypeResolver resolver) {
+			Namespace enclosingScope, TypeResolver resolver) {
 
 		Set<BasicBlock> blocks = controlDependentBlocks(containingBlock,
-				enclosingFunction.getCfg());
+				enclosingScope.getCfg());
 
-		Set<Call> calls = new PartialSignatureFromUsingVariable().buildSignature(
-				variable, blocks, enclosingFunction);
+		Set<Call> calls = new PartialSignatureFromUsingVariable()
+				.buildSignature(variable, blocks, enclosingScope.getCfg());
 
 		calls.addAll(new PartialSignatureFromPassingVariable().buildSignature(
-				variable.id,
-				blocks, enclosingFunction, resolver));
+				variable.id, blocks, enclosingScope, resolver));
 		return calls;
 	}
 

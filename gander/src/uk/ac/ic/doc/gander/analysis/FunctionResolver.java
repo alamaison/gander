@@ -6,6 +6,7 @@ import uk.ac.ic.doc.gander.flowinference.TypeResolver;
 import uk.ac.ic.doc.gander.flowinference.types.TFunction;
 import uk.ac.ic.doc.gander.flowinference.types.Type;
 import uk.ac.ic.doc.gander.model.Function;
+import uk.ac.ic.doc.gander.model.Namespace;
 
 /**
  * Given a call, attempt to find the function being called.
@@ -13,12 +14,12 @@ import uk.ac.ic.doc.gander.model.Function;
 public class FunctionResolver {
 
 	private Function function;
-	private Function enclosingFunction;
+	private Namespace enclosingFunction;
 	private TypeResolver types;
 
-	public FunctionResolver(Call call, Function enclosingFunction,
+	public FunctionResolver(Call call, Namespace enclosingScope,
 			TypeResolver types) {
-		this.enclosingFunction = enclosingFunction;
+		this.enclosingFunction = enclosingScope;
 		this.types = types;
 		function = resolveCall(call);
 	}

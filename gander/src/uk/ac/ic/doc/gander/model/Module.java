@@ -4,6 +4,8 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+import uk.ac.ic.doc.gander.cfg.Cfg;
+
 public class Module implements Loadable {
 
 	private Map<String, Class> classes = new HashMap<String, Class>();
@@ -94,5 +96,9 @@ public class Module implements Loadable {
 
 	public org.python.pydev.parser.jython.ast.Module getAst() {
 		return ast;
+	}
+
+	public Cfg getCfg() {
+		throw new Error("Not implemented yet");
 	}
 }

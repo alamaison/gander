@@ -9,6 +9,8 @@ import java.util.Queue;
 
 import org.python.pydev.parser.jython.SimpleNode;
 
+import uk.ac.ic.doc.gander.cfg.Cfg;
+
 public class Package implements Loadable {
 
 	private String name;
@@ -132,5 +134,9 @@ public class Package implements Loadable {
 
 	public SimpleNode getAst() {
 		return ast;
+	}
+
+	public Cfg getCfg() {
+		throw new Error("Not implemented yet");
 	}
 }

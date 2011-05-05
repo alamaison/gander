@@ -9,6 +9,8 @@ import org.python.pydev.parser.jython.ast.ClassDef;
 import org.python.pydev.parser.jython.ast.NameTok;
 import org.python.pydev.parser.jython.ast.exprType;
 
+import uk.ac.ic.doc.gander.cfg.Cfg;
+
 public class Class implements Namespace {
 
 	private Map<String, Function> methods = new HashMap<String, Function>();
@@ -102,5 +104,9 @@ public class Class implements Namespace {
 
 	public SimpleNode getAst() {
 		return getClassDef();
+	}
+
+	public Cfg getCfg() {
+		throw new Error("Not implemented yet");
 	}
 }

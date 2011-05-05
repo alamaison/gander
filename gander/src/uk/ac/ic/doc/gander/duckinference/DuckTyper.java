@@ -4,18 +4,16 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.python.pydev.parser.jython.ast.Call;
-import org.python.pydev.parser.jython.ast.Name;
 
-import uk.ac.ic.doc.gander.CallHelper;
 import uk.ac.ic.doc.gander.analysis.inheritance.CachingInheritanceTree;
 import uk.ac.ic.doc.gander.analysis.inheritance.InheritedMethods;
-import uk.ac.ic.doc.gander.analysis.signatures.SignatureBuilder;
+import uk.ac.ic.doc.gander.analysis.signatures.CallTargetSignatureBuilder;
+import uk.ac.ic.doc.gander.analysis.signatures.SignatureHelper;
 import uk.ac.ic.doc.gander.cfg.BasicBlock;
 import uk.ac.ic.doc.gander.flowinference.TypeResolver;
 import uk.ac.ic.doc.gander.flowinference.types.TClass;
 import uk.ac.ic.doc.gander.flowinference.types.Type;
 import uk.ac.ic.doc.gander.model.Class;
-import uk.ac.ic.doc.gander.model.Function;
 import uk.ac.ic.doc.gander.model.Model;
 import uk.ac.ic.doc.gander.model.Namespace;
 
@@ -28,6 +26,21 @@ public class DuckTyper {
 		definitions = new LoadedTypeDefinitions(model);
 	}
 
+	/**
+	 * Render a type judgement for a method call's target.
+	 * 
+	 * TODO: Really the {@link DuckTyper} should only do the hierarchy search
+	 * part. The dependents method name lookup should be done elsewhere so that
+	 * it's not limited to call targets and can be used on variables in general.
+	 * 
+	 * @param call
+	 *            The call whose target we want to infer a type for.
+	 * @param containingBlock
+	 *            The basic block containing the call in question.
+	 * @param scope
+	 *            The Python scope in which the call occurs.
+	 * @return A type judgement as a set of {@link Type}s.
+	 */
 	public Set<Type> typeOf(Call call, BasicBlock containingBlock,
 			Namespace scope) {
 
@@ -40,7 +53,7 @@ public class DuckTyper {
 			InheritedMethods inheritance = new InheritedMethods(
 					new CachingInheritanceTree(klass, resolver));
 
-			// XXX: We only compare by name. Matching parameter numbers etc
+			// TODO: We only compare by name. Matching parameter numbers etc
 			// will require more complex logic.
 			if (inheritance.methodsInTree().containsAll(methods))
 				type.add(new TClass(klass));
@@ -52,32 +65,9 @@ public class DuckTyper {
 	private Set<String> calculateDependentMethodNames(Call call,
 			BasicBlock containingBlock, Namespace scope) {
 
-		Set<Call> dependentCalls;
+		Set<Call> dependentCalls = new CallTargetSignatureBuilder()
+				.signatureOfTarget(call, containingBlock, scope, resolver);
 
-		// if the call target isn't a simple variable name, we can still use
-		// the name of the method being called as a single-item signature
-		// TODO: This should be handled by the signature builder which shouldn't
-		// insist the the call target be a Name. It should accept any expression
-		// and return as much of the signature as it can calculate.
-		if (!(CallHelper.indirectCallTarget(call) instanceof Name)) {
-			dependentCalls = new HashSet<Call>();
-			dependentCalls.add(call);
-		} else {
-			SignatureBuilder chainAnalyser = new SignatureBuilder();
-			dependentCalls = chainAnalyser.signature((Name) CallHelper
-					.indirectCallTarget(call), containingBlock,
-					(Function) scope, resolver);
-		}
-
-		return convertCallsToMethodNames(dependentCalls);
-	}
-
-	private Set<String> convertCallsToMethodNames(Set<Call> dependentCalls) {
-		Set<String> methods = new HashSet<String>();
-
-		for (Call c : dependentCalls)
-			methods.add(CallHelper.indirectCallName(c));
-
-		return methods;
+		return SignatureHelper.convertSignatureToMethodNames(dependentCalls);
 	}
 }

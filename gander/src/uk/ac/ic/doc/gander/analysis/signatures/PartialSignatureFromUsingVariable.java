@@ -11,7 +11,7 @@ import org.python.pydev.parser.jython.ast.Name;
 import uk.ac.ic.doc.gander.analysis.BasicBlockTraverser;
 import uk.ac.ic.doc.gander.analysis.ssa.SSAVariableSubscripts;
 import uk.ac.ic.doc.gander.cfg.BasicBlock;
-import uk.ac.ic.doc.gander.model.Function;
+import uk.ac.ic.doc.gander.cfg.Cfg;
 
 /**
  * Given a particular use of a variable, return the part of its signature that
@@ -20,10 +20,10 @@ import uk.ac.ic.doc.gander.model.Function;
 final class PartialSignatureFromUsingVariable {
 
 	Set<Call> buildSignature(Name variableAtLocation,
-			Set<BasicBlock> blocksToSearch, Function function) {
+			Set<BasicBlock> blocksToSearch, Cfg graph) {
 		Set<Call> calls = new HashSet<Call>();
 
-		SSAVariableSubscripts ssa = new SSAVariableSubscripts(function.getCfg());
+		SSAVariableSubscripts ssa = new SSAVariableSubscripts(graph);
 		int permittedSubscript = ssa.subscript(variableAtLocation);
 
 		for (BasicBlock block : blocksToSearch) {

@@ -1,16 +1,15 @@
 package uk.ac.ic.doc.gander.analysers;
 
 import java.io.IOException;
-import java.util.HashSet;
 import java.util.Set;
 
 import org.python.pydev.parser.jython.ParseException;
 import org.python.pydev.parser.jython.ast.Call;
-import org.python.pydev.parser.jython.ast.Name;
 
 import uk.ac.ic.doc.gander.CallHelper;
 import uk.ac.ic.doc.gander.analysis.MethodFinder;
-import uk.ac.ic.doc.gander.analysis.signatures.SignatureBuilder;
+import uk.ac.ic.doc.gander.analysis.signatures.CallTargetSignatureBuilder;
+import uk.ac.ic.doc.gander.analysis.signatures.SignatureHelper;
 import uk.ac.ic.doc.gander.cfg.BasicBlock;
 import uk.ac.ic.doc.gander.duckinference.DuckTyper;
 import uk.ac.ic.doc.gander.flowinference.TypeResolver;
@@ -95,33 +94,10 @@ public class DuckHunt {
 	private Set<String> calculateDependentMethodNames(Call call,
 			BasicBlock containingBlock, Namespace scope) {
 
-		Set<Call> dependentCalls;
+		Set<Call> dependentCalls = new CallTargetSignatureBuilder()
+				.signatureOfTarget(call, containingBlock, scope, typer);
 
-		// if the call target isn't a simple variable name, we can still use
-		// the name of the method being called as a single-item signature
-		// TODO: This should be handled by the signature builder which shouldn't
-		// insist the the call target be a Name. It should accept any expression
-		// and return as much of the signature as it can calculate.
-		if (!(CallHelper.indirectCallTarget(call) instanceof Name)) {
-			dependentCalls = new HashSet<Call>();
-			dependentCalls.add(call);
-		} else {
-			SignatureBuilder chainAnalyser = new SignatureBuilder();
-			dependentCalls = chainAnalyser.signature((Name) CallHelper
-					.indirectCallTarget(call), containingBlock,
-					(Function) scope, typer);
-		}
-
-		return convertCallsToMethodNames(dependentCalls);
-	}
-
-	private Set<String> convertCallsToMethodNames(Set<Call> dependentCalls) {
-		Set<String> methods = new HashSet<String>();
-
-		for (Call c : dependentCalls)
-			methods.add(CallHelper.indirectCallName(c));
-
-		return methods;
+		return SignatureHelper.convertSignatureToMethodNames(dependentCalls);
 	}
 
 	/**

@@ -253,7 +253,6 @@ public class SignatureBuilderTest extends AbstractTaggedCallTest {
 		Statement statement = findTaggedStatement(taggedCall);
 		assertTrue("Unable to find statement tagged in test: '" + taggedCall
 				+ "'", statement != null);
-		String variable = variableFromTag(taggedCall);
 
 		Iterable<Call> chain = analyser.signature(
 				extractMethodCallTarget(statement.getCall()), statement
@@ -262,8 +261,7 @@ public class SignatureBuilderTest extends AbstractTaggedCallTest {
 		// Test that all expected calls are in the chain and no unexpected calls
 		// are in the chain.
 		// TODO: We consider any call with matching name but ignore arguments
-		Collection<String> calledMethods = calledMethodsFromChain(chain,
-				variable);
+		Collection<String> calledMethods = calledMethodsFromChain(chain);
 		assertEquals(
 				"Expected dependence chain doesn't match method found in the "
 						+ "chain produced by the analyser", expected,
@@ -301,8 +299,7 @@ public class SignatureBuilderTest extends AbstractTaggedCallTest {
 		return (NameTok) fieldAccess.attr;
 	}
 
-	private Set<String> calledMethodsFromChain(Iterable<Call> chain,
-			String variable) {
+	private Set<String> calledMethodsFromChain(Iterable<Call> chain) {
 		Set<String> methods = new HashSet<String>();
 		for (Call call : chain) {
 			methods.add(extractMethodCallName(call).id);
