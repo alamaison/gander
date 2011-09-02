@@ -18,4 +18,8 @@ public class TModule implements TImportable, TNamespace {
 	public Namespace getNamespaceInstance() {
 		return getModuleInstance();
 	}
+
+	public String getName() {
+		return getNamespaceInstance().getFullName();
+	}
 }

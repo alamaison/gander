@@ -20,4 +20,8 @@ public class TClass implements TNamespace {
 		return getClassInstance();
 	}
 
+	public String getName() {
+		return getNamespaceInstance().getFullName();
+	}
+
 }

@@ -19,4 +19,9 @@ public class TPackage implements TImportable, TNamespace {
 	public Namespace getNamespaceInstance() {
 		return getPackageInstance();
 	}
+
+	public String getName() {
+		return getNamespaceInstance().getFullName();
+	}
+
 }

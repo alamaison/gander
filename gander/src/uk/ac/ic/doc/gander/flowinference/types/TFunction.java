@@ -20,4 +20,8 @@ public class TFunction implements TNamespace {
 		return getFunctionInstance();
 	}
 
+	public String getName() {
+		return getNamespaceInstance().getFullName();
+	}
+
 }

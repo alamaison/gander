@@ -2,6 +2,7 @@ package uk.ac.ic.doc.gander.flowinference.types;
 
 import java.util.List;
 
+import uk.ac.ic.doc.gander.DottedName;
 import uk.ac.ic.doc.gander.flowinference.UnresolvedImportError;
 import uk.ac.ic.doc.gander.model.Package;
 import uk.ac.ic.doc.gander.model.Namespace;
@@ -35,8 +36,22 @@ public class TUnresolvedImport implements TImportable, TNamespace {
 	public Package getRelativeToPackage() {
 		return relativeToPackage;
 	}
-	
+
 	public String getFromTarget() {
 		return fromTarget;
+	}
+
+	public String getName() {
+		// TODO: use relative-to path in the import info somehow
+		return "<unresolved import: '" + reconstructImportSpec() + "'>";
+	}
+
+	private String reconstructImportSpec() {
+		if (fromTarget.isEmpty()) {
+			return "import " + DottedName.toDottedName(importPath);
+		} else {
+			return "from " + DottedName.toDottedName(importPath) + " import "
+					+ fromTarget;
+		}
 	}
 }
