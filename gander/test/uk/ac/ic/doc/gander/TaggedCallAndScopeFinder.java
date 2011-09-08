@@ -7,8 +7,8 @@ import org.python.pydev.parser.jython.ast.FunctionDef;
 import org.python.pydev.parser.jython.ast.Module;
 import org.python.pydev.parser.jython.ast.NameTok;
 
+import uk.ac.ic.doc.gander.ast.ScopedAstVisitor;
 import uk.ac.ic.doc.gander.model.Namespace;
-import uk.ac.ic.doc.gander.model.build.ScopedVisitor;
 
 public class TaggedCallAndScopeFinder {
 	private String tag;
@@ -29,7 +29,7 @@ public class TaggedCallAndScopeFinder {
 		return scope;
 	}
 
-	private class TagFinder extends ScopedVisitor<Namespace> {
+	private class TagFinder extends ScopedAstVisitor<Namespace> {
 
 		public TagFinder(Namespace startingScope) {
 			super(startingScope);

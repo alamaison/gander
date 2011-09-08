@@ -1,4 +1,4 @@
-package uk.ac.ic.doc.gander.model.build;
+package uk.ac.ic.doc.gander.ast;
 
 import java.util.Stack;
 
@@ -17,7 +17,7 @@ import org.python.pydev.parser.jython.ast.VisitorBase;
  * @param <T>
  *            Type of the scope objects.
  */
-public abstract class ScopedVisitor<T> extends VisitorBase {
+public abstract class ScopedAstVisitor<T> extends VisitorBase {
 
 	private Stack<T> scopes = new Stack<T>();
 
@@ -27,7 +27,7 @@ public abstract class ScopedVisitor<T> extends VisitorBase {
 	 * This is equivalent to constructing with a {@code null} initial scope as
 	 * calling {@code getScope()} will return {@code null} in either case.
 	 */
-	public ScopedVisitor() {
+	public ScopedAstVisitor() {
 	}
 
 	/**
@@ -36,7 +36,7 @@ public abstract class ScopedVisitor<T> extends VisitorBase {
 	 * @param initialScope
 	 *            First scope on the stack.
 	 */
-	public ScopedVisitor(T initialScope) {
+	public ScopedAstVisitor(T initialScope) {
 		scopes.push(initialScope);
 	}
 
