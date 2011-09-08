@@ -4,7 +4,7 @@ import java.io.File;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-class Builder {
+public class BuilderUtils {
 
 	private static final Pattern MODULE_NAME_PATTERN = Pattern
 			.compile("(.*)\\.py");
@@ -15,9 +15,9 @@ class Builder {
 	 * 
 	 * @param module
 	 *            Python module File.
-	 * @return Module name if valid Python module filename. Null otherwise.
+	 * @return SourceFile name if valid Python module filename. Null otherwise.
 	 */
-	protected static String moduleNameFromFile(File module) {
+	public static String moduleNameFromFile(File module) {
 		if (!module.isFile())
 			return null;
 		Matcher m = MODULE_NAME_PATTERN.matcher(module.getName());

@@ -4,7 +4,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.python.pydev.parser.jython.SimpleNode;
 import org.python.pydev.parser.jython.ast.ClassDef;
 import org.python.pydev.parser.jython.ast.NameTok;
 import org.python.pydev.parser.jython.ast.exprType;
@@ -40,16 +39,8 @@ public class Class implements Namespace {
 			return parentName + "." + getName();
 	}
 
-	public ClassDef getClassDef() {
-		return cls;
-	}
-
 	public Namespace getParentScope() {
 		return parent;
-	}
-
-	public Map<String, Package> getPackages() {
-		return Collections.emptyMap();
 	}
 
 	public Map<String, Module> getModules() {
@@ -62,10 +53,6 @@ public class Class implements Namespace {
 
 	public Map<String, Function> getFunctions() {
 		return Collections.unmodifiableMap(methods);
-	}
-
-	public void addPackage(Package pkg) {
-		throw new Error("A class cannot contain a package");
 	}
 
 	public void addModule(Module module) {
@@ -102,8 +89,8 @@ public class Class implements Namespace {
 		return parent.isSystem();
 	}
 
-	public SimpleNode getAst() {
-		return getClassDef();
+	public ClassDef getAst() {
+		return cls;
 	}
 
 	public Cfg getCfg() {

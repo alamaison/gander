@@ -66,22 +66,22 @@ public class TypeResolver extends VisitorBase {
 
 	@Override
 	public Object visitStr(Str node) throws Exception {
-		return new TClass(model.getTopLevelPackage().getClasses().get("str"));
+		return new TClass(model.getTopLevel().getClasses().get("str"));
 	}
 
 	@Override
 	public Object visitDict(Dict node) throws Exception {
-		return new TClass(model.getTopLevelPackage().getClasses().get("dict"));
+		return new TClass(model.getTopLevel().getClasses().get("dict"));
 	}
 
 	@Override
 	public Object visitList(List node) throws Exception {
-		return new TClass(model.getTopLevelPackage().getClasses().get("list"));
+		return new TClass(model.getTopLevel().getClasses().get("list"));
 	}
 
 	@Override
 	public Object visitSet(Set node) throws Exception {
-		return new TClass(model.getTopLevelPackage().getClasses().get("set"));
+		return new TClass(model.getTopLevel().getClasses().get("set"));
 	}
 
 	@Override

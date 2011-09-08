@@ -11,7 +11,7 @@ import uk.ac.ic.doc.gander.model.build.TopLevelPackageLoader;
 
 public class Model {
 
-	protected Package topLevelPackage;
+	protected Module topLevelPackage;
 	protected Hierarchy hierarchy;
 
 	public Model(Hierarchy hierarchy) throws ParseException,
@@ -20,31 +20,15 @@ public class Model {
 		topLevelPackage = new TopLevelPackageLoader().getPackage();
 	}
 
-	public Package getTopLevelPackage() {
+	public Module getTopLevel() {
 		return topLevelPackage;
 	}
 
-	public Module lookupModule(String importName) {
-		return lookupModule(DottedName.toImportTokens(importName));
+	public Module lookup(String importName) {
+		return lookup(DottedName.toImportTokens(importName));
 	}
-
-	public Package lookupPackage(String importName) {
-		return lookupPackage(DottedName.toImportTokens(importName));
-	}
-
-	public Module lookupModule(List<String> importNameTokens) {
-		return getTopLevelPackage().lookupModule(importNameTokens);
-	}
-
-	public Package lookupPackage(List<String> importNameTokens) {
-		return getTopLevelPackage().lookupPackage(importNameTokens);
-	}
-
-	public Loadable lookup(String importName) {
-		List<String> tokens = DottedName.toImportTokens(importName);
-		Loadable imported = lookupPackage(tokens);
-		if (imported == null)
-			imported = lookupModule(tokens);
-		return imported;
+	
+	public Module lookup(List<String> importNameTokens) {
+		return getTopLevel().lookup(importNameTokens);
 	}
 }

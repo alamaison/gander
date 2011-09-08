@@ -16,17 +16,15 @@ import org.junit.Test;
 import uk.ac.ic.doc.gander.flowinference.types.TClass;
 import uk.ac.ic.doc.gander.flowinference.types.TFunction;
 import uk.ac.ic.doc.gander.flowinference.types.TModule;
-import uk.ac.ic.doc.gander.flowinference.types.TPackage;
 import uk.ac.ic.doc.gander.flowinference.types.Type;
 import uk.ac.ic.doc.gander.hierarchy.Hierarchy;
 import uk.ac.ic.doc.gander.hierarchy.HierarchyFactory;
 import uk.ac.ic.doc.gander.model.Class;
 import uk.ac.ic.doc.gander.model.Function;
-import uk.ac.ic.doc.gander.model.Loadable;
-import uk.ac.ic.doc.gander.model.MutableModel;
 import uk.ac.ic.doc.gander.model.Module;
+import uk.ac.ic.doc.gander.model.MutableModel;
 import uk.ac.ic.doc.gander.model.Namespace;
-import uk.ac.ic.doc.gander.model.Package;
+import uk.ac.ic.doc.gander.model.Module;
 
 public class SymbolTableTest {
 
@@ -114,12 +112,12 @@ public class SymbolTableTest {
 
 		Type type = symbols(charles).get("mercurial");
 		assertTrue("start.Bob.charles's symbol table contains 'mercurial' but"
-				+ " it isn't recognised as referring to a package",
-				type instanceof TPackage);
+				+ " it isn't recognised as referring to a module",
+				type instanceof TModule);
 
-		Package mercurial = model.lookupPackage("mercurial");
-		assertEquals("Type resolved to a package but not to 'mercurial'",
-				mercurial, ((TPackage) type).getPackageInstance());
+		Module mercurial = model.lookup("mercurial");
+		assertEquals("Type resolved to a module but not to 'mercurial'",
+				mercurial, ((TModule) type).getModuleInstance());
 
 		// from gertrude import Iris
 
@@ -132,7 +130,7 @@ public class SymbolTableTest {
 				+ " it isn't recognised as referring to a class",
 				type instanceof TClass);
 
-		Class iris = model.lookupModule("gertrude").getClasses().get("Iris");
+		Class iris = model.lookup("gertrude").getClasses().get("Iris");
 		assertEquals("Type resolved to a class but not to 'Iris'", iris,
 				((TClass) type).getClassInstance());
 
@@ -151,13 +149,15 @@ public class SymbolTableTest {
 				+ "recognised as referring to a module",
 				type instanceof TModule);
 
-		Module gertrude = model.lookupModule("gertrude");
+		Module gertrude = model.lookup("gertrude");
 		assertEquals("Type resolved to a module but not to 'gertrude'",
 				gertrude, ((TModule) type).getModuleInstance());
 	}
 
 	/**
 	 * Import a package (i.e. __init__.py) rather than a module.
+	 * 
+	 * It should still be recognised as a module.
 	 */
 	@Test
 	public void packageImport() throws Throwable {
@@ -167,12 +167,12 @@ public class SymbolTableTest {
 
 		Type type = symbols(start).get("stepchildren");
 		assertTrue("start's symbol table contains 'stepchildren' but it isn't "
-				+ "recognised as referring to a package",
-				type instanceof TPackage);
+				+ "recognised as referring to a module",
+				type instanceof TModule);
 
-		Package stepchildren = model.lookupPackage("stepchildren");
-		assertEquals("Type resolved to a package but not to 'stepchildren'",
-				stepchildren, ((TPackage) type).getPackageInstance());
+		Module stepchildren = model.lookup("stepchildren");
+		assertEquals("Type resolved to a module but not to 'stepchildren'",
+				stepchildren, ((TModule) type).getModuleInstance());
 
 		assertTrue("stepchildren's symbol table doesn't contain 'gertrude'",
 				symbols(stepchildren).containsKey("gertrude"));
@@ -182,7 +182,7 @@ public class SymbolTableTest {
 				+ " it isn't recognised as referring to a module",
 				type instanceof TModule);
 
-		Module gertrude = model.lookupModule("gertrude");
+		Module gertrude = model.lookup("gertrude");
 		assertEquals("Type resolved to a module but not to 'gertrude'",
 				gertrude, ((TModule) type).getModuleInstance());
 	}
@@ -193,9 +193,9 @@ public class SymbolTableTest {
 		assertTrue("start's symbol table doesn't contain 'children'", symbols(
 				start).containsKey("children"));
 
-		Package children = model.getTopLevelPackage().getPackages().get(
+		Module children = model.getTopLevel().getModules().get(
 				"children");
-		assertTrue("Package 'children' not in model", children != null);
+		assertTrue("SourceFile 'children' not in model", children != null);
 
 		Map<String, Type> childrenTable = symbols(children);
 		assertTrue("No symbol table for top-level package 'children'",
@@ -230,7 +230,7 @@ public class SymbolTableTest {
 				+ "recognised as referring to a module",
 				type instanceof TModule);
 
-		Module bobby = model.lookupModule("children.bobby");
+		Module bobby = model.lookup("children.bobby");
 		assertEquals("Type resolved to a module but not to 'bobby'", bobby,
 				((TModule) type).getModuleInstance());
 	}
@@ -248,13 +248,13 @@ public class SymbolTableTest {
 
 		Type type = symbols(maggie).get("children");
 		assertTrue("maggie's symbol table contains 'children' but it isn't "
-				+ "recognised as referring to a package",
-				type instanceof TPackage);
+				+ "recognised as referring to a module",
+				type instanceof TModule);
 
-		Package children = model.lookupPackage("children.children");
+		Module children = model.lookup("children.children");
 		assertEquals(
 				"Type resolved to a package but not to 'children.children'",
-				children, ((TPackage) type).getPackageInstance());
+				children, ((TModule) type).getModuleInstance());
 
 		assertTrue("children.children's symbol table doesn't include "
 				+ "'grandchild'", symbols(children).containsKey("grandchild"));
@@ -281,7 +281,7 @@ public class SymbolTableTest {
 				+ "recognised as referring to a module",
 				type instanceof TModule);
 
-		Module grandchild = model.lookupModule("children.children.grandchild");
+		Module grandchild = model.lookup("children.children.grandchild");
 		assertEquals("Type resolved to a module but not to "
 				+ "'children.children.grandchild'", grandchild,
 				((TModule) type).getModuleInstance());
@@ -301,12 +301,12 @@ public class SymbolTableTest {
 				+ "recognised as referring to a module",
 				type instanceof TModule);
 
-		Module uglychild = model.lookupModule("stepchildren.uglychild");
+		Module uglychild = model.lookup("stepchildren.uglychild");
 		assertEquals("william's type resolved to a module but not to "
 				+ "'stepchildren.uglychild'", uglychild, ((TModule) type)
 				.getModuleInstance());
 
-		Package stepchildren = model.lookupPackage("stepchildren");
+		Module stepchildren = model.lookup("stepchildren");
 		assertTrue("stepchildren's symbol table doesn't include 'uglychild'",
 				symbols(stepchildren).containsKey("uglychild"));
 
@@ -329,13 +329,13 @@ public class SymbolTableTest {
 
 		Type type = symbols(fatty).get("adopted_children");
 		assertTrue("fatty's symbol table contains 'adopted_children' but it "
-				+ "isn't recognised as referring to a package",
-				type instanceof TPackage);
+				+ "isn't recognised as referring to a module",
+				type instanceof TModule);
 
-		Package adopted = model.lookupPackage("adopted_children");
+		Module adopted = model.lookup("adopted_children");
 		assertEquals(
-				"Type resolved to a package but not to 'adopted_children'",
-				adopted, ((TPackage) type).getNamespaceInstance());
+				"Type resolved to a module but not to 'adopted_children'",
+				adopted, ((TModule) type).getNamespaceInstance());
 	}
 
 	@Test
@@ -350,7 +350,7 @@ public class SymbolTableTest {
 				+ "recognised as referring to a module",
 				type instanceof TModule);
 
-		Module commands = model.lookupModule("mercurial.commands");
+		Module commands = model.lookup("mercurial.commands");
 		assertEquals("Type resolved to a module but not to "
 				+ "'mercurial.commands'", commands, ((TModule) type)
 				.getModuleInstance());
@@ -368,7 +368,7 @@ public class SymbolTableTest {
 				+ "recognised as referring to a module",
 				type instanceof TModule);
 
-		Module hg = model.lookupModule("mercurial.hg");
+		Module hg = model.lookup("mercurial.hg");
 		assertEquals("Type resolved to a module but not to 'mercurial.hg'", hg,
 				((TModule) type).getModuleInstance());
 	}
@@ -385,7 +385,7 @@ public class SymbolTableTest {
 				+ "recognised as referring to a module",
 				type instanceof TModule);
 
-		Module droid = model.lookupModule("mercurial.zorg");
+		Module droid = model.lookup("mercurial.zorg");
 		assertEquals("Type resolved to a module but not to 'mercurial.droid'",
 				droid, ((TModule) type).getModuleInstance());
 	}
@@ -405,7 +405,7 @@ public class SymbolTableTest {
 				+ "recognised as referring to a module",
 				type instanceof TModule);
 
-		Module me = model.lookupModule("hgext.catch.me");
+		Module me = model.lookup("hgext.catch.me");
 		assertEquals("Type resolved to a module but not to "
 				+ "'hgext.catch.me'", me, ((TModule) type).getModuleInstance());
 	}
@@ -425,7 +425,7 @@ public class SymbolTableTest {
 				+ "recognised as referring to a function",
 				type instanceof TFunction);
 
-		Function hamstring = model.lookupModule("hgext.stretch").getFunctions()
+		Function hamstring = model.lookup("hgext.stretch").getFunctions()
 				.get("hamstring");
 		assertEquals("Type resolved to a function but not to "
 				+ "'hamstring' in 'hgext.stretch'", hamstring,
@@ -438,8 +438,8 @@ public class SymbolTableTest {
 		assertTrue("libby's symbol table doesn't contain 'base64'", symbols(
 				libby).containsKey("base64"));
 
-		Module base64 = model.getTopLevelPackage().getModules().get("base64");
-		assertTrue("Package 'base64' not in model", base64 != null);
+		Module base64 = model.getTopLevel().getModules().get("base64");
+		assertTrue("SourceFile 'base64' not in model", base64 != null);
 
 		Map<String, Type> base64Table = symbols(base64);
 		assertTrue("No symbol table for library package 'base64'",
@@ -473,7 +473,7 @@ public class SymbolTableTest {
 				+ "recognised as referring to a module",
 				type instanceof TModule);
 
-		Module gertrude = model.lookupModule("gertrude");
+		Module gertrude = model.lookup("gertrude");
 		assertEquals("'p' resolved to a module but not to 'gertrude'",
 				gertrude, ((TModule) type).getModuleInstance());
 
@@ -510,8 +510,8 @@ public class SymbolTableTest {
 
 	@Test
 	public void symbolsTopLevel() throws Throwable {
-		Loadable module = model.load("");
-		assertEquals(model.getTopLevelPackage(), module);
+		Module module = model.load("");
+		assertEquals(model.getTopLevel(), module);
 		assertSymbols(module, "abs", "all", "any", "apply", "basestring",
 				"bin", "bool", "buffer", "bytearray", "bytes", "callable",
 				"chr", "classmethod", "cmp", "coerce", "compile", "complex",
@@ -531,60 +531,60 @@ public class SymbolTableTest {
 
 	@Test
 	public void symbolsStart() throws Throwable {
-		Loadable module = model.load("start");
+		Module module = model.load("start");
 		assertSymbols(module, "gertrude", "children", "stepchildren",
 				"william", "alice", "Bob");
 	}
 
 	@Test
 	public void symbolsGertrude() throws Throwable {
-		Loadable module = model.load("gertrude");
+		Module module = model.load("gertrude");
 		assertSymbols(module, "harry", "Iris");
 	}
 
 	@Test
 	public void symbolsChildren() throws Throwable {
-		Loadable module = model.load("children");
+		Module module = model.load("children");
 		assertSymbols(module);
 	}
 
 	@Test
 	public void symbolsChildrenBobby() throws Throwable {
-		Loadable module = model.load("children.bobby");
+		Module module = model.load("children.bobby");
 		assertSymbols(module);
 	}
 
 	@Test
 	public void symbolsChildrenMaggie() throws Throwable {
-		Loadable module = model.load("children.maggie");
+		Module module = model.load("children.maggie");
 		assertSymbols(module, "bobby", "children", "iris");
 	}
 
 	@Test
 	public void symbolsChildrenChildren() throws Throwable {
-		Loadable module = model.load("children.children");
+		Module module = model.load("children.children");
 		assertSymbols(module);
 	}
 
 	@Test
 	public void symbolsChildrenChildrenGrandchild() throws Throwable {
-		Loadable module = model.load("children.children.grandchild");
+		Module module = model.load("children.children.grandchild");
 		assertSymbols(module);
 	}
 
 	@Test
 	public void symbolsStepchildren() throws Throwable {
-		Loadable module = model.load("stepchildren");
+		Module module = model.load("stepchildren");
 		assertSymbols(module, "gertrude");
 	}
 
 	@Test
 	public void symbolsStepchildrenUglyChild() throws Throwable {
-		Loadable module = model.load("stepchildren.uglycild");
+		Module module = model.load("stepchildren.uglycild");
 		assertSymbols(module);
 	}
 
-	private void assertSymbols(Loadable module, String... expected)
+	private void assertSymbols(Module module, String... expected)
 			throws Exception {
 		Set<String> ex = new HashSet<String>();
 		for (String token : expected)

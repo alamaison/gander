@@ -7,11 +7,11 @@ import java.net.URL;
 
 import org.python.pydev.parser.jython.ParseException;
 
-import uk.ac.ic.doc.gander.model.Package;
+import uk.ac.ic.doc.gander.model.Module;
 
 public class TopLevelPackageLoader {
 
-	private Package pkg;
+	private Module pkg;
 
 	public TopLevelPackageLoader() throws ParseException, IOException {
 
@@ -25,12 +25,12 @@ public class TopLevelPackageLoader {
 
 		FileParser parser = new FileParser(moduleFile);
 
-		pkg = new Package(parser.getAst(), "", null, true);
+		pkg = new Module(parser.getAst(), "", null, true);
 
-		new LoadablePopulator(pkg).build(parser.getAst());
+		new ModulePopulator(pkg).build(parser.getAst());
 	}
 
-	public Package getPackage() {
+	public Module getPackage() {
 		return pkg;
 	}
 }

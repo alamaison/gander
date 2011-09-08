@@ -16,7 +16,7 @@ import uk.ac.ic.doc.gander.flowinference.TypeResolver;
 import uk.ac.ic.doc.gander.flowinference.types.Type;
 import uk.ac.ic.doc.gander.hierarchy.Hierarchy;
 import uk.ac.ic.doc.gander.hierarchy.HierarchyWalker;
-import uk.ac.ic.doc.gander.hierarchy.Module;
+import uk.ac.ic.doc.gander.hierarchy.SourceFile;
 import uk.ac.ic.doc.gander.hierarchy.Package;
 import uk.ac.ic.doc.gander.model.Function;
 import uk.ac.ic.doc.gander.model.ModelWalker;
@@ -106,7 +106,7 @@ public class DuckHunt {
 	private final class HierarchyLoader extends HierarchyWalker {
 
 		@Override
-		protected void visitModule(Module module) {
+		protected void visitSourceFile(SourceFile module) {
 			try {
 				if (!module.isSystem())
 					model.loadModule(module.getFullyQualifiedName());

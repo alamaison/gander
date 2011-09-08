@@ -4,8 +4,9 @@ import java.io.File;
 
 import uk.ac.ic.doc.gander.hierarchy.InvalidElementException;
 import uk.ac.ic.doc.gander.hierarchy.Package;
+import uk.ac.ic.doc.gander.hierarchy.SourceFile;
 
-public class PackageBuilder extends Builder {
+public class PackageBuilder {
 
 	private static final String PACKAGE_TAG_NAME = "__init__";
 	private static final String PACKAGE_TAG_FILENAME = PACKAGE_TAG_NAME + ".py";
@@ -78,11 +79,10 @@ public class PackageBuilder extends Builder {
 				} else if (f.isFile()) {
 					if (f.getName().equals(PACKAGE_TAG_FILENAME))
 						continue;
-					if (pkg.getModules().containsKey(f.getName()))
+					if (pkg.getSourceFiles().containsKey(f.getName()))
 						continue;
 
-					ModuleBuilder builder = new ModuleBuilder(f, pkg, isSystem);
-					pkg.addModule(builder.getModule());
+					pkg.addModule(SourceFile.buildFromSourceFile(f, pkg, isSystem));
 				}
 			} catch (InvalidElementException e) {
 				/* carry on */
@@ -105,7 +105,7 @@ public class PackageBuilder extends Builder {
 			return null;
 
 		for (File f : directory.listFiles()) {
-			String name = moduleNameFromFile(f);
+			String name = BuilderUtils.moduleNameFromFile(f);
 			if (name != null && name.equals(PACKAGE_TAG_NAME))
 				return f;
 		}

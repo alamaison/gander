@@ -4,7 +4,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.python.pydev.parser.jython.SimpleNode;
 import org.python.pydev.parser.jython.ast.FunctionDef;
 import org.python.pydev.parser.jython.ast.NameTok;
 
@@ -42,16 +41,8 @@ public class Function implements Namespace {
 		return graph;
 	}
 
-	public FunctionDef getFunctionDef() {
-		return function;
-	}
-
 	public Namespace getParentScope() {
 		return parent;
-	}
-
-	public Map<String, Package> getPackages() {
-		return Collections.emptyMap();
 	}
 
 	public Map<String, Module> getModules() {
@@ -66,12 +57,8 @@ public class Function implements Namespace {
 		return Collections.unmodifiableMap(functions);
 	}
 
-	public void addPackage(Package pkg) {
-		throw new Error("A function cannot contain a package");
-	}
-
-	public void addModule(Module module) {
-		throw new Error("A function cannot contain a package");
+	public void addModule(Module pkg) {
+		throw new Error("A function cannot contain a module");
 	}
 
 	public void addClass(Class klass) {
@@ -104,7 +91,7 @@ public class Function implements Namespace {
 		return parent.isSystem();
 	}
 
-	public SimpleNode getAst() {
-		return getFunctionDef();
+	public FunctionDef getAst() {
+		return function;
 	}
 }

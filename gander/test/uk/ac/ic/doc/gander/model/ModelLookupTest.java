@@ -14,26 +14,17 @@ public class ModelLookupTest extends AbstractModelTest {
 
 	@Test
 	public void moduleLookup() throws Throwable {
-		Module module = getModel().lookupModule("my_module1");
-		Module expectedModule = getModel().getTopLevelPackage().getModules()
+		Module module = getModel().lookup("my_module1");
+		Module expectedModule = getModel().getTopLevel().getModules()
 				.get("my_module1");
 
 		assertEquals(expectedModule, module);
 
-		module = getModel().lookupModule("my_module2");
-		expectedModule = getModel().getTopLevelPackage().getModules().get(
+		module = getModel().lookup("my_module2");
+		expectedModule = getModel().getTopLevel().getModules().get(
 				"my_module2");
 
 		assertEquals(expectedModule, module);
-	}
-
-	/**
-	 * Test that empty string (which indicates top-level package) fails when
-	 * looked up as a module.
-	 */
-	@Test
-	public void moduleLookupError1() throws Throwable {
-		assertEquals(null, getModel().lookupModule(""));
 	}
 
 	/**
@@ -41,7 +32,7 @@ public class ModelLookupTest extends AbstractModelTest {
 	 */
 	@Test
 	public void moduleLookupError2() throws Throwable {
-		assertEquals(null, getModel().lookupModule("blahkdfkj"));
+		assertEquals(null, getModel().lookup("blahkdfkj"));
 	}
 
 	/**
@@ -49,14 +40,14 @@ public class ModelLookupTest extends AbstractModelTest {
 	 */
 	@Test
 	public void moduleLookupError3() throws Throwable {
-		assertEquals(null, getModel().lookupModule("not_a_module"));
+		assertEquals(null, getModel().lookup("not_a_module"));
 	}
 
 	@Test
 	public void submoduleLookup() throws Throwable {
 		getModel().loadModule("my_package.my_submodule");
-		Module module = getModel().lookupModule("my_package.my_submodule");
-		Module expectedModule = getModel().getTopLevelPackage().getPackages()
+		Module module = getModel().lookup("my_package.my_submodule");
+		Module expectedModule = getModel().getTopLevel().getModules()
 				.get("my_package").getModules().get("my_submodule");
 
 		assertEquals(expectedModule, module);
@@ -64,8 +55,8 @@ public class ModelLookupTest extends AbstractModelTest {
 
 	@Test
 	public void packageLookup() throws Throwable {
-		Package pkg = getModel().lookupPackage("my_package");
-		Package expectedPackage = getModel().getTopLevelPackage().getPackages()
+		Module pkg = getModel().lookup("my_package");
+		Module expectedPackage = getModel().getTopLevel().getModules()
 				.get("my_package");
 		assertEquals(expectedPackage, pkg);
 	}
@@ -73,9 +64,9 @@ public class ModelLookupTest extends AbstractModelTest {
 	@Test
 	public void subpackageLookup() throws Throwable {
 		getModel().loadPackage("my_package.my_subpackage");
-		Package pkg = getModel().lookupPackage("my_package.my_subpackage");
-		Package expectedPackage = getModel().getTopLevelPackage().getPackages()
-				.get("my_package").getPackages().get("my_subpackage");
+		Module pkg = getModel().lookup("my_package.my_subpackage");
+		Module expectedPackage = getModel().getTopLevel().getModules()
+				.get("my_package").getModules().get("my_subpackage");
 		assertEquals(expectedPackage, pkg);
 	}
 }

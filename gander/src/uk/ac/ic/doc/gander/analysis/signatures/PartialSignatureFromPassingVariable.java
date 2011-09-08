@@ -118,7 +118,7 @@ final class PartialSignatureFromPassingVariable {
 
 		Set<Call> calls = new HashSet<Call>();
 
-		for (Name param : resolveParameterNames(pass, function.getFunctionDef())) {
+		for (Name param : resolveParameterNames(pass, function.getAst())) {
 			calls.addAll(buildSignatureForFunctionParameter(param, function,
 					resolver));
 		}

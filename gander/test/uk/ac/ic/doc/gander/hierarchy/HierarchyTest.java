@@ -23,8 +23,8 @@ public class HierarchyTest extends AbstractHierarchyTest {
 
 	@Test
 	public void topLevelModules() throws Throwable {
-		Map<String, Module> modules = getHierarchy().getTopLevelPackage()
-				.getModules();
+		Map<String, SourceFile> modules = getHierarchy().getTopLevelPackage()
+				.getSourceFiles();
 
 		assertKeys(modules, "my_module1", "my_module2", "os");
 
@@ -35,8 +35,8 @@ public class HierarchyTest extends AbstractHierarchyTest {
 
 	@Test
 	public void packageModules() throws Throwable {
-		Map<String, Module> modules = getHierarchy().getTopLevelPackage()
-				.getPackages().get("my_package").getModules();
+		Map<String, SourceFile> modules = getHierarchy().getTopLevelPackage()
+				.getPackages().get("my_package").getSourceFiles();
 
 		assertKeys(modules, "my_submodule");
 

@@ -19,8 +19,8 @@ import uk.ac.ic.doc.gander.flowinference.TypeResolver;
 import uk.ac.ic.doc.gander.hierarchy.Hierarchy;
 import uk.ac.ic.doc.gander.hierarchy.HierarchyFactory;
 import uk.ac.ic.doc.gander.model.Function;
-import uk.ac.ic.doc.gander.model.MutableModel;
 import uk.ac.ic.doc.gander.model.Module;
+import uk.ac.ic.doc.gander.model.MutableModel;
 
 public class FunctionResolverTest {
 
@@ -129,7 +129,7 @@ public class FunctionResolverTest {
 		assertTrue("Function wasn't resolved: '" + call + "'", resolver
 				.getFunction() != null);
 
-		FunctionDef resolvedFunction = resolver.getFunction().getFunctionDef();
+		FunctionDef resolvedFunction = resolver.getFunction().getAst();
 		assertEquals("Resolved function takes more than one parameter.  This "
 				+ "is unexpected.", 1, resolvedFunction.args.args.length);
 
@@ -150,7 +150,7 @@ public class FunctionResolverTest {
 		public CallFinderByCallTag(String callTag, Function function)
 				throws Exception {
 			this.callTag = callTag;
-			function.getFunctionDef().accept(this);
+			function.getAst().accept(this);
 		}
 
 		public Call getCall() {

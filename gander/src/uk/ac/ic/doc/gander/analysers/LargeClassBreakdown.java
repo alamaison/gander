@@ -26,7 +26,7 @@ public class LargeClassBreakdown {
 
 	private void analysePackage(uk.ac.ic.doc.gander.hierarchy.Package pack)
 			throws Exception {
-		for (uk.ac.ic.doc.gander.hierarchy.Module module : pack.getModules()
+		for (uk.ac.ic.doc.gander.hierarchy.SourceFile module : pack.getSourceFiles()
 				.values())
 			analyseModule(module.getFullyQualifiedName());
 		for (uk.ac.ic.doc.gander.hierarchy.Package subpackage : pack
@@ -94,7 +94,8 @@ public class LargeClassBreakdown {
 		return count;
 	}
 
-	private Set<String> methodsInTree(FreshInheritanceTree tree) throws Exception {
+	private Set<String> methodsInTree(FreshInheritanceTree tree)
+			throws Exception {
 		return new InheritedMethods(tree).methodsInTree();
 	}
 }

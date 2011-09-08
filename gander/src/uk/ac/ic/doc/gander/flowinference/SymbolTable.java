@@ -19,19 +19,17 @@ import uk.ac.ic.doc.gander.DottedName;
 import uk.ac.ic.doc.gander.flowinference.types.TClass;
 import uk.ac.ic.doc.gander.flowinference.types.TFunction;
 import uk.ac.ic.doc.gander.flowinference.types.TModule;
-import uk.ac.ic.doc.gander.flowinference.types.TPackage;
 import uk.ac.ic.doc.gander.flowinference.types.TUnresolvedImport;
 import uk.ac.ic.doc.gander.flowinference.types.Type;
 import uk.ac.ic.doc.gander.importing.ImportSimulator;
 import uk.ac.ic.doc.gander.model.Class;
 import uk.ac.ic.doc.gander.model.Function;
-import uk.ac.ic.doc.gander.model.Loadable;
-import uk.ac.ic.doc.gander.model.Model;
 import uk.ac.ic.doc.gander.model.Module;
+import uk.ac.ic.doc.gander.model.Model;
 import uk.ac.ic.doc.gander.model.Namespace;
-import uk.ac.ic.doc.gander.model.Package;
+import uk.ac.ic.doc.gander.model.Module;
 
-class SymbolTable {
+public class SymbolTable {
 
 	private Map<Namespace, Map<String, Type>> symbols = new HashMap<Namespace, Map<String, Type>>();
 
@@ -39,7 +37,7 @@ class SymbolTable {
 
 	public SymbolTable(Model model) {
 		this.model = model;
-		processScope(model.getTopLevelPackage());
+		processScope(model.getTopLevel());
 	}
 
 	public Map<String, Type> symbols(Namespace scope) {
@@ -164,11 +162,11 @@ class SymbolTable {
 			// apart and each to the inferred types
 			for (aliasType alias : node.names) {
 				if (alias.asname != null) {
-					new ImportResolver(currentScope, model.getTopLevelPackage())
+					new ImportResolver(currentScope, model.getTopLevel())
 							.simulateImportAs(((NameTok) alias.name).id,
 									((NameTok) alias.asname).id);
 				} else {
-					new ImportResolver(currentScope, model.getTopLevelPackage())
+					new ImportResolver(currentScope, model.getTopLevel())
 							.simulateImport(((NameTok) alias.name).id);
 				}
 			}
@@ -178,12 +176,12 @@ class SymbolTable {
 
 			for (aliasType alias : node.names) {
 				if (alias.asname != null) {
-					new ImportResolver(currentScope, model.getTopLevelPackage())
+					new ImportResolver(currentScope, model.getTopLevel())
 							.simulateImportFromAs(((NameTok) node.module).id,
 									((NameTok) alias.name).id,
 									((NameTok) alias.asname).id);
 				} else {
-					new ImportResolver(currentScope, model.getTopLevelPackage())
+					new ImportResolver(currentScope, model.getTopLevel())
 							.simulateImportFrom(((NameTok) node.module).id,
 									((NameTok) alias.name).id);
 				}
@@ -194,7 +192,7 @@ class SymbolTable {
 	}
 
 	private class ImportResolver extends ImportSimulator {
-		private ImportResolver(Namespace importReceiver, Package topLevel) {
+		private ImportResolver(Namespace importReceiver, Module topLevel) {
 			super(importReceiver, topLevel);
 		}
 
@@ -206,9 +204,7 @@ class SymbolTable {
 			assert !as.isEmpty();
 
 			Type type = null;
-			if (loaded instanceof Package)
-				type = new TPackage((Package) loaded);
-			else if (loaded instanceof Module)
+			if (loaded instanceof Module)
 				type = new TModule((Module) loaded);
 			else if (loaded instanceof Class)
 				type = new TClass((Class) loaded);
@@ -222,8 +218,8 @@ class SymbolTable {
 		}
 
 		@Override
-		protected Loadable simulateLoad(List<String> importPath,
-				Package relativeToPackage) {
+		protected Module simulateLoad(List<String> importPath,
+				Module relativeToPackage) {
 			List<String> name = new ArrayList<String>(DottedName
 					.toImportTokens(relativeToPackage.getFullName()));
 			name.addAll(importPath);
@@ -232,16 +228,12 @@ class SymbolTable {
 			// already if it exists (on disk) at all as the model must have
 			// tried to import it already. Therefore we only do a lookup here
 			// rather than attempting a load.
-			Loadable loaded = model.lookupPackage(name);
-			if (loaded == null)
-				loaded = model.lookupModule(name);
-
-			return loaded;
+			return model.lookup(name);
 		}
 
 		@Override
 		protected void onUnresolvedImport(List<String> importPath,
-				Package relativeToPackage, Namespace importReceiver, String as) {
+				Module relativeToPackage, Namespace importReceiver, String as) {
 			System.err.print("WARNING: unresolved import ");
 			if (importReceiver != null)
 				System.err.print("in " + importReceiver.getFullName() + " ");
@@ -255,7 +247,7 @@ class SymbolTable {
 
 		@Override
 		protected void onUnresolvedImportFromItem(List<String> fromPath,
-				String itemName, Package relativeToPackage,
+				String itemName, Module relativeToPackage,
 				Namespace importReceiver, String as) {
 			System.err.print("WARNING: unresolved import ");
 			if (importReceiver != null)
@@ -278,26 +270,15 @@ class SymbolTable {
 	private void processScope(Namespace scope) {
 		new SymbolTableAstVisitor(scope.getAst(), scope);
 
-		for (Package pkg : scope.getPackages().values()) {
-			// Loadable must be part of existing runtime model.
+		for (Module pkg : scope.getModules().values()) {
+			// SourceFile must be part of existing runtime model.
 			// If it weren't then we couldn't guarantee that the modules it
 			// imports would already have been loaded. This is something we rely
-			// on when resolving the import name to a parsed Module object
+			// on when resolving the import name to a parsed SourceFile object
 			// later.
-			assert model.lookupPackage(pkg.getFullName()) != null;
+			assert model.lookup(pkg.getFullName()) != null;
 
 			processScope(pkg);
-		}
-
-		for (Module module : scope.getModules().values()) {
-			// Loadable must be part of existing runtime model.
-			// If it weren't then we couldn't guarantee that the modules it
-			// imports would already have been loaded. This is something we rely
-			// on when resolving the import name to a parsed Module object
-			// later.
-			assert model.lookupModule(module.getFullName()) != null;
-
-			processScope(module);
 		}
 
 		for (Class klass : scope.getClasses().values()) {

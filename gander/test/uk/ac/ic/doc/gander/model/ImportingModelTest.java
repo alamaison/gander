@@ -28,14 +28,14 @@ public class ImportingModelTest extends AbstractModelTest {
 	public void onlyTopLevelKnownBeforeLoading() throws Throwable {
 
 		assertTrue("Top-level package must always exist", getModel()
-				.getTopLevelPackage() != null);
+				.getTopLevel() != null);
 		assertEquals("Modules shouldn't appear in the top-level package until "
 				+ "they've been loaded", Collections.emptyMap(), getModel()
-				.getTopLevelPackage().getModules());
+				.getTopLevel().getModules());
 		assertEquals(
 				"Packages shouldn't appear in the top-level package until "
 						+ "they've been loaded", Collections.emptyMap(),
-				getModel().getTopLevelPackage().getPackages());
+				getModel().getTopLevel().getModules());
 	}
 
 	@Test
@@ -46,7 +46,7 @@ public class ImportingModelTest extends AbstractModelTest {
 
 		assertKeys("Loading a module that imports a sibling must add "
 				+ "that module and the imported sibling to the runtime model",
-				getModel().getTopLevelPackage().getModules(), start, "sibling");
+				getModel().getTopLevel().getModules(), start, "sibling");
 	}
 
 	@Test
@@ -58,7 +58,7 @@ public class ImportingModelTest extends AbstractModelTest {
 		assertKeys("Loading a module that imports something from a sibling "
 				+ "must add that module and the sibling module to the "
 				+ "runtime model",
-				getModel().getTopLevelPackage().getModules(), start, "sibling");
+				getModel().getTopLevel().getModules(), start, "sibling");
 	}
 
 	@Test
@@ -68,15 +68,14 @@ public class ImportingModelTest extends AbstractModelTest {
 		getModel().loadModule(start);
 
 		assertKeys("Loading a module must add that module to the "
-				+ "runtime model", getModel().lookupPackage("relative.fred")
+				+ "runtime model", getModel().lookup("relative.fred")
 				.getModules(), "from_distant_import");
 
-		assertKeys("Loading a module must load its parent packages", getModel()
-				.getTopLevelPackage().getPackages(), "relative");
-
 		assertKeys("Loading a module that imports something from another "
-				+ "module must add that module to the runtime model",
-				getModel().getTopLevelPackage().getModules(), "sibling");
+				+ "module must add its own parent packages to the "
+				+ "runtime model as well as the model it is importing",
+				getModel().getTopLevel().getModules(), "relative",
+				"sibling");
 	}
 
 	@Test
@@ -86,17 +85,17 @@ public class ImportingModelTest extends AbstractModelTest {
 		getModel().loadModule(start);
 
 		assertKeys("Loading a module must add that module to the "
-				+ "runtime model", getModel().lookupPackage("relative.fred")
+				+ "runtime model", getModel().lookup("relative.fred")
 				.getModules(), "from_distant_package_import");
 
 		assertKeys("Loading a module that imports a package from another "
 				+ "package must add the source package to the runtime model",
-				getModel().getTopLevelPackage().getPackages(), "relative",
+				getModel().getTopLevel().getModules(), "relative",
 				"sibling_package");
 
 		assertKeys("Loading a module that imports a package from another "
 				+ "package must add the target package to the runtime model",
-				getModel().lookupPackage("sibling_package").getPackages(),
+				getModel().lookup("sibling_package").getModules(),
 				"child_package");
 	}
 
@@ -106,12 +105,10 @@ public class ImportingModelTest extends AbstractModelTest {
 
 		getModel().loadModule(start);
 
-		assertKeys(
-				"Loading a module must add that module to the runtime model",
-				getModel().getTopLevelPackage().getModules(), start);
 		assertKeys("Loading a module that imports a sibling must add "
-				+ "that sibling to the runtime model", getModel()
-				.getTopLevelPackage().getPackages(), "sibling_package");
+				+ "that sibling to the runtime model as well as itself",
+				getModel().getTopLevel().getModules(), start,
+				"sibling_package");
 	}
 
 	/**
@@ -126,7 +123,7 @@ public class ImportingModelTest extends AbstractModelTest {
 
 		assertKeys("Loading a module that imports a sibling must add "
 				+ "that module and the imported sibling to the runtime model",
-				getModel().getTopLevelPackage().getModules(), start, "sibling");
+				getModel().getTopLevel().getModules(), start, "sibling");
 	}
 
 	/**
@@ -139,12 +136,10 @@ public class ImportingModelTest extends AbstractModelTest {
 
 		getModel().loadModule(start);
 
-		assertKeys(
-				"Loading a module must add that module to the runtime model",
-				getModel().getTopLevelPackage().getModules(), start);
 		assertKeys("Loading a module that imports a sibling must add "
-				+ "that sibling to the runtime model", getModel()
-				.getTopLevelPackage().getPackages(), "sibling_package");
+				+ "that sibling to the runtime model as well as itself",
+				getModel().getTopLevel().getModules(), start,
+				"sibling_package");
 	}
 
 	@Test
@@ -153,17 +148,14 @@ public class ImportingModelTest extends AbstractModelTest {
 
 		getModel().loadModule(start);
 
-		assertKeys(
-				"Loading a module must add that module to the runtime model",
-				getModel().getTopLevelPackage().getModules(), start);
-
 		assertKeys("Loading a module that imports a nephew must add the "
-				+ "nephew's parent package to the runtime model", getModel()
-				.getTopLevelPackage().getPackages(), "sibling_package");
+				+ "nephew's parent package to the runtime model "
+				+ "as well as itself", getModel().getTopLevel()
+				.getModules(), "sibling_package", start);
 
 		assertKeys(
 				"Loading a module that imports a nephew must add the nephew "
-						+ "to the runtime model", getModel().lookupPackage(
+						+ "to the runtime model", getModel().lookup(
 						"sibling_package").getModules(), "child_module");
 	}
 
@@ -173,18 +165,15 @@ public class ImportingModelTest extends AbstractModelTest {
 
 		getModel().loadModule(start);
 
-		assertKeys(
-				"Loading a module must add that module to the runtime model",
-				getModel().getTopLevelPackage().getModules(), start);
-
 		assertKeys("Loading a module that imports a nephew must add the "
-				+ "nephew's parent package to the runtime model", getModel()
-				.getTopLevelPackage().getPackages(), "sibling_package");
+				+ "nephew's parent package to the runtime model as well "
+				+ "as itself", getModel().getTopLevel().getModules(),
+				"sibling_package", start);
 
 		assertKeys(
 				"Loading a module that imports a nephew must add the nephew "
-						+ "to the runtime model", getModel().lookupPackage(
-						"sibling_package").getPackages(), "child_package");
+						+ "to the runtime model", getModel().lookup(
+						"sibling_package").getModules(), "child_package");
 	}
 
 	@Test
@@ -194,13 +183,15 @@ public class ImportingModelTest extends AbstractModelTest {
 		getModel().loadModule(start);
 
 		assertKeys(
-				"Loading a module must add that module to the runtime model",
-				getModel().lookupPackage("relative").getModules(),
-				"import_relative_module_down");
+				"Loading a module must add that module to the runtime model "
+						+ "as well as the parent packages of any modules "
+						+ "loaded by the modules it imports", getModel()
+						.lookup("relative").getModules(),
+				"import_relative_module_down", "fred");
 
 		assertKeys("Loading a module that imports a module relative to its "
 				+ "package must add the relative module to the runtime model",
-				getModel().lookupPackage("relative.fred").getModules(), "jack");
+				getModel().lookup("relative.fred").getModules(), "jack");
 	}
 
 	@Test
@@ -210,14 +201,15 @@ public class ImportingModelTest extends AbstractModelTest {
 		getModel().loadModule(start);
 
 		assertKeys(
-				"Loading a module must add that module to the runtime model",
-				getModel().lookupPackage("relative").getModules(),
-				"import_relative_package_down");
+				"Loading a module must add that module to the runtime model "
+						+ "as well as the parent packages of any modules "
+						+ "loaded by the modules it imports", getModel()
+						.lookup("relative").getModules(),
+				"import_relative_package_down", "fred");
 
 		assertKeys("Loading a module that imports a module relative to its "
 				+ "package must add the relative module to the runtime model",
-				getModel().lookupPackage("relative.fred").getPackages(),
-				"susan");
+				getModel().lookup("relative.fred").getModules(), "susan");
 	}
 
 	@Test
@@ -226,18 +218,18 @@ public class ImportingModelTest extends AbstractModelTest {
 
 		assertTrue("The imported module musn't appear in the runtime model "
 				+ "until the submodule that imports it is loaded", getModel()
-				.lookupPackage("").getModules().isEmpty());
+				.lookup("").getModules().isEmpty());
 
 		getModel().loadModule(start);
 
 		assertKeys(
 				"Loading a module must add that module to the runtime model",
-				getModel().lookupPackage("relative").getModules(),
+				getModel().lookup("relative").getModules(),
 				"import_relative_module_up");
 
 		assertKeys("Loading a non-top-level module that imports a top-level "
 				+ "module must add the top-level module to the runtime model",
-				getModel().lookupPackage("").getModules(), "sibling");
+				getModel().lookup("").getModules(), "relative", "sibling");
 	}
 
 	@Test
@@ -246,17 +238,17 @@ public class ImportingModelTest extends AbstractModelTest {
 
 		assertTrue("The imported package musn't appear in the runtime model "
 				+ "until the submodule that imports it is loaded", getModel()
-				.lookupPackage("").getModules().isEmpty());
+				.lookup("").getModules().isEmpty());
 
 		getModel().loadModule(start);
 
 		assertKeys("Loading a module must add that module to the runtime "
-				+ "model", getModel().lookupPackage("relative").getModules(),
+				+ "model", getModel().lookup("relative").getModules(),
 				"import_relative_package_up");
 
 		assertKeys("Loading a non-top-level module that imports a "
 				+ "top-level package must add the top-level package to the "
-				+ "runtime model", getModel().lookupPackage("").getPackages(),
+				+ "runtime model", getModel().lookup("").getModules(),
 				"relative", "sibling_package");
 	}
 
@@ -266,18 +258,18 @@ public class ImportingModelTest extends AbstractModelTest {
 
 		assertTrue("The imported module musn't appear in the runtime model "
 				+ "until the submodule that imports it is loaded", getModel()
-				.lookupPackage("").getPackages().isEmpty());
+				.lookup("").getModules().isEmpty());
 
 		getModel().loadModule(start);
 
 		assertKeys("Loading a module must add that module to the runtime "
-				+ "model", getModel().lookupPackage("relative").getModules(),
+				+ "model", getModel().lookup("relative").getModules(),
 				"import_relative_module_up_then_down");
 
 		assertKeys("Loading a non-top-level module that imports a "
 				+ "non-top-level from a different top-level package must add "
 				+ "the imported module to the runtime model", getModel()
-				.lookupPackage("sibling_package").getModules(), "child_module");
+				.lookup("sibling_package").getModules(), "child_module");
 	}
 
 	@Test
@@ -285,7 +277,20 @@ public class ImportingModelTest extends AbstractModelTest {
 		getModel().loadModule("circular1");
 
 		assertKeys("Loading a module that imports another must add both to "
-				+ "the runtime model", getModel().getTopLevelPackage()
+				+ "the runtime model", getModel().getTopLevel()
 				.getModules(), "circular1", "circular2");
+	}
+
+	@Test
+	public void nestedCircularImport() throws Throwable {
+		Module nested1 = getModel().loadPackage("nested_circular1");
+
+		assertKeys("Loading a package must also load any modules it "
+				+ "imports, even if those import are nested "
+				+ "in function definitions", getModel().getTopLevel()
+				.getModules(), "nested_circular1", "nested_circular2");
+
+		assertKeys(nested1.getFunctions(), "a");
+		assertKeys(nested1.getModules(), "b");
 	}
 }

@@ -25,7 +25,7 @@ public abstract class Package {
 		this.isSystem = isSystem;
 	}
 
-	public abstract Map<String, Module> getModules();
+	public abstract Map<String, SourceFile> getSourceFiles();
 
 	public abstract Map<String, Package> getPackages();
 
@@ -61,22 +61,22 @@ public abstract class Package {
 		return initFile;
 	}
 
-	public Module findModule(String relativeName) {
-		return findModule(dottedNameToImportTokens(relativeName));
+	public SourceFile findSourceFile(String relativeName) {
+		return findSourceFile(dottedNameToImportTokens(relativeName));
 	}
 
 	public Package findPackage(String relativeName) {
 		return findPackage(dottedNameToImportTokens(relativeName));
 	}
 
-	public Module findModule(List<String> relativeName) {
+	public SourceFile findSourceFile(List<String> relativeName) {
 		Queue<String> tokens = new LinkedList<String>(relativeName);
 
 		Package scope = this;
 		while (scope != null && !tokens.isEmpty()) {
 			String token = tokens.remove();
 			if (tokens.isEmpty())
-				return scope.getModules().get(token);
+				return scope.getSourceFiles().get(token);
 			else
 				scope = scope.getPackages().get(token);
 		}

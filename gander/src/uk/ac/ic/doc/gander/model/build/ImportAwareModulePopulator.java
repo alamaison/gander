@@ -7,26 +7,24 @@ import java.util.List;
 import org.python.pydev.parser.jython.ParseException;
 import org.python.pydev.parser.jython.ast.Import;
 import org.python.pydev.parser.jython.ast.ImportFrom;
-import org.python.pydev.parser.jython.ast.Module;
 import org.python.pydev.parser.jython.ast.NameTok;
 import org.python.pydev.parser.jython.ast.aliasType;
 
 import uk.ac.ic.doc.gander.DottedName;
 import uk.ac.ic.doc.gander.importing.ImportSimulator;
-import uk.ac.ic.doc.gander.model.Loadable;
+import uk.ac.ic.doc.gander.model.Module;
 import uk.ac.ic.doc.gander.model.MutableModel;
 import uk.ac.ic.doc.gander.model.Namespace;
-import uk.ac.ic.doc.gander.model.Package;
 
 /**
  * This class loads a module but also follows any import statements and loads
  * their targets as well.
  */
-class ImportAwareLoadablePopulator extends LoadablePopulator {
+class ImportAwareModulePopulator extends ModulePopulator {
 
 	private MutableModel model;
 
-	ImportAwareLoadablePopulator(Loadable loadable, MutableModel model) {
+	ImportAwareModulePopulator(Module loadable, MutableModel model) {
 		super(loadable);
 		this.model = model;
 	}
@@ -67,7 +65,7 @@ class ImportAwareLoadablePopulator extends LoadablePopulator {
 		private MutableModel model;
 
 		public Importer(Namespace scope, MutableModel model) {
-			super(scope, model.getTopLevelPackage());
+			super(scope, model.getTopLevel());
 			this.model = model;
 		}
 
@@ -91,17 +89,16 @@ class ImportAwareLoadablePopulator extends LoadablePopulator {
 		 *            relativeToPackage} .
 		 * @param relativeToPackage
 		 *            Root of search.
-		 * @return {@link Module} or {@link Package} if loading succeeded,
-		 *         {@code null} otherwise.
+		 * @return {@link SourceFile} if loading succeeded, {@code null} otherwise.
 		 * @throws Exception
 		 */
-		protected Loadable simulateLoad(List<String> importPath,
-				Package relativeToPackage) {
+		protected Module simulateLoad(List<String> importPath,
+				Module relativeToPackage) {
 			List<String> name = new ArrayList<String>(DottedName
 					.toImportTokens(relativeToPackage.getFullName()));
 			name.addAll(importPath);
 
-			Loadable loaded = null;
+			Module loaded = null;
 			try {
 				loaded = model.loadPackage(name);
 				if (loaded == null)
@@ -117,12 +114,12 @@ class ImportAwareLoadablePopulator extends LoadablePopulator {
 
 		@Override
 		protected void onUnresolvedImport(List<String> importPath,
-				Package relativeToPackage, Namespace importReceiver, String as) {
+				Module relativeToPackage, Namespace importReceiver, String as) {
 		}
 
 		@Override
 		protected void onUnresolvedImportFromItem(List<String> fromPath,
-				String itemName, Package relativeToPackage,
+				String itemName, Module relativeToPackage,
 				Namespace importReceiver, String as) {
 			// FIXME: This gets fired when 'from x import a' occurs inside a
 			// module that x is currently importing as x is not yet complete.

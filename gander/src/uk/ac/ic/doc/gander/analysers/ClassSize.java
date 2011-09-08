@@ -30,7 +30,7 @@ public class ClassSize {
 
 	private void analysePackage(uk.ac.ic.doc.gander.hierarchy.Package pack)
 			throws Exception {
-		for (uk.ac.ic.doc.gander.hierarchy.Module module : pack.getModules()
+		for (uk.ac.ic.doc.gander.hierarchy.SourceFile module : pack.getSourceFiles()
 				.values())
 			analyseModule(module);
 		for (uk.ac.ic.doc.gander.hierarchy.Package subpackage : pack
@@ -39,7 +39,7 @@ public class ClassSize {
 	}
 
 	private void analyseModule(
-			uk.ac.ic.doc.gander.hierarchy.Module hierarchyModule)
+			uk.ac.ic.doc.gander.hierarchy.SourceFile hierarchyModule)
 			throws Exception {
 		if (hierarchyModule.isSystem())
 			return;

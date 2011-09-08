@@ -6,9 +6,9 @@ import uk.ac.ic.doc.gander.model.Namespace;
 public class TModule implements TImportable, TNamespace {
 	private Module moduleInstance;
 
-	public TModule(Module module) {
-		assert module != null;
-		moduleInstance = module;
+	public TModule(Module loaded) {
+		assert loaded != null;
+		moduleInstance = loaded;
 	}
 
 	public Module getModuleInstance() {

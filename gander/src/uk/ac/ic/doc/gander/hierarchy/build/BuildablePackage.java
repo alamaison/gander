@@ -5,12 +5,12 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-import uk.ac.ic.doc.gander.hierarchy.Module;
+import uk.ac.ic.doc.gander.hierarchy.SourceFile;
 import uk.ac.ic.doc.gander.hierarchy.Package;
 
 class BuildablePackage extends Package {
 
-	private HashMap<String, Module> modules = new HashMap<String, Module>();
+	private HashMap<String, SourceFile> modules = new HashMap<String, SourceFile>();
 	private HashMap<String, Package> packages = new HashMap<String, Package>();
 
 	public BuildablePackage(String name, File initFile, Package parent,
@@ -22,7 +22,7 @@ class BuildablePackage extends Package {
 		return Collections.unmodifiableMap(packages);
 	}
 
-	public Map<String, Module> getModules() {
+	public Map<String, SourceFile> getSourceFiles() {
 		return Collections.unmodifiableMap(modules);
 	}
 
@@ -30,7 +30,7 @@ class BuildablePackage extends Package {
 		packages.put(subpackage.getName(), subpackage);
 	}
 
-	public void addModule(Module submodule) {
+	public void addModule(SourceFile submodule) {
 		modules.put(submodule.getName(), submodule);
 	}
 }

@@ -7,17 +7,17 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
-import uk.ac.ic.doc.gander.model.Package;
+import uk.ac.ic.doc.gander.model.Module;
 
 // TODO: Change to Exception to force explicit handling
 public class UnresolvedImportError extends Error {
 
 	private static final long serialVersionUID = -3845956678785948260L;
 	private List<String> importPath;
-	private Package relativeToPackage;
+	private Module relativeToPackage;
 
 	public UnresolvedImportError(List<String> importPath,
-			Package relativeToPackage) {
+			Module relativeToPackage) {
 		this.importPath = importPath;
 		this.relativeToPackage = relativeToPackage;
 	}

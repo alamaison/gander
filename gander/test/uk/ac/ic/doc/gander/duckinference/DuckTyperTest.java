@@ -90,7 +90,7 @@ public class DuckTyperTest {
 		setup("sibling");
 
 		Module start = model.loadModule("start");
-		Module sibling = model.lookupModule("sibling");
+		Module sibling = model.lookup("sibling");
 
 		assertInference("x.a(tag1)", start.getFunctions().get("main"),
 				new TClass(sibling.getClasses().get("A")));
@@ -107,7 +107,7 @@ public class DuckTyperTest {
 		setup("sibling_source_and_def");
 
 		Module start = model.loadModule("start");
-		Module sibling = model.lookupModule("sibling");
+		Module sibling = model.lookup("sibling");
 
 		assertInference("x.a(tag1)", start.getFunctions().get("main"),
 				new TClass(sibling.getClasses().get("A")));

@@ -4,22 +4,22 @@ import java.util.List;
 
 import uk.ac.ic.doc.gander.DottedName;
 import uk.ac.ic.doc.gander.flowinference.UnresolvedImportError;
-import uk.ac.ic.doc.gander.model.Package;
+import uk.ac.ic.doc.gander.model.Module;
 import uk.ac.ic.doc.gander.model.Namespace;
 
 public class TUnresolvedImport implements TImportable, TNamespace {
 
 	private List<String> importPath;
-	private Package relativeToPackage;
+	private Module relativeToPackage;
 	private String fromTarget;
 
-	public TUnresolvedImport(List<String> importPath, Package relativeToPackage) {
+	public TUnresolvedImport(List<String> importPath, Module relativeToPackage) {
 		this.importPath = importPath;
 		this.relativeToPackage = relativeToPackage;
 	}
 
 	public TUnresolvedImport(List<String> fromPath, String itemName,
-			Package relativeToPackage) {
+			Module relativeToPackage) {
 		this.importPath = fromPath;
 		this.relativeToPackage = relativeToPackage;
 		this.fromTarget = itemName;
@@ -33,7 +33,7 @@ public class TUnresolvedImport implements TImportable, TNamespace {
 		return importPath;
 	}
 
-	public Package getRelativeToPackage() {
+	public Module getRelativeToPackage() {
 		return relativeToPackage;
 	}
 

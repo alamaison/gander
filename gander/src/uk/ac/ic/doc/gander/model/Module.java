@@ -2,25 +2,34 @@ package uk.ac.ic.doc.gander.model;
 
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
+import java.util.Queue;
 
 import uk.ac.ic.doc.gander.cfg.Cfg;
 
-public class Module implements Loadable {
+/**
+ * Model elements that have associated code that can be loaded.
+ * 
+ * In other words, represents Packages and Modules in the model. There are no
+ * separate packages, only modules. After all, this is how Python sees things.
+ * The Hierarchy would still maintain the distinction between them.
+ */
+public class Module implements Namespace {
 
-	private Map<String, Class> classes = new HashMap<String, Class>();
-	private Map<String, Function> functions = new HashMap<String, Function>();
-
-	private String name;
 	private org.python.pydev.parser.jython.ast.Module ast;
-	private Package parent;
+	private HashMap<String, Class> classes = new HashMap<String, Class>();
+	private HashMap<String, Function> functions = new HashMap<String, Function>();
+	private HashMap<String, Module> modules = new HashMap<String, Module>();
+
 	private boolean isSystem;
+	private String name;
+	private Module parent;
 
 	public Module(org.python.pydev.parser.jython.ast.Module ast, String name,
-			Package parent, boolean isSystem) {
+			Module parent, boolean isSystem) {
 		assert ast != null;
-		assert parent != null;
-		assert !name.isEmpty();
 
 		this.ast = ast;
 		this.name = name;
@@ -28,70 +37,16 @@ public class Module implements Loadable {
 		this.isSystem = isSystem;
 	}
 
-	public boolean isSystem() {
-		return isSystem;
+	public void addClass(Class subclass) {
+		classes.put(subclass.getName(), subclass);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see uk.ac.ic.doc.cfg.model.IModelElement#getName()
-	 */
-	public String getName() {
-		return name;
+	public void addFunction(Function subfunction) {
+		functions.put(subfunction.getName(), subfunction);
 	}
 
-	public String getFullName() {
-		String parentName = parent.getFullName();
-		if (parentName.isEmpty())
-			return getName();
-		else
-			return parentName + "." + getName();
-	}
-
-	public Package getParentPackage() {
-		return parent;
-	}
-
-	public Namespace getParentScope() {
-		return getParentPackage();
-	}
-
-	public Map<String, Package> getPackages() {
-		return Collections.emptyMap();
-	}
-
-	public Map<String, Module> getModules() {
-		return Collections.emptyMap();
-	}
-
-	public Map<String, Class> getClasses() {
-		return Collections.unmodifiableMap(classes);
-	}
-
-	public Map<String, Function> getFunctions() {
-		return Collections.unmodifiableMap(functions);
-	}
-
-	public void addPackage(Package pkg) {
-		throw new Error("A module cannot contain a package");
-	}
-
-	public void addModule(Module module) {
-		throw new Error("A module cannot contain another module");
-	}
-
-	public void addClass(Class klass) {
-		classes.put(klass.getName(), klass);
-	}
-
-	public void addFunction(Function function) {
-		functions.put(function.getName(), function);
-	}
-
-	@Override
-	public String toString() {
-		return "Module[" + getFullName() + "]";
+	public void addModule(Module submodule) {
+		modules.put(submodule.getName(), submodule);
 	}
 
 	public org.python.pydev.parser.jython.ast.Module getAst() {
@@ -100,5 +55,69 @@ public class Module implements Loadable {
 
 	public Cfg getCfg() {
 		throw new Error("Not implemented yet");
+	}
+
+	public Map<String, Class> getClasses() {
+		return Collections.unmodifiableMap(classes);
+	}
+
+	public String getFullName() {
+		if (isTopLevel())
+			return getName();
+		else {
+			String parentName = parent.getFullName();
+			if (parentName.isEmpty())
+				return getName();
+			else
+				return parentName + "." + getName();
+		}
+	}
+
+	public Map<String, Function> getFunctions() {
+		return Collections.unmodifiableMap(functions);
+	}
+
+	public Map<String, Module> getModules() {
+		return Collections.unmodifiableMap(modules);
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	public Module getParent() {
+		return parent;
+	}
+
+	public Namespace getParentScope() {
+		return getParent();
+	}
+
+	public boolean isSystem() {
+		return isSystem;
+	}
+
+	public boolean isTopLevel() {
+		return getParent() == null;
+	}
+
+	public Module lookup(List<String> importNameTokens) {
+		Queue<String> tokens = new LinkedList<String>(importNameTokens);
+
+		Module scope = this;
+		while (scope != null && !tokens.isEmpty()) {
+			String token = tokens.remove();
+			if (tokens.isEmpty())
+				return scope.getModules().get(token);
+			else
+				scope = scope.getModules().get(token);
+		}
+
+		return scope;
+	}
+
+	@Override
+	public String toString() {
+		return "Module[" + getFullName() + "]";
 	}
 }

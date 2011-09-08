@@ -17,7 +17,7 @@ public class PackageModelTest extends AbstractModelTest {
 
 	@Test
 	public void classes() throws Throwable {
-		Package pkg = getModel().loadPackage("my_package");
+		Module pkg = getModel().loadPackage("my_package");
 		Map<String, Class> classes = pkg.getClasses();
 
 		assertKeys(classes, "PackageClass");
@@ -25,7 +25,7 @@ public class PackageModelTest extends AbstractModelTest {
 
 	@Test
 	public void functions() throws Throwable {
-		Package pkg = getModel().loadPackage("my_package");
+		Module pkg = getModel().loadPackage("my_package");
 		Map<String, Function> functions = pkg.getFunctions();
 
 		assertKeys(functions, "package_function");

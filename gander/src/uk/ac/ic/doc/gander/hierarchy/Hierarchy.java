@@ -21,16 +21,16 @@ public class Hierarchy {
 		return topLevel;
 	}
 
-	public Module findModule(String fullyQualifiedName) {
-		return getTopLevelPackage().findModule(fullyQualifiedName);
+	public SourceFile findSourceFile(String fullyQualifiedName) {
+		return getTopLevelPackage().findSourceFile(fullyQualifiedName);
 	}
 
 	public Package findPackage(String fullyQualifiedName) {
 		return getTopLevelPackage().findPackage(fullyQualifiedName);
 	}
 
-	public Module findModule(List<String> fullyQualifiedName) {
-		return getTopLevelPackage().findModule(fullyQualifiedName);
+	public SourceFile findSourceFile(List<String> fullyQualifiedName) {
+		return getTopLevelPackage().findSourceFile(fullyQualifiedName);
 	}
 
 	public Package findPackage(List<String> fullyQualifiedName) {

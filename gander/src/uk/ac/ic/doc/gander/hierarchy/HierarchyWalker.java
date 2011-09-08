@@ -14,14 +14,14 @@ public abstract class HierarchyWalker {
 			visitPackage(subpkg.getValue());
 			walkThroughPackage(subpkg.getValue());
 		}
-		for (Entry<String, Module> module : pkg.getModules().entrySet()) {
-			visitModule(module.getValue());
+		for (Entry<String, SourceFile> module : pkg.getSourceFiles().entrySet()) {
+			visitSourceFile(module.getValue());
 		}
 	}
 
 	protected void visitPackage(Package pkg) {
 	}
 
-	protected void visitModule(Module module) {
+	protected void visitSourceFile(SourceFile module) {
 	}
 }

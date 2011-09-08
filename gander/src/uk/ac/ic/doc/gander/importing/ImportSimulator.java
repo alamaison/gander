@@ -9,11 +9,8 @@ import java.util.List;
 
 import uk.ac.ic.doc.gander.DottedName;
 import uk.ac.ic.doc.gander.flowinference.types.TModule;
-import uk.ac.ic.doc.gander.flowinference.types.TPackage;
-import uk.ac.ic.doc.gander.model.Loadable;
 import uk.ac.ic.doc.gander.model.Module;
 import uk.ac.ic.doc.gander.model.Namespace;
-import uk.ac.ic.doc.gander.model.Package;
 
 /**
  * Simulates the Python import mechanism.
@@ -27,7 +24,7 @@ import uk.ac.ic.doc.gander.model.Package;
  * import mechanism. First, modules and packages are loaded. Subclasses are
  * given a path relative to a previously loaded package but they are free to
  * implement the loading operation however they choose. All that is required is
- * that they return an {@link Loadable} if the load succeeded or null if it
+ * that they return a {@link Module} if the load succeeded or null if it
  * fails. The second aspect is name binding. The whole point of importing is to
  * bind a name to a loaded module or other namespace. Subclasses are free to
  * interpret name binding however makes sense for their task or even ignore it
@@ -36,9 +33,9 @@ import uk.ac.ic.doc.gander.model.Package;
 public abstract class ImportSimulator {
 
 	private Namespace importReceiver;
-	private Package topLevel;
+	private Module topLevel;
 
-	public ImportSimulator(Namespace importReceiver, Package topLevel) {
+	public ImportSimulator(Namespace importReceiver, Module topLevel) {
 		this.importReceiver = importReceiver;
 		this.topLevel = topLevel;
 	}
@@ -51,21 +48,20 @@ public abstract class ImportSimulator {
 	 * @param importPath
 	 *            Path of importable. Relative to the given package.
 	 * @param relativeToPackage
-	 *            Package to begin relative importing in.
-	 * @return {@link Module} or {@link Package} if loading succeeded, {@code
-	 *         null} otherwise.
+	 *            SourceFile to begin relative importing in.
+	 * @return {@link Module} if loading succeeded, {@code null} otherwise.
 	 */
-	protected abstract Loadable simulateLoad(List<String> importPath,
-			Package relativeToPackage);
+	protected abstract Module simulateLoad(List<String> importPath,
+			Module relativeToPackage);
 
 	protected abstract void bindName(Namespace importReceiver,
 			Namespace loaded, String as);
 
 	protected abstract void onUnresolvedImport(List<String> importPath,
-			Package relativeToPackage, Namespace importReceiver, String as);
+			Module relativeToPackage, Namespace importReceiver, String as);
 
 	protected abstract void onUnresolvedImportFromItem(List<String> fromPath,
-			String itemName, Package relativeToPackage,
+			String itemName, Module relativeToPackage,
 			Namespace importReceiver, String as);
 
 	public void simulateImportFrom(String fromName, String itemName) {
@@ -77,7 +73,7 @@ public abstract class ImportSimulator {
 		List<String> tokens = new LinkedList<String>(DottedName
 				.toImportTokens(fromName));
 
-		Package parentPackage = findParentPackage(importReceiver);
+		Module parentPackage = findParentPackage(importReceiver);
 
 		simulateImportFromAs(tokens, itemName, parentPackage, importReceiver,
 				asName);
@@ -87,7 +83,7 @@ public abstract class ImportSimulator {
 		List<String> tokens = new LinkedList<String>(DottedName
 				.toImportTokens(importName));
 
-		Package parentPackage = findParentPackage(importReceiver);
+		Module parentPackage = findParentPackage(importReceiver);
 
 		simulateImportAs(tokens, parentPackage, importReceiver, asName);
 	}
@@ -96,7 +92,7 @@ public abstract class ImportSimulator {
 		List<String> tokens = new LinkedList<String>(DottedName
 				.toImportTokens(importName));
 
-		Package parentPackage = findParentPackage(importReceiver);
+		Module parentPackage = findParentPackage(importReceiver);
 		simulateImport(tokens, parentPackage, importReceiver);
 	}
 
@@ -115,20 +111,20 @@ public abstract class ImportSimulator {
 	 * {@code y} in {@code x}.
 	 */
 	private void simulateImport(List<String> importPath,
-			Package relativeToPackage, Namespace importReceiver) {
+			Module relativeToPackage, Namespace importReceiver) {
 		simulateImportHelper(importPath, relativeToPackage, importReceiver);
 	}
 
 	private void simulateImportAs(List<String> importPath,
-			Package relativeToPackage, Namespace importReceiver, String as) {
+			Module relativeToPackage, Namespace importReceiver, String as) {
 
-		Loadable loaded = simulateImportHelper(importPath, relativeToPackage,
+		Module loaded = simulateImportHelper(importPath, relativeToPackage,
 				null);
 		handleBind(importPath, relativeToPackage, importReceiver, as, loaded);
 	}
 
 	private void simulateImportFromAs(List<String> fromPath, String itemName,
-			Package relativeToPackage, Namespace importReceiver, String asName) {
+			Module relativeToPackage, Namespace importReceiver, String asName) {
 
 		Namespace namespaceToImportFrom = simulateImportHelper(fromPath,
 				relativeToPackage, null);
@@ -156,11 +152,11 @@ public abstract class ImportSimulator {
 				asName, loaded);
 	}
 
-	private Loadable simulateImportHelper(List<String> importPath,
-			Package relativeToPackage, Namespace importReceiver) {
+	private Module simulateImportHelper(List<String> importPath,
+			Module relativeToPackage, Namespace importReceiver) {
 
 		List<String> processed = new LinkedList<String>();
-		Loadable loaded = null;
+		Module loaded = null;
 		for (String token : importPath) {
 			processed.add(token);
 			loaded = simulateTwoStepLoad(processed, relativeToPackage);
@@ -189,13 +185,12 @@ public abstract class ImportSimulator {
 	 * @param importPath
 	 *            Path of importable. Either relative or absolute.
 	 * @param relativeToPackage
-	 *            Package to begin relative importing in.
-	 * @return {@link Module} or {@link Package} if loading succeeded, {@code
-	 *         null} otherwise.
+	 *            SourceFile to begin relative importing in.
+	 * @return {@link Module} if loading succeeded, {@code null} otherwise.
 	 */
-	private Loadable simulateTwoStepLoad(List<String> importPath,
-			Package relativeToPackage) {
-		Loadable loaded = null;
+	private Module simulateTwoStepLoad(List<String> importPath,
+			Module relativeToPackage) {
+		Module loaded = null;
 
 		if (relativeToPackage != null)
 			loaded = simulateLoad(importPath, relativeToPackage);
@@ -206,8 +201,8 @@ public abstract class ImportSimulator {
 		return loaded;
 	}
 
-	private void handleBind(List<String> importPath, Package relativeToPackage,
-			Namespace importReceiver, String as, Loadable loaded) {
+	private void handleBind(List<String> importPath, Module relativeToPackage,
+			Namespace importReceiver, String as, Module loaded) {
 		if (loaded != null)
 			bindName(importReceiver, loaded, as);
 		else
@@ -216,7 +211,7 @@ public abstract class ImportSimulator {
 	}
 
 	private void handleBindFrom(List<String> fromPath, String itemName,
-			Package relativeToPackage, Namespace importReceiver, String as,
+			Module relativeToPackage, Namespace importReceiver, String as,
 			Namespace loaded) {
 		if (loaded != null)
 			bindName(importReceiver, loaded, as);
@@ -225,13 +220,13 @@ public abstract class ImportSimulator {
 					importReceiver, as);
 	}
 
-	private Package findParentPackage(Namespace scope) {
+	private Module findParentPackage(Namespace scope) {
 		Namespace parent = scope.getParentScope();
 		if (parent == null)
 			return null;
 
-		if (parent instanceof Package)
-			return (Package) parent;
+		if (parent instanceof Module)
+			return (Module) parent;
 		else
 			return findParentPackage(parent.getParentScope());
 	}

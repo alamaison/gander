@@ -10,19 +10,19 @@ import org.python.pydev.parser.jython.ast.FunctionDef;
 import uk.ac.ic.doc.gander.ast.ScopedAstVisitor;
 import uk.ac.ic.doc.gander.model.Class;
 import uk.ac.ic.doc.gander.model.Function;
-import uk.ac.ic.doc.gander.model.Loadable;
+import uk.ac.ic.doc.gander.model.Module;
 import uk.ac.ic.doc.gander.model.Namespace;
 
 /**
  * Populate a loadable (module or package) from an AST.
  */
-class LoadablePopulator extends ScopedAstVisitor<Namespace> {
-	private Loadable loadable;
+class ModulePopulator extends ScopedAstVisitor<Namespace> {
+	private Module loadable;
 
 	// Why do we pass in a namespace rather than making the class generic and
-	// creating a new instance of the namespace in createScope(Module)? Because
+	// creating a new instance of the namespace in createScope(SourceFile)? Because
 	// new can't take a generic argument in Java :(
-	LoadablePopulator(Loadable loadable) {
+	ModulePopulator(Module loadable) {
 		this.loadable = loadable;
 	}
 

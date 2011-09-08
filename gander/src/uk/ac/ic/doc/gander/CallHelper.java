@@ -72,7 +72,7 @@ public class CallHelper {
 		// Self is not necessarily the string 'self'. It can be any valid Python
 		// variable name. Therefore we determine what it is by pulling the first
 		// argument out of the function specification.
-		String selfName = getSelfNameFromFunctionDef(function.getFunctionDef());
+		String selfName = getSelfNameFromFunctionDef(function.getAst());
 
 		if (function.getParentScope() instanceof Class) {
 			if (selfName == null) {

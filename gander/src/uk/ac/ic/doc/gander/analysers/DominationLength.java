@@ -89,8 +89,8 @@ public class DominationLength extends HierarchyWalker {
 	}
 
 	@Override
-	protected void visitModule(
-			uk.ac.ic.doc.gander.hierarchy.Module hierarchyModule) {
+	protected void visitSourceFile(
+			uk.ac.ic.doc.gander.hierarchy.SourceFile hierarchyModule) {
 		if (hierarchyModule.isSystem())
 			return;
 
@@ -123,7 +123,7 @@ public class DominationLength extends HierarchyWalker {
 		if (hierarchyPackage.isSystem())
 			return;
 
-		uk.ac.ic.doc.gander.model.Package pkg;
+		Module pkg;
 		try {
 			pkg = model.loadPackage(hierarchyPackage.getFullyQualifiedName());
 		} catch (ParseException e) {

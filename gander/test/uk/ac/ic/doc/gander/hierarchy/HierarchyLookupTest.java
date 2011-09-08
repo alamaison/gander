@@ -8,14 +8,14 @@ public class HierarchyLookupTest extends AbstractHierarchyTest {
 
 	@Test
 	public void moduleLookup() throws Throwable {
-		Module module = getHierarchy().findModule("my_module1");
-		Module expectedModule = getHierarchy().getTopLevelPackage()
-				.getModules().get("my_module1");
+		SourceFile module = getHierarchy().findSourceFile("my_module1");
+		SourceFile expectedModule = getHierarchy().getTopLevelPackage()
+				.getSourceFiles().get("my_module1");
 
 		assertEquals(expectedModule, module);
 
-		module = getHierarchy().findModule("my_module2");
-		expectedModule = getHierarchy().getTopLevelPackage().getModules().get(
+		module = getHierarchy().findSourceFile("my_module2");
+		expectedModule = getHierarchy().getTopLevelPackage().getSourceFiles().get(
 				"my_module2");
 
 		assertEquals(expectedModule, module);
@@ -27,7 +27,7 @@ public class HierarchyLookupTest extends AbstractHierarchyTest {
 	 */
 	@Test
 	public void moduleLookupError1() throws Throwable {
-		assertEquals(null, getHierarchy().findModule(""));
+		assertEquals(null, getHierarchy().findSourceFile(""));
 	}
 
 	/**
@@ -35,7 +35,7 @@ public class HierarchyLookupTest extends AbstractHierarchyTest {
 	 */
 	@Test
 	public void moduleLookupError2() throws Throwable {
-		assertEquals(null, getHierarchy().findModule("blahkdfkj"));
+		assertEquals(null, getHierarchy().findSourceFile("blahkdfkj"));
 	}
 
 	/**
@@ -43,14 +43,14 @@ public class HierarchyLookupTest extends AbstractHierarchyTest {
 	 */
 	@Test
 	public void moduleLookupError3() throws Throwable {
-		assertEquals(null, getHierarchy().findModule("not_a_module"));
+		assertEquals(null, getHierarchy().findSourceFile("not_a_module"));
 	}
 
 	@Test
 	public void submoduleLookup() throws Throwable {
-		Module module = getHierarchy().findModule("my_package.my_submodule");
-		Module expectedModule = getHierarchy().getTopLevelPackage()
-				.getPackages().get("my_package").getModules().get(
+		SourceFile module = getHierarchy().findSourceFile("my_package.my_submodule");
+		SourceFile expectedModule = getHierarchy().getTopLevelPackage()
+				.getPackages().get("my_package").getSourceFiles().get(
 						"my_submodule");
 
 		assertEquals(expectedModule, module);

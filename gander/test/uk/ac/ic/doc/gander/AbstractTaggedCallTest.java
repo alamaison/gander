@@ -10,8 +10,8 @@ import uk.ac.ic.doc.gander.cfg.Cfg;
 import uk.ac.ic.doc.gander.hierarchy.Hierarchy;
 import uk.ac.ic.doc.gander.hierarchy.HierarchyFactory;
 import uk.ac.ic.doc.gander.model.Function;
-import uk.ac.ic.doc.gander.model.MutableModel;
 import uk.ac.ic.doc.gander.model.Module;
+import uk.ac.ic.doc.gander.model.MutableModel;
 
 public abstract class AbstractTaggedCallTest {
 

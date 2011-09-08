@@ -10,7 +10,7 @@ import org.python.pydev.parser.jython.ParseException;
 
 import uk.ac.ic.doc.gander.DottedName;
 import uk.ac.ic.doc.gander.hierarchy.Hierarchy;
-import uk.ac.ic.doc.gander.model.build.ModuleLoader;
+import uk.ac.ic.doc.gander.model.build.FileLoader;
 import uk.ac.ic.doc.gander.model.build.PackageLoader;
 
 public class MutableModel extends Model {
@@ -19,9 +19,9 @@ public class MutableModel extends Model {
 		super(hierarchy);
 	}
 
-	public Loadable load(String importName) throws ParseException, IOException {
+	public Module load(String importName) throws ParseException, IOException {
 		List<String> tokens = DottedName.toImportTokens(importName);
-		Loadable imported = loadPackage(tokens);
+		Module imported = loadPackage(tokens);
 		if (imported == null)
 			imported = loadModule(tokens);
 		return imported;
@@ -32,7 +32,7 @@ public class MutableModel extends Model {
 		return loadModule(DottedName.toImportTokens(fullyQualifiedName));
 	}
 
-	public Package loadPackage(String fullyQualifiedName)
+	public Module loadPackage(String fullyQualifiedName)
 			throws ParseException, IOException {
 		return loadPackage(DottedName.toImportTokens(fullyQualifiedName));
 	}
@@ -46,7 +46,7 @@ public class MutableModel extends Model {
 			throws ParseException, IOException {
 		// Loading must be idempotent so if the module is already loaded we
 		// must return the same instance
-		Module loaded = lookupModule(fullyQualifiedPath);
+		Module loaded = lookup(fullyQualifiedPath);
 		if (loaded == null)
 			loaded = reallyLoadModule(fullyQualifiedPath);
 
@@ -68,7 +68,7 @@ public class MutableModel extends Model {
 		for (int i = 0; i < fullyQualifiedPath.size() - 1; ++i)
 			path.add(fullyQualifiedPath.get(i));
 
-		Package parent = loadPackage(path);
+		Module parent = loadPackage(path);
 		if (parent == null)
 			return null;
 
@@ -84,18 +84,18 @@ public class MutableModel extends Model {
 	 * 
 	 * Will also load any parent packages if they haven't been loaded yet.
 	 */
-	public Package loadPackage(List<String> fullyQualifiedPath)
+	public Module loadPackage(List<String> fullyQualifiedPath)
 			throws ParseException, IOException {
 		Queue<String> tokens = new LinkedList<String>(fullyQualifiedPath);
 		List<String> loadedPath = new ArrayList<String>();
 
-		Package loaded = topLevelPackage;
+		Module loaded = topLevelPackage;
 		while (loaded != null && !tokens.isEmpty()) {
 			loadedPath.add(tokens.remove());
 
 			// Loading must be idempotent so if the package is already loaded we
 			// must return the same instance
-			Package pkg = lookupPackage(loadedPath);
+			Module pkg = lookup(loadedPath);
 			if (pkg == null)
 				pkg = loadPackageIntoParent(loadedPath, loaded);
 			loaded = pkg;
@@ -105,22 +105,22 @@ public class MutableModel extends Model {
 	}
 
 	private Module loadModuleIntoParent(List<String> fullyQualifiedPath,
-			Package parent) throws ParseException, IOException {
+			Module parent) throws ParseException, IOException {
 
-		uk.ac.ic.doc.gander.hierarchy.Module module = hierarchy
-				.findModule(fullyQualifiedPath);
+		uk.ac.ic.doc.gander.hierarchy.SourceFile module = hierarchy
+				.findSourceFile(fullyQualifiedPath);
 		if (module == null)
 			return null;
-		return new ModuleLoader(module, (Package) parent, this).getModule();
+		return new FileLoader(module, (Module) parent, this).getModule();
 	}
 
-	private Package loadPackageIntoParent(List<String> fullyQualifiedPath,
-			Package parent) throws ParseException, IOException {
+	private Module loadPackageIntoParent(List<String> fullyQualifiedPath,
+			Module parent) throws ParseException, IOException {
 
 		uk.ac.ic.doc.gander.hierarchy.Package pkg = hierarchy
 				.findPackage(fullyQualifiedPath);
 		if (pkg == null)
 			return null;
-		return new PackageLoader(pkg, (Package) parent, this).getPackage();
+		return new PackageLoader(pkg, (Module) parent, this).getPackage();
 	}
 }

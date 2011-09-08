@@ -14,8 +14,8 @@ import org.junit.Test;
 import uk.ac.ic.doc.gander.hierarchy.Hierarchy;
 import uk.ac.ic.doc.gander.hierarchy.HierarchyFactory;
 import uk.ac.ic.doc.gander.model.Class;
-import uk.ac.ic.doc.gander.model.MutableModel;
 import uk.ac.ic.doc.gander.model.Module;
+import uk.ac.ic.doc.gander.model.MutableModel;
 
 public class TypeDefinitionsTest {
 
@@ -57,7 +57,7 @@ public class TypeDefinitionsTest {
 	}
 
 	private void assertCollectedClasses(Class[] specifiedExpected) {
-		Collection<Class> builtins = model.getTopLevelPackage().getClasses()
+		Collection<Class> builtins = model.getTopLevel().getClasses()
 				.values();
 		Set<Class> expected = new HashSet<Class>(Arrays
 				.asList(specifiedExpected));
