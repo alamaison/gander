@@ -87,7 +87,7 @@ def file():
 def filter():
     pass
 
-def float():
+class float(type):
     pass
 
 def format():
@@ -120,7 +120,7 @@ def id():
 def input():
     pass
 
-def int():
+class int(type):
     pass
 
 def intern():
@@ -144,7 +144,7 @@ def license():
 def locals():
     pass
 
-def long():
+class long(type):
     pass
 
 def map():
@@ -219,10 +219,10 @@ def sum():
 def super():
     pass
 
-def tuple():
+class tuple(type):
     pass
 
-def type():
+class type:
     pass
 
 def unichr():

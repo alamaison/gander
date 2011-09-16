@@ -94,4 +94,13 @@ public class Function implements Namespace {
 	public FunctionDef getAst() {
 		return function;
 	}
+
+	public Member lookupMember(String memberName) {
+		if (classes.containsKey(memberName))
+			return classes.get(memberName);
+		else if (functions.containsKey(memberName))
+			return functions.get(memberName);
+
+		return null;
+	}
 }

@@ -2,17 +2,14 @@ package uk.ac.ic.doc.gander.model;
 
 import java.util.Map;
 
-import org.python.pydev.parser.jython.SimpleNode;
 
 import uk.ac.ic.doc.gander.cfg.Cfg;
 
-public interface Namespace {
-
-	public String getName();
+public interface Namespace extends Member {
 
 	public String getFullName();
-
-	public Namespace getParentScope();
+	
+	public Member lookupMember(String memberName);
 
 	public Map<String, Class> getClasses();
 
@@ -27,8 +24,6 @@ public interface Namespace {
 	public void addClass(Class klass);
 
 	public boolean isSystem();
-
-	public SimpleNode getAst();
 
 	public Cfg getCfg();
 }

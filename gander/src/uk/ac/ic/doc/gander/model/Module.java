@@ -120,4 +120,15 @@ public class Module implements Namespace {
 	public String toString() {
 		return "Module[" + getFullName() + "]";
 	}
+
+	public Member lookupMember(String memberName) {
+		if (modules.containsKey(memberName))
+			return modules.get(memberName);
+		else if (classes.containsKey(memberName))
+			return classes.get(memberName);
+		else if (functions.containsKey(memberName))
+			return functions.get(memberName);
+
+		return null;
+	}
 }

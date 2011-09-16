@@ -16,6 +16,7 @@ import org.python.pydev.parser.jython.ast.VisitorBase;
 import uk.ac.ic.doc.gander.flowinference.types.TClass;
 import uk.ac.ic.doc.gander.flowinference.types.TNamespace;
 import uk.ac.ic.doc.gander.flowinference.types.Type;
+import uk.ac.ic.doc.gander.model.LexicalTokenResolver;
 import uk.ac.ic.doc.gander.model.Model;
 import uk.ac.ic.doc.gander.model.Namespace;
 
@@ -43,8 +44,8 @@ public class TypeResolver extends VisitorBase {
 
 	@Override
 	public Object visitName(Name node) throws Exception {
-		return new LexicalTokenResolver(scopes.peek(), table)
-				.resolveToken(node.id);
+		return new SymbolTableTypeResolver(table).resolveToken(node.id,
+				scopes.peek());
 	}
 
 	@Override
@@ -94,34 +95,26 @@ public class TypeResolver extends VisitorBase {
 		return null;
 	}
 
-	private static class LexicalTokenResolver {
+	
+	/**
+	 * Token resolver using the existing symbol table to map names to types.
+	 */
+	private static class SymbolTableTypeResolver extends
+			LexicalTokenResolver<Type> {
 
-		private Namespace scope;
 		private SymbolTable table;
 
-		public LexicalTokenResolver(Namespace scope, SymbolTable table) {
-			this.scope = scope;
+		public SymbolTableTypeResolver(SymbolTable table) {
 			this.table = table;
 		}
 
-		public Type resolveToken(String token) {
-			return resolveTokenInScopeRecursively(token, scope);
-		}
+		@Override
+		protected Type searchScopeForToken(String token, Namespace scope) {
+			Map<String, Type> scopeTokens = table.symbols(scope);
+			if (scopeTokens != null)
+				return scopeTokens.get(token);
 
-		private Type resolveTokenInScopeRecursively(String token,
-				Namespace scope) {
-			Type type = null;
-
-			if (scope != null) {
-				Map<String, Type> scopeTokens = table.symbols(scope);
-				if (scopeTokens != null)
-					type = scopeTokens.get(token);
-				if (type == null)
-					type = resolveTokenInScopeRecursively(token, scope
-							.getParentScope());
-			}
-
-			return type;
+			return null;
 		}
 	}
 

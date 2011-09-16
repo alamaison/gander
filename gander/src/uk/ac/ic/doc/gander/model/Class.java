@@ -96,4 +96,13 @@ public class Class implements Namespace {
 	public Cfg getCfg() {
 		throw new Error("Not implemented yet");
 	}
+
+	public Member lookupMember(String memberName) {
+		if (classes.containsKey(memberName))
+			return classes.get(memberName);
+		else if (methods.containsKey(memberName))
+			return methods.get(memberName);
+
+		return null;
+	}
 }
