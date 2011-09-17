@@ -2,7 +2,7 @@ package uk.ac.ic.doc.gander.flowinference.types;
 
 public class TUnion implements Type {
 
-	private Iterable<Type> constituentTypes;
+	private final Iterable<Type> constituentTypes;
 
 	public TUnion(Iterable<Type> constituentTypes) {
 		this.constituentTypes = constituentTypes;
@@ -35,4 +35,11 @@ public class TUnion implements Type {
 			return false;
 		}
 	}
+
+	@Override
+	public String toString() {
+		return getName();
+	}
+	
+	
 }
