@@ -2,10 +2,16 @@ package uk.ac.ic.doc.gander.model;
 
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import org.python.pydev.parser.jython.ast.FunctionDef;
+import org.python.pydev.parser.jython.ast.Name;
 import org.python.pydev.parser.jython.ast.NameTok;
+import org.python.pydev.parser.jython.ast.VisitorIF;
+import org.python.pydev.parser.jython.ast.exprType;
+import org.python.pydev.parser.jython.ast.stmtType;
 
 import uk.ac.ic.doc.gander.cfg.Cfg;
 
@@ -102,5 +108,24 @@ public class Function implements Namespace {
 			return functions.get(memberName);
 
 		return null;
+	}
+
+	public CodeBlock getCodeBlock() {
+		return new CodeBlock() {
+
+			public Set<String> getFormalParameters() {
+				Set<String> args = new HashSet<String>();
+				for (exprType expr : function.args.args) {
+					args.add(((Name) expr).id);
+				}
+				return args;
+			}
+
+			public void accept(VisitorIF visitor) throws Exception {
+				for (stmtType stmt : function.body) {
+					stmt.accept(visitor);
+				}
+			}
+		};
 	}
 }

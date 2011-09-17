@@ -6,6 +6,10 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
+import java.util.Set;
+
+import org.python.pydev.parser.jython.ast.VisitorIF;
+import org.python.pydev.parser.jython.ast.stmtType;
 
 import uk.ac.ic.doc.gander.cfg.Cfg;
 
@@ -130,5 +134,20 @@ public class Module implements Namespace {
 			return functions.get(memberName);
 
 		return null;
+	}
+
+	public CodeBlock getCodeBlock() {
+		return new CodeBlock() {
+			
+			public Set<String> getFormalParameters() {
+				return Collections.emptySet();
+			}
+			
+			public void accept(VisitorIF visitor) throws Exception {
+				for (stmtType stmt : ast.body) {
+					stmt.accept(visitor);
+				}
+			}
+		};
 	}
 }

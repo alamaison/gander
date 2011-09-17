@@ -8,6 +8,9 @@ class my_class:
 def my_free_function():
 	pass
 
+def my_function_with_args(a, b):
+	pass
+
 def test_nesting():
 	def my_nested_def():
 		pass

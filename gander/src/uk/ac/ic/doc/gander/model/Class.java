@@ -3,10 +3,13 @@ package uk.ac.ic.doc.gander.model;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 import org.python.pydev.parser.jython.ast.ClassDef;
 import org.python.pydev.parser.jython.ast.NameTok;
+import org.python.pydev.parser.jython.ast.VisitorIF;
 import org.python.pydev.parser.jython.ast.exprType;
+import org.python.pydev.parser.jython.ast.stmtType;
 
 import uk.ac.ic.doc.gander.cfg.Cfg;
 
@@ -104,5 +107,25 @@ public class Class implements Namespace {
 			return methods.get(memberName);
 
 		return null;
+	}
+
+	public CodeBlock getCodeBlock() {
+		return new CodeBlock() {
+
+			public void accept(VisitorIF visitor) throws Exception {
+				for (stmtType stmt : cls.body) {
+					stmt.accept(visitor);
+				}
+			}
+
+			public Set<String> getFormalParameters() {
+				// Classes don't have parameters that get bound after
+				// declaration
+				//
+				// XXX: WTF? The ClassDef node has parameters! Are these from
+				// the constructor?
+				return Collections.emptySet();
+			}
+		};
 	}
 }

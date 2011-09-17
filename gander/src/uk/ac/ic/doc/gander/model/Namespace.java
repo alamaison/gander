@@ -26,4 +26,6 @@ public interface Namespace extends Member {
 	public boolean isSystem();
 
 	public Cfg getCfg();
+
+	public CodeBlock getCodeBlock();
 }

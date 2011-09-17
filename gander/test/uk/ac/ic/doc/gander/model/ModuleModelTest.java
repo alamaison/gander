@@ -44,8 +44,8 @@ public class ModuleModelTest extends AbstractModelTest {
 	public void functions() throws Throwable {
 		Map<String, Function> functions = module.getFunctions();
 
-		assertKeys(functions, "my_free_function", "test_nesting",
-				"test_nesting_class");
+		assertKeys(functions, "my_free_function", "my_function_with_args",
+				"test_nesting", "test_nesting_class");
 	}
 
 	@Test
