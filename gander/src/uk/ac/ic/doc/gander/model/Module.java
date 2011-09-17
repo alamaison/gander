@@ -20,7 +20,7 @@ import uk.ac.ic.doc.gander.cfg.Cfg;
  * separate packages, only modules. After all, this is how Python sees things.
  * The Hierarchy would still maintain the distinction between them.
  */
-public class Module implements Namespace {
+public final class Module implements Namespace {
 
 	private org.python.pydev.parser.jython.ast.Module ast;
 	private HashMap<String, Class> classes = new HashMap<String, Class>();
@@ -136,13 +136,13 @@ public class Module implements Namespace {
 		return null;
 	}
 
-	public CodeBlock getCodeBlock() {
+	public CodeBlock asCodeBlock() {
 		return new CodeBlock() {
-			
+
 			public Set<String> getFormalParameters() {
 				return Collections.emptySet();
 			}
-			
+
 			public void accept(VisitorIF visitor) throws Exception {
 				for (stmtType stmt : ast.body) {
 					stmt.accept(visitor);

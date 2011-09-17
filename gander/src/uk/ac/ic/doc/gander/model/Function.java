@@ -15,7 +15,7 @@ import org.python.pydev.parser.jython.ast.stmtType;
 
 import uk.ac.ic.doc.gander.cfg.Cfg;
 
-public class Function implements Namespace {
+public final class Function implements Namespace {
 
 	private FunctionDef function;
 	private Namespace parent;
@@ -110,7 +110,7 @@ public class Function implements Namespace {
 		return null;
 	}
 
-	public CodeBlock getCodeBlock() {
+	public CodeBlock asCodeBlock() {
 		return new CodeBlock() {
 
 			public Set<String> getFormalParameters() {

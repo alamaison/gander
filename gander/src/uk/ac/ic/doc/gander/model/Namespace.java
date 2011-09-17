@@ -27,5 +27,5 @@ public interface Namespace extends Member {
 
 	public Cfg getCfg();
 
-	public CodeBlock getCodeBlock();
+	public CodeBlock asCodeBlock();
 }

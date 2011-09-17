@@ -45,14 +45,14 @@ public class CodeBlockTest extends AbstractModelTest {
 
 	@Test
 	public void module() throws Throwable {
-		CodeBlock block = module.getCodeBlock();
+		CodeBlock block = module.asCodeBlock();
 		assertEquals(Collections.emptySet(), block.getFormalParameters());
 	}
 
 	@Test
 	public void classEmpty() throws Throwable {
 		CodeBlock block = module.getClasses().get("my_class_empty")
-				.getCodeBlock();
+				.asCodeBlock();
 		assertEquals(Collections.emptySet(), block.getFormalParameters());
 
 		block.accept(new TraverseEverythingVisitor() {
@@ -65,7 +65,7 @@ public class CodeBlockTest extends AbstractModelTest {
 
 	@Test
 	public void classWithMethod() throws Throwable {
-		CodeBlock block = module.getClasses().get("my_class").getCodeBlock();
+		CodeBlock block = module.getClasses().get("my_class").asCodeBlock();
 		assertEquals(Collections.emptySet(), block.getFormalParameters());
 
 		block.accept(new TraverseEverythingVisitor() {
@@ -85,7 +85,7 @@ public class CodeBlockTest extends AbstractModelTest {
 	@Test
 	public void function() throws Throwable {
 		CodeBlock block = module.getFunctions().get("my_free_function")
-				.getCodeBlock();
+				.asCodeBlock();
 		assertEquals(Collections.emptySet(), block.getFormalParameters());
 
 		block.accept(new TraverseEverythingVisitor() {
@@ -99,7 +99,7 @@ public class CodeBlockTest extends AbstractModelTest {
 	@Test
 	public void functionsWithArguments() throws Throwable {
 		CodeBlock block = module.getFunctions().get("my_function_with_args")
-				.getCodeBlock();
+				.asCodeBlock();
 		Set<String> args = new HashSet<String>();
 		args.add("a");
 		args.add("b");

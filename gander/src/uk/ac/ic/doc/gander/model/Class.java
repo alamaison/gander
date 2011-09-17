@@ -13,7 +13,7 @@ import org.python.pydev.parser.jython.ast.stmtType;
 
 import uk.ac.ic.doc.gander.cfg.Cfg;
 
-public class Class implements Namespace {
+public final class Class implements Namespace {
 
 	private Map<String, Function> methods = new HashMap<String, Function>();
 	private Map<String, Class> classes = new HashMap<String, Class>();
@@ -109,7 +109,7 @@ public class Class implements Namespace {
 		return null;
 	}
 
-	public CodeBlock getCodeBlock() {
+	public CodeBlock asCodeBlock() {
 		return new CodeBlock() {
 
 			public void accept(VisitorIF visitor) throws Exception {
