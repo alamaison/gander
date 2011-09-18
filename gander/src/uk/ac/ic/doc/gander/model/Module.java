@@ -6,7 +6,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
-import java.util.Set;
 
 import org.python.pydev.parser.jython.ast.VisitorIF;
 import org.python.pydev.parser.jython.ast.stmtType;
@@ -139,8 +138,8 @@ public final class Module implements Namespace {
 	public CodeBlock asCodeBlock() {
 		return new CodeBlock() {
 
-			public Set<String> getFormalParameters() {
-				return Collections.emptySet();
+			public List<String> getFormalParameters() {
+				return Collections.emptyList();
 			}
 
 			public void accept(VisitorIF visitor) throws Exception {

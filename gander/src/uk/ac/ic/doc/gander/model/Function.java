@@ -1,10 +1,10 @@
 package uk.ac.ic.doc.gander.model;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import org.python.pydev.parser.jython.ast.FunctionDef;
 import org.python.pydev.parser.jython.ast.Name;
@@ -113,8 +113,8 @@ public final class Function implements Namespace {
 	public CodeBlock asCodeBlock() {
 		return new CodeBlock() {
 
-			public Set<String> getFormalParameters() {
-				Set<String> args = new HashSet<String>();
+			public List<String> getFormalParameters() {
+				ArrayList<String> args = new ArrayList<String>();
 				for (exprType expr : function.args.args) {
 					args.add(((Name) expr).id);
 				}

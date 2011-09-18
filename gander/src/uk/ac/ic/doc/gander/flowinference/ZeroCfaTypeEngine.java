@@ -437,8 +437,21 @@ final class AstBasedTokenTypeInferer extends LexicalTokenResolver<Type> {
 
 		CodeBlock codeBlock = scope.asCodeBlock();
 
-		// TODO: Somehow infer the type of the formal argument
+		// TODO: Somehow infer the type of other formal parameters
 		if (codeBlock.getFormalParameters().contains(token)) {
+
+			/*
+			 * The first parameter of a function in a class (usually called
+			 * self) is always an instance of the class so we can trivially
+			 * infer its type
+			 */
+			if (scope instanceof Function
+					&& scope.getParentScope() instanceof Class) {
+				if (codeBlock.getFormalParameters().get(0).equals(token)) {
+					return new TClass((Class) scope.getParentScope());
+				}
+			}
+			
 			return new TTop();
 		}
 
@@ -982,10 +995,12 @@ final class ZeroCfaTypeFinder extends ExpressionVisitor {
 
 	@Override
 	public Object visitAttribute(Attribute node) throws Exception {
-		Type targetType = (Type) node.accept(this);
+		Type targetType = (Type) node.value.accept(this);
 
-		return new AttributeTypeLookup(model).type(targetType,
+		Type type = new AttributeTypeLookup(model).type(targetType,
 				(NameTok) node.attr);
+		assert type != null;
+		return type;
 	}
 
 	@Override

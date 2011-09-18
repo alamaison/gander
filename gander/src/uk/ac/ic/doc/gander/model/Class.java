@@ -2,8 +2,8 @@ package uk.ac.ic.doc.gander.model;
 
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import org.python.pydev.parser.jython.ast.ClassDef;
 import org.python.pydev.parser.jython.ast.NameTok;
@@ -118,13 +118,13 @@ public final class Class implements Namespace {
 				}
 			}
 
-			public Set<String> getFormalParameters() {
+			public List<String> getFormalParameters() {
 				// Classes don't have parameters that get bound after
 				// declaration
 				//
 				// XXX: WTF? The ClassDef node has parameters! Are these from
 				// the constructor?
-				return Collections.emptySet();
+				return Collections.emptyList();
 			}
 		};
 	}

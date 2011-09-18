@@ -1,9 +1,11 @@
 package uk.ac.ic.doc.gander.flowinference;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import java.io.File;
 import java.net.URL;
+import java.util.ArrayList;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -16,6 +18,7 @@ import uk.ac.ic.doc.gander.ScopedAstNode;
 import uk.ac.ic.doc.gander.TaggedNodeAndScopeFinder;
 import uk.ac.ic.doc.gander.flowinference.types.TClass;
 import uk.ac.ic.doc.gander.flowinference.types.TTop;
+import uk.ac.ic.doc.gander.flowinference.types.TUnion;
 import uk.ac.ic.doc.gander.flowinference.types.Type;
 import uk.ac.ic.doc.gander.hierarchy.Hierarchy;
 import uk.ac.ic.doc.gander.hierarchy.HierarchyFactory;
@@ -386,6 +389,75 @@ public class ZeroCfaTypeEngineTest {
 				+ "assignment to affect the global's inferred type", model
 				.getTopLevel().getClasses().get("int"), ((TClass) type)
 				.getClassInstance());
+	}
+
+	@Test
+	public void multipleLocalDefinitions() throws Throwable {
+		Module binding = model.loadModule("multiple_local_definitions");
+
+		ArrayList<Type> types = new ArrayList<Type>();
+		types.add(new TClass(model.getTopLevel().getClasses().get("str")));
+		types.add(new TClass(model.getTopLevel().getClasses().get("int")));
+		Type expectedType = new TUnion(types);
+
+		ScopedAstNode node = findNode(binding, "am_i_a_string");
+		exprType i = ((Print) node.getNode()).values[0];
+		Type type = engine.typeOf(i, node.getScope());
+
+		assertEquals("Variable i's type not inferred correctly. We're "
+				+ "expecting a union of str and int because the analysis is "
+				+ "flow insensitive", expectedType, type);
+
+		node = findNode(binding, "am_i_an_integer");
+		i = ((Print) node.getNode()).values[0];
+		type = engine.typeOf(i, node.getScope());
+
+		assertEquals("Variable i's type not inferred correctly. We're "
+				+ "expecting a union of str and int because the analysis is "
+				+ "flow insensitive", expectedType, type);
+	}
+
+	/**
+	 * A class-scope attribute access from outside the class.
+	 */
+	@Test
+	public void classAttributeOutside() throws Throwable {
+		Module binding = model.loadModule("class_attribute_outside");
+
+		ScopedAstNode node = findNode(binding, "what_am_i");
+		exprType i = ((Print) node.getNode()).values[0];
+		Type type = engine.typeOf(i, node.getScope());
+
+		assertEquals("Variable i's type not inferred correctly", new TClass(
+				model.getTopLevel().getClasses().get("str")), type);
+	}
+
+	/**
+	 * A class-scope attribute access from inside the class.
+	 */
+	@Test
+	public void classAttributeInside() throws Throwable {
+		ScopedAstNode node = findTestNode("class_attribute_inside", "what_am_i");
+		exprType i = ((Print) node.getNode()).values[0];
+		Type type = engine.typeOf(i, node.getScope());
+
+		assertEquals("Variable's type not inferred correctly", new TClass(model
+				.getTopLevel().getClasses().get("str")), type);
+
+		node = findTestNode("class_attribute_inside", "what_am_i_via_self");
+		i = ((Print) node.getNode()).values[0];
+		type = engine.typeOf(i, node.getScope());
+
+		assertEquals("Variable's type not inferred correctly", new TClass(model
+				.getTopLevel().getClasses().get("str")), type);
+	}
+
+	private ScopedAstNode findTestNode(String moduleName, String tag)
+			throws Exception {
+		Module module = model.loadModule(moduleName);
+
+		ScopedAstNode node = findNode(module, tag);
+		return node;
 	}
 
 	@Test

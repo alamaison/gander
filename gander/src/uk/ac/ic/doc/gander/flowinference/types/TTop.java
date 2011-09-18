@@ -9,7 +9,7 @@ package uk.ac.ic.doc.gander.flowinference.types;
 public class TTop implements Type {
 
 	public String getName() {
-		return "<Top>";
+		return  "⊤";
 	}
 
 	@Override
@@ -21,6 +21,11 @@ public class TTop implements Type {
 	@Override
 	public int hashCode() {
 		return 42;
+	}
+
+	@Override
+	public String toString() {
+		return getName();
 	}
 
 }
