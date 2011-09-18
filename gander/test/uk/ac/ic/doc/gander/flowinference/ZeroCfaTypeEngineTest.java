@@ -7,6 +7,8 @@ import java.io.File;
 import java.net.URL;
 import java.util.ArrayList;
 
+import junit.framework.AssertionFailedError;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.python.pydev.parser.jython.ast.Assign;
@@ -24,20 +26,45 @@ import uk.ac.ic.doc.gander.hierarchy.Hierarchy;
 import uk.ac.ic.doc.gander.hierarchy.HierarchyFactory;
 import uk.ac.ic.doc.gander.model.Module;
 import uk.ac.ic.doc.gander.model.MutableModel;
+import uk.ac.ic.doc.gander.model.Namespace;
 
 public class ZeroCfaTypeEngineTest {
 
-	private static final String TEST_FOLDER = "python_test_code/type_engine";
+	private final static class TestModelCreator {
+		private MutableModel model;
+		private static final String TEST_FOLDER = "python_test_code/type_engine";
+		private static final URL TOP_LEVEL = ZeroCfaTypeEngineTest.class
+				.getResource(TEST_FOLDER);
+
+		public TestModelCreator() {
+			try {
+				final Hierarchy hierarchy = HierarchyFactory
+						.createHierarchy(new File(TOP_LEVEL.toURI()));
+				model = new MutableModel(hierarchy);
+			} catch (Exception e) {
+				throw new AssertionFailedError(
+						"Exception while creating test model: " + e);
+			}
+		}
+
+		MutableModel getModel() {
+			return model;
+		}
+
+	}
+
 	private MutableModel model;
-	private Hierarchy hierarchy;
 	private ZeroCfaTypeEngine engine;
+	private TClass stringType;
+	private TClass integerType;
+	private TClass listType;
 
 	@Before
 	public void setup() throws Throwable {
-		URL topLevel = getClass().getResource(TEST_FOLDER);
-		hierarchy = HierarchyFactory
-				.createHierarchy(new File(topLevel.toURI()));
-		model = new MutableModel(hierarchy);
+		model = new TestModelCreator().getModel();
+		stringType = new TClass(model.getTopLevel().getClasses().get("str"));
+		integerType = new TClass(model.getTopLevel().getClasses().get("int"));
+		listType = new TClass(model.getTopLevel().getClasses().get("list"));
 		engine = new ZeroCfaTypeEngine(model);
 	}
 
@@ -342,14 +369,10 @@ public class ZeroCfaTypeEngineTest {
 		exprType i = ((Print) node.getNode()).values[0];
 		Type type = engine.typeOf(i, node.getScope());
 
-		assertEquals("Variable i's type not inferred as a class instance",
-				TClass.class, type.getClass());
-
 		assertEquals("Variable i's type not inferred correctly. This probably "
 				+ "means it saw the 'global' statement in the child "
 				+ "scope and mistakenly let it affect the binding "
-				+ "in the parent scope", model.getTopLevel().getClasses().get(
-				"str"), ((TClass) type).getClassInstance());
+				+ "in the parent scope", stringType, type);
 	}
 
 	/**
@@ -359,60 +382,48 @@ public class ZeroCfaTypeEngineTest {
 	 */
 	@Test
 	public void localOverridingGlobalDeclarationInAncestor() throws Throwable {
-		Module binding = model
-				.loadModule("binding_local_overriding_global_decl_in_ancestor");
-
-		ScopedAstNode node = findNode(binding, "what_am_i_locally");
-		exprType i = ((Print) node.getNode()).values[0];
-		Type type = engine.typeOf(i, node.getScope());
-
-		assertEquals("Variable i's type not inferred as a class instance",
-				TClass.class, type.getClass());
+		ScopedPrintNode node = findPrintNode(
+				"binding_local_overriding_global_decl_in_ancestor",
+				"what_am_i_locally");
+		Type type = engine.typeOf(node.getExpression(), node.getScope());
 
 		assertEquals("Variable i's type not inferred correctly. This "
 				+ "probably means it saw its parent's 'global' "
 				+ "statement but didn't pay attention to the local "
-				+ "definition which overrides inherited global binding", model
-				.getTopLevel().getClasses().get("str"), ((TClass) type)
-				.getClassInstance());
+				+ "definition which overrides inherited global binding",
+				stringType, type);
 
-		node = findNode(binding, "what_am_i_outside");
-		i = ((Print) node.getNode()).values[0];
-		type = engine.typeOf(i, node.getScope());
-
-		assertEquals("Variable i's type not inferred as a class instance",
-				TClass.class, type.getClass());
+		node = findPrintNode(
+				"binding_local_overriding_global_decl_in_ancestor",
+				"what_am_i_outside");
+		type = engine.typeOf(node.getExpression(), node.getScope());
 
 		assertEquals("Variable i's type not inferred correctly. This "
 				+ "probably means the definition in h() was bound to the "
 				+ "global instead of the local causing the string "
-				+ "assignment to affect the global's inferred type", model
-				.getTopLevel().getClasses().get("int"), ((TClass) type)
-				.getClassInstance());
+				+ "assignment to affect the global's inferred type",
+				integerType, type);
 	}
 
 	@Test
 	public void multipleLocalDefinitions() throws Throwable {
-		Module binding = model.loadModule("multiple_local_definitions");
+		ScopedPrintNode node = findPrintNode("multiple_local_definitions",
+				"am_i_a_string");
+		Type type = engine.typeOf(node.getExpression(), node.getScope());
 
 		ArrayList<Type> types = new ArrayList<Type>();
-		types.add(new TClass(model.getTopLevel().getClasses().get("str")));
-		types.add(new TClass(model.getTopLevel().getClasses().get("int")));
+		types.add(stringType);
+		types.add(integerType);
 		Type expectedType = new TUnion(types);
 
-		ScopedAstNode node = findNode(binding, "am_i_a_string");
-		exprType i = ((Print) node.getNode()).values[0];
-		Type type = engine.typeOf(i, node.getScope());
-
-		assertEquals("Variable i's type not inferred correctly. We're "
+		assertEquals("Variable's type not inferred correctly. We're "
 				+ "expecting a union of str and int because the analysis is "
 				+ "flow insensitive", expectedType, type);
 
-		node = findNode(binding, "am_i_an_integer");
-		i = ((Print) node.getNode()).values[0];
-		type = engine.typeOf(i, node.getScope());
+		node = findPrintNode("multiple_local_definitions", "am_i_an_integer");
+		type = engine.typeOf(node.getExpression(), node.getScope());
 
-		assertEquals("Variable i's type not inferred correctly. We're "
+		assertEquals("Variable's type not inferred correctly. We're "
 				+ "expecting a union of str and int because the analysis is "
 				+ "flow insensitive", expectedType, type);
 	}
@@ -422,14 +433,11 @@ public class ZeroCfaTypeEngineTest {
 	 */
 	@Test
 	public void classAttributeOutside() throws Throwable {
-		Module binding = model.loadModule("class_attribute_outside");
+		ScopedPrintNode node = findPrintNode("class_attribute_outside",
+				"what_am_i");
+		Type type = engine.typeOf(node.getExpression(), node.getScope());
 
-		ScopedAstNode node = findNode(binding, "what_am_i");
-		exprType i = ((Print) node.getNode()).values[0];
-		Type type = engine.typeOf(i, node.getScope());
-
-		assertEquals("Variable i's type not inferred correctly", new TClass(
-				model.getTopLevel().getClasses().get("str")), type);
+		assertEquals("Variable's type not inferred correctly", stringType, type);
 	}
 
 	/**
@@ -437,27 +445,87 @@ public class ZeroCfaTypeEngineTest {
 	 */
 	@Test
 	public void classAttributeInside() throws Throwable {
-		ScopedAstNode node = findTestNode("class_attribute_inside", "what_am_i");
-		exprType i = ((Print) node.getNode()).values[0];
-		Type type = engine.typeOf(i, node.getScope());
+		ScopedPrintNode node = findPrintNode("class_attribute_inside",
+				"what_am_i");
+		Type type = engine.typeOf(node.getExpression(), node.getScope());
 
-		assertEquals("Variable's type not inferred correctly", new TClass(model
-				.getTopLevel().getClasses().get("str")), type);
+		assertEquals("Variable's type not inferred correctly", stringType, type);
 
-		node = findTestNode("class_attribute_inside", "what_am_i_via_self");
-		i = ((Print) node.getNode()).values[0];
-		type = engine.typeOf(i, node.getScope());
+		node = findPrintNode("class_attribute_inside", "what_am_i_via_self");
+		type = engine.typeOf(node.getExpression(), node.getScope());
 
-		assertEquals("Variable's type not inferred correctly", new TClass(model
-				.getTopLevel().getClasses().get("str")), type);
+		assertEquals("Variable's type not inferred correctly", stringType, type);
 	}
 
-	private ScopedAstNode findTestNode(String moduleName, String tag)
-			throws Exception {
-		Module module = model.loadModule(moduleName);
+	/**
+	 * Binds a variable in a method to the scope *outside* its defining class
+	 * despite its class defining a variable of the same name.
+	 */
+	@Test
+	public void classAttributeScopingAnomaly() throws Throwable {
+		ScopedPrintNode node = findPrintNode("class_attribute_scoping_anomaly",
+				"what_am_i_in_a_method");
+		Type type = engine.typeOf(node.getExpression(), node.getScope());
 
-		ScopedAstNode node = findNode(module, tag);
-		return node;
+		assertEquals("Variable's type not inferred correctly. This probably "
+				+ "means that the variable in the method was bound to "
+				+ "the variable defined in the class when it should have "
+				+ "skipped that scope and been bound to the first enclosing "
+				+ "non-class scope.", integerType, type);
+
+		node = findPrintNode("class_attribute_scoping_anomaly",
+				"what_am_i_in_the_class");
+		type = engine.typeOf(node.getExpression(), node.getScope());
+
+		assertEquals("Variable's type not inferred correctly", stringType, type);
+	}
+
+	/**
+	 * Binds a variable in a method to the *nearest* non-class enclosing scope
+	 * despite both classes defining a variable of the same name.
+	 */
+	@Test
+	public void classAttributeScopingAnomalyDeep() throws Throwable {
+		ScopedPrintNode node = findPrintNode(
+				"class_attribute_scoping_anomaly_deep", "what_am_i_in_a_method");
+		Type type = engine.typeOf(node.getExpression(), node.getScope());
+
+		assertEquals("Variable's type not inferred correctly. This probably "
+				+ "means that the variable in the method was bound to "
+				+ "the variable defined in the class when it should have "
+				+ "skipped that scope and been bound to the first enclosing "
+				+ "non-class scope.", integerType, type);
+
+		node = findPrintNode("class_attribute_scoping_anomaly_deep",
+				"what_am_i_in_the_parent_class");
+		type = engine.typeOf(node.getExpression(), node.getScope());
+
+		assertEquals("Variable's type not inferred correctly", listType, type);
+
+		node = findPrintNode("class_attribute_scoping_anomaly_deep",
+				"what_am_i_in_the_grandparent_class");
+		type = engine.typeOf(node.getExpression(), node.getScope());
+
+		assertEquals("Variable's type not inferred correctly", stringType, type);
+	}
+
+	/**
+	 * Class scopes are special in that the scope of their variables doesn't go
+	 * beyond their own code block. Therefore the nested class body doesn't see
+	 * the enclosing class's definition.
+	 */
+	@Test
+	public void classAttributeNested() throws Throwable {
+		ScopedPrintNode node = findPrintNode("class_attribute_nested",
+				"what_am_i");
+		Type type = engine.typeOf(node.getExpression(), node.getScope());
+
+		assertEquals("Variable's type not inferred correctly. This probably "
+				+ "means that the variable in the nested class was "
+				+ "bound to the variable defined in the enclosing "
+				+ "class when it should have skipped that scope and been "
+				+ "bound to the first enclosing non-class scope.", integerType,
+				type);
 	}
 
 	@Test
@@ -472,6 +540,43 @@ public class ZeroCfaTypeEngineTest {
 				+ "from list.  This probably means it picked up the global "
 				+ "i instead of the local one declared in the for loop.",
 				TTop.class, type.getClass());
+	}
+
+	/**
+	 * We're keen on using the print statement because it means we can easily
+	 * run our test cases to make sure they work as we expect.
+	 */
+	private interface ScopedPrintNode {
+
+		/**
+		 * Expression being printed.
+		 */
+		exprType getExpression();
+
+		Namespace getScope();
+
+	}
+
+	private ScopedPrintNode findPrintNode(String moduleName, String tag)
+			throws Exception {
+		final ScopedAstNode node = findTestNode(moduleName, tag);
+		return new ScopedPrintNode() {
+
+			public Namespace getScope() {
+				return node.getScope();
+			}
+
+			public exprType getExpression() {
+				return ((Print) node.getNode()).values[0];
+			}
+		};
+	}
+
+	private ScopedAstNode findTestNode(String moduleName, String tag)
+			throws Exception {
+		Module module = model.loadModule(moduleName);
+
+		return findNode(module, tag);
 	}
 
 	private static ScopedAstNode findNode(Module module, String tag)

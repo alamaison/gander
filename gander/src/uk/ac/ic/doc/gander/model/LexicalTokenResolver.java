@@ -1,6 +1,5 @@
 package uk.ac.ic.doc.gander.model;
 
-
 /**
  * Search for token following the rules of lexical scoping.
  * 
@@ -31,7 +30,7 @@ public abstract class LexicalTokenResolver<T> {
 		if (enclosingScope != null) {
 			type = searchScopeForToken(token, enclosingScope);
 			if (type == null)
-				type = resolveToken(token, enclosingScope.getParentScope());
+				type = resolveToken(token, nextScopeToSearch(enclosingScope));
 		}
 
 		return type;
@@ -44,4 +43,22 @@ public abstract class LexicalTokenResolver<T> {
 	 * null.
 	 */
 	protected abstract T searchScopeForToken(String token, Namespace scope);
+
+	private Namespace nextScopeToSearch(Namespace currentScope) {
+
+		Namespace parentScope = currentScope.getParentScope();
+
+		/*
+		 * The lexical scoping rules in Python aren't orthodox. Names defined in
+		 * a class body don't have scope outside the class's code block. Names
+		 * used in nested classes or functions (methods) aren't bound to any
+		 * matching name in the class scope. Instead they are bound to the next
+		 * enclosing non-class scope.
+		 */
+		if (parentScope instanceof Class) {
+			return nextScopeToSearch(parentScope); // skip this one
+		} else {
+			return parentScope;
+		}
+	}
 }

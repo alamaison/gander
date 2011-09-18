@@ -2,8 +2,10 @@ package uk.ac.ic.doc.gander.model;
 
 import static org.junit.Assert.assertEquals;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import junit.framework.AssertionFailedError;
@@ -46,14 +48,14 @@ public class CodeBlockTest extends AbstractModelTest {
 	@Test
 	public void module() throws Throwable {
 		CodeBlock block = module.asCodeBlock();
-		assertEquals(Collections.emptySet(), block.getFormalParameters());
+		assertEquals(Collections.emptyList(), block.getFormalParameters());
 	}
 
 	@Test
 	public void classEmpty() throws Throwable {
 		CodeBlock block = module.getClasses().get("my_class_empty")
 				.asCodeBlock();
-		assertEquals(Collections.emptySet(), block.getFormalParameters());
+		assertEquals(Collections.emptyList(), block.getFormalParameters());
 
 		block.accept(new TraverseEverythingVisitor() {
 			@Override
@@ -66,7 +68,7 @@ public class CodeBlockTest extends AbstractModelTest {
 	@Test
 	public void classWithMethod() throws Throwable {
 		CodeBlock block = module.getClasses().get("my_class").asCodeBlock();
-		assertEquals(Collections.emptySet(), block.getFormalParameters());
+		assertEquals(Collections.emptyList(), block.getFormalParameters());
 
 		block.accept(new TraverseEverythingVisitor() {
 			@Override
@@ -86,7 +88,7 @@ public class CodeBlockTest extends AbstractModelTest {
 	public void function() throws Throwable {
 		CodeBlock block = module.getFunctions().get("my_free_function")
 				.asCodeBlock();
-		assertEquals(Collections.emptySet(), block.getFormalParameters());
+		assertEquals(Collections.emptyList(), block.getFormalParameters());
 
 		block.accept(new TraverseEverythingVisitor() {
 			@Override
@@ -100,7 +102,7 @@ public class CodeBlockTest extends AbstractModelTest {
 	public void functionsWithArguments() throws Throwable {
 		CodeBlock block = module.getFunctions().get("my_function_with_args")
 				.asCodeBlock();
-		Set<String> args = new HashSet<String>();
+		List<String> args = new ArrayList<String>();
 		args.add("a");
 		args.add("b");
 		assertEquals(args, block.getFormalParameters());
