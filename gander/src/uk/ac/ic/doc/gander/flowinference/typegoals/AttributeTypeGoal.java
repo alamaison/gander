@@ -21,7 +21,7 @@ import uk.ac.ic.doc.gander.model.Model;
 import uk.ac.ic.doc.gander.model.Module;
 import uk.ac.ic.doc.gander.model.Namespace;
 
-final class AttributeTypeGoal implements TypeGoal {
+final class AttributeTypeGoal implements TypeGoal<TypeJudgement> {
 
 	private final Model model;
 	private final Namespace scope;
@@ -33,15 +33,14 @@ final class AttributeTypeGoal implements TypeGoal {
 		this.attribute = attribute;
 	}
 
-	public Object initialSolution() {
+	public TypeJudgement initialSolution() {
 		return SetBasedTypeJudgement.BOTTOM;
 	}
 
-	public Object recalculateSolution(SubgoalManager goalManager) {
+	public TypeJudgement recalculateSolution(SubgoalManager goalManager) {
 		ExpressionTypeGoal typer = new ExpressionTypeGoal(model, scope,
 				attribute.value);
-		TypeJudgement targetTypes = (TypeJudgement) goalManager
-				.registerSubgoal(typer);
+		TypeJudgement targetTypes = goalManager.registerSubgoal(typer);
 		if (targetTypes instanceof SetBasedTypeJudgement) {
 			Set<Type> types = ((SetBasedTypeJudgement) targetTypes)
 					.getConstituentTypes();
@@ -74,7 +73,7 @@ final class AttributeTypeGoal implements TypeGoal {
 			return convertMemberToType(member);
 		} else {
 			NameTypeGoal typer = new NameTypeGoal(model, scope, name);
-			return (TypeJudgement) goalManager.registerSubgoal(typer);
+			return goalManager.registerSubgoal(typer);
 		}
 	}
 
