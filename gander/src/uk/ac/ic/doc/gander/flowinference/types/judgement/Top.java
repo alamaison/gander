@@ -7,6 +7,8 @@ package uk.ac.ic.doc.gander.flowinference.types.judgement;
  * concrete?
  */
 public class Top implements TypeJudgement {
+	
+	public static final Top INSTANCE = new Top(); 
 
 	public String getName() {
 		return  "⊤";

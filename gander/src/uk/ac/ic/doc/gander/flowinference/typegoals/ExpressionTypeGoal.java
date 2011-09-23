@@ -35,7 +35,7 @@ import org.python.pydev.parser.jython.ast.num_typeType;
 
 import uk.ac.ic.doc.gander.ast.ExpressionVisitor;
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
-import uk.ac.ic.doc.gander.flowinference.types.TClass;
+import uk.ac.ic.doc.gander.flowinference.types.TObject;
 import uk.ac.ic.doc.gander.flowinference.types.judgement.SetBasedTypeJudgement;
 import uk.ac.ic.doc.gander.flowinference.types.judgement.Top;
 import uk.ac.ic.doc.gander.flowinference.types.judgement.TypeJudgement;
@@ -86,21 +86,21 @@ public final class ExpressionTypeGoal implements TypeGoal {
 		public TypeFinder(Model model, Namespace scope,
 				SubgoalManager goalManager) {
 			this.goalManager = goalManager;
-			dictType = new SetBasedTypeJudgement(new TClass(model.getTopLevel()
-					.getClasses().get("dict")));
-			listType = new SetBasedTypeJudgement(new TClass(model.getTopLevel()
-					.getClasses().get("list")));
-			setType = new SetBasedTypeJudgement(new TClass(model.getTopLevel()
+			dictType = new SetBasedTypeJudgement(new TObject(model
+					.getTopLevel().getClasses().get("dict")));
+			listType = new SetBasedTypeJudgement(new TObject(model
+					.getTopLevel().getClasses().get("list")));
+			setType = new SetBasedTypeJudgement(new TObject(model.getTopLevel()
 					.getClasses().get("set")));
-			intType = new SetBasedTypeJudgement(new TClass(model.getTopLevel()
+			intType = new SetBasedTypeJudgement(new TObject(model.getTopLevel()
 					.getClasses().get("int")));
-			longType = new SetBasedTypeJudgement(new TClass(model.getTopLevel()
-					.getClasses().get("long")));
-			floatType = new SetBasedTypeJudgement(new TClass(model
+			longType = new SetBasedTypeJudgement(new TObject(model
+					.getTopLevel().getClasses().get("long")));
+			floatType = new SetBasedTypeJudgement(new TObject(model
 					.getTopLevel().getClasses().get("float")));
-			strType = new SetBasedTypeJudgement(new TClass(model.getTopLevel()
+			strType = new SetBasedTypeJudgement(new TObject(model.getTopLevel()
 					.getClasses().get("str")));
-			tupleType = new SetBasedTypeJudgement(new TClass(model
+			tupleType = new SetBasedTypeJudgement(new TObject(model
 					.getTopLevel().getClasses().get("tuple")));
 			topType = new Top();
 		}

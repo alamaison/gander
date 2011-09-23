@@ -6,6 +6,7 @@ import org.python.pydev.parser.jython.ast.Call;
 
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
 import uk.ac.ic.doc.gander.flowinference.types.TClass;
+import uk.ac.ic.doc.gander.flowinference.types.TObject;
 import uk.ac.ic.doc.gander.flowinference.types.Type;
 import uk.ac.ic.doc.gander.flowinference.types.judgement.SetBasedTypeJudgement;
 import uk.ac.ic.doc.gander.flowinference.types.judgement.Top;
@@ -35,20 +36,27 @@ public final class ReturnTypeGoal implements TypeGoal {
 		TypeJudgement callableTypes = goalManager
 				.registerSubgoal(callableTyper);
 		if (callableTypes instanceof SetBasedTypeJudgement) {
+
+			/*
+			 * Calling a class is a constructor call. Constructors are special
+			 * functions so we can infer the return type immediately. It is an
+			 * instance of the class being called.
+			 */
 			Set<Type> types = ((SetBasedTypeJudgement) callableTypes)
 					.getConstituentTypes();
 			if (types.size() == 1) {
 				Type callable = types.iterator().next();
 				if (callable instanceof TClass) {
-					/*
-					 * FIXME: Aaaaargh! confusing class and metaclass types.
-					 * Must fix.
-					 */
-					return callableTypes;
+					return new SetBasedTypeJudgement(new TObject(
+							((TClass) callable).getClassInstance()));
 				}
 			}
+			/*
+			 * TODO: Handle the case where there is more than one possible type.
+			 * Just union the possible results.
+			 */
 		}
-			
+
 		return new Top();
 	}
 

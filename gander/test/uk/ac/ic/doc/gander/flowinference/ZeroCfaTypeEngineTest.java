@@ -15,8 +15,10 @@ import uk.ac.ic.doc.gander.ScopedAstNode;
 import uk.ac.ic.doc.gander.ScopedPrintNode;
 import uk.ac.ic.doc.gander.TaggedNodeAndScopeFinder;
 import uk.ac.ic.doc.gander.flowinference.types.TClass;
+import uk.ac.ic.doc.gander.flowinference.types.TObject;
 import uk.ac.ic.doc.gander.flowinference.types.Type;
 import uk.ac.ic.doc.gander.flowinference.types.judgement.SetBasedTypeJudgement;
+import uk.ac.ic.doc.gander.flowinference.types.judgement.Top;
 import uk.ac.ic.doc.gander.flowinference.types.judgement.TypeJudgement;
 import uk.ac.ic.doc.gander.model.MutableModel;
 
@@ -25,16 +27,14 @@ public class ZeroCfaTypeEngineTest {
 
 	private MutableModel model;
 	private TypeEngine engine;
-	private TClass stringType;
-	private TClass integerType;
-	private TClass listType;
+	private TObject stringType;
+	private TObject integerType;
 
 	@Before
 	public void setup() throws Throwable {
 		model = new RelativeTestModelCreator(TEST_FOLDER, this).getModel();
-		stringType = new TClass(model.getTopLevel().getClasses().get("str"));
-		integerType = new TClass(model.getTopLevel().getClasses().get("int"));
-		listType = new TClass(model.getTopLevel().getClasses().get("list"));
+		stringType = new TObject(model.getTopLevel().getClasses().get("str"));
+		integerType = new TObject(model.getTopLevel().getClasses().get("int"));
 		engine = new ZeroCfaTypeEngine(model);
 	}
 
@@ -58,7 +58,7 @@ public class ZeroCfaTypeEngineTest {
 		TypeJudgement type = engine.typeOf(((Expr) literal.getNode()).value,
 				literal.getScope());
 
-		Type expectedType = new TClass(model.getTopLevel().getClasses().get(
+		Type expectedType = new TObject(model.getTopLevel().getClasses().get(
 				expectedClassName));
 
 		assertEquals("Target of " + literalName.toLowerCase()
@@ -86,7 +86,7 @@ public class ZeroCfaTypeEngineTest {
 		exprType lhs = ((Assign) literal.getNode()).targets[0];
 		TypeJudgement type = engine.typeOf(lhs, literal.getScope());
 
-		Type expectedType = new TClass(model.getTopLevel().getClasses().get(
+		Type expectedType = new TObject(model.getTopLevel().getClasses().get(
 				expectedClassName));
 
 		assertEquals("Target of " + literalName.toLowerCase()
@@ -263,15 +263,78 @@ public class ZeroCfaTypeEngineTest {
 				.getScope());
 
 		assertEquals("Variable's type not inferred correctly",
-				new SetBasedTypeJudgement(new TClass(node.getGlobalNamespace()
+				new SetBasedTypeJudgement(new TObject(node.getGlobalNamespace()
 						.getClasses().get("A"))), type);
 
 		node = findPrintNode("constructor", "what_is_b");
 		type = engine.typeOf(node.getExpression(), node.getScope());
 
 		assertEquals("Variable's type not inferred correctly",
-				new SetBasedTypeJudgement(new TClass(node.getGlobalNamespace()
+				new SetBasedTypeJudgement(new TObject(node.getGlobalNamespace()
 						.getClasses().get("A"))), type);
+	}
+
+	/**
+	 * Type of constructor return value and instance return value should be
+	 * different.
+	 */
+	@Test
+	public void constructorVsInstance() throws Throwable {
+		ScopedPrintNode node = findPrintNode("constructor_vs_instance",
+				"what_is_a");
+		TypeJudgement type = engine.typeOf(node.getExpression(), node
+				.getScope());
+
+		assertEquals("Variable's type not inferred correctly",
+				new SetBasedTypeJudgement(new TObject(node.getGlobalNamespace()
+						.getClasses().get("A"))), type);
+
+		node = findPrintNode("constructor_vs_instance", "what_is_b");
+		type = engine.typeOf(node.getExpression(), node.getScope());
+
+		assertEquals("Variable's type not inferred correctly. This probably "
+				+ "means it gave the type of a class instance the type "
+				+ "of the class object (metaclass)", Top.INSTANCE, type);
+	}
+
+	/**
+	 * The inferred type of the class but be different from the inferred type of
+	 * its instances.
+	 */
+	@Test
+	public void metaclass() throws Throwable {
+		ScopedPrintNode node = findPrintNode("metaclass", "am_i_a_class");
+		TypeJudgement type = engine.typeOf(node.getExpression(), node
+				.getScope());
+
+		assertEquals("W not inferred as a metaclass",
+				new SetBasedTypeJudgement(new TClass(node.getGlobalNamespace()
+						.getClasses().get("W"))), type);
+
+		node = findPrintNode("metaclass", "am_i_also_a_class");
+		type = engine.typeOf(node.getExpression(), node.getScope());
+
+		assertEquals("W not inferred as a metaclass",
+				new SetBasedTypeJudgement(new TClass(node.getGlobalNamespace()
+						.getClasses().get("W"))), type);
+
+		node = findPrintNode("metaclass", "am_i_an_instance");
+		type = engine.typeOf(node.getExpression(), node.getScope());
+
+		assertEquals("Variable's type not inferred correctly. This probably "
+				+ "means it gave the type of a class instance the type "
+				+ "of the class object (metaclass)", new SetBasedTypeJudgement(
+				new TObject(node.getGlobalNamespace().getClasses().get("W"))),
+				type);
+
+		node = findPrintNode("metaclass", "am_i_also_an_instance");
+		type = engine.typeOf(node.getExpression(), node.getScope());
+
+		assertEquals("Variable's type not inferred correctly. This probably "
+				+ "means it gave the type of a class instance the type "
+				+ "of the class object (metaclass)", new SetBasedTypeJudgement(
+				new TObject(node.getGlobalNamespace().getClasses().get("W"))),
+				type);
 	}
 
 	private ScopedAstNode findNode(String moduleName, String tag)
