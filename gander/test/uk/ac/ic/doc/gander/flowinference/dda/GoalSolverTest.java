@@ -27,7 +27,6 @@ public final class GoalSolverTest {
 		private final Integer headValue;
 
 		private List<Integer> tail = new ArrayList<Integer>();
-		private SumGoal tailGoal = null;
 
 		public SumGoal(Iterable<Integer> values) {
 			Iterator<Integer> it = values.iterator();
@@ -48,18 +47,47 @@ public final class GoalSolverTest {
 		}
 
 		public Object recalculateSolution(SubgoalManager engine) {
-			if (!tail.isEmpty() && tailGoal == null) {
-				tailGoal = new SumGoal(tail);
-				engine.registerSubgoal(tailGoal);
-			}
-
-			if (tailGoal != null) {
+			if (!tail.isEmpty()) {
 				return headValue
-						+ (Integer) engine.currentSolutionOfGoal(tailGoal);
+						+ (Integer) engine.registerSubgoal(new SumGoal(tail));
+
 			} else {
 				return headValue;
 			}
 		}
+
+		@Override
+		public int hashCode() {
+			final int prime = 31;
+			int result = 1;
+			result = prime * result
+					+ ((headValue == null) ? 0 : headValue.hashCode());
+			result = prime * result + ((tail == null) ? 0 : tail.hashCode());
+			return result;
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+			if (this == obj)
+				return true;
+			if (obj == null)
+				return false;
+			if (!(obj instanceof SumGoal))
+				return false;
+			SumGoal other = (SumGoal) obj;
+			if (headValue == null) {
+				if (other.headValue != null)
+					return false;
+			} else if (!headValue.equals(other.headValue))
+				return false;
+			if (tail == null) {
+				if (other.tail != null)
+					return false;
+			} else if (!tail.equals(other.tail))
+				return false;
+			return true;
+		}
+		
 	}
 
 	@Test
@@ -109,7 +137,7 @@ public final class GoalSolverTest {
 	private static final class DependencyGoal implements Goal {
 
 		private DirectedGraph<Vertex, DefaultEdge> graph;
-		private Map<Vertex, DependencyGoal> incoming = new HashMap<Vertex, DependencyGoal>();
+		private Set<Vertex> incoming = new HashSet<Vertex>();
 		private Vertex vertex;
 
 		public DependencyGoal(DirectedGraph<Vertex, DefaultEdge> graph,
@@ -118,29 +146,22 @@ public final class GoalSolverTest {
 			this.graph = graph;
 
 			for (DefaultEdge edge : graph.incomingEdgesOf(vertex)) {
-				incoming.put(graph.getEdgeSource(edge), null);
+				incoming.add(graph.getEdgeSource(edge));
 			}
 		}
 
 		public Object initialSolution() {
-			return Collections.unmodifiableSet(incoming.keySet());
+			return Collections.unmodifiableSet(incoming);
 		}
 
 		public Object recalculateSolution(SubgoalManager engine) {
-			Set<Vertex> incomingTransitive = new HashSet<Vertex>(incoming
-					.keySet());
+			Set<Vertex> incomingTransitive = new HashSet<Vertex>(incoming);
 
-			for (Vertex incomingVertex : incoming.keySet()) {
-
-				DependencyGoal g = incoming.get(incomingVertex);
-				if (g == null) {
-					g = new DependencyGoal(graph, incomingVertex);
-					engine.registerSubgoal(g);
-					incoming.put(incomingVertex, g);
-				}
+			for (Vertex incomingVertex : incoming) {
 
 				incomingTransitive.addAll((Set<Vertex>) engine
-						.currentSolutionOfGoal(g));
+						.registerSubgoal(new DependencyGoal(graph,
+								incomingVertex)));
 			}
 
 			return incomingTransitive;
@@ -220,7 +241,7 @@ public final class GoalSolverTest {
 			Goal {
 
 		private DirectedGraph<Vertex, DefaultEdge> graph;
-		private Map<Vertex, DependencyGoalNullInitialSolution> incoming = new HashMap<Vertex, DependencyGoalNullInitialSolution>();
+		private Set<Vertex> incoming = new HashSet<Vertex>();
 		private Vertex vertex;
 
 		public DependencyGoalNullInitialSolution(
@@ -229,7 +250,7 @@ public final class GoalSolverTest {
 			this.graph = graph;
 
 			for (DefaultEdge edge : graph.incomingEdgesOf(vertex)) {
-				incoming.put(graph.getEdgeSource(edge), null);
+				incoming.add(graph.getEdgeSource(edge));
 			}
 		}
 
@@ -238,20 +259,12 @@ public final class GoalSolverTest {
 		}
 
 		public Object recalculateSolution(SubgoalManager engine) {
-			Set<Vertex> incomingTransitive = new HashSet<Vertex>(incoming
-					.keySet());
+			Set<Vertex> incomingTransitive = new HashSet<Vertex>(incoming);
 
-			for (Vertex incomingVertex : incoming.keySet()) {
-
-				DependencyGoalNullInitialSolution g = incoming
-						.get(incomingVertex);
-				if (g == null) {
-					g = new DependencyGoalNullInitialSolution(graph,
-							incomingVertex);
-					engine.registerSubgoal(g);
-					incoming.put(incomingVertex, g);
-				}
-				Set<Vertex> s = (Set<Vertex>) engine.currentSolutionOfGoal(g);
+			for (Vertex incomingVertex : incoming) {
+				Set<Vertex> s = (Set<Vertex>) engine
+						.registerSubgoal(new DependencyGoal(graph,
+								incomingVertex));
 				if (s != null)
 					incomingTransitive.addAll(s);
 			}
