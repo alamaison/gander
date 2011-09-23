@@ -16,10 +16,10 @@ public interface Goal<T> {
 	 * Returns the best-guess solution for the goal, given the provisional
 	 * solutions to subgoals available via the {@link SubgoalManager}.
 	 * 
-	 * @param manager
+	 * @param goalManager
 	 *            Coordinator for subgoals of this goal.
 	 * @return New, provisional solution.
 	 */
-	T recalculateSolution(SubgoalManager manager);
+	T recalculateSolution(SubgoalManager goalManager);
 
 }

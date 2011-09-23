@@ -21,7 +21,7 @@ import uk.ac.ic.doc.gander.model.Model;
 import uk.ac.ic.doc.gander.model.Module;
 import uk.ac.ic.doc.gander.model.Namespace;
 
-final class AttributeTypeGoal implements TypeGoal<TypeJudgement> {
+final class AttributeTypeGoal implements TypeGoal {
 
 	private final Model model;
 	private final Namespace scope;

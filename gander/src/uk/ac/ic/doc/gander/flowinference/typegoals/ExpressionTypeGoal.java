@@ -42,7 +42,7 @@ import uk.ac.ic.doc.gander.flowinference.types.judgement.TypeJudgement;
 import uk.ac.ic.doc.gander.model.Model;
 import uk.ac.ic.doc.gander.model.Namespace;
 
-public final class ExpressionTypeGoal implements TypeGoal<TypeJudgement> {
+public final class ExpressionTypeGoal implements TypeGoal {
 
 	private final exprType expression;
 	private final Model model;
@@ -164,7 +164,8 @@ public final class ExpressionTypeGoal implements TypeGoal<TypeJudgement> {
 
 		@Override
 		public Object visitCall(Call node) throws Exception {
-			return topType;
+			ReturnTypeGoal typer = new ReturnTypeGoal(model, scope, node);
+			return goalManager.registerSubgoal(typer);
 		}
 
 		@Override

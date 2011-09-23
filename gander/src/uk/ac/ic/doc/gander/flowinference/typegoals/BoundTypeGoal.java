@@ -33,7 +33,7 @@ import uk.ac.ic.doc.gander.model.Namespace;
  * Find conservative approximation of the types bound to a given name in a
  * particular enclosing scope.
  */
-public final class BoundTypeGoal implements TypeGoal<TypeJudgement> {
+public final class BoundTypeGoal implements TypeGoal {
 	private final Namespace enclosingScope;
 	private final String name;
 	private final Model model;

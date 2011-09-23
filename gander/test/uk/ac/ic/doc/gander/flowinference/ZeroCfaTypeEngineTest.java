@@ -253,6 +253,27 @@ public class ZeroCfaTypeEngineTest {
 				new SetBasedTypeJudgement(stringType), type);
 	}
 
+	/**
+	 * Infer a type based on assignment from a constructor.
+	 */
+	@Test
+	public void constructor() throws Throwable {
+		ScopedPrintNode node = findPrintNode("constructor", "what_is_a");
+		TypeJudgement type = engine.typeOf(node.getExpression(), node
+				.getScope());
+
+		assertEquals("Variable's type not inferred correctly",
+				new SetBasedTypeJudgement(new TClass(node.getGlobalNamespace()
+						.getClasses().get("A"))), type);
+
+		node = findPrintNode("constructor", "what_is_b");
+		type = engine.typeOf(node.getExpression(), node.getScope());
+
+		assertEquals("Variable's type not inferred correctly",
+				new SetBasedTypeJudgement(new TClass(node.getGlobalNamespace()
+						.getClasses().get("A"))), type);
+	}
+
 	private ScopedAstNode findNode(String moduleName, String tag)
 			throws Exception {
 		return new TaggedNodeAndScopeFinder(model.loadModule(moduleName), tag)

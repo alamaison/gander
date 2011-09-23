@@ -20,7 +20,7 @@ import uk.ac.ic.doc.gander.model.name_binding.Binder;
  * as a simple string rather than an identifier at a particular location, stack
  * frame, or allocated object.
  */
-final class NameTypeGoal implements TypeGoal<TypeJudgement> {
+final class NameTypeGoal implements TypeGoal {
 
 	private final Model model;
 	private final Namespace enclosingScope;

@@ -1,7 +1,8 @@
 package uk.ac.ic.doc.gander.flowinference.typegoals;
 
 import uk.ac.ic.doc.gander.flowinference.dda.Goal;
+import uk.ac.ic.doc.gander.flowinference.types.judgement.TypeJudgement;
 
-interface TypeGoal<T> extends Goal<T> {
+interface TypeGoal extends Goal<TypeJudgement> {
 
 }
