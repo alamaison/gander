@@ -31,7 +31,7 @@ public final class BinderTest {
 	public void globalHiddenByLocal() throws Throwable {
 		ScopedPrintNode node = findPrintNode("global_hidden_by_local",
 				"what_am_i");
-		Namespace scope = binder.resolveScope(node.getExpressionName(), node
+		Namespace scope = binder.resolveBindingScope(node.getExpressionName(), node
 				.getScope());
 
 		assertEquals("This probably means it picked up the global i instead "
@@ -47,7 +47,7 @@ public final class BinderTest {
 	public void globalHiddenByParent() throws Throwable {
 		ScopedPrintNode node = findPrintNode("global_hidden_by_parent",
 				"what_am_i");
-		Namespace scope = binder.resolveScope(node.getExpressionName(), node
+		Namespace scope = binder.resolveBindingScope(node.getExpressionName(), node
 				.getScope());
 
 		assertEquals("This probably means it picked up the global i instead "
@@ -63,7 +63,7 @@ public final class BinderTest {
 	public void globalHiddenByGrandparent() throws Throwable {
 		ScopedPrintNode node = findPrintNode("global_hidden_by_grandparent",
 				"what_am_i");
-		Namespace scope = binder.resolveScope(node.getExpressionName(), node
+		Namespace scope = binder.resolveBindingScope(node.getExpressionName(), node
 				.getScope());
 
 		assertEquals("This probably means it picked up the global i instead "
@@ -79,7 +79,7 @@ public final class BinderTest {
 	public void parentHiddenByLocal() throws Throwable {
 		ScopedPrintNode node = findPrintNode("parent_hidden_by_local",
 				"what_am_i");
-		Namespace scope = binder.resolveScope(node.getExpressionName(), node
+		Namespace scope = binder.resolveBindingScope(node.getExpressionName(), node
 				.getScope());
 
 		assertEquals("This probably means it picked up the global i instead "
@@ -95,7 +95,7 @@ public final class BinderTest {
 	@Test
 	public void globalDeclarationLocal() throws Throwable {
 		ScopedPrintNode node = findPrintNode("global_decl_local", "what_am_i");
-		Namespace scope = binder.resolveScope(node.getExpressionName(), node
+		Namespace scope = binder.resolveBindingScope(node.getExpressionName(), node
 				.getScope());
 
 		assertEquals("This probably means it ignored the 'global' statement "
@@ -112,7 +112,7 @@ public final class BinderTest {
 	public void globalDeclarationInAncestor() throws Throwable {
 		ScopedPrintNode node = findPrintNode("global_decl_in_ancestor",
 				"what_am_i");
-		Namespace scope = binder.resolveScope(node.getExpressionName(), node
+		Namespace scope = binder.resolveBindingScope(node.getExpressionName(), node
 				.getScope());
 
 		assertEquals("This probably means it ignored the 'global' statement "
@@ -129,7 +129,7 @@ public final class BinderTest {
 	public void globalDeclarationInGrandcestor() throws Throwable {
 		ScopedPrintNode node = findPrintNode("global_decl_in_grandcestor",
 				"what_am_i");
-		Namespace scope = binder.resolveScope(node.getExpressionName(), node
+		Namespace scope = binder.resolveBindingScope(node.getExpressionName(), node
 				.getScope());
 
 		assertEquals("This probably "
@@ -146,7 +146,7 @@ public final class BinderTest {
 	public void globalDeclarationInChild() throws Throwable {
 		ScopedPrintNode node = findPrintNode("global_decl_in_child",
 				"what_am_i");
-		Namespace scope = binder.resolveScope(node.getExpressionName(), node
+		Namespace scope = binder.resolveBindingScope(node.getExpressionName(), node
 				.getScope());
 
 		assertEquals("This probably "
@@ -165,7 +165,7 @@ public final class BinderTest {
 	public void localOverridingGlobalDeclarationInAncestor() throws Throwable {
 		ScopedPrintNode node = findPrintNode(
 				"local_overriding_global_decl_in_ancestor", "what_am_i_locally");
-		Namespace scope = binder.resolveScope(node.getExpressionName(), node
+		Namespace scope = binder.resolveBindingScope(node.getExpressionName(), node
 				.getScope());
 
 		assertEquals("This probably means it saw its parent's 'global' "
@@ -175,7 +175,7 @@ public final class BinderTest {
 
 		node = findPrintNode("local_overriding_global_decl_in_ancestor",
 				"what_am_i_outside");
-		scope = binder.resolveScope(node.getExpressionName(), node.getScope());
+		scope = binder.resolveBindingScope(node.getExpressionName(), node.getScope());
 
 		assertEquals("This probably means the definition in h() was bound "
 				+ "to the global instead of the local causing the string "
@@ -191,7 +191,7 @@ public final class BinderTest {
 	public void classScopingAnomaly() throws Throwable {
 		ScopedPrintNode node = findPrintNode("class_scoping_anomaly",
 				"what_am_i_in_a_method");
-		Namespace scope = binder.resolveScope(node.getExpressionName(), node
+		Namespace scope = binder.resolveBindingScope(node.getExpressionName(), node
 				.getScope());
 
 		assertEquals("This probably "
@@ -201,7 +201,7 @@ public final class BinderTest {
 				+ "non-class scope.", node.getGlobalNamespace(), scope);
 
 		node = findPrintNode("class_scoping_anomaly", "what_am_i_in_the_class");
-		scope = binder.resolveScope(node.getExpressionName(), node.getScope());
+		scope = binder.resolveBindingScope(node.getExpressionName(), node.getScope());
 
 		assertEquals("Within the class's code block, i should refer "
 				+ "to the one defined the the class's namespace", node
@@ -216,7 +216,7 @@ public final class BinderTest {
 	public void classScopingAnomalyDeep() throws Throwable {
 		ScopedPrintNode node = findPrintNode("class_scoping_anomaly_deep",
 				"what_am_i_in_a_method");
-		Namespace scope = binder.resolveScope(node.getExpressionName(), node
+		Namespace scope = binder.resolveBindingScope(node.getExpressionName(), node
 				.getScope());
 
 		assertEquals("This probably "
@@ -227,7 +227,7 @@ public final class BinderTest {
 
 		node = findPrintNode("class_scoping_anomaly_deep",
 				"what_am_i_in_the_parent_class");
-		scope = binder.resolveScope(node.getExpressionName(), node.getScope());
+		scope = binder.resolveBindingScope(node.getExpressionName(), node.getScope());
 
 		assertEquals("Within the class's code block, i should refer "
 				+ "to the one defined the the class's namespace", node
@@ -236,7 +236,7 @@ public final class BinderTest {
 
 		node = findPrintNode("class_scoping_anomaly_deep",
 				"what_am_i_in_the_grandparent_class");
-		scope = binder.resolveScope(node.getExpressionName(), node.getScope());
+		scope = binder.resolveBindingScope(node.getExpressionName(), node.getScope());
 
 		assertEquals("Within the class's code block, i should refer "
 				+ "to the one defined the the class's namespace", node
@@ -252,7 +252,7 @@ public final class BinderTest {
 	public void classScopeNestedClass() throws Throwable {
 		ScopedPrintNode node = findPrintNode("class_scope_nested_class",
 				"what_am_i");
-		Namespace scope = binder.resolveScope(node.getExpressionName(), node
+		Namespace scope = binder.resolveBindingScope(node.getExpressionName(), node
 				.getScope());
 
 		assertEquals("Variable not bound correctly. This probably "
@@ -266,7 +266,7 @@ public final class BinderTest {
 	@Test
 	public void subtleGlobalHiding() throws Throwable {
 		ScopedPrintNode node = findPrintNode("subtle_hiding_global", "who_am_i");
-		Namespace scope = binder.resolveScope(node.getExpressionName(), node
+		Namespace scope = binder.resolveBindingScope(node.getExpressionName(), node
 				.getScope());
 
 		assertEquals("Variable not bound in function f's namespace. This "
@@ -282,7 +282,7 @@ public final class BinderTest {
 	public void functionParameters() throws Throwable {
 		ScopedPrintNode node = findPrintNode("function_parameters",
 				"whose_am_i");
-		Namespace scope = binder.resolveScope(node.getExpressionName(), node
+		Namespace scope = binder.resolveBindingScope(node.getExpressionName(), node
 				.getScope());
 
 		assertEquals(

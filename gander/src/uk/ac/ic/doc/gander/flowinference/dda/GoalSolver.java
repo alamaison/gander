@@ -57,7 +57,7 @@ public final class GoalSolver {
 				return knowledgebase.getLastSolution(subgoal);
 			}
 
-			public void registerSubgoal(Goal newSubgoal) {
+			public Object registerSubgoal(Goal newSubgoal) {
 				/*
 				 * Only add the subgoal to the worklist if it hasn't been seen
 				 * before. If it already existed, the parent already had access
@@ -69,12 +69,18 @@ public final class GoalSolver {
 				if (knowledgebase.addGoal(goal, newSubgoal)) {
 					workList.add(newSubgoal);
 				}
+				
+				return currentSolutionOfGoal(newSubgoal);
 			}
 		});
 
 		knowledgebase.updateSolution(goal, newSolution);
 
-		return !newSolution.equals(oldSolution);
+		if (newSolution == null) {
+			return oldSolution != null;
+		} else {
+			return !newSolution.equals(oldSolution);
+		}
 	}
 }
 

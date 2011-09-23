@@ -40,7 +40,7 @@ public final class Binder {
 
 	private static final BindingScopeResolver RESOLVER = new BindingScopeResolver();
 
-	public Namespace resolveScope(String name, Namespace enclosingScope) {
+	public Namespace resolveBindingScope(String name, Namespace enclosingScope) {
 		return RESOLVER.resolveToken(name, enclosingScope);
 	}
 

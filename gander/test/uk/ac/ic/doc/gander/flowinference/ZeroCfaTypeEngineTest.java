@@ -15,15 +15,16 @@ import uk.ac.ic.doc.gander.ScopedAstNode;
 import uk.ac.ic.doc.gander.ScopedPrintNode;
 import uk.ac.ic.doc.gander.TaggedNodeAndScopeFinder;
 import uk.ac.ic.doc.gander.flowinference.types.TClass;
-import uk.ac.ic.doc.gander.flowinference.types.TUnion;
 import uk.ac.ic.doc.gander.flowinference.types.Type;
+import uk.ac.ic.doc.gander.flowinference.types.judgement.SetBasedTypeJudgement;
+import uk.ac.ic.doc.gander.flowinference.types.judgement.TypeJudgement;
 import uk.ac.ic.doc.gander.model.MutableModel;
 
 public class ZeroCfaTypeEngineTest {
 	private static final String TEST_FOLDER = "python_test_code/type_engine";
 
 	private MutableModel model;
-	private ZeroCfaTypeEngine engine;
+	private TypeEngine engine;
 	private TClass stringType;
 	private TClass integerType;
 	private TClass listType;
@@ -54,16 +55,15 @@ public class ZeroCfaTypeEngineTest {
 		ScopedAstNode literal = findNode("literals", literalName.toLowerCase()
 				+ "_literal");
 
-		Type type = engine.typeOf(((Expr) literal.getNode()).value, literal
-				.getScope());
+		TypeJudgement type = engine.typeOf(((Expr) literal.getNode()).value,
+				literal.getScope());
 
-		assertEquals(literalName
-				+ " literal's type not inferred as an object type",
-				TClass.class, type.getClass());
+		Type expectedType = new TClass(model.getTopLevel().getClasses().get(
+				expectedClassName));
 
-		assertEquals(literalName + " literal's type not inferred correctly",
-				model.getTopLevel().getClasses().get(expectedClassName),
-				((TClass) type).getClassInstance());
+		assertEquals("Target of " + literalName.toLowerCase()
+				+ " literal's type not inferred correctly",
+				new SetBasedTypeJudgement(expectedType), type);
 	}
 
 	/**
@@ -84,16 +84,14 @@ public class ZeroCfaTypeEngineTest {
 				+ "_literal_assignment");
 
 		exprType lhs = ((Assign) literal.getNode()).targets[0];
-		Type type = engine.typeOf(lhs, literal.getScope());
+		TypeJudgement type = engine.typeOf(lhs, literal.getScope());
+
+		Type expectedType = new TClass(model.getTopLevel().getClasses().get(
+				expectedClassName));
 
 		assertEquals("Target of " + literalName.toLowerCase()
-				+ " literal assignment's type not inferred as "
-				+ "an object type", TClass.class, type.getClass());
-
-		assertEquals("Target of " + literalName.toLowerCase()
-				+ " literal assignment's type not inferred correctly", model
-				.getTopLevel().getClasses().get(expectedClassName),
-				((TClass) type).getClassInstance());
+				+ " literal assignment's type not inferred correctly",
+				new SetBasedTypeJudgement(expectedType), type);
 	}
 
 	@Test
@@ -170,12 +168,13 @@ public class ZeroCfaTypeEngineTest {
 	public void multipleLocalDefinitions() throws Throwable {
 		ScopedPrintNode node = findPrintNode("multiple_local_definitions",
 				"am_i_a_string");
-		Type type = engine.typeOf(node.getExpression(), node.getScope());
+		TypeJudgement type = engine.typeOf(node.getExpression(), node
+				.getScope());
 
 		ArrayList<Type> types = new ArrayList<Type>();
 		types.add(stringType);
 		types.add(integerType);
-		Type expectedType = new TUnion(types);
+		TypeJudgement expectedType = new SetBasedTypeJudgement(types);
 
 		assertEquals("Variable's type not inferred correctly. We're "
 				+ "expecting a union of str and int because the analysis is "
@@ -196,9 +195,11 @@ public class ZeroCfaTypeEngineTest {
 	public void classAttributeOutside() throws Throwable {
 		ScopedPrintNode node = findPrintNode("class_attribute_outside",
 				"what_am_i");
-		Type type = engine.typeOf(node.getExpression(), node.getScope());
+		TypeJudgement type = engine.typeOf(node.getExpression(), node
+				.getScope());
 
-		assertEquals("Variable's type not inferred correctly", stringType, type);
+		assertEquals("Variable's type not inferred correctly",
+				new SetBasedTypeJudgement(stringType), type);
 	}
 
 	/**
@@ -208,14 +209,48 @@ public class ZeroCfaTypeEngineTest {
 	public void classAttributeInside() throws Throwable {
 		ScopedPrintNode node = findPrintNode("class_attribute_inside",
 				"what_am_i");
-		Type type = engine.typeOf(node.getExpression(), node.getScope());
+		TypeJudgement type = engine.typeOf(node.getExpression(), node
+				.getScope());
 
-		assertEquals("Variable's type not inferred correctly", stringType, type);
+		assertEquals("Variable's type not inferred correctly",
+				new SetBasedTypeJudgement(stringType), type);
 
 		node = findPrintNode("class_attribute_inside", "what_am_i_via_self");
 		type = engine.typeOf(node.getExpression(), node.getScope());
 
-		assertEquals("Variable's type not inferred correctly", stringType, type);
+		assertEquals("Variable's type not inferred correctly",
+				new SetBasedTypeJudgement(stringType), type);
+	}
+
+	/**
+	 * A variable is assigned directly to itself. This might cause type
+	 * inference to recurse infinitely leading to a stack overflow unless
+	 * handled properly.
+	 */
+	@Test
+	public void selfAssignment() throws Throwable {
+		ScopedPrintNode node = findPrintNode("self_assignment", "what_am_i");
+		TypeJudgement type = engine.typeOf(node.getExpression(), node
+				.getScope());
+
+		assertEquals("Variable's type not inferred correctly",
+				new SetBasedTypeJudgement(stringType), type);
+	}
+
+	/**
+	 * Like selfAssignment, a variable is assigned to itself but, this time,
+	 * indirectly. The consequences are the same but harder to detect the case
+	 * and prevent it.
+	 */
+	@Test
+	public void selfAssignmentIndirect() throws Throwable {
+		ScopedPrintNode node = findPrintNode("self_assignment_indirect",
+				"what_am_i");
+		TypeJudgement type = engine.typeOf(node.getExpression(), node
+				.getScope());
+
+		assertEquals("Variable's type not inferred correctly",
+				new SetBasedTypeJudgement(stringType), type);
 	}
 
 	private ScopedAstNode findNode(String moduleName, String tag)

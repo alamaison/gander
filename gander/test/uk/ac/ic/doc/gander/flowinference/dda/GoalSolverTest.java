@@ -216,4 +216,118 @@ public final class GoalSolverTest {
 		assertEquals(expectedDependencies, dependencies);
 	}
 
+	private static final class DependencyGoalNullInitialSolution implements
+			Goal {
+
+		private DirectedGraph<Vertex, DefaultEdge> graph;
+		private Map<Vertex, DependencyGoalNullInitialSolution> incoming = new HashMap<Vertex, DependencyGoalNullInitialSolution>();
+		private Vertex vertex;
+
+		public DependencyGoalNullInitialSolution(
+				DirectedGraph<Vertex, DefaultEdge> graph, Vertex vertex) {
+			this.vertex = vertex;
+			this.graph = graph;
+
+			for (DefaultEdge edge : graph.incomingEdgesOf(vertex)) {
+				incoming.put(graph.getEdgeSource(edge), null);
+			}
+		}
+
+		public Object initialSolution() {
+			return null;
+		}
+
+		public Object recalculateSolution(SubgoalManager engine) {
+			Set<Vertex> incomingTransitive = new HashSet<Vertex>(incoming
+					.keySet());
+
+			for (Vertex incomingVertex : incoming.keySet()) {
+
+				DependencyGoalNullInitialSolution g = incoming
+						.get(incomingVertex);
+				if (g == null) {
+					g = new DependencyGoalNullInitialSolution(graph,
+							incomingVertex);
+					engine.registerSubgoal(g);
+					incoming.put(incomingVertex, g);
+				}
+				Set<Vertex> s = (Set<Vertex>) engine.currentSolutionOfGoal(g);
+				if (s != null)
+					incomingTransitive.addAll(s);
+			}
+
+			return incomingTransitive;
+		}
+
+		@Override
+		public int hashCode() {
+			final int prime = 31;
+			int result = 1;
+			result = prime * result
+					+ ((vertex == null) ? 0 : vertex.hashCode());
+			return result;
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+			if (this == obj)
+				return true;
+			if (obj == null)
+				return false;
+			if (getClass() != obj.getClass())
+				return false;
+			DependencyGoalNullInitialSolution other = (DependencyGoalNullInitialSolution) obj;
+			if (vertex == null) {
+				if (other.vertex != null)
+					return false;
+			} else if (!vertex.equals(other.vertex))
+				return false;
+			return true;
+		}
+
+		@Override
+		public String toString() {
+			return "DependencyGoal [vertex=" + vertex + "]";
+		}
+	}
+
+	@Test
+	public void demandDrivenDependencyAnalysisNullInitial() {
+		final DirectedGraph<Vertex, DefaultEdge> graph = new DefaultDirectedGraph<Vertex, DefaultEdge>(
+				DefaultEdge.class);
+
+		Vertex a = new Vertex("a");
+		Vertex b = new Vertex("b");
+		Vertex c = new Vertex("c");
+		Vertex d = new Vertex("d");
+		Vertex e = new Vertex("e");
+		Vertex f = new Vertex("f");
+		graph.addVertex(a);
+		graph.addVertex(b);
+		graph.addVertex(c);
+		graph.addVertex(d);
+		graph.addVertex(e);
+		graph.addVertex(f);
+		graph.addEdge(a, b);
+		graph.addEdge(b, c);
+		graph.addEdge(b, d);
+		graph.addEdge(c, e);
+		graph.addEdge(d, e);
+		graph.addEdge(e, b);
+		graph.addEdge(e, f);
+
+		GoalSolver solver = new GoalSolver(
+				new DependencyGoalNullInitialSolution(graph, c));
+		Set<Vertex> dependencies = (Set<Vertex>) solver.solve();
+
+		Set<Vertex> expectedDependencies = new HashSet<Vertex>();
+		expectedDependencies.add(e);
+		expectedDependencies.add(c);
+		expectedDependencies.add(d);
+		expectedDependencies.add(b);
+		expectedDependencies.add(a);
+
+		assertEquals(expectedDependencies, dependencies);
+	}
+
 }

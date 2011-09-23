@@ -116,7 +116,15 @@ public final class Function implements Namespace {
 			public List<String> getFormalParameters() {
 				ArrayList<String> args = new ArrayList<String>();
 				for (exprType expr : function.args.args) {
-					args.add(((Name) expr).id);
+					if (expr instanceof Name) {
+						args.add(((Name) expr).id);
+					} else {
+						/*
+						 * TODO: Work out what we want to do ... and why this
+						 * even happens. I've seen this be a Tuple, for
+						 * instance.
+						 */
+					}
 				}
 				return args;
 			}
