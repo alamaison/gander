@@ -2,7 +2,6 @@ package uk.ac.ic.doc.gander.flowinference.typegoals;
 
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
 import uk.ac.ic.doc.gander.flowinference.types.judgement.SetBasedTypeJudgement;
-import uk.ac.ic.doc.gander.flowinference.types.judgement.Top;
 import uk.ac.ic.doc.gander.flowinference.types.judgement.TypeJudgement;
 import uk.ac.ic.doc.gander.model.Model;
 import uk.ac.ic.doc.gander.model.Namespace;
@@ -21,7 +20,7 @@ import uk.ac.ic.doc.gander.model.name_binding.Binder;
  * as a simple string rather than an identifier at a particular location, stack
  * frame, or allocated object.
  */
-final class NameTypeGoal implements TypeGoal {
+final class NameTypeGoal implements TypeGoal<TypeJudgement> {
 
 	private final Model model;
 	private final Namespace enclosingScope;
@@ -33,11 +32,11 @@ final class NameTypeGoal implements TypeGoal {
 		this.name = tokenName;
 	}
 
-	public Object initialSolution() {
+	public TypeJudgement initialSolution() {
 		return SetBasedTypeJudgement.BOTTOM;
 	}
 
-	public Object recalculateSolution(SubgoalManager goalManager) {
+	public TypeJudgement recalculateSolution(SubgoalManager goalManager) {
 
 		/**
 		 * FIXME: This is completely wrong. We only look for bindings in the
@@ -60,8 +59,8 @@ final class NameTypeGoal implements TypeGoal {
 		final Namespace bindingScope = new Binder().resolveBindingScope(name,
 				enclosingScope);
 
-		return (TypeJudgement) goalManager
-				.registerSubgoal(new BoundTypeGoal(model, bindingScope, name));
+		return goalManager.registerSubgoal(new BoundTypeGoal(model,
+				bindingScope, name));
 
 	}
 

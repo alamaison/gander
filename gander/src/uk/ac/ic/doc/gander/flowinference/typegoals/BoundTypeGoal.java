@@ -33,7 +33,7 @@ import uk.ac.ic.doc.gander.model.Namespace;
  * Find conservative approximation of the types bound to a given name in a
  * particular enclosing scope.
  */
-public final class BoundTypeGoal implements TypeGoal {
+public final class BoundTypeGoal implements TypeGoal<TypeJudgement> {
 	private final Namespace enclosingScope;
 	private final String name;
 	private final Model model;
@@ -44,11 +44,11 @@ public final class BoundTypeGoal implements TypeGoal {
 		this.name = name;
 	}
 
-	public Object initialSolution() {
+	public TypeJudgement initialSolution() {
 		return SetBasedTypeJudgement.BOTTOM;
 	}
 
-	public Object recalculateSolution(SubgoalManager manager) {
+	public TypeJudgement recalculateSolution(SubgoalManager manager) {
 
 		return new BoundTypeVisitor(manager).getJudgement();
 	}
@@ -263,7 +263,7 @@ public final class BoundTypeGoal implements TypeGoal {
 					// compute rhs type on demand
 					if (rhsType == null) {
 
-						rhsType = (TypeJudgement) goalManager
+						rhsType = goalManager
 								.registerSubgoal(new ExpressionTypeGoal(model,
 										enclosingScope, node.value));
 						// assert rhsType != null;

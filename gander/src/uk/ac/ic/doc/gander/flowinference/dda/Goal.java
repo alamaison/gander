@@ -1,6 +1,6 @@
 package uk.ac.ic.doc.gander.flowinference.dda;
 
-public interface Goal {
+public interface Goal<T> {
 
 	/**
 	 * Most optimistic solution to the problem.
@@ -10,7 +10,7 @@ public interface Goal {
 	 * 
 	 * @return 'Maximally precise' solution.
 	 */
-	Object initialSolution();
+	T initialSolution();
 
 	/**
 	 * Returns the best-guess solution for the goal, given the provisional
@@ -20,6 +20,6 @@ public interface Goal {
 	 *            Coordinator for subgoals of this goal.
 	 * @return New, provisional solution.
 	 */
-	Object recalculateSolution(SubgoalManager manager);
+	T recalculateSolution(SubgoalManager manager);
 
 }

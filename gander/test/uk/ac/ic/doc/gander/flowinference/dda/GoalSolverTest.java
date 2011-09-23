@@ -4,11 +4,9 @@ import static org.junit.Assert.assertEquals;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import org.jgrapht.DirectedGraph;
@@ -22,7 +20,7 @@ public final class GoalSolverTest {
 	 * A very basic goal that sums a list. Importantly, the goals are never
 	 * circularly-dependent.
 	 */
-	private static final class SumGoal implements Goal {
+	private static final class SumGoal implements Goal<Integer> {
 
 		private final Integer headValue;
 
@@ -42,14 +40,13 @@ public final class GoalSolverTest {
 			}
 		}
 
-		public Object initialSolution() {
+		public Integer initialSolution() {
 			return new Integer(0);
 		}
 
-		public Object recalculateSolution(SubgoalManager engine) {
+		public Integer recalculateSolution(SubgoalManager engine) {
 			if (!tail.isEmpty()) {
-				return headValue
-						+ (Integer) engine.registerSubgoal(new SumGoal(tail));
+				return headValue + engine.registerSubgoal(new SumGoal(tail));
 
 			} else {
 				return headValue;
@@ -87,7 +84,7 @@ public final class GoalSolverTest {
 				return false;
 			return true;
 		}
-		
+
 	}
 
 	@Test
@@ -97,7 +94,7 @@ public final class GoalSolverTest {
 		nums.add(5);
 		nums.add(6000);
 
-		GoalSolver solver = new GoalSolver(new SumGoal(nums));
+		GoalSolver<Integer> solver = new GoalSolver<Integer>(new SumGoal(nums));
 		Object solution = solver.solve();
 		assertEquals(new Integer(6006), solution);
 	}
@@ -106,7 +103,7 @@ public final class GoalSolverTest {
 	public void demandDrivenSummingNothingToDo() {
 		List<Integer> nums = new ArrayList<Integer>();
 
-		GoalSolver solver = new GoalSolver(new SumGoal(nums));
+		GoalSolver<Integer> solver = new GoalSolver<Integer>(new SumGoal(nums));
 		Object solution = solver.solve();
 		assertEquals(new Integer(0), solution);
 	}
@@ -116,7 +113,7 @@ public final class GoalSolverTest {
 		List<Integer> nums = new ArrayList<Integer>();
 		nums.add(6000);
 
-		GoalSolver solver = new GoalSolver(new SumGoal(nums));
+		GoalSolver<Integer> solver = new GoalSolver<Integer>(new SumGoal(nums));
 		Object solution = solver.solve();
 		assertEquals(new Integer(6000), solution);
 	}
@@ -134,7 +131,7 @@ public final class GoalSolverTest {
 		}
 	}
 
-	private static final class DependencyGoal implements Goal {
+	private static final class DependencyGoal implements Goal<Set<Vertex>> {
 
 		private DirectedGraph<Vertex, DefaultEdge> graph;
 		private Set<Vertex> incoming = new HashSet<Vertex>();
@@ -150,16 +147,16 @@ public final class GoalSolverTest {
 			}
 		}
 
-		public Object initialSolution() {
+		public Set<Vertex> initialSolution() {
 			return Collections.unmodifiableSet(incoming);
 		}
 
-		public Object recalculateSolution(SubgoalManager engine) {
+		public Set<Vertex> recalculateSolution(SubgoalManager engine) {
 			Set<Vertex> incomingTransitive = new HashSet<Vertex>(incoming);
 
 			for (Vertex incomingVertex : incoming) {
 
-				incomingTransitive.addAll((Set<Vertex>) engine
+				incomingTransitive.addAll(engine
 						.registerSubgoal(new DependencyGoal(graph,
 								incomingVertex)));
 			}
@@ -224,8 +221,9 @@ public final class GoalSolverTest {
 		graph.addEdge(e, b);
 		graph.addEdge(e, f);
 
-		GoalSolver solver = new GoalSolver(new DependencyGoal(graph, c));
-		Set<Vertex> dependencies = (Set<Vertex>) solver.solve();
+		GoalSolver<Set<Vertex>> solver = new GoalSolver<Set<Vertex>>(
+				new DependencyGoal(graph, c));
+		Set<Vertex> dependencies = solver.solve();
 
 		Set<Vertex> expectedDependencies = new HashSet<Vertex>();
 		expectedDependencies.add(e);
@@ -238,7 +236,7 @@ public final class GoalSolverTest {
 	}
 
 	private static final class DependencyGoalNullInitialSolution implements
-			Goal {
+			Goal<Set<Vertex>> {
 
 		private DirectedGraph<Vertex, DefaultEdge> graph;
 		private Set<Vertex> incoming = new HashSet<Vertex>();
@@ -254,17 +252,17 @@ public final class GoalSolverTest {
 			}
 		}
 
-		public Object initialSolution() {
+		public Set<Vertex> initialSolution() {
 			return null;
 		}
 
-		public Object recalculateSolution(SubgoalManager engine) {
+		public Set<Vertex> recalculateSolution(SubgoalManager engine) {
 			Set<Vertex> incomingTransitive = new HashSet<Vertex>(incoming);
 
 			for (Vertex incomingVertex : incoming) {
-				Set<Vertex> s = (Set<Vertex>) engine
-						.registerSubgoal(new DependencyGoal(graph,
-								incomingVertex));
+				Set<Vertex> s = engine
+						.registerSubgoal(new DependencyGoalNullInitialSolution(
+								graph, incomingVertex));
 				if (s != null)
 					incomingTransitive.addAll(s);
 			}
@@ -329,9 +327,9 @@ public final class GoalSolverTest {
 		graph.addEdge(e, b);
 		graph.addEdge(e, f);
 
-		GoalSolver solver = new GoalSolver(
+		GoalSolver<Set<Vertex>> solver = new GoalSolver<Set<Vertex>>(
 				new DependencyGoalNullInitialSolution(graph, c));
-		Set<Vertex> dependencies = (Set<Vertex>) solver.solve();
+		Set<Vertex> dependencies = solver.solve();
 
 		Set<Vertex> expectedDependencies = new HashSet<Vertex>();
 		expectedDependencies.add(e);

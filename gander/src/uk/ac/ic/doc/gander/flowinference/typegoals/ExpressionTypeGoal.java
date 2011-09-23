@@ -42,7 +42,7 @@ import uk.ac.ic.doc.gander.flowinference.types.judgement.TypeJudgement;
 import uk.ac.ic.doc.gander.model.Model;
 import uk.ac.ic.doc.gander.model.Namespace;
 
-public final class ExpressionTypeGoal implements TypeGoal {
+public final class ExpressionTypeGoal implements TypeGoal<TypeJudgement> {
 
 	private final exprType expression;
 	private final Model model;
@@ -54,14 +54,14 @@ public final class ExpressionTypeGoal implements TypeGoal {
 		this.expression = expression;
 	}
 
-	public Object initialSolution() {
+	public TypeJudgement initialSolution() {
 		return SetBasedTypeJudgement.BOTTOM;
 	}
 
-	public Object recalculateSolution(SubgoalManager goalManager) {
+	public TypeJudgement recalculateSolution(SubgoalManager goalManager) {
 		TypeFinder finder = new TypeFinder(model, scope, goalManager);
 		try {
-			return expression.accept(finder);
+			return (TypeJudgement) expression.accept(finder);
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}

@@ -16,48 +16,49 @@ import org.jgrapht.graph.DefaultEdge;
  * 
  * An instance of this class is only valid for one goal as it must maintain
  * state.
+ * @param <T>
  */
-public final class GoalSolver {
+public final class GoalSolver<T> {
 
 	private final WorkList workList = new WorkList();
 	private final KnowledgeBase knowledgebase;
-	private final Goal rootGoal;
+	private final Goal<T> rootGoal;
 
-	public GoalSolver(Goal goal) {
+	public GoalSolver(Goal<T> goal) {
 		rootGoal = goal;
 		workList.add(goal);
 		knowledgebase = new KnowledgeBase(goal);
 	}
 
-	public Object solve() {
+	public T solve() {
 		while (!workList.isEmpty()) {
 			iterate();
 		}
 
-		return knowledgebase.getLastSolution(rootGoal);
+		return (T) knowledgebase.getLastSolution(rootGoal);
 	}
 
 	private void iterate() {
-		Goal workItem = workList.nextWorkItem();
+		Goal<?> workItem = workList.nextWorkItem();
 		boolean changed = update(workItem);
 		if (changed) {
 			workList.addAll(goalsDependentOnThisOne(workItem));
 		}
 	}
 
-	private Collection<? extends Goal> goalsDependentOnThisOne(Goal goal) {
+	private Collection<? extends Goal<?>> goalsDependentOnThisOne(Goal<?> goal) {
 		return knowledgebase.dependents(goal);
 	}
 
-	private boolean update(final Goal goal) {
+	private boolean update(final Goal<?> goal) {
 		Object oldSolution = knowledgebase.getLastSolution(goal);
 		Object newSolution = goal.recalculateSolution(new SubgoalManager() {
 
-			public Object currentSolutionOfGoal(Goal subgoal) {
+			private Object currentSolutionOfGoal(Goal<?> subgoal) {
 				return knowledgebase.getLastSolution(subgoal);
 			}
 
-			public Object registerSubgoal(Goal newSubgoal) {
+			public <R> R registerSubgoal(Goal<R> newSubgoal) {
 				/*
 				 * Only add the subgoal to the worklist if it hasn't been seen
 				 * before. If it already existed, the parent already had access
@@ -70,7 +71,7 @@ public final class GoalSolver {
 					workList.add(newSubgoal);
 				}
 				
-				return currentSolutionOfGoal(newSubgoal);
+				return (R) currentSolutionOfGoal(newSubgoal);
 			}
 		});
 
@@ -93,11 +94,11 @@ public final class GoalSolver {
  * requirements on the caller.
  */
 final class DependencyGraph {
-	private final DirectedGraph<Goal, DefaultEdge> graph = new DefaultDirectedGraph<Goal, DefaultEdge>(
+	private final DirectedGraph<Goal<?>, DefaultEdge> graph = new DefaultDirectedGraph<Goal<?>, DefaultEdge>(
 			DefaultEdge.class);
 
-	Collection<? extends Goal> dependents(Goal goal) {
-		Set<Goal> deps = new HashSet<Goal>();
+	Collection<? extends Goal<?>> dependents(Goal<?> goal) {
+		Set<Goal<?>> deps = new HashSet<Goal<?>>();
 		if (graph.containsVertex(goal)) {
 			for (DefaultEdge edge : graph.incomingEdgesOf(goal)) {
 				deps.add(graph.getEdgeSource(edge));
@@ -106,7 +107,7 @@ final class DependencyGraph {
 		return deps;
 	}
 
-	void addDependency(Goal parent, Goal subgoal) {
+	void addDependency(Goal<?> parent, Goal<?> subgoal) {
 		graph.addVertex(parent);
 		graph.addVertex(subgoal);
 		graph.addEdge(parent, subgoal);
@@ -115,18 +116,18 @@ final class DependencyGraph {
 }
 
 final class KnowledgeBase {
-	private final Map<Goal, Object> solutionStore = new HashMap<Goal, Object>();
+	private final Map<Goal<?>, Object> solutionStore = new HashMap<Goal<?>, Object>();
 	private final DependencyGraph dependencies = new DependencyGraph();
 
-	KnowledgeBase(Goal goal) {
+	KnowledgeBase(Goal<?> goal) {
 		solutionStore.put(goal, goal.initialSolution());
 	}
 
-	Collection<? extends Goal> dependents(Goal goal) {
+	Collection<? extends Goal<?>> dependents(Goal<?> goal) {
 		return dependencies.dependents(goal);
 	}
 
-	boolean addGoal(Goal parent, Goal subgoal) {
+	boolean addGoal(Goal<?> parent, Goal<?> subgoal) {
 		dependencies.addDependency(parent, subgoal);
 
 		if (!solutionStore.containsKey(subgoal)) {
@@ -137,11 +138,11 @@ final class KnowledgeBase {
 		}
 	}
 
-	Object getLastSolution(Goal goal) {
+	Object getLastSolution(Goal<?> goal) {
 		return solutionStore.get(goal);
 	}
 
-	void updateSolution(Goal goal, Object newSolution) {
+	void updateSolution(Goal<?> goal, Object newSolution) {
 		assert solutionStore.containsKey(goal);
 		solutionStore.put(goal, newSolution);
 	}
@@ -154,24 +155,24 @@ final class KnowledgeBase {
  * other words, this should act rather like a set.
  */
 final class WorkList {
-	Stack<Goal> workList = new Stack<Goal>();
+	Stack<Goal<?>> workList = new Stack<Goal<?>>();
 
 	boolean isEmpty() {
 		return workList.isEmpty();
 	}
 
-	void add(Goal goal) {
+	void add(Goal<?> goal) {
 		if (!workList.contains(goal))
 			workList.push(goal);
 	}
 
-	void addAll(Collection<? extends Goal> goals) {
-		for (Goal goal : goals) {
+	void addAll(Collection<? extends Goal<?>> goals) {
+		for (Goal<?> goal : goals) {
 			add(goal);
 		}
 	}
 
-	Goal nextWorkItem() {
+	Goal<?> nextWorkItem() {
 		return workList.pop();
 	}
 }
