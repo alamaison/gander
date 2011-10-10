@@ -525,7 +525,7 @@ public class SymbolTableTest {
 				"round", "set", "setattr", "slice", "sorted", "staticmethod",
 				"str", "sum", "super", "tuple", "type", "unichr", "unicode",
 				"vars", "xrange", "zip", "BaseException", "Exception",
-				"_BaseSet");
+				"_BaseSet", "types");
 	}
 
 	@Test

@@ -38,26 +38,21 @@ final class NameTypeGoal implements TypeGoal {
 
 	public TypeJudgement recalculateSolution(SubgoalManager goalManager) {
 
-		/**
-		 * FIXME: This is completely wrong. We only look for bindings in the
-		 * binding scope of the name. But this scope only limits the binding we
-		 * should consider to binding that target the same scope. It doesn't
-		 * mean that we should only consider bindings occurring directly in that
-		 * scope.
-		 * 
-		 * For instance, what about the case where the first assignment to the
-		 * variable is in a *sibling* scope. For instance, a global variable
-		 * that is initialised through an {@code init()} method. This search
-		 * wouldn't find the assignment that happens in the body of {@code
-		 * init()}. This won't give the *wrong* answer, as we eventually fail to
-		 * find a typing leading to a judgement of Top, unless there is an
-		 * assignment in an enclosing namespace *and* in a sibling and these
-		 * assignments assign different types. In this case, the inferred type
-		 * will be too narrow, it will only include the type in the enclosing
-		 * namespace rather than leading to a union type.
-		 */
 		final Namespace bindingScope = new Binder().resolveBindingScope(name,
 				enclosingScope);
+
+		/*
+		 * Other than global (module) names, a name can only be bound in the
+		 * same scope as it is defined, i.e. its binding scope. The exception is
+		 * if the scope is specified explicitly using an attribute to force a
+		 * binding to mutate a particular namespace.
+		 * 
+		 * I think the attribute thing can only happen with Modules and Classes.
+		 * Functions can't have their namespace modified using attribute access.
+		 * There probably is a way (something like manipulating the function's
+		 * dict attribute explicitly) but it would hardly be normal.
+		 */
+		// FIXME: We're ignoring the attribute exception
 
 		return goalManager.registerSubgoal(new BoundTypeGoal(model,
 				bindingScope, name));

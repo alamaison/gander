@@ -49,6 +49,7 @@ public final class ExpressionTypeGoal implements TypeGoal {
 	private final Namespace scope;
 
 	public ExpressionTypeGoal(Model model, Namespace scope, exprType expression) {
+		assert expression != null;
 		this.model = model;
 		this.scope = scope;
 		this.expression = expression;

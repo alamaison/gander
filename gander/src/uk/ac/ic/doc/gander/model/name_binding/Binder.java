@@ -3,21 +3,10 @@ package uk.ac.ic.doc.gander.model.name_binding;
 import java.util.HashSet;
 
 import org.python.pydev.parser.jython.SimpleNode;
-import org.python.pydev.parser.jython.ast.Assign;
-import org.python.pydev.parser.jython.ast.ClassDef;
-import org.python.pydev.parser.jython.ast.For;
-import org.python.pydev.parser.jython.ast.FunctionDef;
 import org.python.pydev.parser.jython.ast.Global;
-import org.python.pydev.parser.jython.ast.Import;
-import org.python.pydev.parser.jython.ast.ImportFrom;
-import org.python.pydev.parser.jython.ast.Name;
 import org.python.pydev.parser.jython.ast.NameTok;
 import org.python.pydev.parser.jython.ast.NameTokType;
-import org.python.pydev.parser.jython.ast.TryExcept;
-import org.python.pydev.parser.jython.ast.excepthandlerType;
-import org.python.pydev.parser.jython.ast.exprType;
 
-import uk.ac.ic.doc.gander.ast.BindingStatementVisitor;
 import uk.ac.ic.doc.gander.ast.LocalCodeBlockVisitor;
 import uk.ac.ic.doc.gander.model.CodeBlock;
 import uk.ac.ic.doc.gander.model.LexicalTokenResolver;
@@ -88,23 +77,30 @@ final class BindingScopeResolver extends LexicalTokenResolver<Namespace> {
 
 		/* TODO: Don't recompute every time */
 		Namespace globalNamespace = getGlobalNamespace(scope);
+		Namespace builtinNamespace = getBuiltinNamespace(scope);
 
-		if (scope.equals(globalNamespace)) {
-			/*
-			 * If we've reached the global namespace the name but be a global.
-			 * We don't even check for it in the global namespace as there's
-			 * nothing else it could be .. except wrong.
-			 */
-			/*
-			 * TODO: Is this right? Is there some way to check and report an
-			 * error if no such global exists?
-			 */
-			return scope;
-
-		} else if (isNameDeclaredGlobalInScope(name, scope)) {
-			return globalNamespace;
-
-		} else if (isNameBoundInScope(name, scope)) {
+		/*
+		 * If we've reached the global namespace or the global keyword appears,
+		 * the name must be a global, meaning that it is defined either in the
+		 * global namespace (i.e. the current module) or the builtin namespace.
+		 */
+		boolean nameIsGlobal = scope.equals(globalNamespace)
+				|| isNameDeclaredGlobalInScope(name, scope);
+		if (nameIsGlobal) {
+			if (isNameBoundInModule(name, globalNamespace)) {
+				return globalNamespace;
+			} else {
+				/*
+				 * We don't even check for it in the builtin namespace as
+				 * there's nothing else it could be .. except wrong.
+				 */
+				/*
+				 * TODO: Is this right? Is there some way to check and report an
+				 * error if no such global exists?
+				 */
+				return builtinNamespace;
+			}
+		} else if (isNameBoundInCodeBlock(name, scope.asCodeBlock())) {
 			return scope;
 
 		} else {
@@ -114,17 +110,21 @@ final class BindingScopeResolver extends LexicalTokenResolver<Namespace> {
 	}
 
 	/**
-	 * Finds whether a token is bound in the given scope.
+	 * Finds whether a token is bound in the given code block.
 	 * 
-	 * This doesn't necessarily mean that it's a local variable of the scope as
-	 * it may be the subject of a 'global' declaration in that scope.
+	 * This doesn't necessarily mean that it's a local variable of the block as
+	 * it may be the subject of a 'global' declaration in that block.
+	 * 
+	 * This function doesn't find bindings that occur in declarations such as
+	 * nested functions and classes that create a new code block.
 	 * 
 	 * @param name
 	 *            Token whose binding we are searching for.
-	 * @param scope
-	 *            Scope of the search.
+	 * @param codeBlock
+	 *            Code block to search.
 	 */
-	private boolean isNameBoundInScope(final String name, final Namespace scope) {
+	private static boolean isNameBoundInCodeBlock(final String name,
+			final CodeBlock codeBlock) {
 
 		/*
 		 * TODO: decide whether we want to search for one name or all names.
@@ -134,117 +134,41 @@ final class BindingScopeResolver extends LexicalTokenResolver<Namespace> {
 
 		final java.util.Set<String> boundNames = new HashSet<String>();
 
-		CodeBlock codeBlock = scope.asCodeBlock();
-
 		boundNames.addAll(codeBlock.getFormalParameters());
 
 		try {
-
-			/*
-			 * It might be possible to do this just by overriding visitName and
-			 * visitNameTok and looking at their contexts to decide if they are
-			 * being used in a binding context but, for the moment, we do it the
-			 * long way
-			 */
-
-			/*
-			 * After extracting the bound names at each node we traverse the
-			 * node because, if they have a body like a for-loop, they may nest
-			 * other definitions.
-			 */
-			codeBlock.accept(new BindingStatementVisitor() {
+			codeBlock.accept(new LocallyBoundNameFinder() {
 
 				@Override
-				public Object visitTryExcept(TryExcept node) throws Exception {
-					for (excepthandlerType handler : node.handlers) {
-						if (handler.name instanceof Name) {
-							boundNames.add(((Name) handler.name).id);
-						} else {
-							// XXX: No idea what happens here. How could the
-							// name of the exception object _not_ be a name?
-						}
-					}
-
-					node.traverse(this);
-					return null;
+				protected void onNameBound(String name) {
+					boundNames.add(name);
 				}
+			});
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+
+		return boundNames.contains(name);
+	}
+
+	private static boolean isNameBoundInModule(final String name,
+			final Namespace module) {
+
+		/*
+		 * TODO: decide whether we want to search for one name or all names.
+		 * They have different performance trade-offs depending on the
+		 * application.
+		 */
+
+		final java.util.Set<String> boundNames = new HashSet<String>();
+
+		try {
+			module.getAst().accept(new BoundNameFinder() {
 
 				@Override
-				public Object visitImportFrom(ImportFrom node) throws Exception {
-					// TODO Auto-generated method stub
-					return null;
+				protected void onNameBound(String name) {
+					boundNames.add(name);
 				}
-
-				@Override
-				public Object visitImport(Import node) throws Exception {
-					// TODO Auto-generated method stub
-					return null;
-				}
-
-				@Override
-				public Object visitFunctionDef(FunctionDef node)
-						throws Exception {
-					// TODO Auto-generated method stub
-					return null;
-				}
-
-				@Override
-				public Object visitFor(For node) throws Exception {
-					if (node.target instanceof Name) {
-						boundNames.add(((Name) node.target).id);
-					} else {
-						// XXX: No idea what happens here. How could the
-						// for-loop variable _not_ be a name?
-					}
-
-					node.traverse(this);
-					return null;
-				}
-
-				@Override
-				public Object visitClassDef(ClassDef node) throws Exception {
-					if (node.name instanceof NameTok) {
-						boundNames.add(((NameTok) node.name).id);
-					} else {
-						// XXX: No idea what happens here. How could the
-						// class name _not_ be a name?
-					}
-
-					// Do NOT recurse into the ClassDef body. Despite
-					// appearances, it is not part of this scope's code block.
-					// It is a declaration of the class scope's code block.
-					// Another way to think about it: the class's body is not
-					// being 'executed' now whereas the enclosing namespace's
-					// body is.
-
-					return null;
-				}
-
-				@Override
-				public Object visitAssign(Assign node) throws Exception {
-					for (exprType lhsExpression : node.targets) {
-						if (lhsExpression instanceof Name) {
-							boundNames.add(((Name) lhsExpression).id);
-						}
-					}
-
-					node.traverse(this);
-					return null;
-				}
-
-				@Override
-				public void traverse(SimpleNode node) throws Exception {
-					// Traverse by default so that we catch all assignments even
-					// if they are nested
-					node.traverse(this);
-				}
-
-				@Override
-				protected Object unhandled_node(SimpleNode node)
-						throws Exception {
-					return null;
-				}
-
 			});
 		} catch (Exception e) {
 			throw new RuntimeException(e);
@@ -263,7 +187,7 @@ final class BindingScopeResolver extends LexicalTokenResolver<Namespace> {
 	 * this method as these declarations don't affect global binding for their
 	 * parents.
 	 */
-	private boolean isNameDeclaredGlobalInScope(final String name,
+	private static boolean isNameDeclaredGlobalInScope(final String name,
 			final Namespace scope) {
 
 		/*
@@ -347,5 +271,23 @@ final class BindingScopeResolver extends LexicalTokenResolver<Namespace> {
 
 		assert scope instanceof Module;
 		return scope;
+	}
+
+	/**
+	 * Return the model's representation of the __builtin__ namespace.
+	 */
+	private static Namespace getBuiltinNamespace(Namespace localScope) {
+		Namespace scope = getGlobalNamespace(localScope);
+		assert scope != null;
+
+		while (true) {
+			Namespace parent = scope.getParentScope();
+			if (parent == null) {
+				assert scope instanceof Module;
+				return scope;
+			} else {
+				scope = parent;
+			}
+		}
 	}
 }

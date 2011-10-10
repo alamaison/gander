@@ -4,7 +4,7 @@
 #__import__
 #__name__
 #__package__
-
+import types
 
 def abs(o):
     pass #return o.__abs__()
@@ -1103,3 +1103,5 @@ class set(_BaseSet):
         # Return self wrapped in a temporarily immutable set
         return _TemporarilyImmutableSet(self)
 
+
+None = types.NoneType()

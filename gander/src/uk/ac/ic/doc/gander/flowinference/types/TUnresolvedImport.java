@@ -14,6 +14,10 @@ public class TUnresolvedImport implements TImportable, TNamespace {
 	private String fromTarget;
 
 	public TUnresolvedImport(List<String> importPath, Module relativeToPackage) {
+		assert importPath != null;
+		// relativeToPackage may be null when import occurs in top level e.g.
+		// builtins
+
 		this.importPath = importPath;
 		this.relativeToPackage = relativeToPackage;
 	}

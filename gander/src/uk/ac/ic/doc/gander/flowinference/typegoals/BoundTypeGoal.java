@@ -12,13 +12,16 @@ import org.python.pydev.parser.jython.ast.ImportFrom;
 import org.python.pydev.parser.jython.ast.Name;
 import org.python.pydev.parser.jython.ast.NameTok;
 import org.python.pydev.parser.jython.ast.TryExcept;
+import org.python.pydev.parser.jython.ast.aliasType;
 import org.python.pydev.parser.jython.ast.excepthandlerType;
 import org.python.pydev.parser.jython.ast.exprType;
 import org.python.pydev.parser.jython.ast.stmtType;
 
 import uk.ac.ic.doc.gander.ast.BindingStatementVisitor;
+import uk.ac.ic.doc.gander.flowinference.ImportResolver;
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
 import uk.ac.ic.doc.gander.flowinference.types.TClass;
+import uk.ac.ic.doc.gander.flowinference.types.TFunction;
 import uk.ac.ic.doc.gander.flowinference.types.Type;
 import uk.ac.ic.doc.gander.flowinference.types.judgement.SetBasedTypeJudgement;
 import uk.ac.ic.doc.gander.flowinference.types.judgement.Top;
@@ -61,7 +64,7 @@ public final class BoundTypeGoal implements TypeGoal {
 		 * Keep adding to boundTypes until this stops being null which indicates
 		 * a judgement has been reached. Basically this doesn't happen until be
 		 * decide on Top or finish processing everything and convert our set to
-		 * a type judgement. *
+		 * a type judgement.
 		 */
 		private TypeJudgement judgement = null;
 
@@ -177,19 +180,87 @@ public final class BoundTypeGoal implements TypeGoal {
 
 		@Override
 		public Object visitImportFrom(ImportFrom node) throws Exception {
-			// TODO Auto-generated method stub
+			for (aliasType alias : node.names) {
+				if (alias.asname != null
+						&& ((NameTok) alias.asname).id.equals(name)) {
+					newImportResolver().simulateImportFromAs(
+							((NameTok) node.module).id,
+							((NameTok) alias.name).id,
+							((NameTok) alias.asname).id);
+				} else if (((NameTok) alias.name).id.equals(name)) {
+					newImportResolver().simulateImportFrom(
+							((NameTok) node.module).id,
+							((NameTok) alias.name).id);
+				}
+			}
+
 			return null;
 		}
 
 		@Override
 		public Object visitImport(Import node) throws Exception {
-			// TODO Auto-generated method stub
+			for (aliasType alias : node.names) {
+				if (alias.asname != null
+						&& ((NameTok) alias.asname).id.equals(name)) {
+					newImportResolver().simulateImportAs(
+							((NameTok) alias.name).id,
+							((NameTok) alias.asname).id);
+				} else if (((NameTok) alias.name).id.equals(name)) {
+					newImportResolver().simulateImport(
+							((NameTok) alias.name).id);
+				}
+			}
+
 			return null;
+		}
+
+		private ImportResolver newImportResolver() {
+			return new ImportResolver(model, enclosingScope, model
+					.getTopLevel()) {
+
+				@Override
+				protected void put(Namespace scope, String name, Type type) {
+					/*
+					 * TODO: This way of doing it (following all the nested
+					 * imports) suits the a priori symbol table approach but not
+					 * a demand-driven approach.
+					 * 
+					 * Ideally the only import that ever occurs here should be
+					 * the single import we asked to resolve, giving us a single
+					 * type.
+					 */
+					if (scope.equals(enclosingScope)
+							&& name.equals(BoundTypeGoal.this.name))
+						boundTypes.add(type);
+				}
+			};
 		}
 
 		@Override
 		public Object visitFunctionDef(FunctionDef node) throws Exception {
-			// TODO Auto-generated method stub
+			if (judgement != null)
+				return null;
+
+			if (((NameTok) node.name).id.equals(name)) {
+				Function function = enclosingScope.getFunctions().get(
+						((NameTok) node.name).id);
+				// If we can see the FunctionDef here, it _must_ already be
+				// in the model.
+				//
+				// XXX: Not sure exactly how our model Functions and this
+				// relate conceptually. We've had this issue before as
+				// well. Needs more thought.
+				assert function != null;
+				boundTypes.add(new TFunction(function));
+			}
+
+			// Do NOT recurse into the FunctionDef body. Despite
+			// appearances, it is not part of this namespace's code object.
+			// It is a declaration of the nested function's code object.
+			// Another way to think about it: the nested function's body is not
+			// being 'executed' now whereas the enclosing namespace's
+			// body is.
+
 			return null;
 		}
 
@@ -226,22 +297,19 @@ public final class BoundTypeGoal implements TypeGoal {
 			if (((NameTok) node.name).id.equals(name)) {
 				Class klass = enclosingScope.getClasses().get(
 						((NameTok) node.name).id);
-				// If we can see the classdef here, it _must_ already be
+				// If we can see the ClassDef here, it _must_ already be
 				// in the model.
 				//
-				// XXX: Not sure exactly how our model classes and this
+				// XXX: Not sure exactly how our model Classes and this
 				// relate conceptually. We've had this issue before as
 				// well. Needs more thought.
 				assert klass != null;
 				boundTypes.add(new TClass(klass));
-				// FIXME: But we're also using TClass for objects!! so
-				// have we just said the name is a class or an object
-				// instance of the class?!
 			}
 
 			// Do NOT recurse into the ClassDef body. Despite
-			// appearances, it is not part of this enclosingScope's code object.
-			// It is a declaration of the class enclosingScope's code object.
+			// appearances, it is not part of this namespace's code object.
+			// It is a declaration of the nested class's code object.
 			// Another way to think about it: the class's body is not
 			// being 'executed' now whereas the enclosing namespace's
 			// body is.
@@ -349,4 +417,5 @@ public final class BoundTypeGoal implements TypeGoal {
 			return false;
 		return true;
 	}
+
 }

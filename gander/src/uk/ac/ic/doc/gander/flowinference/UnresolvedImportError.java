@@ -18,15 +18,24 @@ public class UnresolvedImportError extends Error {
 
 	public UnresolvedImportError(List<String> importPath,
 			Module relativeToPackage) {
+		assert importPath != null;
+		// relativeToPackage may be null when import occurs in top level e.g.
+		// builtins
+
 		this.importPath = importPath;
 		this.relativeToPackage = relativeToPackage;
 	}
 
 	@Override
 	public String getMessage() {
-		return "'" + join(importPath, ".")
-				+ "' couldn't be resolved from package '"
-				+ relativeToPackage.getFullName() + "'";
+		if (relativeToPackage != null) {
+			return "'" + join(importPath, ".")
+					+ "' couldn't be resolved from package '"
+					+ relativeToPackage.getFullName() + "'";
+		} else {
+			return "'" + join(importPath, ".")
+					+ "' couldn't be resolved in the top-level package'";
+		}
 	}
 
 	private static String join(Collection<?> s, String delimiter) {

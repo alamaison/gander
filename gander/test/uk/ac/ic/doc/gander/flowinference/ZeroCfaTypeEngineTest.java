@@ -15,6 +15,7 @@ import uk.ac.ic.doc.gander.ScopedAstNode;
 import uk.ac.ic.doc.gander.ScopedPrintNode;
 import uk.ac.ic.doc.gander.TaggedNodeAndScopeFinder;
 import uk.ac.ic.doc.gander.flowinference.types.TClass;
+import uk.ac.ic.doc.gander.flowinference.types.TFunction;
 import uk.ac.ic.doc.gander.flowinference.types.TObject;
 import uk.ac.ic.doc.gander.flowinference.types.Type;
 import uk.ac.ic.doc.gander.flowinference.types.judgement.SetBasedTypeJudgement;
@@ -29,12 +30,15 @@ public class ZeroCfaTypeEngineTest {
 	private TypeEngine engine;
 	private TObject stringType;
 	private TObject integerType;
+	private TClass noneType;
 
 	@Before
 	public void setup() throws Throwable {
 		model = new RelativeTestModelCreator(TEST_FOLDER, this).getModel();
 		stringType = new TObject(model.getTopLevel().getClasses().get("str"));
 		integerType = new TObject(model.getTopLevel().getClasses().get("int"));
+		// noneType = new TClass(model.getTopLevel().getModules().get("types")
+		// .getClasses().get("NoneType"));
 		engine = new ZeroCfaTypeEngine(model);
 	}
 
@@ -335,6 +339,107 @@ public class ZeroCfaTypeEngineTest {
 				+ "of the class object (metaclass)", new SetBasedTypeJudgement(
 				new TObject(node.getGlobalNamespace().getClasses().get("W"))),
 				type);
+	}
+
+	/**
+	 * Resolve function name.
+	 */
+	@Test
+	public void function() throws Throwable {
+		ScopedPrintNode node = findPrintNode("function", "what_am_i");
+		TypeJudgement type = engine.typeOf(node.getExpression(), node
+				.getScope());
+		TypeJudgement expectedType = new SetBasedTypeJudgement(new TFunction(
+				node.getGlobalNamespace().getFunctions().get("f")));
+
+		assertEquals("Function type not inferred correctly", expectedType, type);
+	}
+
+	/**
+	 * Infer return type of a function taking no arguments and returning a
+	 * monomorph.
+	 */
+	@Test
+	public void functionReturnNullaryMono() throws Throwable {
+		ScopedPrintNode node = findPrintNode("function_return_nullary_mono",
+				"what_am_i");
+		TypeJudgement type = engine.typeOf(node.getExpression(), node
+				.getScope());
+		TypeJudgement expectedType = new SetBasedTypeJudgement(integerType);
+
+		assertEquals("Function return's type not inferred correctly",
+				expectedType, type);
+	}
+
+	/**
+	 * Infer return type of a function taking no arguments and returning a
+	 * polymorph.
+	 * 
+	 * Flow/context insensitive analysis will infer the return type as a union
+	 * of int and X even though the latter is unreachable.
+	 */
+	@Test
+	public void functionReturnNullaryPoly() throws Throwable {
+		ScopedPrintNode node = findPrintNode("function_return_nullary_poly",
+				"what_am_i");
+		TypeJudgement type = engine.typeOf(node.getExpression(), node
+				.getScope());
+
+		ArrayList<Type> types = new ArrayList<Type>();
+		types.add(integerType);
+		types.add(new TObject(node.getGlobalNamespace().getFunctions().get("f")
+				.getClasses().get("X")));
+		TypeJudgement expectedType = new SetBasedTypeJudgement(types);
+
+		assertEquals("Function return's type not inferred correctly",
+				expectedType, type);
+	}
+
+	/**
+	 * Infer return type of a function taking no arguments and returning a
+	 * polymorph via a nested call.
+	 */
+	@Test
+	public void functionReturnNullaryChained() throws Throwable {
+		ScopedPrintNode node = findPrintNode("function_return_nullary_chained",
+				"what_am_i");
+		TypeJudgement type = engine.typeOf(node.getExpression(), node
+				.getScope());
+
+		ArrayList<Type> types = new ArrayList<Type>();
+		types.add(stringType);
+		types.add(integerType);
+		types.add(new TObject(node.getGlobalNamespace().getFunctions().get("f")
+				.getClasses().get("X")));
+		TypeJudgement expectedType = new SetBasedTypeJudgement(types);
+
+		assertEquals("Function return's type not inferred correctly",
+				expectedType, type);
+	}
+
+	@Test
+	public void functionReturn() throws Throwable {
+		ScopedPrintNode node = findPrintNode("function_return", "what_am_i");
+		TypeJudgement type = engine.typeOf(node.getExpression(), node
+				.getScope());
+
+		assertEquals("Inferred type should be monomorphic", 1,
+				((SetBasedTypeJudgement) type).getConstituentTypes().size());
+		assertEquals("Function return's type not inferred correctly",
+				"NoneType", ((TObject) ((SetBasedTypeJudgement) type)
+						.getConstituentTypes().iterator().next()).getName());
+	}
+
+	@Test
+	public void functionReturnMissing() throws Throwable {
+		ScopedPrintNode node = findPrintNode("function_return_missing",
+				"what_am_i");
+		TypeJudgement type = engine.typeOf(node.getExpression(), node
+				.getScope());
+
+		assertEquals("Function return's type not inferred correctly", noneType,
+				((TObject) ((SetBasedTypeJudgement) type).getConstituentTypes()
+						.iterator().next()).getClassInstance());
 	}
 
 	private ScopedAstNode findNode(String moduleName, String tag)

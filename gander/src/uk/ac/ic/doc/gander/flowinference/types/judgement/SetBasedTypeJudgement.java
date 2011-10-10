@@ -11,7 +11,7 @@ public class SetBasedTypeJudgement implements TypeJudgement {
 
 	public static final SetBasedTypeJudgement BOTTOM = new SetBasedTypeJudgement(
 			Collections.<Type> emptySet());
-	
+
 	private HashSet<Type> constituentTypes;
 
 	public SetBasedTypeJudgement(Collection<? extends Type> constituentTypes) {
@@ -53,6 +53,6 @@ public class SetBasedTypeJudgement implements TypeJudgement {
 	}
 
 	public Set<Type> getConstituentTypes() {
-		return constituentTypes;
+		return Collections.unmodifiableSet(constituentTypes);
 	}
 }
