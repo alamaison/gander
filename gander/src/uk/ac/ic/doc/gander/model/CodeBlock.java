@@ -1,6 +1,7 @@
 package uk.ac.ic.doc.gander.model;
 
 import java.util.List;
+import java.util.Set;
 
 import org.python.pydev.parser.jython.ast.VisitorIF;
 
@@ -19,5 +20,7 @@ public interface CodeBlock {
 	List<String> getFormalParameters();
 
 	void accept(VisitorIF visitor) throws Exception;
+
+	Set<String> getGlobals();
 
 }

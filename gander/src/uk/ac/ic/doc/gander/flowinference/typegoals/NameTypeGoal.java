@@ -2,13 +2,15 @@ package uk.ac.ic.doc.gander.flowinference.typegoals;
 
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
 import uk.ac.ic.doc.gander.flowinference.types.judgement.SetBasedTypeJudgement;
+import uk.ac.ic.doc.gander.flowinference.types.judgement.TypeConcentrator;
 import uk.ac.ic.doc.gander.flowinference.types.judgement.TypeJudgement;
 import uk.ac.ic.doc.gander.model.Model;
+import uk.ac.ic.doc.gander.model.Module;
 import uk.ac.ic.doc.gander.model.Namespace;
 import uk.ac.ic.doc.gander.model.name_binding.Binder;
 
 /**
- * Infers the type of a name within a code block.
+ * Infers the type of a name in an enclosing scope.
  * 
  * Establishes the type by finding bindings to that name in the same binding
  * scope as this one. The binding scope is not the same thing as the enclosing
@@ -54,8 +56,41 @@ final class NameTypeGoal implements TypeGoal {
 		 */
 		// FIXME: We're ignoring the attribute exception
 
-		return goalManager.registerSubgoal(new BoundTypeGoal(model,
-				bindingScope, name));
+		TypeConcentrator type = new TypeConcentrator();
+		type.add(goalManager.registerSubgoal(new BoundTypeGoal(model,
+				bindingScope, name)));
+
+		if (bindingScope instanceof Module) {
+			addGlobalTypesFromEnclosedCodeBlocks(type, goalManager, name,
+					bindingScope);
+		}
+
+		return type.getJudgement();
+	}
+
+	/**
+	 * Add references to a global name from all code block contained in the
+	 * given one.
+	 * 
+	 * @param goalManager
+	 */
+	private void addGlobalTypesFromEnclosedCodeBlocks(TypeConcentrator type,
+			SubgoalManager goalManager, String globalName, Namespace namespace) {
+		assert namespace.getModules().isEmpty();
+
+		for (Namespace subCodeBlock : namespace.getClasses().values()) {
+			addGlobalTypesFromEnclosedCodeBlocks(type, goalManager, globalName,
+					subCodeBlock);
+		}
+		for (Namespace subscope : namespace.getFunctions().values()) {
+			if (subscope.asCodeBlock().getGlobals().contains(globalName)) {
+				type.add(goalManager.registerSubgoal(new BoundTypeGoal(model,
+						subscope, globalName)));
+
+			}
+			addGlobalTypesFromEnclosedCodeBlocks(type, goalManager, globalName,
+					subscope);
+		}
 
 	}
 

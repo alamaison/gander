@@ -11,6 +11,7 @@ import org.python.pydev.parser.jython.ast.VisitorIF;
 import org.python.pydev.parser.jython.ast.stmtType;
 
 import uk.ac.ic.doc.gander.cfg.Cfg;
+import uk.ac.ic.doc.gander.model.DefaultCodeBlock.Acceptor;
 
 /**
  * Model elements that have associated code that can be loaded.
@@ -21,14 +22,15 @@ import uk.ac.ic.doc.gander.cfg.Cfg;
  */
 public final class Module implements Namespace {
 
-	private org.python.pydev.parser.jython.ast.Module ast;
-	private HashMap<String, Class> classes = new HashMap<String, Class>();
-	private HashMap<String, Function> functions = new HashMap<String, Function>();
-	private HashMap<String, Module> modules = new HashMap<String, Module>();
+	private final org.python.pydev.parser.jython.ast.Module ast;
+	private final HashMap<String, Class> classes = new HashMap<String, Class>();
+	private final HashMap<String, Function> functions = new HashMap<String, Function>();
+	private final HashMap<String, Module> modules = new HashMap<String, Module>();
 
-	private boolean isSystem;
-	private String name;
-	private Module parent;
+	private final boolean isSystem;
+	private final String name;
+	private final Module parent;
+	private CodeBlock codeBlock = null;
 
 	public Module(org.python.pydev.parser.jython.ast.Module ast, String name,
 			Module parent, boolean isSystem) {
@@ -136,17 +138,21 @@ public final class Module implements Namespace {
 	}
 
 	public CodeBlock asCodeBlock() {
-		return new CodeBlock() {
+		if (codeBlock == null) {
 
-			public List<String> getFormalParameters() {
-				return Collections.emptyList();
-			}
+			Acceptor acceptor = new Acceptor() {
 
-			public void accept(VisitorIF visitor) throws Exception {
-				for (stmtType stmt : ast.body) {
-					stmt.accept(visitor);
+				public void accept(VisitorIF visitor) throws Exception {
+					for (stmtType stmt : ast.body) {
+						stmt.accept(visitor);
+					}
 				}
-			}
-		};
+			};
+
+			codeBlock = new DefaultCodeBlock(Collections.<String> emptyList(),
+					acceptor);
+		}
+
+		return codeBlock;
 	}
 }

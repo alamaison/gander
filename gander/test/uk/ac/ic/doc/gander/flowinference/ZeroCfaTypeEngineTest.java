@@ -30,6 +30,7 @@ public class ZeroCfaTypeEngineTest {
 	private TypeEngine engine;
 	private TObject stringType;
 	private TObject integerType;
+	private TObject listType;
 	private TClass noneType;
 
 	@Before
@@ -37,6 +38,7 @@ public class ZeroCfaTypeEngineTest {
 		model = new RelativeTestModelCreator(TEST_FOLDER, this).getModel();
 		stringType = new TObject(model.getTopLevel().getClasses().get("str"));
 		integerType = new TObject(model.getTopLevel().getClasses().get("int"));
+		listType = new TObject(model.getTopLevel().getClasses().get("list"));
 		// noneType = new TClass(model.getTopLevel().getModules().get("types")
 		// .getClasses().get("NoneType"));
 		engine = new ZeroCfaTypeEngine(model);
@@ -440,6 +442,67 @@ public class ZeroCfaTypeEngineTest {
 		assertEquals("Function return's type not inferred correctly", noneType,
 				((TObject) ((SetBasedTypeJudgement) type).getConstituentTypes()
 						.iterator().next()).getClassInstance());
+	}
+
+	private void doGlobalTest(String tag) throws Exception {
+		ArrayList<Type> types = new ArrayList<Type>();
+		types.add(stringType);
+		types.add(integerType);
+		TypeJudgement expectedType = new SetBasedTypeJudgement(types);
+
+		ScopedPrintNode node = findPrintNode("global", tag);
+		TypeJudgement type = engine.typeOf(node.getExpression(), node
+				.getScope());
+
+		assertEquals("Global's type not inferred correctly.", expectedType,
+				type);
+
+	}
+
+	private void doGlobalDefinedInOtherModuleTest(String moduleName, String tag)
+			throws Exception {
+		ScopedPrintNode node = findPrintNode(moduleName, tag);
+
+		ArrayList<Type> types = new ArrayList<Type>();
+		types.add(stringType);
+		types.add(integerType);
+		types.add(listType);
+		types.add(new TObject(model.loadModule(
+				"global_defined_in_other_module_worker").getClasses()
+				.get("Bob")));
+		TypeJudgement expectedType = new SetBasedTypeJudgement(types);
+
+		TypeJudgement type = engine.typeOf(node.getExpression(), node
+				.getScope());
+
+		assertEquals("Global's type not inferred correctly.", expectedType,
+				type);
+	}
+
+	@Test
+	public void global() throws Throwable {
+		doGlobalTest("what_am_i_without_global_statement");
+		doGlobalTest("what_am_i_with_global_statement");
+		doGlobalTest("what_am_i_at_global_scope");
+	}
+
+	@Test
+	public void globalDefinedInOtherModule() throws Throwable {
+		doGlobalDefinedInOtherModuleTest("global_defined_in_other_module",
+				"what_am_i_without_global_statement");
+		doGlobalDefinedInOtherModuleTest("global_defined_in_other_module",
+				"what_am_i_with_global_statement");
+		doGlobalDefinedInOtherModuleTest("global_defined_in_other_module",
+				"what_am_i_at_global_scope");
+		doGlobalDefinedInOtherModuleTest(
+				"global_defined_in_other_module_worker",
+				"what_am_i_without_global_statement_in_foreign_module");
+		doGlobalDefinedInOtherModuleTest(
+				"global_defined_in_other_module_worker",
+				"what_am_i_with_global_statement_in_foreign_module");
+		doGlobalDefinedInOtherModuleTest(
+				"global_defined_in_other_module_worker",
+				"what_am_i_at_global_scope_in_foreign_module");
 	}
 
 	private ScopedAstNode findNode(String moduleName, String tag)

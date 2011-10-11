@@ -12,14 +12,16 @@ import org.python.pydev.parser.jython.ast.exprType;
 import org.python.pydev.parser.jython.ast.stmtType;
 
 import uk.ac.ic.doc.gander.cfg.Cfg;
+import uk.ac.ic.doc.gander.model.DefaultCodeBlock.Acceptor;
 
 public final class Class implements Namespace {
 
-	private Map<String, Function> methods = new HashMap<String, Function>();
-	private Map<String, Class> classes = new HashMap<String, Class>();
+	private final Map<String, Function> methods = new HashMap<String, Function>();
+	private final Map<String, Class> classes = new HashMap<String, Class>();
 
-	private ClassDef cls;
-	private Namespace parent;
+	private final ClassDef cls;
+	private final Namespace parent;
+	private CodeBlock codeBlock = null;
 
 	public Class(ClassDef cls, Namespace parent) {
 		this.cls = cls;
@@ -110,22 +112,26 @@ public final class Class implements Namespace {
 	}
 
 	public CodeBlock asCodeBlock() {
-		return new CodeBlock() {
+		if (codeBlock == null) {
+			// Classes don't have parameters that get bound after
+			// declaration
+			//
+			// XXX: WTF? The ClassDef node has parameters! Are these from
+			// the constructor?
+			List<String> args = Collections.emptyList();
 
-			public void accept(VisitorIF visitor) throws Exception {
-				for (stmtType stmt : cls.body) {
-					stmt.accept(visitor);
+			Acceptor acceptor = new Acceptor() {
+
+				public void accept(VisitorIF visitor) throws Exception {
+					for (stmtType stmt : cls.body) {
+						stmt.accept(visitor);
+					}
 				}
-			}
+			};
 
-			public List<String> getFormalParameters() {
-				// Classes don't have parameters that get bound after
-				// declaration
-				//
-				// XXX: WTF? The ClassDef node has parameters! Are these from
-				// the constructor?
-				return Collections.emptyList();
-			}
-		};
+			codeBlock = new DefaultCodeBlock(args, acceptor);
+		}
+
+		return codeBlock;
 	}
 }

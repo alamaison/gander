@@ -3,7 +3,6 @@ package uk.ac.ic.doc.gander.model;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import org.python.pydev.parser.jython.ast.FunctionDef;
@@ -14,14 +13,16 @@ import org.python.pydev.parser.jython.ast.exprType;
 import org.python.pydev.parser.jython.ast.stmtType;
 
 import uk.ac.ic.doc.gander.cfg.Cfg;
+import uk.ac.ic.doc.gander.model.DefaultCodeBlock.Acceptor;
 
 public final class Function implements Namespace {
 
-	private FunctionDef function;
-	private Namespace parent;
-	private Map<String, Function> functions = new HashMap<String, Function>();
-	private Map<String, Class> classes = new HashMap<String, Class>();
-
+	private final FunctionDef function;
+	private final Namespace parent;
+	private final Map<String, Function> functions = new HashMap<String, Function>();
+	private final Map<String, Class> classes = new HashMap<String, Class>();
+	
+	private CodeBlock codeBlock = null;
 	private Cfg graph = null;
 
 	public Function(FunctionDef function, Namespace parent) {
@@ -111,29 +112,31 @@ public final class Function implements Namespace {
 	}
 
 	public CodeBlock asCodeBlock() {
-		return new CodeBlock() {
+		if (codeBlock == null) {
+			ArrayList<String> args = new ArrayList<String>();
+			for (exprType expr : function.args.args) {
+				if (expr instanceof Name) {
+					args.add(((Name) expr).id);
+				} else {
+					/*
+					 * TODO: Work out what we want to do ... and why this even
+					 * happens. I've seen this be a Tuple, for instance.
+					 */
+				}
+			}
 
-			public List<String> getFormalParameters() {
-				ArrayList<String> args = new ArrayList<String>();
-				for (exprType expr : function.args.args) {
-					if (expr instanceof Name) {
-						args.add(((Name) expr).id);
-					} else {
-						/*
-						 * TODO: Work out what we want to do ... and why this
-						 * even happens. I've seen this be a Tuple, for
-						 * instance.
-						 */
+			Acceptor acceptor = new Acceptor() {
+
+				public void accept(VisitorIF visitor) throws Exception {
+					for (stmtType stmt : function.body) {
+						stmt.accept(visitor);
 					}
 				}
-				return args;
-			}
+			};
 
-			public void accept(VisitorIF visitor) throws Exception {
-				for (stmtType stmt : function.body) {
-					stmt.accept(visitor);
-				}
-			}
-		};
+			codeBlock = new DefaultCodeBlock(args, acceptor);
+		}
+
+		return codeBlock;
 	}
 }

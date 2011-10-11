@@ -2,12 +2,6 @@ package uk.ac.ic.doc.gander.model.name_binding;
 
 import java.util.HashSet;
 
-import org.python.pydev.parser.jython.SimpleNode;
-import org.python.pydev.parser.jython.ast.Global;
-import org.python.pydev.parser.jython.ast.NameTok;
-import org.python.pydev.parser.jython.ast.NameTokType;
-
-import uk.ac.ic.doc.gander.ast.LocalCodeBlockVisitor;
 import uk.ac.ic.doc.gander.model.CodeBlock;
 import uk.ac.ic.doc.gander.model.LexicalTokenResolver;
 import uk.ac.ic.doc.gander.model.Module;
@@ -85,7 +79,7 @@ final class BindingScopeResolver extends LexicalTokenResolver<Namespace> {
 		 * global namespace (i.e. the current module) or the builtin namespace.
 		 */
 		boolean nameIsGlobal = scope.equals(globalNamespace)
-				|| isNameDeclaredGlobalInScope(name, scope);
+				|| scope.asCodeBlock().getGlobals().contains(name);
 		if (nameIsGlobal) {
 			if (isNameBoundInModule(name, globalNamespace)) {
 				return globalNamespace;
@@ -175,80 +169,6 @@ final class BindingScopeResolver extends LexicalTokenResolver<Namespace> {
 		}
 
 		return boundNames.contains(name);
-	}
-
-	/**
-	 * Determines if the given name is declared global in the local scope.
-	 * 
-	 * This only returns {@code true} if the given scope declares the name to be
-	 * global. The name may <em>be</em> globally binding if a parent scope
-	 * declares it so but this method only looks at the given scope. If it is
-	 * declared global in a nested scope that also won't affect the result of
-	 * this method as these declarations don't affect global binding for their
-	 * parents.
-	 */
-	private static boolean isNameDeclaredGlobalInScope(final String name,
-			final Namespace scope) {
-
-		/*
-		 * The 'global' statement can occur at any point in a code block but
-		 * it's effect covers the entire block (the spec says it must appear
-		 * before the name is used but CPython only generates a warning).
-		 * Therefore we don't try to establish that is precedes all mentions of
-		 * the name.
-		 */
-
-		// Declared in this bizarre way so the anonymous inner can assign to it
-		final boolean[] tokenIsGlobal = { false };
-
-		try {
-
-			/*
-			 * Using a LocalCodeBlock visitor as a global statement in a nested
-			 * class or function doesn't affect the enclosing scope's binding
-			 * 
-			 * The moment we find the first matching global declaration, it is
-			 * time to finish as any others are redundant. We can't return
-			 * prematurely from the visitor so we use a flag to know we're
-			 * finished and short-cut the visitor's work.
-			 */
-			scope.asCodeBlock().accept(new LocalCodeBlockVisitor() {
-
-				@Override
-				public Object visitGlobal(Global node) throws Exception {
-					if (!tokenIsGlobal[0]) {
-						for (NameTokType tok : node.names) {
-							if (((NameTok) tok).id.equals(name)) {
-								tokenIsGlobal[0] = true;
-								break;
-							}
-						}
-					}
-					return null;
-				}
-
-				@Override
-				protected Object unhandled_node(SimpleNode node)
-						throws Exception {
-					return null;
-				}
-
-				@Override
-				public void traverse(SimpleNode node) throws Exception {
-					/*
-					 * traverse by default because the 'global' statement might
-					 * be nested, for instance, in a loop or conditional
-					 */
-					if (!tokenIsGlobal[0]) {
-						node.traverse(this);
-					}
-				}
-			});
-		} catch (Exception e) {
-			throw new RuntimeException(e);
-		}
-
-		return tokenIsGlobal[0];
 	}
 
 	/**
