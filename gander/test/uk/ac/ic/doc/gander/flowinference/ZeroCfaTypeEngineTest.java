@@ -6,9 +6,7 @@ import java.util.ArrayList;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.python.pydev.parser.jython.SimpleNode;
 import org.python.pydev.parser.jython.ast.Assign;
-import org.python.pydev.parser.jython.ast.Call;
 import org.python.pydev.parser.jython.ast.Expr;
 import org.python.pydev.parser.jython.ast.exprType;
 
@@ -16,7 +14,6 @@ import uk.ac.ic.doc.gander.RelativeTestModelCreator;
 import uk.ac.ic.doc.gander.ScopedAstNode;
 import uk.ac.ic.doc.gander.ScopedPrintNode;
 import uk.ac.ic.doc.gander.TaggedNodeAndScopeFinder;
-import uk.ac.ic.doc.gander.ast.LocalCodeBlockVisitor;
 import uk.ac.ic.doc.gander.flowinference.types.TClass;
 import uk.ac.ic.doc.gander.flowinference.types.TFunction;
 import uk.ac.ic.doc.gander.flowinference.types.TObject;
@@ -24,9 +21,7 @@ import uk.ac.ic.doc.gander.flowinference.types.Type;
 import uk.ac.ic.doc.gander.flowinference.types.judgement.SetBasedTypeJudgement;
 import uk.ac.ic.doc.gander.flowinference.types.judgement.Top;
 import uk.ac.ic.doc.gander.flowinference.types.judgement.TypeJudgement;
-import uk.ac.ic.doc.gander.model.ModelCodeBlockWalker;
 import uk.ac.ic.doc.gander.model.MutableModel;
-import uk.ac.ic.doc.gander.model.Namespace;
 
 public class ZeroCfaTypeEngineTest {
 	private static final String TEST_FOLDER = "python_test_code/type_engine";
@@ -360,6 +355,32 @@ public class ZeroCfaTypeEngineTest {
 				node.getGlobalNamespace().getFunctions().get("f")));
 
 		assertEquals("Function type not inferred correctly", expectedType, type);
+	}
+
+	/**
+	 * Resolve method.
+	 */
+	@Test
+	public void method() throws Throwable {
+		String testName = "method";
+		ScopedPrintNode node = findPrintNode(testName, "what_am_i_via_class");
+		TypeJudgement type = engine.typeOf(node.getExpression(), node
+				.getScope());
+		TypeJudgement expectedType = new SetBasedTypeJudgement(new TFunction(
+				node.getGlobalNamespace().getClasses().get("A").getFunctions()
+						.get("method")));
+
+		assertEquals("Method not resolved correctly via class", expectedType,
+				type);
+
+		// TODO: ideally we should distinguish bound and unbound methods.
+		// In other words, these two cases should not have the same
+		// expected type
+		node = findPrintNode(testName, "what_am_i_via_instance");
+		type = engine.typeOf(node.getExpression(), node.getScope());
+
+		assertEquals("Method not resolved correctly via instance",
+				expectedType, type);
 	}
 
 	/**
