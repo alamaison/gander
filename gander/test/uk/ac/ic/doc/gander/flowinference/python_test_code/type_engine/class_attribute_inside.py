@@ -9,3 +9,7 @@ class A:
 	def g(self):
 		i = 99
 		print self.i # what_am_i_via_self
+
+a = A()
+a.f()
+a.g()

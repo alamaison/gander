@@ -1,7 +1,5 @@
 package uk.ac.ic.doc.gander.model;
 
-import java.util.Map.Entry;
-
 public abstract class ModelWalker {
 
 	public final void walk(Model model) {
@@ -17,18 +15,17 @@ public abstract class ModelWalker {
 	}
 
 	private void walkThroughNamespace(Namespace namespace) {
-		for (Entry<String, Module> module : namespace.getModules().entrySet()) {
-			visitModule(module.getValue());
-			walkThroughNamespace(module.getValue());
+		for (Module module : namespace.getModules().values()) {
+			visitModule(module);
+			walkThroughNamespace(module);
 		}
-		for (Entry<String, Class> klass : namespace.getClasses().entrySet()) {
-			visitClass(klass.getValue());
-			walkThroughNamespace(klass.getValue());
+		for (Class klass : namespace.getClasses().values()) {
+			visitClass(klass);
+			walkThroughNamespace(klass);
 		}
-		for (Entry<String, Function> function : namespace.getFunctions()
-				.entrySet()) {
-			visitFunction(function.getValue());
-			walkThroughNamespace(function.getValue());
+		for (Function function : namespace.getFunctions().values()) {
+			visitFunction(function);
+			walkThroughNamespace(function);
 		}
 	}
 

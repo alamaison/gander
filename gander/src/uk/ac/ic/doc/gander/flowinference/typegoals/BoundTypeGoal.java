@@ -22,6 +22,7 @@ import uk.ac.ic.doc.gander.flowinference.ImportResolver;
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
 import uk.ac.ic.doc.gander.flowinference.types.TClass;
 import uk.ac.ic.doc.gander.flowinference.types.TFunction;
+import uk.ac.ic.doc.gander.flowinference.types.TObject;
 import uk.ac.ic.doc.gander.flowinference.types.Type;
 import uk.ac.ic.doc.gander.flowinference.types.judgement.SetBasedTypeJudgement;
 import uk.ac.ic.doc.gander.flowinference.types.judgement.Top;
@@ -81,11 +82,30 @@ public final class BoundTypeGoal implements TypeGoal {
 				 * self) is always an instance of the class so we can trivially
 				 * infer its type
 				 */
-				if (enclosingScope instanceof Function
-						&& enclosingScope.getParentScope() instanceof Class
-						&& codeBlock.getFormalParameters().get(0).equals(name)) {
-					boundTypes.add(new TClass((Class) enclosingScope
-							.getParentScope()));
+				if (enclosingScope instanceof Function) {
+					if (enclosingScope.getParentScope() instanceof Class
+							&& codeBlock.getFormalParameters().get(0).equals(
+									name)) {
+						boundTypes.add(new TObject((Class) enclosingScope
+								.getParentScope()));
+					} else {
+						TypeJudgement incomingArgumentType = goalManager
+								.registerSubgoal(new FunctionArgumentTypeGoal(
+										model, (Function) enclosingScope, name));
+						if (incomingArgumentType instanceof SetBasedTypeJudgement) {
+							boundTypes
+									.addAll(((SetBasedTypeJudgement) incomingArgumentType)
+											.getConstituentTypes());
+						} else {
+
+							/*
+							 * Give up early because nothing beats Top
+							 */
+							judgement = new Top();
+							return;
+						}
+
+					}
 
 				} else {
 
@@ -220,6 +240,15 @@ public final class BoundTypeGoal implements TypeGoal {
 
 				@Override
 				protected void put(Namespace scope, String name, Type type) {
+					if (scope == null)
+						throw new NullPointerException(
+								"Need a namespace to bind name in");
+					if (name == null)
+						throw new NullPointerException("Need a name to bind");
+					if (name.isEmpty())
+						throw new IllegalArgumentException(
+								"Name being bound must have at least one character");
+
 					/*
 					 * TODO: This way of doing it (following all the nested
 					 * imports) suits the a priori symbol table approach but not
@@ -416,6 +445,12 @@ public final class BoundTypeGoal implements TypeGoal {
 		} else if (!name.equals(other.name))
 			return false;
 		return true;
+	}
+
+	@Override
+	public String toString() {
+		return "BoundTypeGoal [enclosingScope=" + enclosingScope + ", name="
+				+ name + "]";
 	}
 
 }

@@ -76,13 +76,19 @@ final class NameTypeGoal implements TypeGoal {
 	 */
 	private void addGlobalTypesFromEnclosedCodeBlocks(TypeConcentrator type,
 			SubgoalManager goalManager, String globalName, Namespace namespace) {
-		assert namespace.getModules().isEmpty();
+		// assert namespace.getModules().isEmpty();
 
 		for (Namespace subCodeBlock : namespace.getClasses().values()) {
+			if (type.isFinished())
+				return;
+
 			addGlobalTypesFromEnclosedCodeBlocks(type, goalManager, globalName,
 					subCodeBlock);
 		}
 		for (Namespace subscope : namespace.getFunctions().values()) {
+			if (type.isFinished())
+				return;
+
 			if (subscope.asCodeBlock().getGlobals().contains(globalName)) {
 				type.add(goalManager.registerSubgoal(new BoundTypeGoal(model,
 						subscope, globalName)));
@@ -130,6 +136,12 @@ final class NameTypeGoal implements TypeGoal {
 		} else if (!name.equals(other.name))
 			return false;
 		return true;
+	}
+
+	@Override
+	public String toString() {
+		return "NameTypeGoal [enclosingScope=" + enclosingScope + ", name="
+				+ name + "]";
 	}
 
 }

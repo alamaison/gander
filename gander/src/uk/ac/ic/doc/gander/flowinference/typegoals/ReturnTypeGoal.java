@@ -103,4 +103,10 @@ public final class ReturnTypeGoal implements TypeGoal {
 		return true;
 	}
 
+	@Override
+	public String toString() {
+		return "ReturnTypeGoal [enclosingScope=" + enclosingScope + ", node="
+				+ node + "]";
+	}
+
 }

@@ -87,6 +87,10 @@ public final class GoalSolverTest {
 
 	}
 
+	private GoalSolver<Integer> newSumSolver(List<Integer> nums) {
+		return new GoalSolver<Integer>(new SumGoal(nums), new KnowledgeBase());
+	}
+
 	@Test
 	public void demandDrivenSumming() {
 		List<Integer> nums = new ArrayList<Integer>();
@@ -94,7 +98,7 @@ public final class GoalSolverTest {
 		nums.add(5);
 		nums.add(6000);
 
-		GoalSolver<Integer> solver = new GoalSolver<Integer>(new SumGoal(nums));
+		GoalSolver<Integer> solver = newSumSolver(nums);
 		Object solution = solver.solve();
 		assertEquals(new Integer(6006), solution);
 	}
@@ -103,7 +107,7 @@ public final class GoalSolverTest {
 	public void demandDrivenSummingNothingToDo() {
 		List<Integer> nums = new ArrayList<Integer>();
 
-		GoalSolver<Integer> solver = new GoalSolver<Integer>(new SumGoal(nums));
+		GoalSolver<Integer> solver = newSumSolver(nums);
 		Object solution = solver.solve();
 		assertEquals(new Integer(0), solution);
 	}
@@ -113,9 +117,38 @@ public final class GoalSolverTest {
 		List<Integer> nums = new ArrayList<Integer>();
 		nums.add(6000);
 
-		GoalSolver<Integer> solver = new GoalSolver<Integer>(new SumGoal(nums));
+		GoalSolver<Integer> solver = newSumSolver(nums);
 		Object solution = solver.solve();
 		assertEquals(new Integer(6000), solution);
+	}
+
+	@Test
+	public void reusingSummingKnowledgeBase() {
+		List<Integer> nums = new ArrayList<Integer>();
+		nums.add(6000);
+
+		KnowledgeBase blackboard = new KnowledgeBase();
+
+		GoalSolver<Integer> solver = new GoalSolver<Integer>(new SumGoal(nums),
+				blackboard);
+		Integer solution = solver.solve();
+		assertEquals(new Integer(6000), solution);
+
+		solver = new GoalSolver<Integer>(new SumGoal(nums), blackboard);
+		solution = solver.solve();
+		assertEquals(new Integer(6000), solution);
+
+		solver = new GoalSolver<Integer>(new SumGoal(new ArrayList<Integer>()),
+				blackboard);
+		solution = solver.solve();
+		assertEquals(new Integer(0), solution);
+
+		nums.add(1);
+		nums.add(5);
+
+		solver = new GoalSolver<Integer>(new SumGoal(nums), blackboard);
+		solution = solver.solve();
+		assertEquals(new Integer(6006), solution);
 	}
 
 	private static class Vertex {
@@ -222,7 +255,7 @@ public final class GoalSolverTest {
 		graph.addEdge(e, f);
 
 		GoalSolver<Set<Vertex>> solver = new GoalSolver<Set<Vertex>>(
-				new DependencyGoal(graph, c));
+				new DependencyGoal(graph, c), new KnowledgeBase());
 		Set<Vertex> dependencies = solver.solve();
 
 		Set<Vertex> expectedDependencies = new HashSet<Vertex>();
@@ -328,7 +361,8 @@ public final class GoalSolverTest {
 		graph.addEdge(e, f);
 
 		GoalSolver<Set<Vertex>> solver = new GoalSolver<Set<Vertex>>(
-				new DependencyGoalNullInitialSolution(graph, c));
+				new DependencyGoalNullInitialSolution(graph, c),
+				new KnowledgeBase());
 		Set<Vertex> dependencies = solver.solve();
 
 		Set<Vertex> expectedDependencies = new HashSet<Vertex>();
@@ -340,5 +374,4 @@ public final class GoalSolverTest {
 
 		assertEquals(expectedDependencies, dependencies);
 	}
-
 }

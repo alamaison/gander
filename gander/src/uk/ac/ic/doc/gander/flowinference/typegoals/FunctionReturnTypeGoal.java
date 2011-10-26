@@ -27,7 +27,7 @@ public class FunctionReturnTypeGoal implements TypeGoal {
 
 	public TypeJudgement recalculateSolution(final SubgoalManager goalManager) {
 		final TypeConcentrator returnTypes = new TypeConcentrator();
-		
+
 		/* Bizarre declaration to allow modification in anonymous class */
 		final boolean seenReturnStatement[] = { false };
 		try {
@@ -35,6 +35,9 @@ public class FunctionReturnTypeGoal implements TypeGoal {
 
 				@Override
 				public Object visitReturn(Return node) throws Exception {
+					if (returnTypes.isFinished())
+						return null;
+
 					seenReturnStatement[0] = true;
 
 					if (node.value != null) {
@@ -62,14 +65,15 @@ public class FunctionReturnTypeGoal implements TypeGoal {
 				@Override
 				public void traverse(SimpleNode node) throws Exception {
 					// want all 'return' statements in code block
-					node.traverse(this);
+					if (!returnTypes.isFinished())
+						node.traverse(this);
 				}
 			});
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}
 
-		if (!seenReturnStatement[0]) {
+		if (!returnTypes.isFinished() && !seenReturnStatement[0]) {
 			/*
 			 * A missing 'return' statement means that the function returns
 			 * builtin None.
@@ -77,7 +81,7 @@ public class FunctionReturnTypeGoal implements TypeGoal {
 			NameTypeGoal typer = new NameTypeGoal(model, function, "None");
 			returnTypes.add(goalManager.registerSubgoal(typer));
 		}
-		
+
 		return returnTypes.getJudgement();
 	}
 

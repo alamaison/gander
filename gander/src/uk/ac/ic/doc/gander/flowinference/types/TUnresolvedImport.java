@@ -3,7 +3,6 @@ package uk.ac.ic.doc.gander.flowinference.types;
 import java.util.List;
 
 import uk.ac.ic.doc.gander.DottedName;
-import uk.ac.ic.doc.gander.flowinference.UnresolvedImportError;
 import uk.ac.ic.doc.gander.model.Module;
 import uk.ac.ic.doc.gander.model.Namespace;
 
@@ -30,7 +29,7 @@ public class TUnresolvedImport implements TImportable, TNamespace {
 	}
 
 	public Namespace getNamespaceInstance() {
-		throw new UnresolvedImportError(importPath, relativeToPackage);
+		return null;
 	}
 
 	public List<String> getImportPath() {

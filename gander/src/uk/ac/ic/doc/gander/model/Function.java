@@ -57,11 +57,13 @@ public final class Function implements Namespace {
 	}
 
 	public Map<String, Class> getClasses() {
-		return Collections.unmodifiableMap(classes);
+		//return Collections.unmodifiableMap(classes);
+		return classes;
 	}
 
 	public Map<String, Function> getFunctions() {
-		return Collections.unmodifiableMap(functions);
+		return functions;
+		//return Collections.unmodifiableMap(functions);
 	}
 
 	public void addModule(Module pkg) {

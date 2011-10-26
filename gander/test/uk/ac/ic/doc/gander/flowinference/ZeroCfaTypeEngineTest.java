@@ -6,7 +6,9 @@ import java.util.ArrayList;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.python.pydev.parser.jython.SimpleNode;
 import org.python.pydev.parser.jython.ast.Assign;
+import org.python.pydev.parser.jython.ast.Call;
 import org.python.pydev.parser.jython.ast.Expr;
 import org.python.pydev.parser.jython.ast.exprType;
 
@@ -14,6 +16,7 @@ import uk.ac.ic.doc.gander.RelativeTestModelCreator;
 import uk.ac.ic.doc.gander.ScopedAstNode;
 import uk.ac.ic.doc.gander.ScopedPrintNode;
 import uk.ac.ic.doc.gander.TaggedNodeAndScopeFinder;
+import uk.ac.ic.doc.gander.ast.LocalCodeBlockVisitor;
 import uk.ac.ic.doc.gander.flowinference.types.TClass;
 import uk.ac.ic.doc.gander.flowinference.types.TFunction;
 import uk.ac.ic.doc.gander.flowinference.types.TObject;
@@ -21,7 +24,9 @@ import uk.ac.ic.doc.gander.flowinference.types.Type;
 import uk.ac.ic.doc.gander.flowinference.types.judgement.SetBasedTypeJudgement;
 import uk.ac.ic.doc.gander.flowinference.types.judgement.Top;
 import uk.ac.ic.doc.gander.flowinference.types.judgement.TypeJudgement;
+import uk.ac.ic.doc.gander.model.ModelCodeBlockWalker;
 import uk.ac.ic.doc.gander.model.MutableModel;
+import uk.ac.ic.doc.gander.model.Namespace;
 
 public class ZeroCfaTypeEngineTest {
 	private static final String TEST_FOLDER = "python_test_code/type_engine";
@@ -444,6 +449,16 @@ public class ZeroCfaTypeEngineTest {
 						.iterator().next()).getClassInstance());
 	}
 
+	@Test
+	public void methodReturn() throws Throwable {
+		ScopedPrintNode node = findPrintNode("method_return", "what_am_i");
+		TypeJudgement type = engine.typeOf(node.getExpression(), node
+				.getScope());
+
+		assertEquals("Inferred type should be monomorphic",
+				new SetBasedTypeJudgement(listType), type);
+	}
+
 	private void doGlobalTest(String tag) throws Exception {
 		ArrayList<Type> types = new ArrayList<Type>();
 		types.add(stringType);
@@ -503,6 +518,140 @@ public class ZeroCfaTypeEngineTest {
 		doGlobalDefinedInOtherModuleTest(
 				"global_defined_in_other_module_worker",
 				"what_am_i_at_global_scope_in_foreign_module");
+	}
+
+	@Test
+	public void methodParameterSelf() throws Throwable {
+		ScopedPrintNode node = findPrintNode("method_parameter_self",
+				"what_am_i");
+		TypeJudgement type = engine.typeOf(node.getExpression(), node
+				.getScope());
+		TypeJudgement expectedType = new SetBasedTypeJudgement(new TObject(node
+				.getGlobalNamespace().getClasses().get("A")));
+
+		assertEquals("Function parameter's type not inferred correctly",
+				expectedType, type);
+	}
+
+	@Test
+	public void functionParameterMono() throws Throwable {
+		ScopedPrintNode node = findPrintNode("function_parameter_mono",
+				"what_am_i");
+
+		TypeJudgement type = engine.typeOf(node.getExpression(), node
+				.getScope());
+		TypeJudgement expectedType = new SetBasedTypeJudgement(stringType);
+
+		assertEquals("Function parameter's type not inferred correctly",
+				expectedType, type);
+	}
+
+	@Test
+	public void functionParameterPoly() throws Throwable {
+		ScopedPrintNode node = findPrintNode("function_parameter_poly",
+				"what_am_i");
+		TypeJudgement type = engine.typeOf(node.getExpression(), node
+				.getScope());
+
+		ArrayList<Type> types = new ArrayList<Type>();
+		types.add(stringType);
+		types.add(integerType);
+		TypeJudgement expectedType = new SetBasedTypeJudgement(types);
+
+		assertEquals("Function parameter's type not inferred correctly",
+				expectedType, type);
+	}
+
+	@Test
+	public void objectAttributeMono() throws Throwable {
+		String testName = "object_attribute_mono";
+		TypeJudgement expectedType = new SetBasedTypeJudgement(listType);
+
+		ScopedPrintNode node = findPrintNode(testName, "what_am_i_inside");
+		TypeJudgement type = engine.typeOf(node.getExpression(), node
+				.getScope());
+
+		assertEquals("Attribute's type not inferred correctly", expectedType,
+				type);
+
+		node = findPrintNode(testName, "what_am_i_outside");
+		type = engine.typeOf(node.getExpression(), node.getScope());
+
+		assertEquals("Attribute's type not inferred correctly", expectedType,
+				type);
+	}
+
+	@Test
+	public void objectAttributePoly() throws Throwable {
+		String testName = "object_attribute_poly";
+
+		ScopedPrintNode node = findPrintNode(testName, "what_am_i_inside");
+		TypeJudgement type = engine.typeOf(node.getExpression(), node
+				.getScope());
+
+		ArrayList<Type> types = new ArrayList<Type>();
+		types.add(stringType);
+		types.add(integerType);
+		types.add(listType);
+		types.add(new TObject(node.getGlobalNamespace().getClasses().get("A")));
+		TypeJudgement expectedType = new SetBasedTypeJudgement(types);
+
+		assertEquals("Attribute's type not inferred correctly", expectedType,
+				type);
+
+		node = findPrintNode(testName, "what_am_i_outside");
+		type = engine.typeOf(node.getExpression(), node.getScope());
+
+		assertEquals("Attribute's type not inferred correctly", expectedType,
+				type);
+	}
+
+	@Test
+	public void objectAttributeClassDictFallbackInitDel() throws Throwable {
+		String testName = "object_attribute_class_dict_fallback_init_del";
+
+		ScopedPrintNode node = findPrintNode(testName,
+				"i_am_really_the_instance_var");
+		TypeJudgement type = engine.typeOf(node.getExpression(), node
+				.getScope());
+
+		ArrayList<Type> types = new ArrayList<Type>();
+		types.add(stringType);
+		types.add(listType);
+		TypeJudgement expectedType = new SetBasedTypeJudgement(types);
+
+		assertEquals("Attribute's type not inferred correctly", expectedType,
+				type);
+
+		node = findPrintNode(testName, "i_am_really_the_class_var");
+		type = engine.typeOf(node.getExpression(), node.getScope());
+
+		assertEquals("Attribute's type not inferred correctly", expectedType,
+				type);
+	}
+
+	@Test
+	public void objectAttributeClassDictFallbackWrite() throws Throwable {
+		String testName = "object_attribute_class_dict_fallback_write";
+
+		ScopedPrintNode node = findPrintNode(testName,
+				"i_am_really_the_instance_var");
+		TypeJudgement type = engine.typeOf(node.getExpression(), node
+				.getScope());
+
+		ArrayList<Type> types = new ArrayList<Type>();
+		types.add(stringType);
+		types.add(listType);
+		TypeJudgement expectedType = new SetBasedTypeJudgement(types);
+
+		assertEquals("Attribute's type not inferred correctly", expectedType,
+				type);
+
+		node = findPrintNode(testName, "i_am_really_the_class_var");
+		type = engine.typeOf(node.getExpression(), node.getScope());
+
+		assertEquals("Attribute's type not inferred correctly", expectedType,
+				type);
 	}
 
 	private ScopedAstNode findNode(String moduleName, String tag)

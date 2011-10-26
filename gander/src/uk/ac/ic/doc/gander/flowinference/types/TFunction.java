@@ -53,7 +53,7 @@ public class TFunction implements TNamespace {
 
 	@Override
 	public String toString() {
-		return "TFunction [getName()=" + getName() + "]";
+		return "TFunction [" + getName() + "]";
 	}
 
 }

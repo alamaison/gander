@@ -63,7 +63,8 @@ public final class Module implements Namespace {
 	}
 
 	public Map<String, Class> getClasses() {
-		return Collections.unmodifiableMap(classes);
+		//return Collections.unmodifiableMap(classes);
+		return classes;
 	}
 
 	public String getFullName() {
@@ -79,11 +80,13 @@ public final class Module implements Namespace {
 	}
 
 	public Map<String, Function> getFunctions() {
-		return Collections.unmodifiableMap(functions);
+		//return Collections.unmodifiableMap(functions);
+		return functions;
 	}
 
 	public Map<String, Module> getModules() {
-		return Collections.unmodifiableMap(modules);
+		//return Collections.unmodifiableMap(modules);
+		return modules;
 	}
 
 	public String getName() {

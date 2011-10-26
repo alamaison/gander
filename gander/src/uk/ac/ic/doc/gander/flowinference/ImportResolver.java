@@ -25,6 +25,8 @@ public abstract class ImportResolver extends ImportSimulator {
 	protected ImportResolver(Model model, Namespace importReceiver,
 			Module topLevel) {
 		super(importReceiver, topLevel);
+
+		assert model != null;
 		this.model = model;
 	}
 
@@ -73,8 +75,13 @@ public abstract class ImportResolver extends ImportSimulator {
 		System.err.println("'import " + DottedName.toDottedName(importPath)
 				+ "'");
 
-		put(importReceiver, as, new TUnresolvedImport(importPath,
-				relativeToPackage));
+		/*
+		 * Can be null if the import is just the middle part of a multi-dotted
+		 * import. This loads the middle modules but doesn't bind them.
+		 */
+		if (importReceiver != null)
+			put(importReceiver, as, new TUnresolvedImport(importPath,
+					relativeToPackage));
 	}
 
 	@Override
@@ -85,16 +92,15 @@ public abstract class ImportResolver extends ImportSimulator {
 		if (importReceiver != null)
 			System.err.print("in " + importReceiver.getFullName() + " ");
 
-		System.err
-				.println("'from " + DottedName.toDottedName(fromPath)
-						+ " import " + itemName + "': '" + itemName
-						+ "' not found");
+		System.err.println("'from " + DottedName.toDottedName(fromPath)
+				+ " import " + itemName + "': '" + itemName + "' not found");
 
 		// XXX: This isn't really correct. Unlike the other two cases, we
 		// don't actually know that the missing item is a module or a
 		// package. It _could_ be but equally it could be a class, function
 		// or even a variable.
-		put(importReceiver, as, new TUnresolvedImport(fromPath, itemName,
-				relativeToPackage));
+		if (importReceiver != null)
+			put(importReceiver, as, new TUnresolvedImport(fromPath, itemName,
+					relativeToPackage));
 	}
 }

@@ -45,4 +45,8 @@ public final class TypeConcentrator {
 	public TypeJudgement getJudgement() {
 		return compoundJudgement;
 	}
+	
+	public boolean isFinished() {
+		return compoundJudgement instanceof Top;
+	}
 }

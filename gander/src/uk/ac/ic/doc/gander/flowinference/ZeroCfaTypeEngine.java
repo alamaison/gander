@@ -2,7 +2,9 @@ package uk.ac.ic.doc.gander.flowinference;
 
 import org.python.pydev.parser.jython.ast.exprType;
 
+import uk.ac.ic.doc.gander.flowinference.dda.Goal;
 import uk.ac.ic.doc.gander.flowinference.dda.GoalSolver;
+import uk.ac.ic.doc.gander.flowinference.dda.KnowledgeBase;
 import uk.ac.ic.doc.gander.flowinference.typegoals.ExpressionTypeGoal;
 import uk.ac.ic.doc.gander.flowinference.types.judgement.TypeJudgement;
 import uk.ac.ic.doc.gander.model.Model;
@@ -25,15 +27,19 @@ interface TypeEngine {
  */
 public final class ZeroCfaTypeEngine implements TypeEngine {
 	private Model model;
+	private KnowledgeBase blackboard = new KnowledgeBase();
 
 	public ZeroCfaTypeEngine(Model model) {
 		this.model = model;
 	}
 
 	public TypeJudgement typeOf(exprType expression, Namespace scope) {
-		GoalSolver solver = new GoalSolver(new ExpressionTypeGoal(model, scope,
-				expression));
-		return (TypeJudgement) solver.solve();
+		Goal<TypeJudgement> rootGoal = new ExpressionTypeGoal(model, scope,
+				expression);
+		GoalSolver<TypeJudgement> solver = new GoalSolver<TypeJudgement>(
+				rootGoal, blackboard);
+		TypeJudgement j = solver.solve();
+		System.out.println("Inferred " + expression + " as " + j);
+		return j;
 	}
-
 }

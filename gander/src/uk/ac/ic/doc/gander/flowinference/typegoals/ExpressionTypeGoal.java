@@ -311,4 +311,11 @@ public final class ExpressionTypeGoal implements TypeGoal {
 			return false;
 		return true;
 	}
+
+	@Override
+	public String toString() {
+		return "ExpressionTypeGoal [expression=" + expression + ", scope="
+				+ scope + "]";
+	}
+	
 }

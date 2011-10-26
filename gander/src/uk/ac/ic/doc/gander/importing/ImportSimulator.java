@@ -36,6 +36,11 @@ public abstract class ImportSimulator {
 	private Module topLevel;
 
 	public ImportSimulator(Namespace importReceiver, Module topLevel) {
+		if (importReceiver == null)
+			throw new NullPointerException("Must have namespace to import into");
+		if (topLevel == null)
+			throw new NullPointerException("Top level module is not optional");
+		
 		this.importReceiver = importReceiver;
 		this.topLevel = topLevel;
 	}
@@ -135,7 +140,7 @@ public abstract class ImportSimulator {
 		List<String> itemPath = new ArrayList<String>(fromPath);
 		itemPath.add(itemName);
 
-		// Resolve item name to an item inside the namespace. It the item is a
+		// Resolve item name to an item inside the namespace. If the item is a
 		// module we have to load it, otherwise we can just investigate it
 		Namespace loaded = simulateTwoStepLoad(itemPath, relativeToPackage);
 		if (loaded == null) {
