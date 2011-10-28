@@ -117,8 +117,7 @@ public final class BinderTest {
 		assertEquals("This probably means it saw there was no definition "
 				+ "in the global code block but looked for other bindings "
 				+ "of the name in the module and failed to filter "
-				+ "ones that weren't global.",
-				model.getTopLevel(), scope);
+				+ "ones that weren't global.", model.getTopLevel(), scope);
 	}
 
 	@Test
@@ -396,6 +395,54 @@ public final class BinderTest {
 
 		assertEquals("Outer use of name resolved to wrong scope.", node
 				.getGlobalNamespace(), scope);
+	}
+
+	@Test
+	public void imported() throws Throwable {
+		String testName = "imported";
+		ScopedPrintNode node = findPrintNode(testName, "whose_am_i");
+		Namespace scope = binder.resolveBindingScope(node.getExpressionName(),
+				node.getScope());
+
+		assertEquals(
+				"Name introduced by import statement binds in enclosing scope.",
+				node.getScope(), scope);
+	}
+
+	@Test
+	public void importedAs() throws Throwable {
+		String testName = "imported_as";
+		ScopedPrintNode node = findPrintNode(testName, "whose_am_i");
+		Namespace scope = binder.resolveBindingScope(node.getExpressionName(),
+				node.getScope());
+
+		assertEquals(
+				"Name introduced by import statement binds in enclosing scope.",
+				node.getScope(), scope);
+	}
+
+	@Test
+	public void importedFrom() throws Throwable {
+		String testName = "imported_from";
+		ScopedPrintNode node = findPrintNode(testName, "whose_am_i");
+		Namespace scope = binder.resolveBindingScope(node.getExpressionName(),
+				node.getScope());
+
+		assertEquals(
+				"Name introduced by import statement binds in enclosing scope.",
+				node.getScope(), scope);
+	}
+
+	@Test
+	public void importedFromAs() throws Throwable {
+		String testName = "imported_from_as";
+		ScopedPrintNode node = findPrintNode(testName, "whose_am_i");
+		Namespace scope = binder.resolveBindingScope(node.getExpressionName(),
+				node.getScope());
+
+		assertEquals(
+				"Name introduced by import statement binds in enclosing scope.",
+				node.getScope(), scope);
 	}
 
 	private ScopedPrintNode findPrintNode(String moduleName, String tag)

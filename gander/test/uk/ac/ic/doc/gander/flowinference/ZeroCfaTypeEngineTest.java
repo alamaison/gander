@@ -16,6 +16,7 @@ import uk.ac.ic.doc.gander.ScopedPrintNode;
 import uk.ac.ic.doc.gander.TaggedNodeAndScopeFinder;
 import uk.ac.ic.doc.gander.flowinference.types.TClass;
 import uk.ac.ic.doc.gander.flowinference.types.TFunction;
+import uk.ac.ic.doc.gander.flowinference.types.TModule;
 import uk.ac.ic.doc.gander.flowinference.types.TObject;
 import uk.ac.ic.doc.gander.flowinference.types.Type;
 import uk.ac.ic.doc.gander.flowinference.types.judgement.SetBasedTypeJudgement;
@@ -778,6 +779,66 @@ public class ZeroCfaTypeEngineTest {
 
 		assertEquals("Attribute's type not inferred correctly", expectedType,
 				type);
+	}
+
+	@Test
+	public void importModule() throws Throwable {
+		String testName = "import_module";
+
+		ScopedPrintNode node = findPrintNode(testName, "what_am_i");
+		TypeJudgement type = engine.typeOf(node.getExpression(), node
+				.getScope());
+
+		TypeJudgement expectedType = new SetBasedTypeJudgement(new TModule(
+				model.lookup("import_module_aux")));
+
+		assertEquals("Imported module's type not inferred correctly",
+				expectedType, type);
+	}
+
+	@Test
+	public void importModuleAs() throws Throwable {
+		String testName = "import_module_as";
+
+		ScopedPrintNode node = findPrintNode(testName, "what_am_i");
+		TypeJudgement type = engine.typeOf(node.getExpression(), node
+				.getScope());
+
+		TypeJudgement expectedType = new SetBasedTypeJudgement(new TModule(
+				model.lookup("import_module_aux")));
+
+		assertEquals("Imported module's type not inferred correctly",
+				expectedType, type);
+	}
+
+	@Test
+	public void importFunction() throws Throwable {
+		String testName = "import_function";
+
+		ScopedPrintNode node = findPrintNode(testName, "what_am_i");
+		TypeJudgement type = engine.typeOf(node.getExpression(), node
+				.getScope());
+
+		TypeJudgement expectedType = new SetBasedTypeJudgement(new TFunction(
+				model.lookup("import_function_aux").getFunctions().get("fun")));
+
+		assertEquals("Imported function's type not inferred correctly",
+				expectedType, type);
+	}
+
+	@Test
+	public void importFunctionAs() throws Throwable {
+		String testName = "import_function_as";
+
+		ScopedPrintNode node = findPrintNode(testName, "what_am_i");
+		TypeJudgement type = engine.typeOf(node.getExpression(), node
+				.getScope());
+
+		TypeJudgement expectedType = new SetBasedTypeJudgement(new TFunction(
+				model.lookup("import_function_aux").getFunctions().get("fun")));
+
+		assertEquals("Imported function's type not inferred correctly",
+				expectedType, type);
 	}
 
 	private ScopedAstNode findNode(String moduleName, String tag)

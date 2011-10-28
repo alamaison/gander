@@ -9,7 +9,9 @@ import org.python.pydev.parser.jython.ast.Import;
 import org.python.pydev.parser.jython.ast.ImportFrom;
 import org.python.pydev.parser.jython.ast.Name;
 import org.python.pydev.parser.jython.ast.NameTok;
+import org.python.pydev.parser.jython.ast.NameTokType;
 import org.python.pydev.parser.jython.ast.TryExcept;
+import org.python.pydev.parser.jython.ast.aliasType;
 import org.python.pydev.parser.jython.ast.excepthandlerType;
 import org.python.pydev.parser.jython.ast.exprType;
 
@@ -56,13 +58,47 @@ abstract class BoundNameVisitor extends BindingStatementVisitor {
 
 	@Override
 	public Object visitImportFrom(ImportFrom node) throws Exception {
-		// TODO Auto-generated method stub
+
+		for (aliasType alias : node.names) {
+			NameTokType name;
+			if (alias.asname != null) {
+				name = alias.asname;
+			} else {
+				name = alias.name;
+			}
+
+			if (name instanceof NameTok) {
+				onNameBound(((NameTok) name).id);
+			} else {
+				// TODO: No idea what happens here. How could the
+				// name of the imported item _not_ be a name?
+			}
+		}
+		
+		node.traverse(this);
 		return null;
 	}
 
 	@Override
 	public Object visitImport(Import node) throws Exception {
-		// TODO Auto-generated method stub
+
+		for (aliasType alias : node.names) {
+			NameTokType name;
+			if (alias.asname != null) {
+				name = alias.asname;
+			} else {
+				name = alias.name;
+			}
+
+			if (name instanceof NameTok) {
+				onNameBound(((NameTok) name).id);
+			} else {
+				// TODO: No idea what happens here. How could the
+				// name of the imported module _not_ be a name?
+			}
+		}
+		
+		node.traverse(this);
 		return null;
 	}
 

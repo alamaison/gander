@@ -52,7 +52,7 @@ public class TClass implements TNamespace {
 
 	@Override
 	public String toString() {
-		return getName();
+		return "TClass [" + getName() + "]";
 	}
 
 }
