@@ -1,14 +1,13 @@
-package uk.ac.ic.doc.gander.flowinference.modelgoals;
+package uk.ac.ic.doc.gander.model;
 
 import org.python.pydev.parser.jython.SimpleNode;
 
-import uk.ac.ic.doc.gander.model.Namespace;
 
 public class ModelSite<T extends SimpleNode> {
 	private final T node;
 	private final Namespace enclosingScope;
 
-	ModelSite(T node, Namespace enclosingScope) {
+	public ModelSite(T node, Namespace enclosingScope) {
 		this.node = node;
 		this.enclosingScope = enclosingScope;
 	}

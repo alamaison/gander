@@ -22,13 +22,11 @@ import uk.ac.ic.doc.gander.flowinference.ImportResolver;
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
 import uk.ac.ic.doc.gander.flowinference.types.TClass;
 import uk.ac.ic.doc.gander.flowinference.types.TFunction;
-import uk.ac.ic.doc.gander.flowinference.types.TObject;
 import uk.ac.ic.doc.gander.flowinference.types.Type;
 import uk.ac.ic.doc.gander.flowinference.types.judgement.SetBasedTypeJudgement;
 import uk.ac.ic.doc.gander.flowinference.types.judgement.Top;
 import uk.ac.ic.doc.gander.flowinference.types.judgement.TypeJudgement;
 import uk.ac.ic.doc.gander.model.Class;
-import uk.ac.ic.doc.gander.model.CodeBlock;
 import uk.ac.ic.doc.gander.model.Function;
 import uk.ac.ic.doc.gander.model.Model;
 import uk.ac.ic.doc.gander.model.Namespace;
@@ -72,49 +70,15 @@ public final class BoundTypeGoal implements TypeGoal {
 		BoundTypeVisitor(SubgoalManager goalManager) {
 			this.goalManager = goalManager;
 
-			CodeBlock codeBlock = enclosingScope.asCodeBlock();
-
-			// TODO: Somehow infer the type of other formal parameters
-			if (codeBlock.getFormalParameters().contains(name)) {
-
-				/*
-				 * The first parameter of a function in a class (usually called
-				 * self) is always an instance of the class so we can trivially
-				 * infer its type
-				 */
-				if (enclosingScope instanceof Function) {
-					if (enclosingScope.getParentScope() instanceof Class
-							&& codeBlock.getFormalParameters().get(0).equals(
-									name)) {
-						boundTypes.add(new TObject((Class) enclosingScope
-								.getParentScope()));
-					} else {
-						TypeJudgement incomingArgumentType = goalManager
-								.registerSubgoal(new FunctionArgumentTypeGoal(
-										model, (Function) enclosingScope, name));
-						if (incomingArgumentType instanceof SetBasedTypeJudgement) {
-							boundTypes
-									.addAll(((SetBasedTypeJudgement) incomingArgumentType)
-											.getConstituentTypes());
-						} else {
-
-							/*
-							 * Give up early because nothing beats Top
-							 */
-							judgement = new Top();
-							return;
-						}
-
-					}
-
-				} else {
-
-					/*
-					 * Give up early because nothing beats Top
-					 */
-					judgement = new Top();
-					return;
-				}
+			TypeJudgement parameterType = goalManager
+					.registerSubgoal(new ParameterTypeGoal(model,
+							enclosingScope, name));
+			if (parameterType instanceof SetBasedTypeJudgement) {
+				boundTypes.addAll(((SetBasedTypeJudgement) parameterType)
+						.getConstituentTypes());
+			} else {
+				judgement = new Top();
+				return;
 			}
 
 			try {

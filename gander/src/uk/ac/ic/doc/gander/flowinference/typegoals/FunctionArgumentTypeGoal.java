@@ -7,13 +7,13 @@ import org.python.pydev.parser.jython.ast.Name;
 import org.python.pydev.parser.jython.ast.exprType;
 
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
-import uk.ac.ic.doc.gander.flowinference.modelgoals.CallSitesGoal;
-import uk.ac.ic.doc.gander.flowinference.modelgoals.ModelSite;
+import uk.ac.ic.doc.gander.flowinference.sendersgoals.FunctionSendersGoal;
 import uk.ac.ic.doc.gander.flowinference.types.judgement.SetBasedTypeJudgement;
 import uk.ac.ic.doc.gander.flowinference.types.judgement.TypeConcentrator;
 import uk.ac.ic.doc.gander.flowinference.types.judgement.TypeJudgement;
 import uk.ac.ic.doc.gander.model.Function;
 import uk.ac.ic.doc.gander.model.Model;
+import uk.ac.ic.doc.gander.model.ModelSite;
 
 public class FunctionArgumentTypeGoal implements TypeGoal {
 
@@ -34,7 +34,7 @@ public class FunctionArgumentTypeGoal implements TypeGoal {
 
 	public TypeJudgement recalculateSolution(SubgoalManager goalManager) {
 		Set<ModelSite<Call>> callSites = goalManager
-				.registerSubgoal(new CallSitesGoal(model, function));
+				.registerSubgoal(new FunctionSendersGoal(model, function));
 		
 		// XXX: HACK.  A bit like pruning.
 		//if (callSites.size() > 5)

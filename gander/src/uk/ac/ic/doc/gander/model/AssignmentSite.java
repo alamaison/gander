@@ -1,9 +1,8 @@
-package uk.ac.ic.doc.gander.flowinference.modelgoals;
+package uk.ac.ic.doc.gander.model;
 
 import org.python.pydev.parser.jython.SimpleNode;
 import org.python.pydev.parser.jython.ast.Assign;
 
-import uk.ac.ic.doc.gander.model.Namespace;
 
 /**
  * A point in the code where a value is assigned to the result of an expression
@@ -21,7 +20,7 @@ public final class AssignmentSite<T extends SimpleNode> {
 	private final Assign assignment;
 	private final Namespace enclosingScope;
 
-	AssignmentSite(Assign assignment, T target, Namespace enclosingScope) {
+	public AssignmentSite(Assign assignment, T target, Namespace enclosingScope) {
 		this.assignment = assignment;
 		this.target = target;
 		this.enclosingScope = enclosingScope;

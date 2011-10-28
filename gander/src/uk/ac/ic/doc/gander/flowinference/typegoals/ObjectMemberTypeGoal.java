@@ -7,13 +7,13 @@ import org.python.pydev.parser.jython.ast.Attribute;
 import org.python.pydev.parser.jython.ast.exprType;
 
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
-import uk.ac.ic.doc.gander.flowinference.modelgoals.AssignmentSite;
 import uk.ac.ic.doc.gander.flowinference.modelgoals.AttributeAssignmentSitesGoal;
 import uk.ac.ic.doc.gander.flowinference.types.TObject;
 import uk.ac.ic.doc.gander.flowinference.types.Type;
 import uk.ac.ic.doc.gander.flowinference.types.judgement.SetBasedTypeJudgement;
 import uk.ac.ic.doc.gander.flowinference.types.judgement.TypeConcentrator;
 import uk.ac.ic.doc.gander.flowinference.types.judgement.TypeJudgement;
+import uk.ac.ic.doc.gander.model.AssignmentSite;
 import uk.ac.ic.doc.gander.model.Class;
 import uk.ac.ic.doc.gander.model.Model;
 

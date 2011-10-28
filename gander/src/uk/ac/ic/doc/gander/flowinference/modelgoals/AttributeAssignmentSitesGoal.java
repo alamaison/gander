@@ -6,7 +6,9 @@ import java.util.Set;
 import org.python.pydev.parser.jython.ast.Attribute;
 
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
+import uk.ac.ic.doc.gander.model.AssignmentSite;
 import uk.ac.ic.doc.gander.model.Model;
+import uk.ac.ic.doc.gander.model.sitefinders.AttributeAssignmentSitesFinder;
 
 /**
  * Find the assignments that modify an attribute with the given name.

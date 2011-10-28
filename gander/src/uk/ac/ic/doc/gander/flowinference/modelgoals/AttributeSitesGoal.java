@@ -7,6 +7,8 @@ import org.python.pydev.parser.jython.ast.Attribute;
 
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
 import uk.ac.ic.doc.gander.model.Model;
+import uk.ac.ic.doc.gander.model.ModelSite;
+import uk.ac.ic.doc.gander.model.sitefinders.AttributeSitesFinder;
 
 /**
  * Find all sites where an attribute is referenced with a name that matches the

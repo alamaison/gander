@@ -1,4 +1,4 @@
-package uk.ac.ic.doc.gander.flowinference.modelgoals;
+package uk.ac.ic.doc.gander.model.sitefinders;
 
 import java.util.Collections;
 import java.util.HashSet;
@@ -9,14 +9,16 @@ import org.python.pydev.parser.jython.ast.NameTok;
 
 import uk.ac.ic.doc.gander.model.AttributeSitesWalker;
 import uk.ac.ic.doc.gander.model.Model;
+import uk.ac.ic.doc.gander.model.ModelSite;
 import uk.ac.ic.doc.gander.model.Namespace;
 import uk.ac.ic.doc.gander.model.AttributeSitesWalker.EventHandler;
 
-final class AttributeSitesFinder {
+
+public final class AttributeSitesFinder {
 
 	private final Set<ModelSite<Attribute>> sites = new HashSet<ModelSite<Attribute>>();
 
-	AttributeSitesFinder(Model model, final String attributeName) {
+	public AttributeSitesFinder(Model model, final String attributeName) {
 
 		new AttributeSitesWalker(model, new EventHandler() {
 
@@ -29,7 +31,7 @@ final class AttributeSitesFinder {
 		});
 	}
 
-	Set<ModelSite<Attribute>> getSites() {
+	public Set<ModelSite<Attribute>> getSites() {
 		return Collections.unmodifiableSet(sites);
 	}
 

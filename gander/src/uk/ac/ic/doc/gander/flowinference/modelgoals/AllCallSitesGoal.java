@@ -7,6 +7,8 @@ import org.python.pydev.parser.jython.ast.Call;
 
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
 import uk.ac.ic.doc.gander.model.Model;
+import uk.ac.ic.doc.gander.model.ModelSite;
+import uk.ac.ic.doc.gander.model.sitefinders.AllCallSitesFinder;
 
 /**
  * Collect all call sites in the loaded model.

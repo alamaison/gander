@@ -1,4 +1,4 @@
-package uk.ac.ic.doc.gander.flowinference.modelgoals;
+package uk.ac.ic.doc.gander.model.sitefinders;
 
 import java.util.Collections;
 import java.util.HashSet;
@@ -8,20 +8,22 @@ import org.python.pydev.parser.jython.ast.Assign;
 import org.python.pydev.parser.jython.ast.Attribute;
 import org.python.pydev.parser.jython.ast.NameTok;
 
+import uk.ac.ic.doc.gander.model.AssignmentSite;
 import uk.ac.ic.doc.gander.model.AttributeAssignmentSitesWalker;
 import uk.ac.ic.doc.gander.model.Model;
 import uk.ac.ic.doc.gander.model.Namespace;
 import uk.ac.ic.doc.gander.model.AttributeAssignmentSitesWalker.EventHandler;
 
+
 /**
  * Find all the locations in the loaded model where an attribute is set via the
  * equals {@code =} symbol.
  */
-final class AttributeAssignmentSitesFinder {
+public final class AttributeAssignmentSitesFinder {
 
 	private final Set<AssignmentSite<Attribute>> sites = new HashSet<AssignmentSite<Attribute>>();
 
-	AttributeAssignmentSitesFinder(Model model, final String attributeName) {
+	public AttributeAssignmentSitesFinder(Model model, final String attributeName) {
 
 		new AttributeAssignmentSitesWalker(model, new EventHandler() {
 
@@ -35,7 +37,7 @@ final class AttributeAssignmentSitesFinder {
 		});
 	}
 
-	Set<AssignmentSite<Attribute>> getSites() {
+	public Set<AssignmentSite<Attribute>> getSites() {
 		return Collections.unmodifiableSet(sites);
 	}
 

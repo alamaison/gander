@@ -542,6 +542,54 @@ public class ZeroCfaTypeEngineTest {
 	}
 
 	@Test
+	public void methodParameterMono() throws Throwable {
+		String testName = "method_parameter_mono";
+		TypeJudgement expectedType = new SetBasedTypeJudgement(integerType);
+
+		ScopedPrintNode node = findPrintNode(testName, "what_am_i");
+		TypeJudgement type = engine.typeOf(node.getExpression(), node
+				.getScope());
+
+		assertEquals("Method parameter's type not inferred correctly",
+				expectedType, type);
+	}
+
+	@Test
+	public void methodParameterPoly() throws Throwable {
+		String testName = "method_parameter_poly";
+		ArrayList<Type> types = new ArrayList<Type>();
+		types.add(stringType);
+		types.add(integerType);
+		types.add(listType);
+		TypeJudgement expectedType = new SetBasedTypeJudgement(types);
+
+		ScopedPrintNode node = findPrintNode(testName, "what_am_i");
+		TypeJudgement type = engine.typeOf(node.getExpression(), node
+				.getScope());
+
+		assertEquals("Method parameter's type not inferred correctly",
+				expectedType, type);
+	}
+
+	@Test
+	public void methodParameterBound() throws Throwable {
+		String testName = "method_parameter_bound";
+		ArrayList<Type> types = new ArrayList<Type>();
+		types.add(stringType);
+		types.add(integerType);
+		TypeJudgement expectedType = new SetBasedTypeJudgement(types);
+
+		ScopedPrintNode node = findPrintNode(testName, "what_am_i");
+		TypeJudgement type = engine.typeOf(node.getExpression(), node
+				.getScope());
+
+		assertEquals("Method parameter's type not inferred correctly. This "
+				+ "probably means the analysis failed to "
+				+ "realise the bound method called as a closure calls A.m.",
+				expectedType, type);
+	}
+
+	@Test
 	public void methodParameterSelf() throws Throwable {
 		ScopedPrintNode node = findPrintNode("method_parameter_self",
 				"what_am_i");
@@ -581,6 +629,63 @@ public class ZeroCfaTypeEngineTest {
 
 		assertEquals("Function parameter's type not inferred correctly",
 				expectedType, type);
+	}
+
+	@Test
+	public void functionParameterCalledWithDifferentName() throws Throwable {
+		String testName = "function_parameter_called_with_different_name";
+		ScopedPrintNode node = findPrintNode(testName, "what_am_i");
+		TypeJudgement type = engine.typeOf(node.getExpression(), node
+				.getScope());
+
+		ArrayList<Type> types = new ArrayList<Type>();
+		types.add(stringType);
+		types.add(integerType);
+		TypeJudgement expectedType = new SetBasedTypeJudgement(types);
+
+		assertEquals("Function parameter's type not inferred "
+				+ "correctly. This probably means that the analysis didn't "
+				+ "realise the function had flowed to g and was called "
+				+ "from there.", expectedType, type);
+	}
+
+	@Test
+	public void functionParameterCalledFromOtherModule() throws Throwable {
+		String testName = "function_parameter_called_from_other_module";
+		ScopedPrintNode node = findPrintNode(testName, "what_am_i");
+		TypeJudgement type = engine.typeOf(node.getExpression(), node
+				.getScope());
+
+		ArrayList<Type> types = new ArrayList<Type>();
+		types.add(stringType);
+		types.add(integerType);
+		TypeJudgement expectedType = new SetBasedTypeJudgement(types);
+
+		assertEquals("Function parameter's type not inferred "
+				+ "correctly. This probably means that the analysis didn't "
+				+ "realise the function is imported into another "
+				+ "module and called from there with a different type "
+				+ "of parameter.", expectedType, type);
+	}
+
+	@Test
+	public void functionParameterCalledFromOtherModuleWithDifferentName()
+			throws Throwable {
+		String testName = "function_parameter_called_from_other_module_with_different_name";
+		ScopedPrintNode node = findPrintNode(testName, "what_am_i");
+		TypeJudgement type = engine.typeOf(node.getExpression(), node
+				.getScope());
+
+		ArrayList<Type> types = new ArrayList<Type>();
+		types.add(stringType);
+		types.add(integerType);
+		TypeJudgement expectedType = new SetBasedTypeJudgement(types);
+
+		assertEquals("Function parameter's type not inferred "
+				+ "correctly. This probably means that the analysis didn't "
+				+ "realise the function is imported into another "
+				+ "module and called from there with a different type "
+				+ "of parameter.", expectedType, type);
 	}
 
 	@Test
