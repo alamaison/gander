@@ -56,8 +56,8 @@ public class ConservativeFunctionSendersGoal implements SendersGoal {
 		for (ModelSite<Call> callSite : candidateCallSites) {
 
 			ModelSite<exprType> callableExpression = new ModelSite<exprType>(
-					callSite.getNode().func, callSite.getEnclosingScope(),
-					callSite.getModel());
+					callSite.astNode().func, callSite.codeObject(), callSite
+							.model());
 			TypeJudgement type = goalManager
 					.registerSubgoal(new ExpressionTypeGoal(callableExpression));
 

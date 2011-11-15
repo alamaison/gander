@@ -97,7 +97,7 @@ public final class FlowSituationFinder {
 			throws Exception {
 
 		SituationFinder finder = new SituationFinder(expressionSite);
-		expressionSite.getEnclosingScope().getAst().accept(finder);
+		expressionSite.codeObject().getAst().accept(finder);
 		return finder.getSituation();
 	}
 }
@@ -174,11 +174,11 @@ final class SituationMapper implements VisitorIF {
 		 * RHS is a method. In that situation, the LHS's value flows to the
 		 * first parameter of the method.
 		 */
-//		if (isMatch(node.value))
-//			return new AttributeSituation(new ModelSite<Attribute>(node,
-//					expression.getEnclosingScope(), expression.getModel()));
-//		else
-			return null;
+		// if (isMatch(node.value))
+		// return new AttributeSituation(new ModelSite<Attribute>(node,
+		// expression.getEnclosingScope(), expression.getModel()));
+		// else
+		return null;
 	}
 
 	public Object visitAugAssign(AugAssign node) throws Exception {
@@ -583,6 +583,6 @@ final class SituationMapper implements VisitorIF {
 	}
 
 	private boolean isMatch(exprType otherExpression) {
-		return expression.getNode().equals(otherExpression);
+		return expression.astNode().equals(otherExpression);
 	}
 }

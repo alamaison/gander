@@ -74,10 +74,10 @@ final class ObjectMemberTypeGoal implements TypeGoal {
 		Set<ModelSite<Call>> constructors = new HashSet<ModelSite<Call>>();
 		for (ModelSite<? extends exprType> classSite : classReferences) {
 			SimpleNode parent = AstParentNodeFinder.findParent(classSite
-					.getNode(), classSite.getEnclosingScope().getAst());
+					.astNode(), classSite.codeObject().getAst());
 			if (parent instanceof Call) {
 				constructors.add(new ModelSite<Call>((Call) parent, classSite
-						.getEnclosingScope(), model));
+						.codeObject(), model));
 			}
 		}
 
@@ -105,12 +105,11 @@ final class ObjectMemberTypeGoal implements TypeGoal {
 		for (ModelSite<? extends exprType> object : objectReferences) {
 
 			SimpleNode parent = AstParentNodeFinder.findParent(
-					object.getNode(), object.getEnclosingScope().getAst());
+					object.astNode(), object.codeObject().getAst());
 			if (parent instanceof Attribute) {
 				if (((NameTok) ((Attribute) parent).attr).id.equals(memberName)) {
 					memberAccesses.add(new ModelSite<Attribute>(
-							(Attribute) parent, object.getEnclosingScope(),
-							model));
+							(Attribute) parent, object.codeObject(), model));
 				}
 			}
 		}
@@ -120,17 +119,17 @@ final class ObjectMemberTypeGoal implements TypeGoal {
 		for (ModelSite<Attribute> accessSite : memberAccesses) {
 
 			SimpleNode parent = AstParentNodeFinder.findParent(accessSite
-					.getNode(), accessSite.getEnclosingScope().getAst());
+					.astNode(), accessSite.codeObject().getAst());
 
 			// Check that attribute is being bound by assignment
 			// FIXME: Attributes can be bound by any of the binding statements
 			if (parent instanceof Assign
 					&& Arrays.asList(((Assign) parent).targets).contains(
-							accessSite.getNode())) {
+							accessSite.astNode())) {
 
 				ModelSite<exprType> rhs = new ModelSite<exprType>(
-						((Assign) parent).value,
-						accessSite.getEnclosingScope(), accessSite.getModel());
+						((Assign) parent).value, accessSite.codeObject(),
+						accessSite.model());
 				types.add(goalManager.registerSubgoal(new ExpressionTypeGoal(
 						rhs)));
 				if (types.isFinished())

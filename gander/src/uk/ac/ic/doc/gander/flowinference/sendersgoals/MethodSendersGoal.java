@@ -34,10 +34,10 @@ public final class MethodSendersGoal implements SendersGoal {
 		}
 
 		public boolean isMatch(ModelSite<Call> callSite) {
-			if (!(callSite.getNode().func instanceof Attribute))
+			if (!(callSite.astNode().func instanceof Attribute))
 				return false;
 
-			String selector = ((NameTok) ((Attribute) callSite.getNode().func).attr).id;
+			String selector = ((NameTok) ((Attribute) callSite.astNode().func).attr).id;
 			return name.equals(selector);
 		}
 
@@ -95,8 +95,7 @@ public final class MethodSendersGoal implements SendersGoal {
 		for (ModelSite<Call> callSite : candidateSenders) {
 
 			ModelSite<exprType> callable = new ModelSite<exprType>(callSite
-					.getNode().func, callSite.getEnclosingScope(), callSite
-					.getModel());
+					.astNode().func, callSite.codeObject(), callSite.model());
 			TypeJudgement type = goalManager
 					.registerSubgoal(new ExpressionTypeGoal(callable));
 

@@ -57,7 +57,7 @@ final class AttributeSituation implements FlowSituation {
 				if (parameters.length > 0) {
 					selfParameters.add(new ExpressionPosition<Name>(
 							new ModelSite<Name>((Name) parameters[0], method,
-									attribute.getModel())));
+									attribute.model())));
 				} else {
 					// method has no parameters!
 				}

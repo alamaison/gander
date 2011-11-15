@@ -42,10 +42,10 @@ public class FunctionSendersGoal implements SendersGoal {
 
 		for (ModelSite<? extends exprType> expression : positions) {
 			SimpleNode parent = AstParentNodeFinder.findParent(expression
-					.getNode(), expression.getEnclosingScope().getAst());
+					.astNode(), expression.codeObject().getAst());
 			if (parent instanceof Call) {
 				callSites.add(new ModelSite<Call>((Call) parent, expression
-						.getEnclosingScope(), expression.getModel()));
+						.codeObject(), expression.model()));
 			}
 		}
 

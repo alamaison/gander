@@ -42,8 +42,8 @@ public class DefaultCodeBlock implements CodeBlock {
 	public List<String> getNamedFormalParameters() {
 		ArrayList<String> args = new ArrayList<String>();
 		for (ModelSite<exprType> expr : formalParameters) {
-			if (expr.getNode() instanceof Name) {
-				args.add(((Name) expr.getNode()).id);
+			if (expr.astNode() instanceof Name) {
+				args.add(((Name) expr.astNode()).id);
 			} else {
 				/*
 				 * TODO: Work out what we want to do ... and why this even

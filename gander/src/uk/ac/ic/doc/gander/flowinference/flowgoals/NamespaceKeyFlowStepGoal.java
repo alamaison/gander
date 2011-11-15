@@ -258,9 +258,9 @@ final class NamespaceKeyFlowStepGoal implements FlowStepGoal {
 		 */
 		if (!importedCodeObjectKey.equals(namespaceKey)) {
 
-//			Set<ModelSite<? extends exprType>> moduleReferences = goalManager
-//					.registerSubgoal(new FlowGoal(new CodeObjectPosition(
-//							namespaceKey.getNamespace(), namespaceKey)));
+			// Set<ModelSite<? extends exprType>> moduleReferences = goalManager
+			// .registerSubgoal(new FlowGoal(new CodeObjectPosition(
+			// namespaceKey.getNamespace(), namespaceKey)));
 
 			Set<ModelSite<? extends exprType>> moduleReferences = goalManager
 					.registerSubgoal(new FlowGoal(new NamespaceKeyPosition(
@@ -320,7 +320,7 @@ final class NamespaceKeyFlowStepGoal implements FlowStepGoal {
 						public Object visitAttribute(Attribute node)
 								throws Exception {
 							if (node.value.equals(codeObjectReferenceSite
-									.getNode())) {
+									.astNode())) {
 								String name = namespaceKey.getName();
 
 								if (((NameTok) node.attr).id.equals(name)) {
@@ -350,16 +350,16 @@ final class NamespaceKeyFlowStepGoal implements FlowStepGoal {
 					throw new RuntimeException(e);
 				}
 			}
-		}.walk(codeObjectReferenceSite.getEnclosingScope());
+		}.walk(codeObjectReferenceSite.codeObject());
 	}
 
 	private void addAccessesToNamespaceEntry(
 			Set<ModelSite<? extends exprType>> moduleReferenceExpressions,
 			Set<FlowPosition> positions) {
 		for (ModelSite<? extends exprType> moduleReference : moduleReferenceExpressions) {
-			searchScopeForAccessToNamespaceEntry(moduleReference
-					.getEnclosingScope(), namespaceKey.getName(),
-					moduleReference.getNode(), positions);
+			searchScopeForAccessToNamespaceEntry(moduleReference.codeObject(),
+					namespaceKey.getName(), moduleReference.astNode(),
+					positions);
 		}
 	}
 

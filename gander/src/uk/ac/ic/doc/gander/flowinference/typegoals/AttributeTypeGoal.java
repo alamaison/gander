@@ -26,19 +26,19 @@ final class AttributeTypeGoal implements TypeGoal {
 
 	public TypeJudgement recalculateSolution(SubgoalManager goalManager) {
 		ModelSite<exprType> lhs = new ModelSite<exprType>(
-				attribute.getNode().value, attribute.getEnclosingScope(),
-				attribute.getModel());
+				attribute.astNode().value, attribute.codeObject(), attribute
+						.model());
 		ExpressionTypeGoal typer = new ExpressionTypeGoal(lhs);
 		TypeJudgement targetTypes = goalManager.registerSubgoal(typer);
 
 		if (targetTypes instanceof SetBasedTypeJudgement) {
 			TypeConcentrator types = new TypeConcentrator();
-			String attributeName = ((NameTok) attribute.getNode().attr).id;
+			String attributeName = ((NameTok) attribute.astNode().attr).id;
 
 			for (Type targetType : ((SetBasedTypeJudgement) targetTypes)
 					.getConstituentTypes()) {
 				types.add(goalManager.registerSubgoal(new MemberTypeGoal(
-						attribute.getModel(), targetType, attributeName)));
+						attribute.model(), targetType, attributeName)));
 				if (types.isFinished())
 					break;
 			}

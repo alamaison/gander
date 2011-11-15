@@ -52,11 +52,11 @@ final class MethodArgumentTypeGoal implements TypeGoal {
 
 			TypeConcentrator types = new TypeConcentrator();
 			for (ModelSite<Call> callSite : callSites) {
-				exprType[] args = callSite.getNode().args;
+				exprType[] args = callSite.astNode().args;
 				if (argumentIndex <= args.length) {
 					ModelSite<exprType> argument = new ModelSite<exprType>(
-							callSite.getNode().args[argumentIndex - 1],
-							callSite.getEnclosingScope(), callSite.getModel());
+							callSite.astNode().args[argumentIndex - 1],
+							callSite.codeObject(), callSite.model());
 					types.add(goalManager
 							.registerSubgoal(new ExpressionTypeGoal(argument)));
 				} else {

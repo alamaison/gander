@@ -7,31 +7,31 @@ import uk.ac.ic.doc.gander.model.codeblock.CodeBlock;
 
 public class ModelSite<T extends SimpleNode> {
 	private final T node;
-	private final Namespace enclosingScope;
+	private final Namespace codeObject;
 	private final Model model;
 
-	public ModelSite(T node, Namespace enclosingScope, Model model) {
+	public ModelSite(T node, Namespace codeObject, Model model) {
 		this.node = node;
-		this.enclosingScope = enclosingScope;
+		this.codeObject = codeObject;
 		this.model = model;
 	}
 
-	public Model getModel() {
+	public Model model() {
 		return model;
 	}
 
-	public Namespace getEnclosingScope() {
-		return enclosingScope;
+	public Namespace codeObject() {
+		return codeObject;
 	}
 
-	public T getNode() {
+	public T astNode() {
 		/*
 		 * TODO: Move this to the constructor once we separate Namespaces and
 		 * CodeBlocks. It's here for the moment because asCodeBlock calls the
 		 * constructor and the constructor would call asCodeBlock leading to an
 		 * infinite loop.
 		 */
-		assert codeBlockContainsNode(enclosingScope.asCodeBlock(), node);
+		assert codeBlockContainsNode(codeObject.asCodeBlock(), node);
 		return node;
 	}
 
@@ -67,7 +67,7 @@ public class ModelSite<T extends SimpleNode> {
 		final int prime = 31;
 		int result = 1;
 		result = prime * result
-				+ ((enclosingScope == null) ? 0 : enclosingScope.hashCode());
+				+ ((codeObject == null) ? 0 : codeObject.hashCode());
 		result = prime * result + ((model == null) ? 0 : model.hashCode());
 		result = prime * result + ((node == null) ? 0 : node.hashCode());
 		return result;
@@ -82,10 +82,10 @@ public class ModelSite<T extends SimpleNode> {
 		if (getClass() != obj.getClass())
 			return false;
 		ModelSite<?> other = (ModelSite<?>) obj;
-		if (enclosingScope == null) {
-			if (other.enclosingScope != null)
+		if (codeObject == null) {
+			if (other.codeObject != null)
 				return false;
-		} else if (!enclosingScope.equals(other.enclosingScope))
+		} else if (!codeObject.equals(other.codeObject))
 			return false;
 		if (model == null) {
 			if (other.model != null)
@@ -102,8 +102,7 @@ public class ModelSite<T extends SimpleNode> {
 
 	@Override
 	public String toString() {
-		return "ModelSite [enclosingScope=" + enclosingScope + ", node=" + node
-				+ "]";
+		return "ModelSite [codeObject=" + codeObject + ", node=" + node + "]";
 	}
 
 }

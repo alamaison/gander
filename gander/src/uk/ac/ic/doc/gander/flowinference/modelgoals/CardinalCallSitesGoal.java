@@ -39,7 +39,7 @@ public class CardinalCallSitesGoal implements ModelGoal<Call> {
 			Set<ModelSite<Call>> sites = new HashSet<ModelSite<Call>>();
 			for (ModelSite<Call> callSite : goalManager
 					.registerSubgoal(new AllCallSitesGoal(model))) {
-				if (callSite.getNode().args.length == cardinality) {
+				if (callSite.astNode().args.length == cardinality) {
 					sites.add(callSite);
 				}
 			}

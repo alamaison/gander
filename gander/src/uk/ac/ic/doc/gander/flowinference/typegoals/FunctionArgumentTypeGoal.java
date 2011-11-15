@@ -44,10 +44,10 @@ public class FunctionArgumentTypeGoal implements TypeGoal {
 
 		TypeConcentrator types = new TypeConcentrator();
 		for (ModelSite<Call> callSite : callSites) {
-			if (argumentIndex < callSite.getNode().args.length) {
+			if (argumentIndex < callSite.astNode().args.length) {
 				types.add(goalManager.registerSubgoal(new ExpressionTypeGoal(
-						model, callSite.getEnclosingScope(),
-						callSite.getNode().args[argumentIndex])));
+						model, callSite.codeObject(),
+						callSite.astNode().args[argumentIndex])));
 			} else {
 				/*
 				 * Few argument were passed to the function than are declared in
@@ -90,7 +90,7 @@ public class FunctionArgumentTypeGoal implements TypeGoal {
 				.getFormalParameters();
 
 		for (int i = 0; i < args.size(); ++i) {
-			exprType arg = args.get(i).getNode();
+			exprType arg = args.get(i).astNode();
 			if (arg instanceof Name && ((Name) arg).id.equals(argument))
 				return i;
 		}

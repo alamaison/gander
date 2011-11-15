@@ -23,7 +23,7 @@ public final class CardinalCallSitesFinder {
 		sites = new CallSitesFinder(model, new Predicate() {
 
 			public boolean isMatch(ModelSite<Call> callSite) {
-				return callSite.getNode().args.length == cardinality;
+				return callSite.astNode().args.length == cardinality;
 			}
 
 		}).getSites();

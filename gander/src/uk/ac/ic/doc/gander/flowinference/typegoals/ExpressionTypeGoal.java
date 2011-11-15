@@ -65,10 +65,10 @@ public final class ExpressionTypeGoal implements TypeGoal {
 	}
 
 	public TypeJudgement recalculateSolution(SubgoalManager goalManager) {
-		TypeFinder finder = new TypeFinder(expression.getModel(), expression
-				.getEnclosingScope(), goalManager);
+		TypeFinder finder = new TypeFinder(expression.model(), expression
+				.codeObject(), goalManager);
 		try {
-			return (TypeJudgement) expression.getNode().accept(finder);
+			return (TypeJudgement) expression.astNode().accept(finder);
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}
@@ -140,8 +140,8 @@ public final class ExpressionTypeGoal implements TypeGoal {
 		@Override
 		public Object visitAttribute(Attribute node) throws Exception {
 			AttributeTypeGoal attributeTyper = new AttributeTypeGoal(
-					new ModelSite<Attribute>(node, expression
-							.getEnclosingScope(), expression.getModel()));
+					new ModelSite<Attribute>(node, expression.codeObject(),
+							expression.model()));
 			return goalManager.registerSubgoal(attributeTyper);
 		}
 
@@ -173,7 +173,7 @@ public final class ExpressionTypeGoal implements TypeGoal {
 		@Override
 		public Object visitCall(Call node) throws Exception {
 			ReturnTypeGoal typer = new ReturnTypeGoal(new ModelSite<Call>(node,
-					expression.getEnclosingScope(), expression.getModel()));
+					expression.codeObject(), expression.model()));
 			return goalManager.registerSubgoal(typer);
 		}
 
@@ -229,8 +229,8 @@ public final class ExpressionTypeGoal implements TypeGoal {
 
 		@Override
 		public Object visitName(Name node) throws Exception {
-			NameTypeGoal typer = new NameTypeGoal(expression.getModel(),
-					expression.getEnclosingScope(), node.id);
+			NameTypeGoal typer = new NameTypeGoal(expression.model(),
+					expression.codeObject(), node.id);
 			return goalManager.registerSubgoal(typer);
 		}
 
