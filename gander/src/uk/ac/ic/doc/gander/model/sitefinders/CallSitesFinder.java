@@ -30,10 +30,12 @@ public final class CallSitesFinder {
 		new CallSitesWalker(model, new EventHandler() {
 
 			public void encounteredCallSite(Call call, Namespace namespace) {
+
+				ModelSite<Call> callSite = new ModelSite<Call>(call, namespace,
+						model);
 				
-				ModelSite<Call> callSite = new ModelSite<Call>(call, namespace);
 				if (predicate.isMatch(callSite)) {
-					sites.add(new ModelSite<Call>(call, namespace));
+					sites.add(callSite);
 				}
 			}
 

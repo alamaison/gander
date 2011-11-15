@@ -1,5 +1,6 @@
 package uk.ac.ic.doc.gander.flowinference.typegoals;
 
+import java.util.List;
 import java.util.Set;
 
 import org.python.pydev.parser.jython.ast.Call;
@@ -9,6 +10,7 @@ import org.python.pydev.parser.jython.ast.exprType;
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
 import uk.ac.ic.doc.gander.flowinference.sendersgoals.FunctionSendersGoal;
 import uk.ac.ic.doc.gander.flowinference.types.judgement.SetBasedTypeJudgement;
+import uk.ac.ic.doc.gander.flowinference.types.judgement.Top;
 import uk.ac.ic.doc.gander.flowinference.types.judgement.TypeConcentrator;
 import uk.ac.ic.doc.gander.flowinference.types.judgement.TypeJudgement;
 import uk.ac.ic.doc.gander.model.Function;
@@ -35,16 +37,46 @@ public class FunctionArgumentTypeGoal implements TypeGoal {
 	public TypeJudgement recalculateSolution(SubgoalManager goalManager) {
 		Set<ModelSite<Call>> callSites = goalManager
 				.registerSubgoal(new FunctionSendersGoal(model, function));
-		
-		// XXX: HACK.  A bit like pruning.
-		//if (callSites.size() > 5)
-		//	return new Top();
+
+		// XXX: HACK. A bit like pruning.
+		// if (callSites.size() > 5)
+		// return new Top();
 
 		TypeConcentrator types = new TypeConcentrator();
 		for (ModelSite<Call> callSite : callSites) {
-			types.add(goalManager.registerSubgoal(new ExpressionTypeGoal(model,
-					callSite.getEnclosingScope(),
-					callSite.getNode().args[argumentIndex])));
+			if (argumentIndex < callSite.getNode().args.length) {
+				types.add(goalManager.registerSubgoal(new ExpressionTypeGoal(
+						model, callSite.getEnclosingScope(),
+						callSite.getNode().args[argumentIndex])));
+			} else {
+				/*
+				 * Few argument were passed to the function than are declared in
+				 * its signature. It's probably expecting default arguments.
+				 */
+				if (argumentIndex < function.getAst().args.defaults.length) {
+					exprType defaultVal = function.getAst().args.defaults[argumentIndex];
+					if (defaultVal != null) {
+						/*
+						 * XXX: Are we sure default arguments are evaluated in
+						 * the context of the function's parent?
+						 */
+						TypeJudgement defaultType = goalManager
+								.registerSubgoal(new ExpressionTypeGoal(model,
+										function.getParentScope(), defaultVal));
+						types.add(defaultType);
+					} else {
+						/* No default. The program is probably wrong. */
+						types.add(new Top());
+					}
+				} else {
+					/*
+					 * No idea what's going on here. The defaults array seems to
+					 * be smaller than the argument array
+					 */
+					assert false;
+					types.add(new Top());
+				}
+			}
 			if (types.isFinished())
 				break;
 		}
@@ -54,10 +86,12 @@ public class FunctionArgumentTypeGoal implements TypeGoal {
 
 	private static int findArgumentIndexInFunction(Function function,
 			String argument) {
-		exprType[] args = function.getAst().args.args;
+		List<ModelSite<exprType>> args = function.asCodeBlock()
+				.getFormalParameters();
 
-		for (int i = 0; i < args.length; ++i) {
-			if (args[i] instanceof Name && ((Name) args[i]).id.equals(argument))
+		for (int i = 0; i < args.size(); ++i) {
+			exprType arg = args.get(i).getNode();
+			if (arg instanceof Name && ((Name) arg).id.equals(argument))
 				return i;
 		}
 

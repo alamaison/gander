@@ -36,10 +36,11 @@ public final class ZeroCfaTypeEngine implements TypeEngine {
 	public TypeJudgement typeOf(exprType expression, Namespace scope) {
 		Goal<TypeJudgement> rootGoal = new ExpressionTypeGoal(model, scope,
 				expression);
+		System.out.print("Inferring type of " + expression);
 		GoalSolver<TypeJudgement> solver = new GoalSolver<TypeJudgement>(
 				rootGoal, blackboard);
 		TypeJudgement j = solver.solve();
-		System.out.println("Inferred " + expression + " as " + j);
+		System.out.println(" as " + j);
 		return j;
 	}
 }

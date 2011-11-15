@@ -25,12 +25,12 @@ public final class AttributeSitesWalker {
 	public AttributeSitesWalker(Model model, EventHandler eventHandler) {
 		this.eventHandler = eventHandler;
 
-		new ModelCodeBlockWalker() {
+		new CodeObjectWalker() {
 			@Override
-			protected void visitCodeBlock(Namespace codeBlock) {
+			protected void visitCodeObject(Namespace codeBlock) {
 				processAttributesInCodeBlock(codeBlock);
 			}
-		}.walk(model);
+		}.walk(model.getTopLevel());
 	}
 
 	private void processAttributesInCodeBlock(final Namespace namespace) {

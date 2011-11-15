@@ -1,11 +1,13 @@
 package uk.ac.ic.doc.gander.model.name_binding;
 
-import java.util.HashSet;
+import java.util.HashMap;
+import java.util.Map;
 
-import uk.ac.ic.doc.gander.model.CodeBlock;
 import uk.ac.ic.doc.gander.model.LexicalTokenResolver;
+import uk.ac.ic.doc.gander.model.Model;
 import uk.ac.ic.doc.gander.model.Module;
 import uk.ac.ic.doc.gander.model.Namespace;
+import uk.ac.ic.doc.gander.model.codeblock.CodeBlock;
 
 /**
  * Although what a name is bound to is dynamically determined and not generally
@@ -21,10 +23,88 @@ import uk.ac.ic.doc.gander.model.Namespace;
  */
 public final class Binder {
 
-	private static final BindingScopeResolver RESOLVER = new BindingScopeResolver();
+	/**
+	 * A token in a particular scope (code object).
+	 */
+	private static class CodeObjectToken {
+		private final String token;
+		private final Namespace enclosingCodeObject;
+		private final Model model;
 
-	public Namespace resolveBindingScope(String name, Namespace enclosingScope) {
-		return RESOLVER.resolveToken(name, enclosingScope);
+		CodeObjectToken(String token, Namespace enclosingCodeObject, Model model) {
+			this.token = token;
+			this.enclosingCodeObject = enclosingCodeObject;
+			this.model = model;
+		}
+
+		@Override
+		public int hashCode() {
+			final int prime = 31;
+			int result = 1;
+			result = prime
+					* result
+					+ ((enclosingCodeObject == null) ? 0 : enclosingCodeObject
+							.hashCode());
+			result = prime * result + ((model == null) ? 0 : model.hashCode());
+			result = prime * result + ((token == null) ? 0 : token.hashCode());
+			return result;
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+			if (this == obj)
+				return true;
+			if (obj == null)
+				return false;
+			if (getClass() != obj.getClass())
+				return false;
+			CodeObjectToken other = (CodeObjectToken) obj;
+			if (enclosingCodeObject == null) {
+				if (other.enclosingCodeObject != null)
+					return false;
+			} else if (!enclosingCodeObject.equals(other.enclosingCodeObject))
+				return false;
+			if (model == null) {
+				if (other.model != null)
+					return false;
+			} else if (!model.equals(other.model))
+				return false;
+			if (token == null) {
+				if (other.token != null)
+					return false;
+			} else if (!token.equals(other.token))
+				return false;
+			return true;
+		}
+
+		@Override
+		public String toString() {
+			return "CodeObjectToken [enclosingCodeObject="
+					+ enclosingCodeObject + ", model=" + model + ", token="
+					+ token + "]";
+		}
+
+	}
+
+	private static final BindingScopeResolver RESOLVER = new BindingScopeResolver();
+	private static final Map<CodeObjectToken, NamespaceKey> bindings = new HashMap<CodeObjectToken, NamespaceKey>();
+
+	public static NamespaceKey resolveBindingScope(String name,
+			Namespace enclosingCodeObject, Model model) {
+		CodeObjectToken token = new CodeObjectToken(name, enclosingCodeObject,
+				model);
+
+		NamespaceKey binding = bindings.get(token);
+		if (binding == null) {
+			binding = new NamespaceKey(name, RESOLVER.resolveToken(name,
+					enclosingCodeObject), model);
+			bindings.put(token, binding);
+		}
+
+		return binding;
+	}
+
+	private Binder() {
 	}
 
 }
@@ -69,34 +149,29 @@ final class BindingScopeResolver extends LexicalTokenResolver<Namespace> {
 	protected Namespace searchScopeForToken(final String name,
 			final Namespace scope) {
 
-		/* TODO: Don't recompute every time */
 		Namespace globalNamespace = getGlobalNamespace(scope);
-		Namespace builtinNamespace = getBuiltinNamespace(scope);
 
 		/*
 		 * If we've reached the global namespace or the global keyword appears,
 		 * the name must be a global, meaning that it is defined either in the
 		 * global namespace (i.e. the current module) or the builtin namespace.
+		 * 
+		 * Unlink other lexical bindings, the distinction between global
+		 * namespace and builtin namespace isn't statically determinable.
+		 * Instead the binding is said to be made in the conceptual 'top-level'
+		 * namespace. This means that the decision is made at runtime based on
+		 * whether the global namespace contains the token in question; if not,
+		 * it is requested from the builtin namespace.
+		 * 
+		 * We return the global namespace but this really means top-level
+		 * namespace.
 		 */
 		boolean nameIsGlobal = scope.equals(globalNamespace)
 				|| scope.asCodeBlock().getGlobals().contains(name);
 		if (nameIsGlobal) {
-			if (isNameBoundInModule(name, globalNamespace)) {
-				return globalNamespace;
-			} else {
-				/*
-				 * We don't even check for it in the builtin namespace as
-				 * there's nothing else it could be .. except wrong.
-				 */
-				/*
-				 * TODO: Is this right? Is there some way to check and report an
-				 * error if no such global exists?
-				 */
-				return builtinNamespace;
-			}
+			return globalNamespace;
 		} else if (isNameBoundInCodeBlock(name, scope.asCodeBlock())) {
 			return scope;
-
 		} else {
 			return null;
 		}
@@ -119,56 +194,8 @@ final class BindingScopeResolver extends LexicalTokenResolver<Namespace> {
 	 */
 	private static boolean isNameBoundInCodeBlock(final String name,
 			final CodeBlock codeBlock) {
-
-		/*
-		 * TODO: decide whether we want to search for one name or all names.
-		 * They have different performance trade-offs depending on the
-		 * application.
-		 */
-
-		final java.util.Set<String> boundNames = new HashSet<String>();
-
-		boundNames.addAll(codeBlock.getFormalParameters());
-
-		try {
-			codeBlock.accept(new LocallyBoundNameFinder() {
-
-				@Override
-				protected void onNameBound(String name) {
-					boundNames.add(name);
-				}
-			});
-		} catch (Exception e) {
-			throw new RuntimeException(e);
-		}
-
-		return boundNames.contains(name);
-	}
-
-	private static boolean isNameBoundInModule(final String name,
-			final Namespace module) {
-
-		/*
-		 * TODO: decide whether we want to search for one name or all names.
-		 * They have different performance trade-offs depending on the
-		 * application.
-		 */
-
-		final java.util.Set<String> boundNames = new HashSet<String>();
-
-		try {
-			module.getAst().accept(new BoundNameFinder() {
-
-				@Override
-				protected void onNameBound(String name) {
-					boundNames.add(name);
-				}
-			});
-		} catch (Exception e) {
-			throw new RuntimeException(e);
-		}
-
-		return boundNames.contains(name);
+		
+		return codeBlock.getBoundVariables().contains(name);
 	}
 
 	/**
@@ -184,30 +211,10 @@ final class BindingScopeResolver extends LexicalTokenResolver<Namespace> {
 	 * XXX: Does the search look into a module's parent module (i.e. package)?
 	 */
 	private static Namespace getGlobalNamespace(Namespace localScope) {
-		Namespace scope = localScope;
-		while (!(scope instanceof Module)) {
-			scope = scope.getParentScope();
-		}
+
+		Namespace scope = localScope.getGlobalNamespace();
 
 		assert scope instanceof Module;
 		return scope;
-	}
-
-	/**
-	 * Return the model's representation of the __builtin__ namespace.
-	 */
-	private static Namespace getBuiltinNamespace(Namespace localScope) {
-		Namespace scope = getGlobalNamespace(localScope);
-		assert scope != null;
-
-		while (true) {
-			Namespace parent = scope.getParentScope();
-			if (parent == null) {
-				assert scope instanceof Module;
-				return scope;
-			} else {
-				scope = parent;
-			}
-		}
 	}
 }

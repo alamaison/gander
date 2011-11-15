@@ -1,6 +1,3 @@
-/**
- * 
- */
 package uk.ac.ic.doc.gander.importing;
 
 import java.util.ArrayList;
@@ -24,23 +21,27 @@ import uk.ac.ic.doc.gander.model.Namespace;
  * import mechanism. First, modules and packages are loaded. Subclasses are
  * given a path relative to a previously loaded package but they are free to
  * implement the loading operation however they choose. All that is required is
- * that they return a {@link Module} if the load succeeded or null if it
- * fails. The second aspect is name binding. The whole point of importing is to
- * bind a name to a loaded module or other namespace. Subclasses are free to
- * interpret name binding however makes sense for their task or even ignore it
- * completely.
+ * that they return a {@link Module} if the load succeeded or null if it fails.
+ * The second aspect is name binding. The whole point of importing is to bind a
+ * name to a loaded module or other namespace. Subclasses are free to interpret
+ * name binding however makes sense for their task or even ignore it completely.
  */
 public abstract class ImportSimulator {
 
 	private Namespace importReceiver;
 	private Module topLevel;
 
+	/**
+	 * FIXME: importReceiver may not actually be the import receiver. It depends
+	 * on the binding scope of 'as' in importReceiver. It could be the global
+	 * scope.
+	 */
 	public ImportSimulator(Namespace importReceiver, Module topLevel) {
 		if (importReceiver == null)
 			throw new NullPointerException("Must have namespace to import into");
 		if (topLevel == null)
 			throw new NullPointerException("Top level module is not optional");
-		
+
 		this.importReceiver = importReceiver;
 		this.topLevel = topLevel;
 	}

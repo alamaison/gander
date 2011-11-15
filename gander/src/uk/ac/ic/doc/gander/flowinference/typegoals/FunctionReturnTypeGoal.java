@@ -2,6 +2,7 @@ package uk.ac.ic.doc.gander.flowinference.typegoals;
 
 import org.python.pydev.parser.jython.SimpleNode;
 import org.python.pydev.parser.jython.ast.Return;
+import org.python.pydev.parser.jython.ast.exprType;
 
 import uk.ac.ic.doc.gander.ast.LocalCodeBlockVisitor;
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
@@ -10,6 +11,7 @@ import uk.ac.ic.doc.gander.flowinference.types.judgement.TypeConcentrator;
 import uk.ac.ic.doc.gander.flowinference.types.judgement.TypeJudgement;
 import uk.ac.ic.doc.gander.model.Function;
 import uk.ac.ic.doc.gander.model.Model;
+import uk.ac.ic.doc.gander.model.ModelSite;
 
 public class FunctionReturnTypeGoal implements TypeGoal {
 
@@ -41,8 +43,10 @@ public class FunctionReturnTypeGoal implements TypeGoal {
 					seenReturnStatement[0] = true;
 
 					if (node.value != null) {
+						ModelSite<exprType> returnValue = new ModelSite<exprType>(
+								node.value, function, model);
 						ExpressionTypeGoal typer = new ExpressionTypeGoal(
-								model, function, node.value);
+								returnValue);
 						returnTypes.add(goalManager.registerSubgoal(typer));
 					} else {
 						/*

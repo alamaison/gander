@@ -2,13 +2,13 @@ package uk.ac.ic.doc.gander.model;
 
 import java.util.Map;
 
-
 import uk.ac.ic.doc.gander.cfg.Cfg;
+import uk.ac.ic.doc.gander.model.codeblock.CodeBlock;
 
 public interface Namespace extends Member {
 
 	public String getFullName();
-	
+
 	public Member lookupMember(String memberName);
 
 	public Map<String, Class> getClasses();
@@ -28,4 +28,14 @@ public interface Namespace extends Member {
 	public Cfg getCfg();
 
 	public CodeBlock asCodeBlock();
+
+	/**
+	 * Returns the Python global namespace for the model item.
+	 * 
+	 * Python defined this as the module in which the item appears or, if the
+	 * item is a module, the module itself.
+	 * 
+	 * @return the {@link Module} enclosing this item.
+	 */
+	public Module getGlobalNamespace();
 }

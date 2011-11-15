@@ -12,7 +12,9 @@ import org.python.pydev.parser.jython.ast.exprType;
 import org.python.pydev.parser.jython.ast.stmtType;
 
 import uk.ac.ic.doc.gander.cfg.Cfg;
-import uk.ac.ic.doc.gander.model.DefaultCodeBlock.Acceptor;
+import uk.ac.ic.doc.gander.model.codeblock.CodeBlock;
+import uk.ac.ic.doc.gander.model.codeblock.DefaultCodeBlock;
+import uk.ac.ic.doc.gander.model.codeblock.DefaultCodeBlock.Acceptor;
 
 public final class Class implements Namespace {
 
@@ -120,7 +122,7 @@ public final class Class implements Namespace {
 			//
 			// XXX: WTF? The ClassDef node has parameters! Are these from
 			// the constructor?
-			List<String> args = Collections.emptyList();
+			List<ModelSite<exprType>> args = Collections.emptyList();
 
 			Acceptor acceptor = new Acceptor() {
 
@@ -135,5 +137,9 @@ public final class Class implements Namespace {
 		}
 
 		return codeBlock;
+	}
+
+	public Module getGlobalNamespace() {
+		return getParentScope().getGlobalNamespace();
 	}
 }

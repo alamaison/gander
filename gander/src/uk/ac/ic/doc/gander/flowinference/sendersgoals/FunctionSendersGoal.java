@@ -4,33 +4,28 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.python.pydev.parser.jython.SimpleNode;
 import org.python.pydev.parser.jython.ast.Call;
-import org.python.pydev.parser.jython.ast.Name;
+import org.python.pydev.parser.jython.ast.exprType;
 
+import uk.ac.ic.doc.gander.ast.AstParentNodeFinder;
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
-import uk.ac.ic.doc.gander.flowinference.modelgoals.ModelGoal;
-import uk.ac.ic.doc.gander.flowinference.typegoals.ExpressionTypeGoal;
-import uk.ac.ic.doc.gander.flowinference.types.TFunction;
-import uk.ac.ic.doc.gander.flowinference.types.Type;
-import uk.ac.ic.doc.gander.flowinference.types.judgement.SetBasedTypeJudgement;
-import uk.ac.ic.doc.gander.flowinference.types.judgement.TypeJudgement;
+import uk.ac.ic.doc.gander.flowinference.flowgoals.CodeObjectPosition;
+import uk.ac.ic.doc.gander.flowinference.flowgoals.FlowGoal;
 import uk.ac.ic.doc.gander.model.Function;
 import uk.ac.ic.doc.gander.model.Model;
 import uk.ac.ic.doc.gander.model.ModelSite;
-import uk.ac.ic.doc.gander.model.sitefinders.CardinalCallSitesFinder;
 
-public class FunctionSendersGoal implements ModelGoal<Call> {
+/**
+ * Find any callsites that could call the given function.
+ */
+public class FunctionSendersGoal implements SendersGoal {
 	private final Function callable;
-	// private final int cardinality; // not significant - derived from callable
 	private final Model model;
-
-	// not significant for identity - derived from model
-	private Set<ModelSite<Call>> candidateCallSites = null;
 
 	public FunctionSendersGoal(Model model, Function callable) {
 		this.model = model;
 		this.callable = callable;
-		// this.cardinality = callable.getAst().args.args.length;
 	}
 
 	public Set<ModelSite<Call>> initialSolution() {
@@ -39,56 +34,22 @@ public class FunctionSendersGoal implements ModelGoal<Call> {
 
 	public Set<ModelSite<Call>> recalculateSolution(
 			final SubgoalManager goalManager) {
-		if (candidateCallSites == null) {
+		Set<ModelSite<Call>> callSites = new HashSet<ModelSite<Call>>();
 
-			candidateCallSites = new CardinalCallSitesFinder(model, callable
-					.getAst().args.args.length).getSites();
-/*
-			HashSet<ModelSite<Call>> filteredCandidates = new HashSet<ModelSite<Call>>();
-			// FIXME: HACK:
-			// Filter out any callables not called by matching name
-			for (ModelSite<Call> callSite : candidateCallSites) {
-				if (callSite.getNode().func instanceof Name
-						&& ((Name) callSite.getNode().func).id.equals(callable
-								.getName())) {
-					filteredCandidates.add(callSite);
-				}
+		Set<ModelSite<? extends exprType>> positions = goalManager
+				.registerSubgoal(new FlowGoal(new CodeObjectPosition(callable,
+						model)));
+
+		for (ModelSite<? extends exprType> expression : positions) {
+			SimpleNode parent = AstParentNodeFinder.findParent(expression
+					.getNode(), expression.getEnclosingScope().getAst());
+			if (parent instanceof Call) {
+				callSites.add(new ModelSite<Call>((Call) parent, expression
+						.getEnclosingScope(), expression.getModel()));
 			}
-			candidateCallSites = filteredCandidates;
-			*/
-		}
-		// System.out.println("Finding all calls targetting " + callable);
-
-		// Set<ModelSite<Call>> candidateCallSites = goalManager
-		// .registerSubgoal(new CardinalCallSitesGoal(model, cardinality));
-		// System.out.println(candidateCallSites.size() +
-		// " candidate call sites");
-
-		Set<ModelSite<Call>> sites = new HashSet<ModelSite<Call>>();
-		for (ModelSite<Call> callSite : candidateCallSites) {
-
-			TypeJudgement type = goalManager
-					.registerSubgoal(new ExpressionTypeGoal(model, callSite
-							.getEnclosingScope(), callSite.getNode().func));
-
-			/*
-			 * The only call sites that _shouldn't_ be included in the result
-			 * are those that guarantee they never call the function in
-			 * questions.
-			 */
-			if (type instanceof SetBasedTypeJudgement) {
-				Set<Type> targetTypes = ((SetBasedTypeJudgement) type)
-						.getConstituentTypes();
-				if (!targetTypes.contains(new TFunction(callable)))
-					continue; // not this call site
-			}
-
-			sites.add(callSite);
 		}
 
-		// System.out.println("# targets " + sites.size());
-
-		return sites;
+		return callSites;
 	}
 
 	@Override

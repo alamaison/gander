@@ -10,6 +10,7 @@ import org.python.pydev.parser.jython.ast.FunctionDef;
 import uk.ac.ic.doc.gander.ast.ScopedAstVisitor;
 import uk.ac.ic.doc.gander.model.Class;
 import uk.ac.ic.doc.gander.model.Function;
+import uk.ac.ic.doc.gander.model.Model;
 import uk.ac.ic.doc.gander.model.Module;
 import uk.ac.ic.doc.gander.model.Namespace;
 
@@ -17,13 +18,16 @@ import uk.ac.ic.doc.gander.model.Namespace;
  * Populate a loadable (module or package) from an AST.
  */
 class ModulePopulator extends ScopedAstVisitor<Namespace> {
-	private Module loadable;
+	private final Module loadable;
+	private final Model model;
 
 	// Why do we pass in a namespace rather than making the class generic and
-	// creating a new instance of the namespace in createScope(SourceFile)? Because
+	// creating a new instance of the namespace in createScope(SourceFile)?
+	// Because
 	// new can't take a generic argument in Java :(
-	ModulePopulator(Module loadable) {
+	ModulePopulator(Module loadable, Model model) {
 		this.loadable = loadable;
+		this.model = model;
 	}
 
 	void build(SimpleNode ast) throws ParseException, IOException {
@@ -50,7 +54,7 @@ class ModulePopulator extends ScopedAstVisitor<Namespace> {
 
 	@Override
 	protected Namespace atScope(FunctionDef node) {
-		Function f = new Function(node, getScope());
+		Function f = new Function(node, getScope(), model);
 		Namespace parent = (Namespace) getScope();
 		if (parent != null)
 			parent.addFunction(f);

@@ -12,9 +12,12 @@ import org.junit.Before;
 import org.junit.Test;
 import org.python.pydev.parser.jython.SimpleNode;
 import org.python.pydev.parser.jython.ast.FunctionDef;
+import org.python.pydev.parser.jython.ast.Name;
 import org.python.pydev.parser.jython.ast.NameTok;
 import org.python.pydev.parser.jython.ast.Pass;
 import org.python.pydev.parser.jython.ast.VisitorBase;
+
+import uk.ac.ic.doc.gander.model.codeblock.CodeBlock;
 
 class TraverseEverythingVisitor extends VisitorBase {
 
@@ -46,14 +49,14 @@ public class CodeBlockTest extends AbstractModelTest {
 	@Test
 	public void module() throws Throwable {
 		CodeBlock block = module.asCodeBlock();
-		assertEquals(Collections.emptyList(), block.getFormalParameters());
+		assertEquals(Collections.emptyList(), block.getNamedFormalParameters());
 	}
 
 	@Test
 	public void classEmpty() throws Throwable {
 		CodeBlock block = module.getClasses().get("my_class_empty")
 				.asCodeBlock();
-		assertEquals(Collections.emptyList(), block.getFormalParameters());
+		assertEquals(Collections.emptyList(), block.getNamedFormalParameters());
 
 		block.accept(new TraverseEverythingVisitor() {
 			@Override
@@ -66,7 +69,7 @@ public class CodeBlockTest extends AbstractModelTest {
 	@Test
 	public void classWithMethod() throws Throwable {
 		CodeBlock block = module.getClasses().get("my_class").asCodeBlock();
-		assertEquals(Collections.emptyList(), block.getFormalParameters());
+		assertEquals(Collections.emptyList(), block.getNamedFormalParameters());
 
 		block.accept(new TraverseEverythingVisitor() {
 			@Override
@@ -86,7 +89,7 @@ public class CodeBlockTest extends AbstractModelTest {
 	public void function() throws Throwable {
 		CodeBlock block = module.getFunctions().get("my_free_function")
 				.asCodeBlock();
-		assertEquals(Collections.emptyList(), block.getFormalParameters());
+		assertEquals(Collections.emptyList(), block.getNamedFormalParameters());
 
 		block.accept(new TraverseEverythingVisitor() {
 			@Override
@@ -103,11 +106,17 @@ public class CodeBlockTest extends AbstractModelTest {
 		List<String> args = new ArrayList<String>();
 		args.add("a");
 		args.add("b");
-		assertEquals(args, block.getFormalParameters());
+		assertEquals(args, block.getNamedFormalParameters());
 
 		block.accept(new TraverseEverythingVisitor() {
 			@Override
 			public Object visitPass(Pass node) throws Exception {
+				return null;
+			}
+			
+			@Override
+			public Object visitName(Name node) throws Exception {
+				// arguments are visited too
 				return null;
 			}
 		});

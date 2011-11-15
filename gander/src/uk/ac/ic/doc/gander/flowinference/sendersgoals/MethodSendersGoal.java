@@ -7,6 +7,7 @@ import java.util.Set;
 import org.python.pydev.parser.jython.ast.Attribute;
 import org.python.pydev.parser.jython.ast.Call;
 import org.python.pydev.parser.jython.ast.NameTok;
+import org.python.pydev.parser.jython.ast.exprType;
 
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
 import uk.ac.ic.doc.gander.flowinference.modelgoals.CallSitesGoal;
@@ -93,9 +94,11 @@ public final class MethodSendersGoal implements SendersGoal {
 		Set<ModelSite<Call>> sites = new HashSet<ModelSite<Call>>();
 		for (ModelSite<Call> callSite : candidateSenders) {
 
+			ModelSite<exprType> callable = new ModelSite<exprType>(callSite
+					.getNode().func, callSite.getEnclosingScope(), callSite
+					.getModel());
 			TypeJudgement type = goalManager
-					.registerSubgoal(new ExpressionTypeGoal(model, callSite
-							.getEnclosingScope(), callSite.getNode().func));
+					.registerSubgoal(new ExpressionTypeGoal(callable));
 
 			/*
 			 * The only call sites that _shouldn't_ be included in the result

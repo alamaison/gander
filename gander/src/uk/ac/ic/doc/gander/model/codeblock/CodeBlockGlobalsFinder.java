@@ -1,9 +1,9 @@
-package uk.ac.ic.doc.gander.model.name_binding;
+package uk.ac.ic.doc.gander.model.codeblock;
 
 import java.util.HashSet;
 import java.util.Set;
 
-import uk.ac.ic.doc.gander.model.CodeBlock;
+import uk.ac.ic.doc.gander.model.name_binding.LocallyDeclaredGlobalFinder;
 
 /**
  * For a given code block, find the set of names that are declared global.
@@ -12,9 +12,9 @@ import uk.ac.ic.doc.gander.model.CodeBlock;
  * free in this code block but bind globally because the only definition in
  * scope occurs in the global code block.
  */
-public class CodeBlockGlobalsFinder {
+final class CodeBlockGlobalsFinder {
 
-	public static Set<String> globals(CodeBlock codeBlock) {
+	static Set<String> globals(CodeBlock codeBlock) {
 		assert codeBlock != null;
 
 		final Set<String> globals = new HashSet<String>();

@@ -21,16 +21,17 @@ public abstract class LexicalTokenResolver<T> {
 	 * 
 	 * @param token
 	 *            The token whose type to find.
-	 * @param enclosingScope
+	 * @param enclosingCodeObject
 	 *            The scope in which to start the search.
 	 */
-	public final T resolveToken(String token, Namespace enclosingScope) {
+	public final T resolveToken(String token, Namespace enclosingCodeObject) {
 		T type = null;
 
-		if (enclosingScope != null) {
-			type = searchScopeForToken(token, enclosingScope);
+		if (enclosingCodeObject != null) {
+			type = searchScopeForToken(token, enclosingCodeObject);
 			if (type == null)
-				type = resolveToken(token, nextScopeToSearch(enclosingScope));
+				type = resolveToken(token,
+						nextScopeToSearch(enclosingCodeObject));
 		}
 
 		return type;

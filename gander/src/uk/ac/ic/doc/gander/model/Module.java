@@ -8,10 +8,13 @@ import java.util.Map;
 import java.util.Queue;
 
 import org.python.pydev.parser.jython.ast.VisitorIF;
+import org.python.pydev.parser.jython.ast.exprType;
 import org.python.pydev.parser.jython.ast.stmtType;
 
 import uk.ac.ic.doc.gander.cfg.Cfg;
-import uk.ac.ic.doc.gander.model.DefaultCodeBlock.Acceptor;
+import uk.ac.ic.doc.gander.model.codeblock.CodeBlock;
+import uk.ac.ic.doc.gander.model.codeblock.DefaultCodeBlock;
+import uk.ac.ic.doc.gander.model.codeblock.DefaultCodeBlock.Acceptor;
 
 /**
  * Model elements that have associated code that can be loaded.
@@ -63,7 +66,7 @@ public final class Module implements Namespace {
 	}
 
 	public Map<String, Class> getClasses() {
-		//return Collections.unmodifiableMap(classes);
+		// return Collections.unmodifiableMap(classes);
 		return classes;
 	}
 
@@ -80,12 +83,12 @@ public final class Module implements Namespace {
 	}
 
 	public Map<String, Function> getFunctions() {
-		//return Collections.unmodifiableMap(functions);
+		// return Collections.unmodifiableMap(functions);
 		return functions;
 	}
 
 	public Map<String, Module> getModules() {
-		//return Collections.unmodifiableMap(modules);
+		// return Collections.unmodifiableMap(modules);
 		return modules;
 	}
 
@@ -152,10 +155,14 @@ public final class Module implements Namespace {
 				}
 			};
 
-			codeBlock = new DefaultCodeBlock(Collections.<String> emptyList(),
-					acceptor);
+			codeBlock = new DefaultCodeBlock(Collections
+					.<ModelSite<exprType>> emptyList(), acceptor);
 		}
 
 		return codeBlock;
+	}
+
+	public Module getGlobalNamespace() {
+		return this;
 	}
 }

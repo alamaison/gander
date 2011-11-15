@@ -17,7 +17,7 @@ public class Model {
 	public Model(Hierarchy hierarchy) throws ParseException,
 			IOException {
 		this.hierarchy = hierarchy;
-		topLevelPackage = new TopLevelPackageLoader().getPackage();
+		topLevelPackage = new TopLevelPackageLoader(this).getPackage();
 	}
 
 	public Module getTopLevel() {

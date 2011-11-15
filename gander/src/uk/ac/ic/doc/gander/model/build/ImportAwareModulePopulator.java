@@ -25,7 +25,7 @@ class ImportAwareModulePopulator extends ModulePopulator {
 	private MutableModel model;
 
 	ImportAwareModulePopulator(Module loadable, MutableModel model) {
-		super(loadable);
+		super(loadable, model);
 		this.model = model;
 	}
 
@@ -89,7 +89,8 @@ class ImportAwareModulePopulator extends ModulePopulator {
 		 *            relativeToPackage} .
 		 * @param relativeToPackage
 		 *            Root of search.
-		 * @return {@link SourceFile} if loading succeeded, {@code null} otherwise.
+		 * @return {@link SourceFile} if loading succeeded, {@code null}
+		 *         otherwise.
 		 * @throws Exception
 		 */
 		protected Module simulateLoad(List<String> importPath,
@@ -106,6 +107,8 @@ class ImportAwareModulePopulator extends ModulePopulator {
 				// ignore exceptions as parse errors should be treated the same
 				// way as any other unresolved import; by returning null
 			} catch (ParseException e) {
+				System.err.println("Parse error in "
+						+ DottedName.toDottedName(name));
 			} catch (IOException e) {
 			}
 

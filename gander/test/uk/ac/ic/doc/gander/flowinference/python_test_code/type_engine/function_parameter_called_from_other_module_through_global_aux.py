@@ -1,0 +1,3 @@
+import function_parameter_called_from_other_module_through_global
+
+function_parameter_called_from_other_module_through_global.G(42)

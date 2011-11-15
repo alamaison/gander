@@ -24,12 +24,12 @@ public final class CallSitesWalker {
 	public CallSitesWalker(Model model, EventHandler eventHandler) {
 		this.eventHandler = eventHandler;
 
-		new ModelCodeBlockWalker() {
+		new CodeObjectWalker() {
 			@Override
-			protected void visitCodeBlock(Namespace codeBlock) {
+			protected void visitCodeObject(Namespace codeBlock) {
 				processCallsInCodeBlock(codeBlock);
 			}
-		}.walk(model);
+		}.walk(model.getTopLevel());
 	}
 
 	private void processCallsInCodeBlock(final Namespace namespace) {

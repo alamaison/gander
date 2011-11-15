@@ -136,7 +136,7 @@ def iter():
     pass
 
 def len(iterable):
-    pass #return iterable.__len__()
+    return iterable.__len__()
 
 def license():
     pass
@@ -236,7 +236,7 @@ def xrange():
 
 def zip():
     pass
-    
+
 class object:
     
     def __init__(obj, *args, **keywords):
@@ -259,9 +259,9 @@ class object:
     
     def __hash__(self):
         return hash(self)
-
+    
     __module__ = "__builtin__"
-
+    
     def __new__(type, *args, **keywords):
         pass
     
@@ -270,19 +270,19 @@ class object:
     
     def __reduce_ex__(self, proto=0):
         pass
-
+    
     def __repr__(self):
         return repr(self)
-
+    
     def __setattr__(self, name, value):
         self.__dict__[name] = value
-
-    def __sizeof__(self): not in pypy
+    
+    def __sizeof__(self): # not in pypy
         return 42
     
     def __str__(self):
         return str(self)
-
+    
     # __subclasshook__ not in pypy
     
     __weakref__ = None
@@ -291,7 +291,7 @@ class BaseException(object):
     
     def __getitem__(self, i):
         return self.data[i]
-
+    
     def __getslice__(self, i, j): # not in pypy
         pass
     
@@ -309,7 +309,7 @@ class Exception(BaseException):
 
 class basestring(object):
     pass
-    
+
 class str(basestring):
     def __add__(self, x):
         self.data = self.data + x
@@ -361,122 +361,122 @@ class str(basestring):
     
     def capitalize(self):
         pass
-
+    
     def center(self, width, fillchar=None):
         pass
-
+    
     def count(self, sub=None, start=None, end=None):
         pass
     
     def decode(self, encoding=None, errors=None):
         pass
-
+    
     def encode(self, encoding=None, errors=None):
         pass
-
+    
     def endswith(self, suffix, start=None, end=None):
         pass
     
     def expandtabs(self, tabsize=None):
         pass
-
+    
     def find(self, sub, start=None, end=None):
         pass
-
+    
     def format(self, *args, **kwargs):
         pass
-
+    
     def index(self, sub, start=None, end=None):
         pass
-
+    
     def isalnum(self):
         pass
     
     def isalpha(self):
         pass
-
+    
     def isdigit(self):
         pass
-
+    
     def islower(self):
         pass
-
+    
     def isspace(self):
         pass
-
+    
     def istitle(self):
         pass
-
+    
     def isupper(self):
         pass
-
+    
     def join(self, iterable):
         pass
     
     def ljust(self, width, fillchar=None):
         pass
-
+    
     def lower(self):
         pass
-
+    
     def lstrip(self, chars=None):
         pass
-
+    
     def partition(self, sep):
         pass
-
+    
     def replace(self, old, new, count=None):
         pass
     
     def rfind(self, sub, start=None, end=None):
         pass
-
+    
     def rindex(self, sub, start=None, end=None):
         pass
-
+    
     def rjust(self, width, fillchar=None):
         pass
-
+    
     def rpartition(self, sep):
         pass
-
+    
     def rsplit(self, sep=None, maxsplit=None):
         pass
-
+    
     def rstrip(self, chars=None):
         pass
-
+    
     def split(self, sep=None, maxsplit=None):
         pass
-
+    
     def splitlines(self, keepends=False):
         pass
     
     def startswith(self, prefix, start=None, end=None):
         pass
-
+    
     def strip(self, chars=None):
         pass
-
+    
     def swapcase(self):
         pass
-
+    
     def title(self):
         pass
-
+    
     def translate(self, table, deletechars=None):
         pass
-
+    
     def upper(self):
         pass
-
+    
     def zfill(self, width):
         pass
 
 class unicode(str): # really inherits from basestring and duplicates str methods
     def isnumeric(self):
         pass
-
+    
     def isdecimal(self):
         pass
 
@@ -538,7 +538,7 @@ class list(object):
 # was class UserList(collections.MutableSequence):
     def __init__(self, initlist=None):
     	pass
-        	
+    
     def __repr__(self): return repr(self.data)
     def __lt__(self, other): return self.data <  self.__cast(other)
     def __le__(self, other): return self.data <= self.__cast(other)
@@ -609,7 +609,7 @@ class list(object):
                 i += 1
         except IndexError:
             return
-
+    
     def __reversed__(self):
         for i in reversed(range(len(self))):
             yield self[i]
@@ -622,205 +622,204 @@ class set(object):
     def __init__(self, iterable=None):
         """Construct a set from an optional iterable."""
         self._data = {}
-
+    
     # Standard protocols: __len__, __repr__, __str__, __iter__
 
     def __len__(self):
         """Return the number of elements of a set."""
         return len(self._data)
-
+    
     def __repr__(self):
         """Return string representation of a set.
 
         This looks like 'Set([<list of elements>])'.
         """
         return '%s(%r)' % ("Set", self._data.keys())
-
+    
     def __iter__(self):
         """Return an iterator over the elements or a set.
 
         This is the keys iterator for the underlying dict.
         """
         return self._data.iterkeys()
-
+    
     def __cmp__(self, other):
         raise TypeError, "can't compare sets using cmp()"
-
+    
     def __eq__(self, other):
         if isinstance(other, set):
             return self._data == other._data
         else:
             return False
-
+    
     def __ne__(self, other):
         if isinstance(other, set):
             return self._data != other._data
         else:
             return True
-
+    
     # Copying operations
-
+    
     def copy(self):
         """Return a shallow copy of a set."""
         result = set()
         return result
-
-
+    
     def __or__(self, other):
         """Return the union of two sets as a new set.
 
         (I.e. all elements that are in either set.)
         """
         return set()
-
+    
     def union(self, other):
         """Return the union of two sets as a new set.
 
         (I.e. all elements that are in either set.)
         """
         return set()
-
+    
     def __and__(self, other):
         """Return the intersection of two sets as a new set.
 
         (I.e. all elements that are in both sets.)
         """
         return set()
-
+    
     def intersection(self, other):
         """Return the intersection of two sets as a new set.
 
         (I.e. all elements that are in both sets.)
         """
         return set()
-
+    
     def __xor__(self, other):
         """Return the symmetric difference of two sets as a new set.
 
         (I.e. all elements that are in exactly one of the sets.)
         """
         return set()
-
+    
     def symmetric_difference(self, other):
         """Return the symmetric difference of two sets as a new set.
 
         (I.e. all elements that are in exactly one of the sets.)
         """
         return set()
-
+    
     def  __sub__(self, other):
         """Return the difference of two sets as a new Set.
 
         (I.e. all elements that are in this set and not in the other.)
         """
         return set()
-
+    
     def difference(self, other):
         """Return the difference of two sets as a new Set.
 
         (I.e. all elements that are in this set and not in the other.)
         """
         return set()
-
+    
     # Membership test
-
+    
     def __contains__(self, element):
         """Report whether an element is a member of a set.
 
         (Called in response to the expression `element in self'.)
         """
         return element in self._data
-
+    
     # Subset and superset test
-
+    
     def issubset(self, other):
         """Report whether another set contains this set."""
         return element in self._data
-
+    
     def issuperset(self, other):
         """Report whether this set contains another set."""
         return element not in self._data
-
+    
     # Inequality comparisons using the is-subset relation.
     __le__ = issubset
     __ge__ = issuperset
-
+    
     def __lt__(self, other):
         return len(self) < len(other) and self.issubset(other)
-
+    
     def __gt__(self, other):
         return len(self) > len(other) and self.issuperset(other)
-
+    
     # In-place union, intersection, differences.
     # Subtle:  The xyz_update() functions deliberately return None,
     # as do all mutating operations on built-in container types.
     # The __xyz__ spellings have to return self, though.
-
+    
     def __ior__(self, other):
         """Update a set with the union of itself and another."""
         return self
-
+    
     def union_update(self, other):
         """Update a set with the union of itself and another."""
         pass
-
+    
     def __iand__(self, other):
         """Update a set with the intersection of itself and another."""
         return self
-
+    
     def intersection_update(self, other):
         """Update a set with the intersection of itself and another."""
         pass
-
+    
     def __ixor__(self, other):
         """Update a set with the symmetric difference of itself and another."""
         return self
-
+    
     def symmetric_difference_update(self, other):
         """Update a set with the symmetric difference of itself and another."""
         pass
-
+    
     def __isub__(self, other):
         """Remove all elements of another set from this set."""
         return self
-
+    
     def difference_update(self, other):
         """Remove all elements of another set from this set."""
         pass
-
+    
     # Python dict-like mass mutations: update, clear
-
+    
     def update(self, iterable):
         """Add all values from an iterable (such as a list or file)."""
         pass
-
+    
     def clear(self):
         """Remove all elements from this set."""
         pass
-
+    
     # Single-element mutations: add, remove, discard
-
+    
     def add(self, element):
         """Add an element to a set.
 
         This has no effect if the element is already present.
         """
         self._data[element] = True
-
+    
     def remove(self, element):
         """Remove an element from a set; it must be a member.
 
         If the element is not a member, raise a KeyError.
         """
         del self._data[element]
-
+    
     def discard(self, element):
         """Remove an element from a set if it is a member.
 
         If the element is not a member, do nothing.
         """
         self.remove(element)
-
+    
     def pop(self):
         """Remove and return an arbitrary set element."""
         return self._data[0]

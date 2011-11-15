@@ -16,13 +16,13 @@ import uk.ac.ic.doc.gander.model.Model;
 import uk.ac.ic.doc.gander.model.Module;
 import uk.ac.ic.doc.gander.model.Namespace;
 
-public abstract class ImportResolver extends ImportSimulator {
+public abstract class ImportTyper extends ImportSimulator {
 
 	private final Model model;
 
 	protected abstract void put(Namespace scope, String name, Type type);
 
-	protected ImportResolver(Model model, Namespace importReceiver,
+	protected ImportTyper(Model model, Namespace importReceiver,
 			Module topLevel) {
 		super(importReceiver, topLevel);
 

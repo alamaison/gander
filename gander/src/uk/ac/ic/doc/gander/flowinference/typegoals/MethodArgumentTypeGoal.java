@@ -7,7 +7,7 @@ import org.python.pydev.parser.jython.ast.Call;
 import org.python.pydev.parser.jython.ast.exprType;
 
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
-import uk.ac.ic.doc.gander.flowinference.sendersgoals.MethodSendersGoal;
+import uk.ac.ic.doc.gander.flowinference.sendersgoals.FunctionSendersGoal;
 import uk.ac.ic.doc.gander.flowinference.types.TObject;
 import uk.ac.ic.doc.gander.flowinference.types.judgement.SetBasedTypeJudgement;
 import uk.ac.ic.doc.gander.flowinference.types.judgement.TypeConcentrator;
@@ -46,7 +46,7 @@ final class MethodArgumentTypeGoal implements TypeGoal {
 					.getParentScope()));
 		} else {
 			Set<ModelSite<Call>> callSites = goalManager
-					.registerSubgoal(new MethodSendersGoal(model, method));
+					.registerSubgoal(new FunctionSendersGoal(model, method));
 
 			assert argumentIndex > 0;
 
@@ -54,9 +54,11 @@ final class MethodArgumentTypeGoal implements TypeGoal {
 			for (ModelSite<Call> callSite : callSites) {
 				exprType[] args = callSite.getNode().args;
 				if (argumentIndex <= args.length) {
-				types.add(goalManager.registerSubgoal(new ExpressionTypeGoal(
-						model, callSite.getEnclosingScope(),
-						callSite.getNode().args[argumentIndex - 1])));
+					ModelSite<exprType> argument = new ModelSite<exprType>(
+							callSite.getNode().args[argumentIndex - 1],
+							callSite.getEnclosingScope(), callSite.getModel());
+					types.add(goalManager
+							.registerSubgoal(new ExpressionTypeGoal(argument)));
 				} else {
 					// TODO: probably using the default argument
 				}
@@ -70,7 +72,7 @@ final class MethodArgumentTypeGoal implements TypeGoal {
 
 	private static int findArgumentIndexInFunction(Function function,
 			String argument) {
-		List<String> args = function.asCodeBlock().getFormalParameters();
+		List<String> args = function.asCodeBlock().getNamedFormalParameters();
 
 		for (int i = 0; i < args.size(); ++i) {
 			if (args.get(i).equals(argument))

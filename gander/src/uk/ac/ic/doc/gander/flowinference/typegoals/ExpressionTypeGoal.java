@@ -40,18 +40,23 @@ import uk.ac.ic.doc.gander.flowinference.types.judgement.SetBasedTypeJudgement;
 import uk.ac.ic.doc.gander.flowinference.types.judgement.Top;
 import uk.ac.ic.doc.gander.flowinference.types.judgement.TypeJudgement;
 import uk.ac.ic.doc.gander.model.Model;
+import uk.ac.ic.doc.gander.model.ModelSite;
 import uk.ac.ic.doc.gander.model.Namespace;
 
 public final class ExpressionTypeGoal implements TypeGoal {
 
-	private final exprType expression;
-	private final Model model;
-	private final Namespace scope;
+	private final ModelSite<? extends exprType> expression;
 
+	@Deprecated
 	public ExpressionTypeGoal(Model model, Namespace scope, exprType expression) {
-		assert expression != null;
-		this.model = model;
-		this.scope = scope;
+		this.expression = new ModelSite<exprType>(expression, scope, model);
+	}
+
+	public ExpressionTypeGoal(ModelSite<? extends exprType> expression) {
+		if (expression == null)
+			throw new NullPointerException(
+					"Expression type goal needs expression to type");
+
 		this.expression = expression;
 	}
 
@@ -60,9 +65,10 @@ public final class ExpressionTypeGoal implements TypeGoal {
 	}
 
 	public TypeJudgement recalculateSolution(SubgoalManager goalManager) {
-		TypeFinder finder = new TypeFinder(model, scope, goalManager);
+		TypeFinder finder = new TypeFinder(expression.getModel(), expression
+				.getEnclosingScope(), goalManager);
 		try {
-			return (TypeJudgement) expression.accept(finder);
+			return (TypeJudgement) expression.getNode().accept(finder);
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}
@@ -133,8 +139,9 @@ public final class ExpressionTypeGoal implements TypeGoal {
 
 		@Override
 		public Object visitAttribute(Attribute node) throws Exception {
-			AttributeTypeGoal attributeTyper = new AttributeTypeGoal(model,
-					scope, node);
+			AttributeTypeGoal attributeTyper = new AttributeTypeGoal(
+					new ModelSite<Attribute>(node, expression
+							.getEnclosingScope(), expression.getModel()));
 			return goalManager.registerSubgoal(attributeTyper);
 		}
 
@@ -165,7 +172,8 @@ public final class ExpressionTypeGoal implements TypeGoal {
 
 		@Override
 		public Object visitCall(Call node) throws Exception {
-			ReturnTypeGoal typer = new ReturnTypeGoal(model, scope, node);
+			ReturnTypeGoal typer = new ReturnTypeGoal(new ModelSite<Call>(node,
+					expression.getEnclosingScope(), expression.getModel()));
 			return goalManager.registerSubgoal(typer);
 		}
 
@@ -221,7 +229,8 @@ public final class ExpressionTypeGoal implements TypeGoal {
 
 		@Override
 		public Object visitName(Name node) throws Exception {
-			NameTypeGoal typer = new NameTypeGoal(model, scope, node.id);
+			NameTypeGoal typer = new NameTypeGoal(expression.getModel(),
+					expression.getEnclosingScope(), node.id);
 			return goalManager.registerSubgoal(typer);
 		}
 
@@ -282,8 +291,6 @@ public final class ExpressionTypeGoal implements TypeGoal {
 		int result = 1;
 		result = prime * result
 				+ ((expression == null) ? 0 : expression.hashCode());
-		result = prime * result + ((model == null) ? 0 : model.hashCode());
-		result = prime * result + ((scope == null) ? 0 : scope.hashCode());
 		return result;
 	}
 
@@ -291,7 +298,9 @@ public final class ExpressionTypeGoal implements TypeGoal {
 	public boolean equals(Object obj) {
 		if (this == obj)
 			return true;
-		if (!(obj instanceof ExpressionTypeGoal))
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
 			return false;
 		ExpressionTypeGoal other = (ExpressionTypeGoal) obj;
 		if (expression == null) {
@@ -299,23 +308,12 @@ public final class ExpressionTypeGoal implements TypeGoal {
 				return false;
 		} else if (!expression.equals(other.expression))
 			return false;
-		if (model == null) {
-			if (other.model != null)
-				return false;
-		} else if (!model.equals(other.model))
-			return false;
-		if (scope == null) {
-			if (other.scope != null)
-				return false;
-		} else if (!scope.equals(other.scope))
-			return false;
 		return true;
 	}
 
 	@Override
 	public String toString() {
-		return "ExpressionTypeGoal [expression=" + expression + ", scope="
-				+ scope + "]";
+		return "ExpressionTypeGoal [expression=" + expression + "]";
 	}
-	
+
 }

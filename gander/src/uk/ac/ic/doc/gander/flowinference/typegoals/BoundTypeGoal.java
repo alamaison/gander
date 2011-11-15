@@ -18,7 +18,7 @@ import org.python.pydev.parser.jython.ast.exprType;
 import org.python.pydev.parser.jython.ast.stmtType;
 
 import uk.ac.ic.doc.gander.ast.BindingStatementVisitor;
-import uk.ac.ic.doc.gander.flowinference.ImportResolver;
+import uk.ac.ic.doc.gander.flowinference.ImportTyper;
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
 import uk.ac.ic.doc.gander.flowinference.types.TClass;
 import uk.ac.ic.doc.gander.flowinference.types.TFunction;
@@ -198,8 +198,8 @@ public final class BoundTypeGoal implements TypeGoal {
 			return null;
 		}
 
-		private ImportResolver newImportResolver() {
-			return new ImportResolver(model, enclosingScope, model
+		private ImportTyper newImportResolver() {
+			return new ImportTyper(model, enclosingScope, model
 					.getTopLevel()) {
 
 				@Override

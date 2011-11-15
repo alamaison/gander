@@ -22,6 +22,7 @@ import uk.ac.ic.doc.gander.flowinference.types.Type;
 import uk.ac.ic.doc.gander.flowinference.types.judgement.SetBasedTypeJudgement;
 import uk.ac.ic.doc.gander.flowinference.types.judgement.Top;
 import uk.ac.ic.doc.gander.flowinference.types.judgement.TypeJudgement;
+import uk.ac.ic.doc.gander.model.Class;
 import uk.ac.ic.doc.gander.model.MutableModel;
 
 public class ZeroCfaTypeEngineTest {
@@ -385,6 +386,22 @@ public class ZeroCfaTypeEngineTest {
 	}
 
 	/**
+	 * Resolve method.
+	 */
+	@Test
+	public void method2() throws Throwable {
+		String testName = "method2";
+		ScopedPrintNode node = findPrintNode(testName, "what_am_i");
+		TypeJudgement type = engine.typeOf(node.getExpression(), node
+				.getScope());
+		TypeJudgement expectedType = new SetBasedTypeJudgement(new TFunction(
+				node.getGlobalNamespace().getClasses().get("A").getFunctions()
+						.get("g")));
+
+		assertEquals("Method not resolved correctly", expectedType, type);
+	}
+
+	/**
 	 * Infer return type of a function taking no arguments and returning a
 	 * monomorph.
 	 */
@@ -599,7 +616,20 @@ public class ZeroCfaTypeEngineTest {
 		TypeJudgement expectedType = new SetBasedTypeJudgement(new TObject(node
 				.getGlobalNamespace().getClasses().get("A")));
 
-		assertEquals("Function parameter's type not inferred correctly",
+		assertEquals("Method parameter's type not inferred correctly",
+				expectedType, type);
+	}
+
+	@Test
+	public void methodParameterSelfConstructor() throws Throwable {
+		ScopedPrintNode node = findPrintNode(
+				"method_parameter_self_constructor", "what_am_i");
+		TypeJudgement type = engine.typeOf(node.getExpression(), node
+				.getScope());
+		TypeJudgement expectedType = new SetBasedTypeJudgement(new TObject(node
+				.getGlobalNamespace().getClasses().get("A")));
+
+		assertEquals("Constructor parameter's type not inferred correctly",
 				expectedType, type);
 	}
 
@@ -690,6 +720,226 @@ public class ZeroCfaTypeEngineTest {
 	}
 
 	@Test
+	public void functionParameterCalledFromOtherModuleViaFrom()
+			throws Throwable {
+		String testName = "function_parameter_called_from_other_module_via_from";
+		ScopedPrintNode node = findPrintNode(testName, "what_am_i");
+		TypeJudgement type = engine.typeOf(node.getExpression(), node
+				.getScope());
+
+		ArrayList<Type> types = new ArrayList<Type>();
+		types.add(stringType);
+		types.add(integerType);
+		TypeJudgement expectedType = new SetBasedTypeJudgement(types);
+
+		assertEquals("Function parameter's type not inferred "
+				+ "correctly. This probably means that the analysis didn't "
+				+ "realise the function is imported into another "
+				+ "module and called from there with a different type "
+				+ "of parameter.", expectedType, type);
+	}
+
+	@Test
+	public void functionParameterCalledFromOtherModuleViaFromWithDifferentName()
+			throws Throwable {
+		String testName = "function_parameter_called_from_other_module_via_from_with_different_name";
+		ScopedPrintNode node = findPrintNode(testName, "what_am_i");
+		TypeJudgement type = engine.typeOf(node.getExpression(), node
+				.getScope());
+
+		ArrayList<Type> types = new ArrayList<Type>();
+		types.add(stringType);
+		types.add(integerType);
+		TypeJudgement expectedType = new SetBasedTypeJudgement(types);
+
+		assertEquals("Function parameter's type not inferred "
+				+ "correctly. This probably means that the analysis didn't "
+				+ "realise the function is imported into another "
+				+ "module and called from there with a different type "
+				+ "of parameter.", expectedType, type);
+	}
+
+	@Test
+	public void functionParameterCalledFromOtherModuleThroughCall()
+			throws Throwable {
+		String testName = "function_parameter_called_from_other_module_through_call";
+		ScopedPrintNode node = findPrintNode(testName, "what_am_i");
+		TypeJudgement type = engine.typeOf(node.getExpression(), node
+				.getScope());
+
+		ArrayList<Type> types = new ArrayList<Type>();
+		types.add(stringType);
+		types.add(integerType);
+		TypeJudgement expectedType = new SetBasedTypeJudgement(types);
+
+		assertEquals("Function parameter's type not inferred "
+				+ "correctly. This probably means that the analysis didn't "
+				+ "see that the function is called via an import indirected "
+				+ "through a function call and called from there with "
+				+ "a different type of parameter.", expectedType, type);
+	}
+
+	@Test
+	public void functionParameterCalledFromOtherModuleThroughClass()
+			throws Throwable {
+		String testName = "function_parameter_called_from_other_module_through_class";
+		ScopedPrintNode node = findPrintNode(testName, "what_am_i");
+		TypeJudgement type = engine.typeOf(node.getExpression(), node
+				.getScope());
+
+		ArrayList<Type> types = new ArrayList<Type>();
+		types.add(stringType);
+		Class x = model
+				.lookup(
+						"function_parameter_called_from_other_module_through_class_aux")
+				.getClasses().get("X");
+		types.add(new TObject(x));
+		TypeJudgement expectedType = new SetBasedTypeJudgement(types);
+
+		assertEquals("Function parameter's type not inferred "
+				+ "correctly. This probably means that the analysis didn't "
+				+ "see that the function is called via an import indirected "
+				+ "through a class member and called from there with "
+				+ "a different type of parameter.", expectedType, type);
+	}
+
+	@Test
+	public void functionParameterCalledFromOtherModuleThroughGlobal()
+			throws Throwable {
+		String testName = "function_parameter_called_from_other_module_through_global";
+		ScopedPrintNode node = findPrintNode(testName, "what_am_i");
+		TypeJudgement type = engine.typeOf(node.getExpression(), node
+				.getScope());
+
+		ArrayList<Type> types = new ArrayList<Type>();
+		types.add(stringType);
+		types.add(integerType);
+		TypeJudgement expectedType = new SetBasedTypeJudgement(types);
+
+		assertEquals("Function parameter's type not inferred "
+				+ "correctly. This probably means that the analysis didn't "
+				+ "see that the function is called via an imported "
+				+ "global with a different type of parameter.", expectedType,
+				type);
+	}
+
+	@Test
+	public void functionParameterCalledFromOtherModuleThroughGlobalViaFrom()
+			throws Throwable {
+		String testName = "function_parameter_called_from_other_module_through_global_via_from";
+		ScopedPrintNode node = findPrintNode(testName, "what_am_i");
+		TypeJudgement type = engine.typeOf(node.getExpression(), node
+				.getScope());
+
+		ArrayList<Type> types = new ArrayList<Type>();
+		types.add(stringType);
+		types.add(integerType);
+		TypeJudgement expectedType = new SetBasedTypeJudgement(types);
+
+		assertEquals("Function parameter's type not inferred "
+				+ "correctly. This probably means that the analysis didn't "
+				+ "see that the function is called via an imported "
+				+ "global with a different type of parameter.", expectedType,
+				type);
+	}
+
+	@Test
+	public void functionParameterCalledFromOtherModuleViaAlias()
+			throws Throwable {
+		String testName = "function_parameter_called_from_other_module_via_alias";
+		ScopedPrintNode node = findPrintNode(testName, "what_am_i");
+		TypeJudgement type = engine.typeOf(node.getExpression(), node
+				.getScope());
+
+		ArrayList<Type> types = new ArrayList<Type>();
+		types.add(stringType);
+		types.add(integerType);
+		TypeJudgement expectedType = new SetBasedTypeJudgement(types);
+
+		assertEquals("Function parameter's type not inferred "
+				+ "correctly. This probably means that the analysis didn't "
+				+ "see that the function is called in another module whose "
+				+ "import name is first aliased.", expectedType, type);
+	}
+
+	@Test
+	public void functionParameterCalledThroughCall() throws Throwable {
+		String testName = "function_parameter_called_through_call";
+		ScopedPrintNode node = findPrintNode(testName, "what_am_i");
+		TypeJudgement type = engine.typeOf(node.getExpression(), node
+				.getScope());
+
+		ArrayList<Type> types = new ArrayList<Type>();
+		types.add(stringType);
+		types.add(integerType);
+		types.add(listType);
+		TypeJudgement expectedType = new SetBasedTypeJudgement(types);
+
+		assertEquals("Function parameter's type not inferred "
+				+ "correctly. This probably means that the analysis didn't "
+				+ "see that the function is indirected "
+				+ "through a call whose result is called again with "
+				+ "a different type of parameter.", expectedType, type);
+	}
+
+	@Test
+	public void functionParameterCalledThroughClass() throws Throwable {
+		String testName = "function_parameter_called_through_class";
+		ScopedPrintNode node = findPrintNode(testName, "what_am_i");
+		TypeJudgement type = engine.typeOf(node.getExpression(), node
+				.getScope());
+
+		ArrayList<Type> types = new ArrayList<Type>();
+		types.add(stringType);
+		types.add(new TObject(node.getGlobalNamespace().getClasses().get("X")));
+		TypeJudgement expectedType = new SetBasedTypeJudgement(types);
+
+		assertEquals("Function parameter's type not inferred "
+				+ "correctly. This probably means that the analysis didn't "
+				+ "see that the function is indirected "
+				+ "through a class member and called from there with "
+				+ "a different type of parameter.", expectedType, type);
+	}
+
+	@Test
+	public void functionParameterCalledThroughClassInMethod() throws Throwable {
+		String testName = "function_parameter_called_through_class_in_method";
+		ScopedPrintNode node = findPrintNode(testName, "what_am_i");
+		TypeJudgement type = engine.typeOf(node.getExpression(), node
+				.getScope());
+
+		ArrayList<Type> types = new ArrayList<Type>();
+		types.add(stringType);
+		types.add(new TObject(node.getGlobalNamespace().getClasses().get("X")));
+		TypeJudgement expectedType = new SetBasedTypeJudgement(types);
+
+		assertEquals("Function parameter's type not inferred "
+				+ "correctly. This probably means that the analysis didn't "
+				+ "see that the function is indirected "
+				+ "through a class member and called from there with "
+				+ "a different type of parameter.", expectedType, type);
+	}
+
+	@Test
+	public void functionParameterCalledThroughGlobal() throws Throwable {
+		String testName = "function_parameter_called_through_global";
+		ScopedPrintNode node = findPrintNode(testName, "what_am_i");
+		TypeJudgement type = engine.typeOf(node.getExpression(), node
+				.getScope());
+
+		ArrayList<Type> types = new ArrayList<Type>();
+		types.add(stringType);
+		types.add(integerType);
+		TypeJudgement expectedType = new SetBasedTypeJudgement(types);
+
+		assertEquals("Function parameter's type not inferred "
+				+ "correctly. This probably means that the analysis didn't "
+				+ "see that the function is indirected "
+				+ "through a global alias and called with that name and "
+				+ "a different type of parameter.", expectedType, type);
+	}
+
+	@Test
 	public void objectAttributeMono() throws Throwable {
 		String testName = "object_attribute_mono";
 		TypeJudgement expectedType = new SetBasedTypeJudgement(listType);
@@ -731,6 +981,49 @@ public class ZeroCfaTypeEngineTest {
 
 		assertEquals("Attribute's type not inferred correctly", expectedType,
 				type);
+	}
+
+	@Test
+	public void objectAttributeDistracted() throws Throwable {
+		String testName = "object_attribute_distracted";
+		TypeJudgement expectedType = new SetBasedTypeJudgement(listType);
+
+		ScopedPrintNode node = findPrintNode(testName, "what_am_i_inside");
+		TypeJudgement type = engine.typeOf(node.getExpression(), node
+				.getScope());
+
+		assertEquals("Attribute's type not inferred correctly. "
+				+ "This probably means it was distracted by the "
+				+ "attribute with the same name in the unrelated class.",
+				expectedType, type);
+
+		node = findPrintNode(testName, "what_am_i_outside");
+		type = engine.typeOf(node.getExpression(), node.getScope());
+
+		ArrayList<Type> types = new ArrayList<Type>();
+		types.add(stringType);
+		types.add(listType);
+		expectedType = new SetBasedTypeJudgement(types);
+
+		assertEquals("Attribute's type not inferred correctly. "
+				+ "It should include both possibilities for i as it can't "
+				+ "statically determine if the object is A or B", expectedType,
+				type);
+	}
+
+	@Test
+	public void objectAttributeSetInConstructor() throws Throwable {
+		String testName = "object_attribute_set_in_constructor";
+		TypeJudgement expectedType = new SetBasedTypeJudgement(listType);
+
+		ScopedPrintNode node = findPrintNode(testName, "what_am_i");
+		TypeJudgement type = engine.typeOf(node.getExpression(), node
+				.getScope());
+
+		assertEquals("Attribute's type not inferred correctly. This "
+				+ "probably means forward flow analysis didn't follow"
+				+ "the value of an instance of A into the constructor's "
+				+ "self parameter.", expectedType, type);
 	}
 
 	@Test

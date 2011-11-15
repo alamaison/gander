@@ -3,31 +3,35 @@ package uk.ac.ic.doc.gander.model;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.python.pydev.parser.jython.ast.FunctionDef;
-import org.python.pydev.parser.jython.ast.Name;
 import org.python.pydev.parser.jython.ast.NameTok;
 import org.python.pydev.parser.jython.ast.VisitorIF;
 import org.python.pydev.parser.jython.ast.exprType;
 import org.python.pydev.parser.jython.ast.stmtType;
 
 import uk.ac.ic.doc.gander.cfg.Cfg;
-import uk.ac.ic.doc.gander.model.DefaultCodeBlock.Acceptor;
+import uk.ac.ic.doc.gander.model.codeblock.CodeBlock;
+import uk.ac.ic.doc.gander.model.codeblock.DefaultCodeBlock;
+import uk.ac.ic.doc.gander.model.codeblock.DefaultCodeBlock.Acceptor;
 
 public final class Function implements Namespace {
 
 	private final FunctionDef function;
 	private final Namespace parent;
+	private final Model model;
 	private final Map<String, Function> functions = new HashMap<String, Function>();
 	private final Map<String, Class> classes = new HashMap<String, Class>();
-	
+
 	private CodeBlock codeBlock = null;
 	private Cfg graph = null;
 
-	public Function(FunctionDef function, Namespace parent) {
+	public Function(FunctionDef function, Namespace parent, Model model) {
 		this.function = function;
 		this.parent = parent;
+		this.model = model;
 	}
 
 	public String getName() {
@@ -57,13 +61,13 @@ public final class Function implements Namespace {
 	}
 
 	public Map<String, Class> getClasses() {
-		//return Collections.unmodifiableMap(classes);
+		// return Collections.unmodifiableMap(classes);
 		return classes;
 	}
 
 	public Map<String, Function> getFunctions() {
 		return functions;
-		//return Collections.unmodifiableMap(functions);
+		// return Collections.unmodifiableMap(functions);
 	}
 
 	public void addModule(Module pkg) {
@@ -115,30 +119,30 @@ public final class Function implements Namespace {
 
 	public CodeBlock asCodeBlock() {
 		if (codeBlock == null) {
-			ArrayList<String> args = new ArrayList<String>();
-			for (exprType expr : function.args.args) {
-				if (expr instanceof Name) {
-					args.add(((Name) expr).id);
-				} else {
-					/*
-					 * TODO: Work out what we want to do ... and why this even
-					 * happens. I've seen this be a Tuple, for instance.
-					 */
-				}
-			}
 
 			Acceptor acceptor = new Acceptor() {
 
 				public void accept(VisitorIF visitor) throws Exception {
+					function.args.accept(visitor);
+
 					for (stmtType stmt : function.body) {
 						stmt.accept(visitor);
 					}
 				}
 			};
 
-			codeBlock = new DefaultCodeBlock(args, acceptor);
+			List<ModelSite<exprType>> argumentSites = new ArrayList<ModelSite<exprType>>();
+			for (exprType argument : function.args.args) {
+				argumentSites.add(new ModelSite<exprType>(argument,
+						Function.this, model));
+			}
+			codeBlock = new DefaultCodeBlock(argumentSites, acceptor);
 		}
 
 		return codeBlock;
+	}
+
+	public Module getGlobalNamespace() {
+		return getParentScope().getGlobalNamespace();
 	}
 }

@@ -7,13 +7,14 @@ import java.net.URL;
 
 import org.python.pydev.parser.jython.ParseException;
 
+import uk.ac.ic.doc.gander.model.Model;
 import uk.ac.ic.doc.gander.model.Module;
 
 public class TopLevelPackageLoader {
 
-	private Module pkg;
+	private final Module pkg;
 
-	public TopLevelPackageLoader() throws ParseException, IOException {
+	public TopLevelPackageLoader(Model model) throws ParseException, IOException {
 
 		URL builtins = getClass().getResource("dummy_builtins.py");
 		File moduleFile;
@@ -27,7 +28,7 @@ public class TopLevelPackageLoader {
 
 		pkg = new Module(parser.getAst(), "", null, true);
 
-		new ModulePopulator(pkg).build(parser.getAst());
+		new ModulePopulator(pkg, model).build(parser.getAst());
 	}
 
 	public Module getPackage() {

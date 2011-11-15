@@ -40,8 +40,8 @@ final class NameTypeGoal implements TypeGoal {
 
 	public TypeJudgement recalculateSolution(SubgoalManager goalManager) {
 
-		final Namespace bindingScope = new Binder().resolveBindingScope(name,
-				enclosingScope);
+		final Namespace bindingScope = Binder.resolveBindingScope(name,
+				enclosingScope, model).getNamespace();
 
 		/*
 		 * Other than global (module) names, a name can only be bound in the

@@ -5,10 +5,10 @@ import uk.ac.ic.doc.gander.flowinference.types.judgement.SetBasedTypeJudgement;
 import uk.ac.ic.doc.gander.flowinference.types.judgement.TypeConcentrator;
 import uk.ac.ic.doc.gander.flowinference.types.judgement.TypeJudgement;
 import uk.ac.ic.doc.gander.model.Class;
-import uk.ac.ic.doc.gander.model.CodeBlock;
 import uk.ac.ic.doc.gander.model.Function;
 import uk.ac.ic.doc.gander.model.Model;
 import uk.ac.ic.doc.gander.model.Namespace;
+import uk.ac.ic.doc.gander.model.codeblock.CodeBlock;
 
 final class ParameterTypeGoal implements TypeGoal {
 
@@ -31,7 +31,7 @@ final class ParameterTypeGoal implements TypeGoal {
 
 		TypeConcentrator type = new TypeConcentrator();
 
-		if (codeBlock.getFormalParameters().contains(name)) {
+		if (codeBlock.getNamedFormalParameters().contains(name)) {
 
 			/*
 			 * The first parameter of a function in a class (usually called

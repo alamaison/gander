@@ -3,30 +3,23 @@ package uk.ac.ic.doc.gander.model;
 public abstract class ModelWalker {
 
 	public final void walk(Model model) {
-		walkThroughPackage(model.getTopLevel());
-	}
+		new NamespaceWalker() {
 
-	// We have a special case here just for the top-level package because
-	// the Model isn't a namespace and can't be processed by
-	// walkThroughNamespace
-	private void walkThroughPackage(Module topLevel) {
-		visitModule(topLevel);
-		walkThroughNamespace(topLevel);
-	}
+			@Override
+			protected void visitClass(Class klass) {
+				ModelWalker.this.visitClass(klass);
+			}
 
-	private void walkThroughNamespace(Namespace namespace) {
-		for (Module module : namespace.getModules().values()) {
-			visitModule(module);
-			walkThroughNamespace(module);
-		}
-		for (Class klass : namespace.getClasses().values()) {
-			visitClass(klass);
-			walkThroughNamespace(klass);
-		}
-		for (Function function : namespace.getFunctions().values()) {
-			visitFunction(function);
-			walkThroughNamespace(function);
-		}
+			@Override
+			protected void visitFunction(Function function) {
+				ModelWalker.this.visitFunction(function);
+			}
+
+			@Override
+			protected void visitModule(Module module) {
+				ModelWalker.this.visitModule(module);
+			}
+		}.walk(model.getTopLevel());
 	}
 
 	protected void visitModule(Module module) {

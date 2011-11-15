@@ -1,21 +1,28 @@
 package uk.ac.ic.doc.gander.flowinference.typegoals;
 
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Set;
 
+import org.python.pydev.parser.jython.SimpleNode;
 import org.python.pydev.parser.jython.ast.Assign;
 import org.python.pydev.parser.jython.ast.Attribute;
+import org.python.pydev.parser.jython.ast.Call;
+import org.python.pydev.parser.jython.ast.NameTok;
 import org.python.pydev.parser.jython.ast.exprType;
 
+import uk.ac.ic.doc.gander.ast.AstParentNodeFinder;
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
-import uk.ac.ic.doc.gander.flowinference.modelgoals.AttributeAssignmentSitesGoal;
-import uk.ac.ic.doc.gander.flowinference.types.TObject;
-import uk.ac.ic.doc.gander.flowinference.types.Type;
+import uk.ac.ic.doc.gander.flowinference.flowgoals.CodeObjectPosition;
+import uk.ac.ic.doc.gander.flowinference.flowgoals.ExpressionPosition;
+import uk.ac.ic.doc.gander.flowinference.flowgoals.FlowGoal;
 import uk.ac.ic.doc.gander.flowinference.types.judgement.SetBasedTypeJudgement;
+import uk.ac.ic.doc.gander.flowinference.types.judgement.Top;
 import uk.ac.ic.doc.gander.flowinference.types.judgement.TypeConcentrator;
 import uk.ac.ic.doc.gander.flowinference.types.judgement.TypeJudgement;
-import uk.ac.ic.doc.gander.model.AssignmentSite;
 import uk.ac.ic.doc.gander.model.Class;
 import uk.ac.ic.doc.gander.model.Model;
+import uk.ac.ic.doc.gander.model.ModelSite;
 
 /**
  * Infer the type of a member of an object's dictionary for an object that is an
@@ -48,43 +55,87 @@ final class ObjectMemberTypeGoal implements TypeGoal {
 		/*
 		 * To decide on the type of the member we have to look at all
 		 * assignments to an attribute whose target could be the given class.
-		 * First we find all attributes with the given name and try to filter
-		 * some of them out by inferring their target's type in the hope that it
-		 * excludes our given type. If if does, it means we can ignore that
-		 * assignment as it can't affect the given class's instances.
+		 * 
+		 * We find these by issuing a flow query for the class. Any calls to any
+		 * of the places it flows to result in new instances of this class.
+		 * 
+		 * The type of our member is determined by the values assigned to an
+		 * attribute of these instances with the same name so we filter them to
+		 * find the places where they are subject to an attribute access which,
+		 * itself, is bound to a value.
 		 */
 		// XXX: We only look at attributes referenced using a matching name.
 		// is this enough? What about fields of modules, for instance (yes I
 		// realise these never get here because NamespaceMemberTypeGoal
 		// handles them but they are technically objects).
-		Set<AssignmentSite<Attribute>> attributeAssignment = goalManager
-				.registerSubgoal(new AttributeAssignmentSitesGoal(model,
-						memberName));
+		Set<ModelSite<? extends exprType>> classReferences = goalManager
+				.registerSubgoal(new FlowGoal(new CodeObjectPosition(klass,
+						model)));
+		Set<ModelSite<Call>> constructors = new HashSet<ModelSite<Call>>();
+		for (ModelSite<? extends exprType> classSite : classReferences) {
+			SimpleNode parent = AstParentNodeFinder.findParent(classSite
+					.getNode(), classSite.getEnclosingScope().getAst());
+			if (parent instanceof Call) {
+				constructors.add(new ModelSite<Call>((Call) parent, classSite
+						.getEnclosingScope(), model));
+			}
+		}
+
+		Set<ModelSite<? extends exprType>> objectReferences = new HashSet<ModelSite<? extends exprType>>();
+		for (ModelSite<Call> constructor : constructors) {
+			Set<ModelSite<? extends exprType>> references = goalManager
+					.registerSubgoal(new FlowGoal(new ExpressionPosition<Call>(
+							constructor)));
+			if (references != null) {
+				objectReferences.addAll(references);
+			} else {
+				/*
+				 * We have no idea where the object flowed to so we can't say
+				 * what type the member might have.
+				 */
+				return new Top();
+			}
+		}
+
+		/*
+		 * Collect the expressions that access our named member on an instance
+		 * of our class.
+		 */
+		Set<ModelSite<Attribute>> memberAccesses = new HashSet<ModelSite<Attribute>>();
+		for (ModelSite<? extends exprType> object : objectReferences) {
+
+			SimpleNode parent = AstParentNodeFinder.findParent(
+					object.getNode(), object.getEnclosingScope().getAst());
+			if (parent instanceof Attribute) {
+				if (((NameTok) ((Attribute) parent).attr).id.equals(memberName)) {
+					memberAccesses.add(new ModelSite<Attribute>(
+							(Attribute) parent, object.getEnclosingScope(),
+							model));
+				}
+			}
+		}
 
 		TypeConcentrator types = new TypeConcentrator();
 
-		for (AssignmentSite<Attribute> assignment : attributeAssignment) {
+		for (ModelSite<Attribute> accessSite : memberAccesses) {
 
-			/*
-			 * Try to filter out some attributes assignments even though they
-			 * match by name.
-			 * 
-			 * The only assignment to attributes that we can safely ignore are
-			 * those whose target container object has been established not to
-			 * be an instance of the class in question.
-			 */
-			TypeJudgement objectType = goalManager
-					.registerSubgoal(new ExpressionTypeGoal(model, assignment
-							.getEnclosingScope(), assignment.getTarget().value));
-			if (typeDefinitelyNotContainerForThisAttribute(objectType)) {
-				continue;
+			SimpleNode parent = AstParentNodeFinder.findParent(accessSite
+					.getNode(), accessSite.getEnclosingScope().getAst());
+
+			// Check that attribute is being bound by assignment
+			// FIXME: Attributes can be bound by any of the binding statements
+			if (parent instanceof Assign
+					&& Arrays.asList(((Assign) parent).targets).contains(
+							accessSite.getNode())) {
+
+				ModelSite<exprType> rhs = new ModelSite<exprType>(
+						((Assign) parent).value,
+						accessSite.getEnclosingScope(), accessSite.getModel());
+				types.add(goalManager.registerSubgoal(new ExpressionTypeGoal(
+						rhs)));
+				if (types.isFinished())
+					break;
 			}
-
-			exprType rhs = ((Assign) assignment.getAssignment()).value;
-			types.add(goalManager.registerSubgoal(new ExpressionTypeGoal(model,
-					assignment.getEnclosingScope(), rhs)));
-			if (types.isFinished())
-				break;
 		}
 
 		/*
@@ -97,18 +148,6 @@ final class ObjectMemberTypeGoal implements TypeGoal {
 		types.add(metaClassMemberTypes);
 
 		return types.getJudgement();
-	}
-
-	private boolean typeDefinitelyNotContainerForThisAttribute(
-			TypeJudgement type) {
-		if (!(type instanceof SetBasedTypeJudgement)) {
-			return false;
-		}
-
-		Set<Type> inferredTypes = ((SetBasedTypeJudgement) type)
-				.getConstituentTypes();
-
-		return !inferredTypes.contains(new TObject(klass));
 	}
 
 	@Override
