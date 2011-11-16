@@ -42,6 +42,7 @@ import uk.ac.ic.doc.gander.flowinference.types.judgement.TypeJudgement;
 import uk.ac.ic.doc.gander.model.Model;
 import uk.ac.ic.doc.gander.model.ModelSite;
 import uk.ac.ic.doc.gander.model.Namespace;
+import uk.ac.ic.doc.gander.model.Variable;
 
 public final class ExpressionTypeGoal implements TypeGoal {
 
@@ -229,8 +230,9 @@ public final class ExpressionTypeGoal implements TypeGoal {
 
 		@Override
 		public Object visitName(Name node) throws Exception {
-			VariableTypeGoal typer = new VariableTypeGoal(expression.model(),
-					expression.codeObject(), node.id);
+			Variable variable = new Variable(node.id, expression.codeObject(),
+					expression.model());
+			VariableTypeGoal typer = new VariableTypeGoal(variable);
 			return goalManager.registerSubgoal(typer);
 		}
 

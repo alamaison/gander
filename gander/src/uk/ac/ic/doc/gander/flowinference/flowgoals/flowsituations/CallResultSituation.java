@@ -1,4 +1,4 @@
-package uk.ac.ic.doc.gander.flowinference.flowgoals;
+package uk.ac.ic.doc.gander.flowinference.flowgoals.flowsituations;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -9,8 +9,8 @@ import java.util.Set;
 import org.python.pydev.parser.jython.ast.exprType;
 
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
-import uk.ac.ic.doc.gander.flowinference.flowgoals.flowsituations.FlowSituation;
-import uk.ac.ic.doc.gander.flowinference.flowgoals.flowsituations.FlowSituationFinder;
+import uk.ac.ic.doc.gander.flowinference.flowgoals.ExpressionPosition;
+import uk.ac.ic.doc.gander.flowinference.flowgoals.FlowPosition;
 import uk.ac.ic.doc.gander.flowinference.typegoals.ExpressionTypeGoal;
 import uk.ac.ic.doc.gander.flowinference.types.TObject;
 import uk.ac.ic.doc.gander.flowinference.types.Type;
@@ -21,31 +21,25 @@ import uk.ac.ic.doc.gander.model.Function;
 import uk.ac.ic.doc.gander.model.ModelSite;
 
 /**
- * Finds the next step of an expression's flow based on its flow situation.
+ * Model how a value can flow purely by virtue of being the result of a call.
+ * 
+ * This does not include how it can flow by being assigned (or otherwise bound)
+ * to another expression. It only includes flow that happens through the very
+ * act of being a call result. The only example of this is if the call was a
+ * constructor call when the value flows to the {@code self} parameter of the
+ * class's methods.
  */
-final class ExpressionFlowStepGoal<T extends exprType> implements FlowStepGoal {
+final class CallResultSituation implements FlowSituation {
 
-	private final ModelSite<T> expression;
+	private final ModelSite<? extends exprType> expression;
 
-	public ExpressionFlowStepGoal(ModelSite<T> expression) {
+	CallResultSituation(ModelSite<? extends exprType> expression) {
 		this.expression = expression;
 	}
 
-	public Set<FlowPosition> initialSolution() {
-		return Collections.emptySet();
-	}
+	public Set<FlowPosition> nextFlowPositions(SubgoalManager goalManager) {
 
-	public Set<FlowPosition> recalculateSolution(SubgoalManager goalManager) {
-
-		Set<FlowSituation> situations = FlowSituationFinder
-				.findFlowSituations(expression);
-		
-		Set<FlowPosition> nextPositions = new HashSet<FlowPosition>();
-		for (FlowSituation flowSituation : situations) {
-			nextPositions.addAll(flowSituation.nextFlowPositions(goalManager));
-		}
-		
-		return nextPositions;
+		return handleMethodSelfFlow(goalManager);
 	}
 
 	private Set<FlowPosition> handleMethodSelfFlow(SubgoalManager goalManager) {
@@ -104,7 +98,7 @@ final class ExpressionFlowStepGoal<T extends exprType> implements FlowStepGoal {
 			return false;
 		if (getClass() != obj.getClass())
 			return false;
-		ExpressionFlowStepGoal<?> other = (ExpressionFlowStepGoal<?>) obj;
+		CallResultSituation other = (CallResultSituation) obj;
 		if (expression == null) {
 			if (other.expression != null)
 				return false;
@@ -115,7 +109,7 @@ final class ExpressionFlowStepGoal<T extends exprType> implements FlowStepGoal {
 
 	@Override
 	public String toString() {
-		return "ExpressionFlowStepGoal [expression=" + expression + "]";
+		return "CallResultSituation [expression=" + expression + "]";
 	}
 
 }
