@@ -155,13 +155,11 @@ public class SymbolTable {
 			// apart and each to the inferred types
 			for (aliasType alias : node.names) {
 				if (alias.asname != null) {
-					new SymbolTableImportResolver(model, currentScope, model
-							.getTopLevel()).simulateImportAs(
-							((NameTok) alias.name).id,
-							((NameTok) alias.asname).id);
+					new SymbolTableImportResolver(model, currentScope)
+							.simulateImportAs(((NameTok) alias.name).id,
+									((NameTok) alias.asname).id);
 				} else {
-					new SymbolTableImportResolver(model, currentScope, model
-							.getTopLevel())
+					new SymbolTableImportResolver(model, currentScope)
 							.simulateImport(((NameTok) alias.name).id);
 				}
 			}
@@ -171,16 +169,14 @@ public class SymbolTable {
 
 			for (aliasType alias : node.names) {
 				if (alias.asname != null) {
-					new SymbolTableImportResolver(model, currentScope, model
-							.getTopLevel()).simulateImportFromAs(
-							((NameTok) node.module).id,
-							((NameTok) alias.name).id,
-							((NameTok) alias.asname).id);
+					new SymbolTableImportResolver(model, currentScope)
+							.simulateImportFromAs(((NameTok) node.module).id,
+									((NameTok) alias.name).id,
+									((NameTok) alias.asname).id);
 				} else {
-					new SymbolTableImportResolver(model, currentScope, model
-							.getTopLevel()).simulateImportFrom(
-							((NameTok) node.module).id,
-							((NameTok) alias.name).id);
+					new SymbolTableImportResolver(model, currentScope)
+							.simulateImportFrom(((NameTok) node.module).id,
+									((NameTok) alias.name).id);
 				}
 			}
 
@@ -190,9 +186,8 @@ public class SymbolTable {
 
 	private class SymbolTableImportResolver extends ImportTyper {
 
-		public SymbolTableImportResolver(Model model, Namespace importReceiver,
-				Module topLevel) {
-			super(model, importReceiver, topLevel);
+		public SymbolTableImportResolver(Model model, Namespace importReceiver) {
+			super(model, importReceiver);
 		}
 
 		@Override

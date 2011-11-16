@@ -15,6 +15,7 @@ import uk.ac.ic.doc.gander.hierarchy.Hierarchy;
 import uk.ac.ic.doc.gander.hierarchy.HierarchyFactory;
 import uk.ac.ic.doc.gander.model.Function;
 import uk.ac.ic.doc.gander.model.Module;
+import uk.ac.ic.doc.gander.model.DefaultModel;
 import uk.ac.ic.doc.gander.model.MutableModel;
 import uk.ac.ic.doc.gander.model.Namespace;
 
@@ -237,7 +238,7 @@ public class CallHelperTest {
 
 		Hierarchy hierarchy = HierarchyFactory
 				.createHierarchy(topLevelDirectory);
-		MutableModel model = new MutableModel(hierarchy);
+		MutableModel model = new DefaultModel(hierarchy);
 
 		Module start = model.loadModule("start");
 		typer = new TypeResolver(model);

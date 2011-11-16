@@ -20,6 +20,7 @@ import uk.ac.ic.doc.gander.hierarchy.SourceFile;
 import uk.ac.ic.doc.gander.hierarchy.Package;
 import uk.ac.ic.doc.gander.model.Function;
 import uk.ac.ic.doc.gander.model.ModelWalker;
+import uk.ac.ic.doc.gander.model.DefaultModel;
 import uk.ac.ic.doc.gander.model.MutableModel;
 import uk.ac.ic.doc.gander.model.Namespace;
 
@@ -31,7 +32,7 @@ public class DuckHunt {
 
 	public DuckHunt(Hierarchy hierarchy) throws Exception {
 		System.out.println("Creating model from hierarchy");
-		this.model = new MutableModel(hierarchy);
+		this.model = new DefaultModel(hierarchy);
 		this.counts = new Tallies();
 		System.out.println("Loading all non-system modules in hierarchy");
 		new HierarchyLoader().walk(hierarchy);

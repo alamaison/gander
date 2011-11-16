@@ -4,8 +4,8 @@ import java.io.IOException;
 
 import org.python.pydev.parser.jython.ParseException;
 
-import uk.ac.ic.doc.gander.model.MutableModel;
 import uk.ac.ic.doc.gander.model.Module;
+import uk.ac.ic.doc.gander.model.MutableModel;
 
 /**
  * Create new SourceFile object in the model by parsing the {@code __init__.py}
@@ -34,7 +34,7 @@ public final class PackageLoader {
 		// <b>loaded</b> when the package is loaded. They must be explicitly
 		// mentioned in the import statement.
 
-		pkg = new Module(parser.getAst(), hierarchyPackage.getName(), parent,
+		pkg = new Module(hierarchyPackage.getName(), parent,
 				hierarchyPackage.isSystem());
 
 		// Must add the package to the model before we load it in case the
@@ -47,6 +47,7 @@ public final class PackageLoader {
 		// modules, most likely), we're left with this empty package in the
 		// model. Do we need to clean this up?
 		new ImportAwareModulePopulator(pkg, model).build(parser.getAst());
+		pkg.setAst(parser.getAst());
 	}
 
 	public Module getPackage() {

@@ -25,7 +25,7 @@ import uk.ac.ic.doc.gander.model.codeblock.DefaultCodeBlock.Acceptor;
  */
 public final class Module implements Namespace {
 
-	private final org.python.pydev.parser.jython.ast.Module ast;
+	private org.python.pydev.parser.jython.ast.Module ast;
 	private final HashMap<String, Class> classes = new HashMap<String, Class>();
 	private final HashMap<String, Function> functions = new HashMap<String, Function>();
 	private final HashMap<String, Module> modules = new HashMap<String, Module>();
@@ -35,14 +35,15 @@ public final class Module implements Namespace {
 	private final Module parent;
 	private CodeBlock codeBlock = null;
 
-	public Module(org.python.pydev.parser.jython.ast.Module ast, String name,
-			Module parent, boolean isSystem) {
-		assert ast != null;
-
-		this.ast = ast;
+	public Module(String name, Module parent, boolean isSystem) {
 		this.name = name;
 		this.parent = parent;
 		this.isSystem = isSystem;
+	}
+
+	public void setAst(org.python.pydev.parser.jython.ast.Module ast) {
+		assert ast != null;
+		this.ast = ast;
 	}
 
 	public void addClass(Class subclass) {
@@ -58,6 +59,9 @@ public final class Module implements Namespace {
 	}
 
 	public org.python.pydev.parser.jython.ast.Module getAst() {
+		if (ast == null)
+			throw new AssertionError(
+					"Trying to get the AST before it has been built");
 		return ast;
 	}
 

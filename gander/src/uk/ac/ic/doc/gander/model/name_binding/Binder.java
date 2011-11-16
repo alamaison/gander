@@ -7,6 +7,7 @@ import uk.ac.ic.doc.gander.model.LexicalTokenResolver;
 import uk.ac.ic.doc.gander.model.Model;
 import uk.ac.ic.doc.gander.model.Module;
 import uk.ac.ic.doc.gander.model.Namespace;
+import uk.ac.ic.doc.gander.model.Variable;
 import uk.ac.ic.doc.gander.model.codeblock.CodeBlock;
 
 /**
@@ -23,88 +24,30 @@ import uk.ac.ic.doc.gander.model.codeblock.CodeBlock;
  */
 public final class Binder {
 
-	/**
-	 * A token in a particular scope (code object).
-	 */
-	private static class CodeObjectToken {
-		private final String token;
-		private final Namespace enclosingCodeObject;
-		private final Model model;
-
-		CodeObjectToken(String token, Namespace enclosingCodeObject, Model model) {
-			this.token = token;
-			this.enclosingCodeObject = enclosingCodeObject;
-			this.model = model;
-		}
-
-		@Override
-		public int hashCode() {
-			final int prime = 31;
-			int result = 1;
-			result = prime
-					* result
-					+ ((enclosingCodeObject == null) ? 0 : enclosingCodeObject
-							.hashCode());
-			result = prime * result + ((model == null) ? 0 : model.hashCode());
-			result = prime * result + ((token == null) ? 0 : token.hashCode());
-			return result;
-		}
-
-		@Override
-		public boolean equals(Object obj) {
-			if (this == obj)
-				return true;
-			if (obj == null)
-				return false;
-			if (getClass() != obj.getClass())
-				return false;
-			CodeObjectToken other = (CodeObjectToken) obj;
-			if (enclosingCodeObject == null) {
-				if (other.enclosingCodeObject != null)
-					return false;
-			} else if (!enclosingCodeObject.equals(other.enclosingCodeObject))
-				return false;
-			if (model == null) {
-				if (other.model != null)
-					return false;
-			} else if (!model.equals(other.model))
-				return false;
-			if (token == null) {
-				if (other.token != null)
-					return false;
-			} else if (!token.equals(other.token))
-				return false;
-			return true;
-		}
-
-		@Override
-		public String toString() {
-			return "CodeObjectToken [enclosingCodeObject="
-					+ enclosingCodeObject + ", model=" + model + ", token="
-					+ token + "]";
-		}
-
-	}
-
 	private static final BindingScopeResolver RESOLVER = new BindingScopeResolver();
-	private static final Map<CodeObjectToken, NamespaceKey> bindings = new HashMap<CodeObjectToken, NamespaceKey>();
+	private static final Map<Variable, NamespaceKey> bindings = new HashMap<Variable, NamespaceKey>();
 
-	public static NamespaceKey resolveBindingScope(String name,
-			Namespace enclosingCodeObject, Model model) {
-		CodeObjectToken token = new CodeObjectToken(name, enclosingCodeObject,
-				model);
+	public static NamespaceKey resolveBindingScope(Variable variable) {
 
-		NamespaceKey binding = bindings.get(token);
+		NamespaceKey binding = bindings.get(variable);
 		if (binding == null) {
-			binding = new NamespaceKey(name, RESOLVER.resolveToken(name,
-					enclosingCodeObject), model);
-			bindings.put(token, binding);
+			binding = new NamespaceKey(variable.name(), RESOLVER.resolveToken(
+					variable.name(), variable.codeBlock()), variable.model());
+			bindings.put(variable, binding);
 		}
 
 		return binding;
 	}
 
+	@Deprecated
+	public static NamespaceKey resolveBindingScope(String name,
+			Namespace enclosingCodeObject, Model model) {
+		return resolveBindingScope(new Variable(name, enclosingCodeObject,
+				model));
+	}
+
 	private Binder() {
+		throw new AssertionError();
 	}
 
 }
@@ -194,7 +137,7 @@ final class BindingScopeResolver extends LexicalTokenResolver<Namespace> {
 	 */
 	private static boolean isNameBoundInCodeBlock(final String name,
 			final CodeBlock codeBlock) {
-		
+
 		return codeBlock.getBoundVariables().contains(name);
 	}
 

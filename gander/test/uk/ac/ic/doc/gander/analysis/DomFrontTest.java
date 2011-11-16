@@ -16,7 +16,7 @@ import uk.ac.ic.doc.gander.cfg.BasicBlock;
 import uk.ac.ic.doc.gander.cfg.Cfg;
 import uk.ac.ic.doc.gander.hierarchy.Hierarchy;
 import uk.ac.ic.doc.gander.hierarchy.HierarchyFactory;
-import uk.ac.ic.doc.gander.model.MutableModel;
+import uk.ac.ic.doc.gander.model.DefaultModel;
 
 public class DomFrontTest {
 
@@ -58,7 +58,7 @@ public class DomFrontTest {
 
 		Hierarchy hierarchy = HierarchyFactory
 				.createHierarchy(topLevelDirectory);
-		graph = new MutableModel(hierarchy).loadModule("my_module").getFunctions()
+		graph = new DefaultModel(hierarchy).loadModule("my_module").getFunctions()
 				.get("test_" + caseName).getCfg();
 	}
 

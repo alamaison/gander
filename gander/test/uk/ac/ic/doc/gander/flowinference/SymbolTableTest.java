@@ -22,6 +22,7 @@ import uk.ac.ic.doc.gander.hierarchy.HierarchyFactory;
 import uk.ac.ic.doc.gander.model.Class;
 import uk.ac.ic.doc.gander.model.Function;
 import uk.ac.ic.doc.gander.model.Module;
+import uk.ac.ic.doc.gander.model.DefaultModel;
 import uk.ac.ic.doc.gander.model.MutableModel;
 import uk.ac.ic.doc.gander.model.Namespace;
 
@@ -36,7 +37,7 @@ public class SymbolTableTest {
 		URL topLevel = getClass().getResource(TEST_FOLDER);
 		hierarchy = HierarchyFactory
 				.createHierarchy(new File(topLevel.toURI()));
-		model = new MutableModel(hierarchy);
+		model = new DefaultModel(hierarchy);
 	}
 
 	private Map<String, Type> symbols(Namespace scope) throws Exception {

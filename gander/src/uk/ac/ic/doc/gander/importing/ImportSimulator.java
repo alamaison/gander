@@ -29,25 +29,21 @@ import uk.ac.ic.doc.gander.model.Namespace;
 public abstract class ImportSimulator {
 
 	private Namespace importReceiver;
-	private Module topLevel;
 
 	/**
 	 * FIXME: importReceiver may not actually be the import receiver. It depends
 	 * on the binding scope of 'as' in importReceiver. It could be the global
 	 * scope.
 	 */
-	public ImportSimulator(Namespace importReceiver, Module topLevel) {
+	public ImportSimulator(Namespace importReceiver) {
 		if (importReceiver == null)
 			throw new NullPointerException("Must have namespace to import into");
-		if (topLevel == null)
-			throw new NullPointerException("Top level module is not optional");
 
 		this.importReceiver = importReceiver;
-		this.topLevel = topLevel;
 	}
 
 	/**
-	 * Load a module or package.
+	 * Load a module or package relative to the given package.
 	 * 
 	 * If loading fails, return {@code null}.
 	 * 
@@ -59,6 +55,17 @@ public abstract class ImportSimulator {
 	 */
 	protected abstract Module simulateLoad(List<String> importPath,
 			Module relativeToPackage);
+	
+	/**
+	 * Load a module or package relative to the top level.
+	 * 
+	 * If loading fails, return {@code null}.
+	 * 
+	 * @param importPath
+	 *            Absolute path of importable.
+	 * @return {@link Module} if loading succeeded, {@code null} otherwise.
+	 */
+	protected abstract Module simulateLoad(List<String> importPath);
 
 	protected abstract void bindName(Namespace importReceiver,
 			Namespace loaded, String as);
@@ -202,7 +209,7 @@ public abstract class ImportSimulator {
 			loaded = simulateLoad(importPath, relativeToPackage);
 
 		if (loaded == null)
-			loaded = simulateLoad(importPath, topLevel);
+			loaded = simulateLoad(importPath);
 
 		return loaded;
 	}

@@ -1,9 +1,6 @@
 package uk.ac.ic.doc.gander.model;
 
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-
-import java.util.Collections;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -18,26 +15,6 @@ public class ImportingModelTest extends AbstractModelTest {
 		createTestModel(IMPORTING_PROJ);
 	}
 
-	/**
-	 * The model simulates the runtime behaviour of the Python interpreter.
-	 * Before any modules are loaded only the top-level package should exist
-	 * and, shouldn't contain any modules or packages. These only appear once
-	 * they've been loaded.
-	 */
-	@Test
-	public void onlyTopLevelKnownBeforeLoading() throws Throwable {
-
-		assertTrue("Top-level package must always exist", getModel()
-				.getTopLevel() != null);
-		assertEquals("Modules shouldn't appear in the top-level package until "
-				+ "they've been loaded", Collections.emptyMap(), getModel()
-				.getTopLevel().getModules());
-		assertEquals(
-				"Packages shouldn't appear in the top-level package until "
-						+ "they've been loaded", Collections.emptyMap(),
-				getModel().getTopLevel().getModules());
-	}
-
 	@Test
 	public void siblingModuleImport() throws Throwable {
 		String start = "import_sibling_module";
@@ -46,7 +23,8 @@ public class ImportingModelTest extends AbstractModelTest {
 
 		assertKeys("Loading a module that imports a sibling must add "
 				+ "that module and the imported sibling to the runtime model",
-				getModel().getTopLevel().getModules(), start, "sibling");
+				getModel().getTopLevel().getModules(), addToBuiltins(start,
+						"sibling"));
 	}
 
 	@Test
@@ -57,8 +35,8 @@ public class ImportingModelTest extends AbstractModelTest {
 
 		assertKeys("Loading a module that imports something from a sibling "
 				+ "must add that module and the sibling module to the "
-				+ "runtime model",
-				getModel().getTopLevel().getModules(), start, "sibling");
+				+ "runtime model", getModel().getTopLevel().getModules(),
+				addToBuiltins(start, "sibling"));
 	}
 
 	@Test
@@ -74,8 +52,8 @@ public class ImportingModelTest extends AbstractModelTest {
 		assertKeys("Loading a module that imports something from another "
 				+ "module must add its own parent packages to the "
 				+ "runtime model as well as the model it is importing",
-				getModel().getTopLevel().getModules(), "relative",
-				"sibling");
+				getModel().getTopLevel().getModules(), addToBuiltins(
+						"relative", "sibling"));
 	}
 
 	@Test
@@ -90,8 +68,8 @@ public class ImportingModelTest extends AbstractModelTest {
 
 		assertKeys("Loading a module that imports a package from another "
 				+ "package must add the source package to the runtime model",
-				getModel().getTopLevel().getModules(), "relative",
-				"sibling_package");
+				getModel().getTopLevel().getModules(), addToBuiltins(
+						"relative", "sibling_package"));
 
 		assertKeys("Loading a module that imports a package from another "
 				+ "package must add the target package to the runtime model",
@@ -107,8 +85,8 @@ public class ImportingModelTest extends AbstractModelTest {
 
 		assertKeys("Loading a module that imports a sibling must add "
 				+ "that sibling to the runtime model as well as itself",
-				getModel().getTopLevel().getModules(), start,
-				"sibling_package");
+				getModel().getTopLevel().getModules(), addToBuiltins(start,
+						"sibling_package"));
 	}
 
 	/**
@@ -123,7 +101,8 @@ public class ImportingModelTest extends AbstractModelTest {
 
 		assertKeys("Loading a module that imports a sibling must add "
 				+ "that module and the imported sibling to the runtime model",
-				getModel().getTopLevel().getModules(), start, "sibling");
+				getModel().getTopLevel().getModules(), addToBuiltins(start,
+						"sibling"));
 	}
 
 	/**
@@ -138,8 +117,8 @@ public class ImportingModelTest extends AbstractModelTest {
 
 		assertKeys("Loading a module that imports a sibling must add "
 				+ "that sibling to the runtime model as well as itself",
-				getModel().getTopLevel().getModules(), start,
-				"sibling_package");
+				getModel().getTopLevel().getModules(), addToBuiltins(start,
+						"sibling_package"));
 	}
 
 	@Test
@@ -150,8 +129,8 @@ public class ImportingModelTest extends AbstractModelTest {
 
 		assertKeys("Loading a module that imports a nephew must add the "
 				+ "nephew's parent package to the runtime model "
-				+ "as well as itself", getModel().getTopLevel()
-				.getModules(), "sibling_package", start);
+				+ "as well as itself", getModel().getTopLevel().getModules(),
+				addToBuiltins("sibling_package", start));
 
 		assertKeys(
 				"Loading a module that imports a nephew must add the nephew "
@@ -168,7 +147,7 @@ public class ImportingModelTest extends AbstractModelTest {
 		assertKeys("Loading a module that imports a nephew must add the "
 				+ "nephew's parent package to the runtime model as well "
 				+ "as itself", getModel().getTopLevel().getModules(),
-				"sibling_package", start);
+				addToBuiltins("sibling_package", start));
 
 		assertKeys(
 				"Loading a module that imports a nephew must add the nephew "
@@ -216,9 +195,9 @@ public class ImportingModelTest extends AbstractModelTest {
 	public void relativeModuleImportUp() throws Throwable {
 		String start = "relative.import_relative_module_up";
 
-		assertTrue("The imported module musn't appear in the runtime model "
+		assertKeys("The imported module musn't appear in the runtime model "
 				+ "until the submodule that imports it is loaded", getModel()
-				.lookup("").getModules().isEmpty());
+				.lookup("").getModules(), addToBuiltins());
 
 		getModel().loadModule(start);
 
@@ -229,16 +208,17 @@ public class ImportingModelTest extends AbstractModelTest {
 
 		assertKeys("Loading a non-top-level module that imports a top-level "
 				+ "module must add the top-level module to the runtime model",
-				getModel().lookup("").getModules(), "relative", "sibling");
+				getModel().lookup("").getModules(), addToBuiltins("relative",
+						"sibling"));
 	}
 
 	@Test
 	public void relativePackageImportUp() throws Throwable {
 		String start = "relative.import_relative_package_up";
 
-		assertTrue("The imported package musn't appear in the runtime model "
+		assertKeys("The imported package musn't appear in the runtime model "
 				+ "until the submodule that imports it is loaded", getModel()
-				.lookup("").getModules().isEmpty());
+				.lookup("").getModules(), addToBuiltins());
 
 		getModel().loadModule(start);
 
@@ -249,16 +229,16 @@ public class ImportingModelTest extends AbstractModelTest {
 		assertKeys("Loading a non-top-level module that imports a "
 				+ "top-level package must add the top-level package to the "
 				+ "runtime model", getModel().lookup("").getModules(),
-				"relative", "sibling_package");
+				addToBuiltins("relative", "sibling_package"));
 	}
 
 	@Test
 	public void relativeModuleImportUpThenDown() throws Throwable {
 		String start = "relative.import_relative_module_up_then_down";
 
-		assertTrue("The imported module musn't appear in the runtime model "
+		assertKeys("The imported module musn't appear in the runtime model "
 				+ "until the submodule that imports it is loaded", getModel()
-				.lookup("").getModules().isEmpty());
+				.lookup("").getModules(), addToBuiltins());
 
 		getModel().loadModule(start);
 
@@ -277,8 +257,8 @@ public class ImportingModelTest extends AbstractModelTest {
 		getModel().loadModule("circular1");
 
 		assertKeys("Loading a module that imports another must add both to "
-				+ "the runtime model", getModel().getTopLevel()
-				.getModules(), "circular1", "circular2");
+				+ "the runtime model", getModel().getTopLevel().getModules(),
+				addToBuiltins("circular1", "circular2"));
 	}
 
 	@Test
@@ -288,7 +268,8 @@ public class ImportingModelTest extends AbstractModelTest {
 		assertKeys("Loading a package must also load any modules it "
 				+ "imports, even if those import are nested "
 				+ "in function definitions", getModel().getTopLevel()
-				.getModules(), "nested_circular1", "nested_circular2");
+				.getModules(), addToBuiltins("nested_circular1",
+				"nested_circular2"));
 
 		assertKeys(nested1.getFunctions(), "a");
 		assertKeys(nested1.getModules(), "b");

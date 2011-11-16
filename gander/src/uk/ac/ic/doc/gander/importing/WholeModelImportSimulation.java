@@ -58,12 +58,17 @@ public final class WholeModelImportSimulation {
 	}
 
 	private ImportSimulator newImportSimulator(Namespace importReceiver) {
-		return new ImportSimulator(importReceiver, model.getTopLevel()) {
+		return new ImportSimulator(importReceiver) {
 
 			@Override
 			protected Module simulateLoad(List<String> importPath,
 					Module relativeToPackage) {
 				return relativeToPackage.lookup(importPath);
+			}
+
+			@Override
+			protected Module simulateLoad(List<String> importPath) {
+				return model.lookup(importPath);
 			}
 
 			@Override

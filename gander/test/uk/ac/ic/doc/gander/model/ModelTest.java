@@ -5,6 +5,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertTrue;
 
+import java.util.Arrays;
 import java.util.Collections;
 
 import org.junit.Before;
@@ -21,26 +22,6 @@ public class ModelTest extends AbstractModelTest {
 	}
 
 	/**
-	 * The model simulates the runtime behaviour of the Python interpreter.
-	 * Before any modules are loaded only the top-level package should exist
-	 * and, shouldn't contain any modules or packages. These only appear once
-	 * they've been loaded.
-	 */
-	@Test
-	public void onlyTopLevelKnownBeforeLoading() throws Throwable {
-
-		assertTrue("Top-level package must always exist", getModel()
-				.getTopLevel() != null);
-		assertEquals("Modules shouldn't appear in the top-level package until "
-				+ "they've been loaded", Collections.emptyMap(), getModel()
-				.getTopLevel().getModules());
-		assertEquals(
-				"Packages shouldn't appear in the top-level package until "
-						+ "they've been loaded", Collections.emptyMap(),
-				getModel().getTopLevel().getModules());
-	}
-
-	/**
 	 * Even when nothing has been loaded explicitly, the top-level package
 	 * should contain the Python builtins.
 	 */
@@ -49,6 +30,9 @@ public class ModelTest extends AbstractModelTest {
 		assertTrue("Can't find builtin 'len()' function in the top-level "
 				+ "package", getModel().getTopLevel().getFunctions()
 				.containsKey("len"));
+		assertKeys("Can't find builtin types module in the top-level "
+				+ "package", getModel().getTopLevel().getModules(),
+				addToBuiltins());
 	}
 
 	@Test
@@ -62,7 +46,8 @@ public class ModelTest extends AbstractModelTest {
 
 		assertKeys("Loading a module that doesn't import anything must add "
 				+ "that module and only that module to the runtime model",
-				getModel().getTopLevel().getModules(), "my_module");
+				getModel().getTopLevel().getModules(),
+				addToBuiltins("my_module"));
 	}
 
 	@Test
@@ -84,7 +69,7 @@ public class ModelTest extends AbstractModelTest {
 		assertKeys("Loading two modules that don't import anything must "
 				+ "load those modules and only those modules into the runtime "
 				+ "model", getModel().getTopLevel().getModules(),
-				"my_module", "my_module2");
+				addToBuiltins("my_module", "my_module2"));
 	}
 
 	@Test
@@ -101,7 +86,8 @@ public class ModelTest extends AbstractModelTest {
 
 		assertKeys("Loading a module that doesn't import anything must add "
 				+ "that module and only that module to the runtime model",
-				getModel().getTopLevel().getModules(), "my_module");
+				getModel().getTopLevel().getModules(),
+				addToBuiltins("my_module"));
 	}
 
 	@Test
@@ -115,7 +101,8 @@ public class ModelTest extends AbstractModelTest {
 
 		assertKeys("Loading a package that doesn't import anything must add "
 				+ "that package and only that package to the runtime model",
-				getModel().getTopLevel().getModules(), "my_package");
+				getModel().getTopLevel().getModules(),
+				addToBuiltins("my_package"));
 	}
 
 	@Test
@@ -135,12 +122,10 @@ public class ModelTest extends AbstractModelTest {
 	@Test
 	public void subModules() throws Throwable {
 
-		Module loadedModule = getModel()
-				.loadModule("my_package.my_submodule");
+		Module loadedModule = getModel().loadModule("my_package.my_submodule");
 		assertTrue("Submodule failed to load", loadedModule != null);
 
-		Module parent = getModel().getTopLevel().getModules().get(
-				"my_package");
+		Module parent = getModel().getTopLevel().getModules().get("my_package");
 		assertTrue("Loading a submodule must load any packages above it",
 				parent != null);
 		assertEquals("The parent of 'my_submodule' isn't 'my_package'", parent,
@@ -158,8 +143,7 @@ public class ModelTest extends AbstractModelTest {
 				"my_package.my_subpackage");
 		assertTrue("Subpackage failed to load", loadedPackage != null);
 
-		Module parent = getModel().getTopLevel().getModules().get(
-				"my_package");
+		Module parent = getModel().getTopLevel().getModules().get("my_package");
 		assertTrue("Loading a subpackage must load any packages above it",
 				parent != null);
 		assertEquals("The parent of 'my_subpackage' isn't 'my_package'",
@@ -177,8 +161,7 @@ public class ModelTest extends AbstractModelTest {
 				"my_package.my_subpackage.my_subsubmodule");
 		assertTrue("Subsubmodule failed to load", loadedModule != null);
 
-		Module parent = getModel().getTopLevel().getModules().get(
-				"my_package");
+		Module parent = getModel().getTopLevel().getModules().get("my_package");
 		assertTrue("Loading a submodule must load any packages above it",
 				parent != null);
 		parent = parent.getModules().get("my_subpackage");
@@ -200,8 +183,7 @@ public class ModelTest extends AbstractModelTest {
 				"my_package.my_subpackage.my_subsubpackage");
 		assertTrue("Subsubpackage failed to load", loadedPackage != null);
 
-		Module parent = getModel().getTopLevel().getModules().get(
-				"my_package");
+		Module parent = getModel().getTopLevel().getModules().get("my_package");
 		assertTrue("Loading a subpackage must load any packages above it",
 				parent != null);
 		parent = parent.getModules().get("my_subpackage");

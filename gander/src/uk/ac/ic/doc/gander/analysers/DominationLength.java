@@ -20,6 +20,7 @@ import uk.ac.ic.doc.gander.hierarchy.Package;
 import uk.ac.ic.doc.gander.model.Class;
 import uk.ac.ic.doc.gander.model.Function;
 import uk.ac.ic.doc.gander.model.Module;
+import uk.ac.ic.doc.gander.model.DefaultModel;
 import uk.ac.ic.doc.gander.model.MutableModel;
 
 public class DominationLength extends HierarchyWalker {
@@ -29,7 +30,7 @@ public class DominationLength extends HierarchyWalker {
 
 	public DominationLength(Hierarchy hierarchy) throws ParseException,
 			IOException {
-		this.model = new MutableModel(hierarchy);
+		this.model = new DefaultModel(hierarchy);
 		this.walk(hierarchy);
 	}
 

@@ -65,7 +65,7 @@ class ImportAwareModulePopulator extends ModulePopulator {
 		private MutableModel model;
 
 		public Importer(Namespace scope, MutableModel model) {
-			super(scope, model.getTopLevel());
+			super(scope);
 			this.model = model;
 		}
 
@@ -86,12 +86,11 @@ class ImportAwareModulePopulator extends ModulePopulator {
 		 * 
 		 * @param importPath
 		 *            Path to search for relative to root, {@code
-		 *            relativeToPackage} .
+		 *            relativeToPackage}.
 		 * @param relativeToPackage
 		 *            Root of search.
 		 * @return {@link SourceFile} if loading succeeded, {@code null}
 		 *         otherwise.
-		 * @throws Exception
 		 */
 		protected Module simulateLoad(List<String> importPath,
 				Module relativeToPackage) {
@@ -99,16 +98,30 @@ class ImportAwareModulePopulator extends ModulePopulator {
 					.toImportTokens(relativeToPackage.getFullName()));
 			name.addAll(importPath);
 
+			return simulateLoad(name);
+		}
+
+		/**
+		 * Load a module or package.
+		 * 
+		 * @param importPath
+		 *            Path to search for relative to top level.
+		 * @return {@link SourceFile} if loading succeeded, {@code null}
+		 *         otherwise.
+		 */
+		@Override
+		protected Module simulateLoad(List<String> importPath) {
+
 			Module loaded = null;
 			try {
-				loaded = model.loadPackage(name);
+				loaded = model.loadPackage(importPath);
 				if (loaded == null)
-					loaded = model.loadModule(name);
+					loaded = model.loadModule(importPath);
 				// ignore exceptions as parse errors should be treated the same
 				// way as any other unresolved import; by returning null
 			} catch (ParseException e) {
 				System.err.println("Parse error in "
-						+ DottedName.toDottedName(name));
+						+ DottedName.toDottedName(importPath));
 			} catch (IOException e) {
 			}
 

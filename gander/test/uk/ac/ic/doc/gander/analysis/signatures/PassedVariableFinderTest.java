@@ -20,6 +20,7 @@ import uk.ac.ic.doc.gander.cfg.BasicBlock;
 import uk.ac.ic.doc.gander.hierarchy.Hierarchy;
 import uk.ac.ic.doc.gander.hierarchy.HierarchyFactory;
 import uk.ac.ic.doc.gander.model.Function;
+import uk.ac.ic.doc.gander.model.DefaultModel;
 import uk.ac.ic.doc.gander.model.MutableModel;
 
 public class PassedVariableFinderTest {
@@ -252,7 +253,7 @@ public class PassedVariableFinderTest {
 
 		Hierarchy hierarchy = HierarchyFactory
 				.createHierarchy(topLevelDirectory);
-		return new MutableModel(hierarchy);
+		return new DefaultModel(hierarchy);
 	}
 
 	private void initialise(String testFuncName) throws Throwable, Exception {

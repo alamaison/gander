@@ -33,7 +33,7 @@ public class ZeroCfaTypeEngineTest {
 	private TObject stringType;
 	private TObject integerType;
 	private TObject listType;
-	private TClass noneType;
+	private TObject noneType;
 
 	@Before
 	public void setup() throws Throwable {
@@ -41,8 +41,8 @@ public class ZeroCfaTypeEngineTest {
 		stringType = new TObject(model.getTopLevel().getClasses().get("str"));
 		integerType = new TObject(model.getTopLevel().getClasses().get("int"));
 		listType = new TObject(model.getTopLevel().getClasses().get("list"));
-		// noneType = new TClass(model.getTopLevel().getModules().get("types")
-		// .getClasses().get("NoneType"));
+		noneType = new TObject(model.getTopLevel().getClasses().get(
+				"__BuiltinNoneType__"));
 		engine = new ZeroCfaTypeEngine(model);
 	}
 
@@ -471,9 +471,9 @@ public class ZeroCfaTypeEngineTest {
 
 		assertEquals("Inferred type should be monomorphic", 1,
 				((SetBasedTypeJudgement) type).getConstituentTypes().size());
-		assertEquals("Function return's type not inferred correctly",
-				"NoneType", ((TObject) ((SetBasedTypeJudgement) type)
-						.getConstituentTypes().iterator().next()).getName());
+		assertEquals("Function return's type not inferred correctly", noneType,
+				(TObject) ((SetBasedTypeJudgement) type).getConstituentTypes()
+						.iterator().next());
 	}
 
 	@Test
@@ -484,8 +484,8 @@ public class ZeroCfaTypeEngineTest {
 				.getScope());
 
 		assertEquals("Function return's type not inferred correctly", noneType,
-				((TObject) ((SetBasedTypeJudgement) type).getConstituentTypes()
-						.iterator().next()).getClassInstance());
+				(TObject) ((SetBasedTypeJudgement) type).getConstituentTypes()
+						.iterator().next());
 	}
 
 	@Test
@@ -1132,6 +1132,22 @@ public class ZeroCfaTypeEngineTest {
 
 		assertEquals("Imported function's type not inferred correctly",
 				expectedType, type);
+	}
+
+	@Test
+	public void none() throws Throwable {
+		String testName = "none";
+		ScopedPrintNode node = findPrintNode(testName, "what_am_i");
+		TypeJudgement type = engine.typeOf(node.getExpression(), node
+				.getScope());
+
+		TypeJudgement expectedType = new SetBasedTypeJudgement(noneType);
+
+		assertEquals("Function parameter's type not inferred "
+				+ "correctly. This probably means that the analysis didn't "
+				+ "realise the function is imported into another "
+				+ "module and called from there with a different type "
+				+ "of parameter.", expectedType, type);
 	}
 
 	private ScopedAstNode findNode(String moduleName, String tag)

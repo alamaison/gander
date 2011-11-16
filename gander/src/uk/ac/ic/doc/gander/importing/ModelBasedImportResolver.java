@@ -16,9 +16,8 @@ public abstract class ModelBasedImportResolver extends ImportSimulator {
 
 	private final Model model;
 
-	protected ModelBasedImportResolver(Model model, Namespace importReceiver,
-			Module topLevel) {
-		super(importReceiver, topLevel);
+	protected ModelBasedImportResolver(Model model, Namespace importReceiver) {
+		super(importReceiver);
 
 		assert model != null;
 		this.model = model;
@@ -31,10 +30,16 @@ public abstract class ModelBasedImportResolver extends ImportSimulator {
 				.toImportTokens(relativeToPackage.getFullName()));
 		name.addAll(importPath);
 
+		return simulateLoad(name);
+	}
+
+	@Override
+	protected Module simulateLoad(List<String> importPath) {
+
 		// The imported module/package will always exist in the model
 		// already if it exists (on disk) at all as the model must have
 		// tried to import it already. Therefore we only do a lookup here
 		// rather than attempting a load.
-		return model.lookup(name);
+		return model.lookup(importPath);
 	}
 }

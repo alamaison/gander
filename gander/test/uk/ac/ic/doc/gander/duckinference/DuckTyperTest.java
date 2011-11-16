@@ -20,6 +20,7 @@ import uk.ac.ic.doc.gander.hierarchy.HierarchyFactory;
 import uk.ac.ic.doc.gander.model.Class;
 import uk.ac.ic.doc.gander.model.Function;
 import uk.ac.ic.doc.gander.model.Module;
+import uk.ac.ic.doc.gander.model.DefaultModel;
 import uk.ac.ic.doc.gander.model.MutableModel;
 import uk.ac.ic.doc.gander.model.Namespace;
 
@@ -34,7 +35,7 @@ public class DuckTyperTest {
 		File topLevel = new File(new File(testFolder.toURI()), caseName);
 
 		hierarchy = HierarchyFactory.createHierarchy(topLevel);
-		model = new MutableModel(hierarchy);
+		model = new DefaultModel(hierarchy);
 	}
 
 	private Set<Type> typeOf(String tag, Function enclosingFunction)

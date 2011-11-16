@@ -12,6 +12,7 @@ import uk.ac.ic.doc.gander.flowinference.types.judgement.TypeJudgement;
 import uk.ac.ic.doc.gander.model.Function;
 import uk.ac.ic.doc.gander.model.Model;
 import uk.ac.ic.doc.gander.model.ModelSite;
+import uk.ac.ic.doc.gander.model.Variable;
 
 public class FunctionReturnTypeGoal implements TypeGoal {
 
@@ -53,9 +54,7 @@ public class FunctionReturnTypeGoal implements TypeGoal {
 						 * A bare 'return' statement means that the function
 						 * returns builtin None.
 						 */
-						NameTypeGoal typer = new NameTypeGoal(model, function,
-								"None");
-						returnTypes.add(goalManager.registerSubgoal(typer));
+						returnTypes.add(noneType(goalManager));
 					}
 					return null;
 				}
@@ -82,11 +81,16 @@ public class FunctionReturnTypeGoal implements TypeGoal {
 			 * A missing 'return' statement means that the function returns
 			 * builtin None.
 			 */
-			NameTypeGoal typer = new NameTypeGoal(model, function, "None");
-			returnTypes.add(goalManager.registerSubgoal(typer));
+			returnTypes.add(noneType(goalManager));
 		}
 
 		return returnTypes.getJudgement();
+	}
+
+	private TypeJudgement noneType(SubgoalManager goalManager) {
+		VariableTypeGoal typer = new VariableTypeGoal(new Variable("None",
+				function, model));
+		return goalManager.registerSubgoal(typer);
 	}
 
 	@Override

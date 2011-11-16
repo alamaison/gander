@@ -10,6 +10,7 @@ import uk.ac.ic.doc.gander.flowinference.TypeResolver;
 import uk.ac.ic.doc.gander.hierarchy.Hierarchy;
 import uk.ac.ic.doc.gander.model.Class;
 import uk.ac.ic.doc.gander.model.Module;
+import uk.ac.ic.doc.gander.model.DefaultModel;
 import uk.ac.ic.doc.gander.model.MutableModel;
 
 public class ClassSize {
@@ -18,7 +19,7 @@ public class ClassSize {
 	private MutableModel model;
 
 	public ClassSize(Hierarchy hierarchy) throws Exception {
-		this.model = new MutableModel(hierarchy);
+		this.model = new DefaultModel(hierarchy);
 		uk.ac.ic.doc.gander.hierarchy.Package pack = hierarchy
 				.getTopLevelPackage();
 		analysePackage(pack);

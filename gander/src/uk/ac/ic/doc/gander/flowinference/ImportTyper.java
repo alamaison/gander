@@ -22,9 +22,8 @@ public abstract class ImportTyper extends ImportSimulator {
 
 	protected abstract void put(Namespace scope, String name, Type type);
 
-	protected ImportTyper(Model model, Namespace importReceiver,
-			Module topLevel) {
-		super(importReceiver, topLevel);
+	protected ImportTyper(Model model, Namespace importReceiver) {
+		super(importReceiver);
 
 		assert model != null;
 		this.model = model;
@@ -62,7 +61,12 @@ public abstract class ImportTyper extends ImportSimulator {
 		// already if it exists (on disk) at all as the model must have
 		// tried to import it already. Therefore we only do a lookup here
 		// rather than attempting a load.
-		return model.lookup(name);
+		return simulateLoad(name);
+	}
+
+	@Override
+	protected Module simulateLoad(List<String> importPath) {
+		return model.lookup(importPath);
 	}
 
 	@Override

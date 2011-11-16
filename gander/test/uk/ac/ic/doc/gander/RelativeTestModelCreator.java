@@ -6,6 +6,7 @@ import java.net.URL;
 import junit.framework.AssertionFailedError;
 import uk.ac.ic.doc.gander.hierarchy.Hierarchy;
 import uk.ac.ic.doc.gander.hierarchy.HierarchyFactory;
+import uk.ac.ic.doc.gander.model.DefaultModel;
 import uk.ac.ic.doc.gander.model.MutableModel;
 
 /**
@@ -20,7 +21,7 @@ public final class RelativeTestModelCreator {
 			final URL topLevel = klass.getClass().getResource(relativePath);
 			final Hierarchy hierarchy = HierarchyFactory
 					.createHierarchy(new File(topLevel.toURI()));
-			model = new MutableModel(hierarchy);
+			model = new DefaultModel(hierarchy);
 		} catch (Exception e) {
 			throw new AssertionFailedError(
 					"Exception while creating test model: " + e);

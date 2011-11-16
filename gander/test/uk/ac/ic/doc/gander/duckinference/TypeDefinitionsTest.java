@@ -14,7 +14,9 @@ import org.junit.Test;
 import uk.ac.ic.doc.gander.hierarchy.Hierarchy;
 import uk.ac.ic.doc.gander.hierarchy.HierarchyFactory;
 import uk.ac.ic.doc.gander.model.Class;
+import uk.ac.ic.doc.gander.model.ModelWalker;
 import uk.ac.ic.doc.gander.model.Module;
+import uk.ac.ic.doc.gander.model.DefaultModel;
 import uk.ac.ic.doc.gander.model.MutableModel;
 
 public class TypeDefinitionsTest {
@@ -28,7 +30,7 @@ public class TypeDefinitionsTest {
 		File topLevel = new File(new File(testFolder.toURI()), caseName);
 
 		hierarchy = HierarchyFactory.createHierarchy(topLevel);
-		model = new MutableModel(hierarchy);
+		model = new DefaultModel(hierarchy);
 	}
 
 	@Test
@@ -57,8 +59,7 @@ public class TypeDefinitionsTest {
 	}
 
 	private void assertCollectedClasses(Class[] specifiedExpected) {
-		Collection<Class> builtins = model.getTopLevel().getClasses()
-				.values();
+		Collection<Class> builtins = collectBuiltinClasses();
 		Set<Class> expected = new HashSet<Class>(Arrays
 				.asList(specifiedExpected));
 		expected.addAll(builtins);
@@ -66,5 +67,19 @@ public class TypeDefinitionsTest {
 		assertEquals("Types collected don't match expected classes", expected,
 				new HashSet<Class>(new LoadedTypeDefinitions(model)
 						.getDefinitions()));
+	}
+
+	private Collection<Class> collectBuiltinClasses() {
+		final Set<Class> classes = new HashSet<Class>();
+		
+		new ModelWalker() {
+
+			@Override
+			protected void visitClass(Class klass) {
+				classes.add(klass);
+			}
+		}.walk(model);
+		
+		return classes;
 	}
 }

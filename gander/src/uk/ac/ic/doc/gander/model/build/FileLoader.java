@@ -9,8 +9,8 @@ import uk.ac.ic.doc.gander.model.Module;
 import uk.ac.ic.doc.gander.model.MutableModel;
 
 /**
- * Create new SourceFile object in the model by parsing its file and following any
- * import statements.
+ * Create new SourceFile object in the model by parsing its file and following
+ * any import statements.
  * 
  * Much of the point of this class is to translate between a hierarchy module
  * and a runtime-model module.
@@ -34,8 +34,7 @@ public final class FileLoader {
 		// imported from within it, try to import this module again. In other
 		// words, we have to do this to avoid infinite recursion when there
 		// are import cycles.
-		module = new Module(parser.getAst(), sourceFile.getName(), parent,
-				sourceFile.isSystem());
+		module = new Module(sourceFile.getName(), parent, sourceFile.isSystem());
 		parent.addModule(module);
 
 		// XXX: If loading module fails (due to problems with imported modules,
@@ -43,6 +42,7 @@ public final class FileLoader {
 		// need to clean this up?
 
 		new ImportAwareModulePopulator(module, model).build(parser.getAst());
+		module.setAst(parser.getAst());
 	}
 
 	public Module getModule() {

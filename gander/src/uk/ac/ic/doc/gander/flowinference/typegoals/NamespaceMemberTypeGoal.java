@@ -59,7 +59,7 @@ final class NamespaceMemberTypeGoal implements TypeGoal {
 		if (member != null) {
 			return convertMemberToType(member);
 		} else {
-			NameTypeGoal typer = new NameTypeGoal(model, scope, name);
+			VariableTypeGoal typer = new VariableTypeGoal(model, scope, name);
 			return goalManager.registerSubgoal(typer);
 		}
 	}

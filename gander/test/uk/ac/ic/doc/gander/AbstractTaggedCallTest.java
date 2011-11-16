@@ -9,6 +9,7 @@ import uk.ac.ic.doc.gander.cfg.BasicBlock;
 import uk.ac.ic.doc.gander.cfg.Cfg;
 import uk.ac.ic.doc.gander.hierarchy.Hierarchy;
 import uk.ac.ic.doc.gander.hierarchy.HierarchyFactory;
+import uk.ac.ic.doc.gander.model.DefaultModel;
 import uk.ac.ic.doc.gander.model.Function;
 import uk.ac.ic.doc.gander.model.Module;
 import uk.ac.ic.doc.gander.model.MutableModel;
@@ -33,7 +34,7 @@ public abstract class AbstractTaggedCallTest {
 
 		Hierarchy hierarchy = HierarchyFactory
 				.createHierarchy(topLevelDirectory);
-		model = new MutableModel(hierarchy);
+		model = new DefaultModel(hierarchy);
 		module = model.loadModule(moduleToLoad());
 		function = module.getFunctions().get(caseName);
 		graph = function.getCfg();

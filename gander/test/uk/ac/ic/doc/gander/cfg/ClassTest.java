@@ -11,6 +11,7 @@ import uk.ac.ic.doc.gander.cfg.Cfg;
 import uk.ac.ic.doc.gander.hierarchy.Hierarchy;
 import uk.ac.ic.doc.gander.hierarchy.HierarchyFactory;
 import uk.ac.ic.doc.gander.model.Function;
+import uk.ac.ic.doc.gander.model.DefaultModel;
 import uk.ac.ic.doc.gander.model.MutableModel;
 
 public class ClassTest {
@@ -25,7 +26,7 @@ public class ClassTest {
 		File topLevelDirectory = new File(topLevel.toURI());
 		Hierarchy hierarchy = HierarchyFactory
 				.createHierarchy(topLevelDirectory);
-		MutableModel model = new MutableModel(hierarchy);
+		MutableModel model = new DefaultModel(hierarchy);
 		return model;
 	}
 

@@ -824,5 +824,10 @@ class set(object):
         """Remove and return an arbitrary set element."""
         return self._data[0]
 
+# We use this class at a dummy type for None because it is really something
+# define in the interpreter alone.  The NoneType in 'types' is defined
+# as 'NoneType = type(None)' which is pretty circular reasoning
+class __BuiltinNoneType__:
+	pass
 
-None = types.NoneType()
+None = __BuiltinNoneType__()
