@@ -98,7 +98,7 @@ public final class FlowSituationFinder {
 			ModelSite<? extends exprType> expressionSite) throws Exception {
 
 		SituationFinder finder = new SituationFinder(expressionSite);
-		expressionSite.codeObject().getAst().accept(finder);
+		expressionSite.namespace().getAst().accept(finder);
 		return finder.getSituations();
 	}
 }

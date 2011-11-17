@@ -4,6 +4,7 @@ import java.util.Map;
 
 import uk.ac.ic.doc.gander.cfg.Cfg;
 import uk.ac.ic.doc.gander.model.codeblock.CodeBlock;
+import uk.ac.ic.doc.gander.model.codeobject.CodeObject;
 
 public interface Namespace extends Member {
 
@@ -27,7 +28,10 @@ public interface Namespace extends Member {
 
 	public Cfg getCfg();
 
+	@Deprecated
 	public CodeBlock asCodeBlock();
+
+	public CodeObject codeObject();
 
 	/**
 	 * Returns the Python global namespace for the model item.
@@ -38,6 +42,6 @@ public interface Namespace extends Member {
 	 * @return the {@link Module} enclosing this item.
 	 */
 	public Module getGlobalNamespace();
-	
+
 	public Model model();
 }

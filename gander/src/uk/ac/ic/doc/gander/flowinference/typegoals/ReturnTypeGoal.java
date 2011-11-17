@@ -51,8 +51,7 @@ public final class ReturnTypeGoal implements TypeGoal {
 							((TClass) callableType).getClassInstance()));
 				} else if (callableType instanceof TFunction) {
 					FunctionReturnTypeGoal typer = new FunctionReturnTypeGoal(
-							((TFunction) callableType)
-									.getFunctionInstance());
+							((TFunction) callableType).getFunctionInstance());
 					return goalManager.registerSubgoal(typer);
 				}
 			}

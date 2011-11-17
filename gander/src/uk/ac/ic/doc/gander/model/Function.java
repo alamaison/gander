@@ -16,9 +16,12 @@ import uk.ac.ic.doc.gander.cfg.Cfg;
 import uk.ac.ic.doc.gander.model.codeblock.CodeBlock;
 import uk.ac.ic.doc.gander.model.codeblock.DefaultCodeBlock;
 import uk.ac.ic.doc.gander.model.codeblock.DefaultCodeBlock.Acceptor;
+import uk.ac.ic.doc.gander.model.codeobject.CodeObject;
+import uk.ac.ic.doc.gander.model.codeobject.FunctionCO;
 
 public final class Function implements Namespace {
 
+	private final FunctionCO codeObject;
 	private final FunctionDef function;
 	private final Namespace parent;
 	private final Model model;
@@ -32,6 +35,7 @@ public final class Function implements Namespace {
 		this.function = function;
 		this.parent = parent;
 		this.model = model;
+		this.codeObject = new FunctionCO(this, parent.codeObject());
 	}
 
 	public String getName() {
@@ -134,7 +138,7 @@ public final class Function implements Namespace {
 			List<ModelSite<exprType>> argumentSites = new ArrayList<ModelSite<exprType>>();
 			for (exprType argument : function.args.args) {
 				argumentSites.add(new ModelSite<exprType>(argument,
-						Function.this));
+						Function.this.codeObject()));
 			}
 			codeBlock = new DefaultCodeBlock(argumentSites, acceptor);
 		}
@@ -148,5 +152,9 @@ public final class Function implements Namespace {
 
 	public Model model() {
 		return model;
+	}
+
+	public CodeObject codeObject() {
+		return codeObject;
 	}
 }

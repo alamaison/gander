@@ -380,7 +380,7 @@ final class NamespaceKeyFlowStepGoal implements FlowStepGoal {
 					throw new RuntimeException(e);
 				}
 			}
-		}.walk(codeObjectReferenceSite.codeObject());
+		}.walk(codeObjectReferenceSite.namespace());
 	}
 
 	private Set<FlowPosition> accessesToNamespaceEntry(
@@ -390,7 +390,7 @@ final class NamespaceKeyFlowStepGoal implements FlowStepGoal {
 
 		for (ModelSite<? extends exprType> moduleReference : moduleReferenceExpressions) {
 			positions.add(searchScopeForAccessToNamespaceEntry(moduleReference
-					.codeObject(), namespaceKey.getName(), moduleReference
+					.namespace(), namespaceKey.getName(), moduleReference
 					.astNode()));
 
 			if (positions.isTop())

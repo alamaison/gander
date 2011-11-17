@@ -1,5 +1,6 @@
 package uk.ac.ic.doc.gander.model;
 
+import uk.ac.ic.doc.gander.model.codeobject.CodeObject;
 import uk.ac.ic.doc.gander.model.name_binding.NamespaceKey;
 
 /**
@@ -34,8 +35,13 @@ public final class Variable {
 		return name;
 	}
 
+	@Deprecated
 	public Namespace codeBlock() {
 		return codeBlock;
+	}
+	
+	public CodeObject codeObject() {
+		return codeBlock.codeObject();
 	}
 
 	public Model model() {

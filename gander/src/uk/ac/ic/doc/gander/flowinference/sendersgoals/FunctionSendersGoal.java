@@ -38,7 +38,7 @@ public class FunctionSendersGoal implements SendersGoal {
 
 		for (ModelSite<? extends exprType> expression : positions) {
 			SimpleNode parent = AstParentNodeFinder.findParent(expression
-					.astNode(), expression.codeObject().getAst());
+					.astNode(), expression.codeObject().ast());
 			if (parent instanceof Call) {
 				callSites.add(new ModelSite<Call>((Call) parent, expression
 						.codeObject()));

@@ -36,7 +36,7 @@ final class NameSituation implements FlowSituation {
 		 * namespace. We have to resolve the lexical binding first.
 		 */
 		NamespaceKey bindingNamespace = Binder.resolveBindingScope(name.id,
-				expressionSite.codeObject());
+				expressionSite.namespace());
 
 		return Collections.<FlowPosition> singleton(new NamespaceKeyPosition(
 				bindingNamespace));

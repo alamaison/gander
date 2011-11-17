@@ -15,12 +15,15 @@ import uk.ac.ic.doc.gander.cfg.Cfg;
 import uk.ac.ic.doc.gander.model.codeblock.CodeBlock;
 import uk.ac.ic.doc.gander.model.codeblock.DefaultCodeBlock;
 import uk.ac.ic.doc.gander.model.codeblock.DefaultCodeBlock.Acceptor;
+import uk.ac.ic.doc.gander.model.codeobject.ClassCO;
+import uk.ac.ic.doc.gander.model.codeobject.CodeObject;
 
 public final class Class implements Namespace {
 
 	private final Map<String, Function> methods = new HashMap<String, Function>();
 	private final Map<String, Class> classes = new HashMap<String, Class>();
 
+	private final ClassCO codeObject;
 	private final ClassDef cls;
 	private final Namespace parent;
 	private CodeBlock codeBlock = null;
@@ -30,6 +33,7 @@ public final class Class implements Namespace {
 		this.cls = cls;
 		this.parent = parent;
 		this.model = model;
+		this.codeObject = new ClassCO(this, parent.codeObject());
 	}
 
 	public exprType[] inheritsFrom() {
@@ -147,5 +151,9 @@ public final class Class implements Namespace {
 
 	public Model model() {
 		return model;
+	}
+
+	public CodeObject codeObject() {
+		return codeObject;
 	}
 }

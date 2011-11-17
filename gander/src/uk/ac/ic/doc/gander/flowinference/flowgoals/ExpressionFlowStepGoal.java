@@ -79,7 +79,7 @@ final class ExpressionFlowStepGoal<T extends exprType> implements FlowStepGoal {
 
 			if (parameters.size() > 0) {
 				ModelSite<exprType> selfParameter = parameters.get(0);
-				assert selfParameter.codeObject().equals(method);
+				assert selfParameter.namespace().equals(method);
 				positions.add(new ExpressionPosition<exprType>(selfParameter));
 			} else {
 				// Method is missing its self parameter!

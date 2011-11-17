@@ -42,7 +42,7 @@ public class FunctionArgumentTypeGoal implements TypeGoal {
 		for (ModelSite<Call> callSite : callSites) {
 			if (argumentIndex < callSite.astNode().args.length) {
 				types.add(goalManager.registerSubgoal(new ExpressionTypeGoal(
-						callSite.codeObject(),
+						callSite.namespace(),
 						callSite.astNode().args[argumentIndex])));
 			} else {
 				/*

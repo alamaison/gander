@@ -15,6 +15,8 @@ import uk.ac.ic.doc.gander.cfg.Cfg;
 import uk.ac.ic.doc.gander.model.codeblock.CodeBlock;
 import uk.ac.ic.doc.gander.model.codeblock.DefaultCodeBlock;
 import uk.ac.ic.doc.gander.model.codeblock.DefaultCodeBlock.Acceptor;
+import uk.ac.ic.doc.gander.model.codeobject.CodeObject;
+import uk.ac.ic.doc.gander.model.codeobject.ModuleCO;
 
 /**
  * Model elements that have associated code that can be loaded.
@@ -35,12 +37,14 @@ public final class Module implements Namespace {
 	private final Module parent;
 	private CodeBlock codeBlock = null;
 	private final Model model;
+	private final ModuleCO codeObject;
 
 	public Module(String name, Module parent, Model model, boolean isSystem) {
 		this.name = name;
 		this.parent = parent;
 		this.model = model;
 		this.isSystem = isSystem;
+		this.codeObject = new ModuleCO(this);
 	}
 
 	public void setAst(org.python.pydev.parser.jython.ast.Module ast) {
@@ -174,5 +178,9 @@ public final class Module implements Namespace {
 
 	public Model model() {
 		return model;
+	}
+
+	public CodeObject codeObject() {
+		return codeObject;
 	}
 }

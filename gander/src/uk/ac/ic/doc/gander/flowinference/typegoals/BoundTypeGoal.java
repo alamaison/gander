@@ -371,7 +371,7 @@ class BoundTypeVisitor extends BindingStatementVisitor {
 				if (rhsType == null) {
 
 					ModelSite<exprType> rhs = new ModelSite<exprType>(
-							node.value, variable.codeBlock());
+							node.value, variable.codeObject());
 					rhsType = goalManager
 							.registerSubgoal(new ExpressionTypeGoal(rhs));
 					// assert rhsType != null;

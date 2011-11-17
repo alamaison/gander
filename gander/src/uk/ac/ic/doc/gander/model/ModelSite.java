@@ -4,12 +4,19 @@ import org.python.pydev.parser.jython.SimpleNode;
 import org.python.pydev.parser.jython.ast.VisitorBase;
 
 import uk.ac.ic.doc.gander.model.codeblock.CodeBlock;
+import uk.ac.ic.doc.gander.model.codeobject.CodeObject;
 
 public class ModelSite<T extends SimpleNode> {
 	private final T node;
-	private final Namespace codeObject;
+	private final CodeObject codeObject;
 
+	@Deprecated
 	public ModelSite(T node, Namespace codeObject) {
+		this.node = node;
+		this.codeObject = codeObject.codeObject();
+	}
+
+	public ModelSite(T node, CodeObject codeObject) {
 		this.node = node;
 		this.codeObject = codeObject;
 	}
@@ -18,7 +25,12 @@ public class ModelSite<T extends SimpleNode> {
 		return codeObject.model();
 	}
 
-	public Namespace codeObject() {
+	@Deprecated
+	public Namespace namespace() {
+		return codeObject.model().intrinsicNamespace(codeObject);
+	}
+
+	public CodeObject codeObject() {
 		return codeObject;
 	}
 
@@ -29,7 +41,7 @@ public class ModelSite<T extends SimpleNode> {
 		 * constructor and the constructor would call asCodeBlock leading to an
 		 * infinite loop.
 		 */
-		assert codeBlockContainsNode(codeObject.asCodeBlock(), node);
+		assert codeBlockContainsNode(codeObject.codeBlock(), node);
 		return node;
 	}
 

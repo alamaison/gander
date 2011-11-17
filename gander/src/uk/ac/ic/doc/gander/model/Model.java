@@ -2,6 +2,8 @@ package uk.ac.ic.doc.gander.model;
 
 import java.util.List;
 
+import uk.ac.ic.doc.gander.model.codeobject.CodeObject;
+
 public interface Model {
 
 	public abstract Module getTopLevel();
@@ -9,5 +11,7 @@ public interface Model {
 	public abstract Module lookup(String importName);
 
 	public abstract Module lookup(List<String> importNameTokens);
+
+	public abstract Namespace intrinsicNamespace(CodeObject codeObject);
 
 }

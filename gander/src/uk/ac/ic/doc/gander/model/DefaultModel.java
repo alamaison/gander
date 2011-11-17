@@ -13,6 +13,7 @@ import uk.ac.ic.doc.gander.hierarchy.Hierarchy;
 import uk.ac.ic.doc.gander.model.build.FileLoader;
 import uk.ac.ic.doc.gander.model.build.PackageLoader;
 import uk.ac.ic.doc.gander.model.build.TopLevelModuleLoader;
+import uk.ac.ic.doc.gander.model.codeobject.CodeObject;
 
 public class DefaultModel implements MutableModel {
 
@@ -141,5 +142,13 @@ public class DefaultModel implements MutableModel {
 		if (pkg == null)
 			return null;
 		return new PackageLoader(pkg, (Module) parent, this).getPackage();
+	}
+
+	/**
+	 * Eventually this will do something more clever once we have properly
+	 * separated code objects and namespaces.
+	 */
+	public Namespace intrinsicNamespace(CodeObject codeObject) {
+		return codeObject.oldStyleConflatedNamespace();
 	}
 }

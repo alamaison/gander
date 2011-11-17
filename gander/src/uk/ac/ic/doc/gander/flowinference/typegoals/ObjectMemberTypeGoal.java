@@ -80,7 +80,7 @@ final class ObjectMemberTypeGoal implements TypeGoal {
 		for (ModelSite<? extends exprType> object : namespaceReferences) {
 
 			SimpleNode parent = AstParentNodeFinder.findParent(
-					object.astNode(), object.codeObject().getAst());
+					object.astNode(), object.codeObject().ast());
 			if (parent instanceof Attribute) {
 				if (((NameTok) ((Attribute) parent).attr).id.equals(memberName)) {
 					memberAccesses.add(new ModelSite<Attribute>(
@@ -94,7 +94,7 @@ final class ObjectMemberTypeGoal implements TypeGoal {
 		for (ModelSite<Attribute> accessSite : memberAccesses) {
 
 			SimpleNode parent = AstParentNodeFinder.findParent(accessSite
-					.astNode(), accessSite.codeObject().getAst());
+					.astNode(), accessSite.codeObject().ast());
 
 			// Check that attribute is being bound by assignment
 			// FIXME: Attributes can be bound by any of the binding statements

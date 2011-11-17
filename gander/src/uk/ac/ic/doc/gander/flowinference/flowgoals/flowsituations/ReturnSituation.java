@@ -31,7 +31,7 @@ final class ReturnSituation implements FlowSituation {
 	 */
 	public Set<FlowPosition> nextFlowPositions(SubgoalManager goalManager) {
 		Set<ModelSite<Call>> callers = goalManager
-				.registerSubgoal(new FunctionSendersGoal((Function) expression.codeObject()));
+				.registerSubgoal(new FunctionSendersGoal((Function) expression.namespace()));
 
 		Set<FlowPosition> positions = new HashSet<FlowPosition>();
 		for (ModelSite<Call> callSite : callers) {

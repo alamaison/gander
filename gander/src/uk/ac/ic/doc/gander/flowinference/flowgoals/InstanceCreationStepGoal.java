@@ -43,7 +43,7 @@ final class InstanceCreationStepGoal implements FlowStepGoal {
 
 		for (ModelSite<? extends exprType> classSite : classReferences) {
 			SimpleNode parent = AstParentNodeFinder.findParent(classSite
-					.astNode(), classSite.codeObject().getAst());
+					.astNode(), classSite.codeObject().ast());
 
 			if (parent instanceof Call) {
 				ModelSite<Call> constructor = new ModelSite<Call>(

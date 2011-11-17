@@ -66,8 +66,7 @@ public final class ExpressionTypeGoal implements TypeGoal {
 	}
 
 	public TypeJudgement recalculateSolution(SubgoalManager goalManager) {
-		TypeFinder finder = new TypeFinder(expression
-				.codeObject(), goalManager);
+		TypeFinder finder = new TypeFinder(expression.namespace(), goalManager);
 		try {
 			return (TypeJudgement) expression.astNode().accept(finder);
 		} catch (Exception e) {
@@ -229,7 +228,7 @@ public final class ExpressionTypeGoal implements TypeGoal {
 
 		@Override
 		public Object visitName(Name node) throws Exception {
-			Variable variable = new Variable(node.id, expression.codeObject());
+			Variable variable = new Variable(node.id, expression.namespace());
 			VariableTypeGoal typer = new VariableTypeGoal(variable);
 			return goalManager.registerSubgoal(typer);
 		}
