@@ -1,5 +1,8 @@
 package uk.ac.ic.doc.gander.model.codeobject;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import org.python.pydev.parser.jython.SimpleNode;
 import org.python.pydev.parser.jython.ast.FunctionDef;
 import org.python.pydev.parser.jython.ast.NameTok;
@@ -55,6 +58,23 @@ public final class FunctionCO implements NamedCodeObject, NestedCodeObject {
 		return oldStyleFunctionNamespace.asCodeBlock();
 	}
 
+	public Set<CodeObject> nestedCodeObjects() {
+		Set<CodeObject> nestedCodeObjects = new HashSet<CodeObject>();
+		for (Namespace namespace : oldStyleFunctionNamespace.getModules()
+				.values()) {
+			nestedCodeObjects.add(namespace.codeObject());
+		}
+		for (Namespace namespace : oldStyleFunctionNamespace.getClasses()
+				.values()) {
+			nestedCodeObjects.add(namespace.codeObject());
+		}
+		for (Namespace namespace : oldStyleFunctionNamespace.getFunctions()
+				.values()) {
+			nestedCodeObjects.add(namespace.codeObject());
+		}
+		return nestedCodeObjects;
+	}
+
 	public Model model() {
 		return oldStyleFunctionNamespace.model();
 	}
@@ -98,7 +118,7 @@ public final class FunctionCO implements NamedCodeObject, NestedCodeObject {
 
 	@Override
 	public String toString() {
-		return "FunctionCO [ast=" + ast + "]";
+		return "FunctionCO[" + declaredName() + "]";
 	}
 
 }

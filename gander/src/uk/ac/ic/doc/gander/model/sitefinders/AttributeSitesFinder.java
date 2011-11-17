@@ -10,8 +10,8 @@ import org.python.pydev.parser.jython.ast.NameTok;
 import uk.ac.ic.doc.gander.model.AttributeSitesWalker;
 import uk.ac.ic.doc.gander.model.Model;
 import uk.ac.ic.doc.gander.model.ModelSite;
-import uk.ac.ic.doc.gander.model.Namespace;
 import uk.ac.ic.doc.gander.model.AttributeSitesWalker.EventHandler;
+import uk.ac.ic.doc.gander.model.codeobject.CodeObject;
 
 public final class AttributeSitesFinder {
 
@@ -22,9 +22,9 @@ public final class AttributeSitesFinder {
 		new AttributeSitesWalker(model, new EventHandler() {
 
 			public void encounteredAttribute(Attribute attribute,
-					Namespace namespace) {
+					CodeObject codeObject) {
 				if (((NameTok) attribute.attr).id.equals(attributeName)) {
-					sites.add(new ModelSite<Attribute>(attribute, namespace));
+					sites.add(new ModelSite<Attribute>(attribute, codeObject));
 				}
 			}
 		});

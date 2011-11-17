@@ -6,6 +6,7 @@ import uk.ac.ic.doc.gander.ast.LocalCodeBlockVisitor;
 import uk.ac.ic.doc.gander.model.CodeObjectWalker;
 import uk.ac.ic.doc.gander.model.Model;
 import uk.ac.ic.doc.gander.model.Namespace;
+import uk.ac.ic.doc.gander.model.codeobject.CodeObject;
 
 /**
  * Visitation of every import statement in the given runtime model.
@@ -31,14 +32,15 @@ public final class WholeModelImportVisitation {
 		new CodeObjectWalker() {
 
 			@Override
-			protected void visitCodeObject(final Namespace codeBlock) {
+			protected void visitCodeObject(final CodeObject codeObject) {
 				try {
-					codeBlock.asCodeBlock().accept(new LocalCodeBlockVisitor() {
+					codeObject.codeBlock().accept(new LocalCodeBlockVisitor() {
 
 						@Override
 						protected Object unhandled_node(SimpleNode node)
 								throws Exception {
-							return node.accept(newImportVisitor(codeBlock));
+							return node.accept(newImportVisitor(model
+									.intrinsicNamespace(codeObject)));
 						}
 
 						@Override
@@ -51,7 +53,7 @@ public final class WholeModelImportVisitation {
 				}
 			}
 
-		}.walk(model.getTopLevel());
+		}.walk(model.getTopLevel().codeObject());
 	}
 
 	/**

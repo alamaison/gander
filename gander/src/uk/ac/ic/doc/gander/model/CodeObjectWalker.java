@@ -1,31 +1,27 @@
 package uk.ac.ic.doc.gander.model;
 
+import uk.ac.ic.doc.gander.model.codeobject.CodeObject;
+
 /**
+ * Visit each code object in the model.
+ * 
  * Like {@link NamespaceWalker} but treats all model elements uniformly.
  */
 public abstract class CodeObjectWalker {
 
-	public final void walk(Namespace root) {
+	public final void walk(CodeObject root) {
 		visitCodeObject(root);
-		walkThroughNamespace(root);
+		walkThroughNestedCodeObjects(root);
 	}
 
-	private void walkThroughNamespace(Namespace namespace) {
-		for (Module module : namespace.getModules().values()) {
+	private void walkThroughNestedCodeObjects(CodeObject codeObject) {
+		for (CodeObject module : codeObject.nestedCodeObjects()) {
 			walk(module);
-		}
-		for (Class klass : namespace.getClasses().values()) {
-			walk(klass);
-		}
-		for (Function function : namespace.getFunctions().values()) {
-			walk(function);
 		}
 	}
 
 	/**
-	 * Triggered on encountering a model code-block element.
-	 * 
-	 * TODO: Namespace should eventually become CodeObject.
+	 * Triggered on encountering an enclosed code object element.
 	 */
-	protected abstract void visitCodeObject(Namespace codeObject);
+	protected abstract void visitCodeObject(CodeObject codeObject);
 }

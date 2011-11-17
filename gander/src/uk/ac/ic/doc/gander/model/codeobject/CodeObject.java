@@ -1,5 +1,7 @@
 package uk.ac.ic.doc.gander.model.codeobject;
 
+import java.util.Set;
+
 import org.python.pydev.parser.jython.SimpleNode;
 
 import uk.ac.ic.doc.gander.model.Model;
@@ -22,6 +24,11 @@ public interface CodeObject {
 	 * Returns the {@link Model} in whose context this code object is valid.
 	 */
 	Model model();
+
+	/**
+	 * Return the code objects nested within this one.
+	 */
+	Set<CodeObject> nestedCodeObjects();
 	
 	/**
 	 * Temporary hack to get at the namespace.

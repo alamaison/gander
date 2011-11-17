@@ -1,5 +1,8 @@
 package uk.ac.ic.doc.gander.model.codeobject;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import uk.ac.ic.doc.gander.model.Model;
 import uk.ac.ic.doc.gander.model.Module;
 import uk.ac.ic.doc.gander.model.Namespace;
@@ -10,7 +13,7 @@ import uk.ac.ic.doc.gander.model.codeblock.CodeBlock;
  * 
  * Currently just an adapter around the hopelessly conflated {@link Namespace}.
  */
-public final class ModuleCO implements CodeObject {
+public final class ModuleCO implements NamedCodeObject {
 
 	private final Module oldStyleFunctionNamespace;
 
@@ -36,12 +39,33 @@ public final class ModuleCO implements CodeObject {
 		return oldStyleFunctionNamespace.asCodeBlock();
 	}
 
+	public Set<CodeObject> nestedCodeObjects() {
+		Set<CodeObject> nestedCodeObjects = new HashSet<CodeObject>();
+		for (Namespace namespace : oldStyleFunctionNamespace.getModules()
+				.values()) {
+			nestedCodeObjects.add(namespace.codeObject());
+		}
+		for (Namespace namespace : oldStyleFunctionNamespace.getClasses()
+				.values()) {
+			nestedCodeObjects.add(namespace.codeObject());
+		}
+		for (Namespace namespace : oldStyleFunctionNamespace.getFunctions()
+				.values()) {
+			nestedCodeObjects.add(namespace.codeObject());
+		}
+		return nestedCodeObjects;
+	}
+
 	public Model model() {
 		return oldStyleFunctionNamespace.model();
 	}
 
 	public Namespace oldStyleConflatedNamespace() {
 		return oldStyleFunctionNamespace;
+	}
+
+	public String declaredName() {
+		return oldStyleFunctionNamespace.getName();
 	}
 
 	@Override
@@ -75,7 +99,7 @@ public final class ModuleCO implements CodeObject {
 
 	@Override
 	public String toString() {
-		return "ModuleCO [ast=" + ast() + "]";
+		return "ModuleCO[" + declaredName() + "]";
 	}
 
 }

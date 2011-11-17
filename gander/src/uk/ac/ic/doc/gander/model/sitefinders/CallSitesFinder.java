@@ -9,8 +9,8 @@ import org.python.pydev.parser.jython.ast.Call;
 import uk.ac.ic.doc.gander.model.CallSitesWalker;
 import uk.ac.ic.doc.gander.model.Model;
 import uk.ac.ic.doc.gander.model.ModelSite;
-import uk.ac.ic.doc.gander.model.Namespace;
 import uk.ac.ic.doc.gander.model.CallSitesWalker.EventHandler;
+import uk.ac.ic.doc.gander.model.codeobject.CodeObject;
 
 /**
  * Find all call sites in the loaded model matching a predicate.
@@ -29,9 +29,9 @@ public final class CallSitesFinder {
 
 		new CallSitesWalker(model, new EventHandler() {
 
-			public void encounteredCallSite(Call call, Namespace namespace) {
+			public void encounteredCallSite(Call call, CodeObject codeObject) {
 
-				ModelSite<Call> callSite = new ModelSite<Call>(call, namespace);
+				ModelSite<Call> callSite = new ModelSite<Call>(call, codeObject);
 				
 				if (predicate.isMatch(callSite)) {
 					sites.add(callSite);

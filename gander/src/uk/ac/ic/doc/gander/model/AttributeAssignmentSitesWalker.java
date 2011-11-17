@@ -6,6 +6,7 @@ import org.python.pydev.parser.jython.ast.Attribute;
 import org.python.pydev.parser.jython.ast.exprType;
 
 import uk.ac.ic.doc.gander.ast.LocalCodeBlockVisitor;
+import uk.ac.ic.doc.gander.model.codeobject.CodeObject;
 
 /**
  * Walk over all assignments that write to an attribute of the given name in the
@@ -21,7 +22,7 @@ public final class AttributeAssignmentSitesWalker {
 
 	public interface EventHandler {
 		public void encounteredAttributeAssignment(Assign write,
-				Attribute attribute, Namespace namespace);
+				Attribute attribute, CodeObject codeObject);
 	}
 
 	private final EventHandler eventHandler;
@@ -31,22 +32,22 @@ public final class AttributeAssignmentSitesWalker {
 
 		new CodeObjectWalker() {
 			@Override
-			protected void visitCodeObject(Namespace codeBlock) {
-				processAttributeWritesInCodeBlock(codeBlock);
+			protected void visitCodeObject(CodeObject codeObject) {
+				processAttributeWritesInCodeBlock(codeObject);
 			}
-		}.walk(model.getTopLevel());
+		}.walk(model.getTopLevel().codeObject());
 	}
 
-	private void processAttributeWritesInCodeBlock(final Namespace namespace) {
+	private void processAttributeWritesInCodeBlock(final CodeObject codeObject) {
 		try {
-			namespace.asCodeBlock().accept(new LocalCodeBlockVisitor() {
+			codeObject.codeBlock().accept(new LocalCodeBlockVisitor() {
 
 				@Override
 				public Object visitAssign(Assign node) throws Exception {
 					for (exprType target : node.targets) {
 						if (target instanceof Attribute) {
 							eventHandler.encounteredAttributeAssignment(node,
-									(Attribute) target, namespace);
+									(Attribute) target, codeObject);
 						}
 					}
 					return null;

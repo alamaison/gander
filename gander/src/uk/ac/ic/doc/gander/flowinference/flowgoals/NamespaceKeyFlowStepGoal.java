@@ -20,6 +20,7 @@ import uk.ac.ic.doc.gander.model.CodeObjectWalker;
 import uk.ac.ic.doc.gander.model.ModelSite;
 import uk.ac.ic.doc.gander.model.Module;
 import uk.ac.ic.doc.gander.model.Namespace;
+import uk.ac.ic.doc.gander.model.codeobject.CodeObject;
 import uk.ac.ic.doc.gander.model.name_binding.Binder;
 import uk.ac.ic.doc.gander.model.name_binding.NamespaceKey;
 
@@ -337,29 +338,28 @@ final class NamespaceKeyFlowStepGoal implements FlowStepGoal {
 	}
 
 	private void addExpressionIfAttributeLHSIsOurs(
-			final ModelSite<?> codeObjectReferenceSite,
+			final ModelSite<?> codeObjectReference,
 			final Set<FlowPosition> positions) {
 
 		new CodeObjectWalker() {
 
 			@Override
-			protected void visitCodeObject(final Namespace codeBlock) {
-
+			protected void visitCodeObject(final CodeObject codeObject) {
 				try {
-					codeBlock.asCodeBlock().accept(new LocalCodeBlockVisitor() {
+					codeObject.codeBlock().accept(new LocalCodeBlockVisitor() {
 
 						@Override
 						public Object visitAttribute(Attribute node)
 								throws Exception {
-							if (node.value.equals(codeObjectReferenceSite
-									.astNode())) {
+							if (node.value
+									.equals(codeObjectReference.astNode())) {
 								String name = namespaceKey.getName();
 
 								if (((NameTok) node.attr).id.equals(name)) {
 									positions
 											.add(new ExpressionPosition<Attribute>(
 													new ModelSite<Attribute>(
-															node, codeBlock)));
+															node, codeObject)));
 								}
 							}
 							return null;
@@ -380,7 +380,7 @@ final class NamespaceKeyFlowStepGoal implements FlowStepGoal {
 					throw new RuntimeException(e);
 				}
 			}
-		}.walk(codeObjectReferenceSite.namespace());
+		}.walk(codeObjectReference.codeObject());
 	}
 
 	private Set<FlowPosition> accessesToNamespaceEntry(
@@ -389,9 +389,9 @@ final class NamespaceKeyFlowStepGoal implements FlowStepGoal {
 		ResultConcentrator<FlowPosition> positions = new ResultConcentrator<FlowPosition>();
 
 		for (ModelSite<? extends exprType> moduleReference : moduleReferenceExpressions) {
-			positions.add(searchScopeForAccessToNamespaceEntry(moduleReference
-					.namespace(), namespaceKey.getName(), moduleReference
-					.astNode()));
+			positions.add(searchCodeObjectForAccessToNamespaceEntry(
+					moduleReference.codeObject(), namespaceKey.getName(),
+					moduleReference.astNode()));
 
 			if (positions.isTop())
 				break;
@@ -404,8 +404,8 @@ final class NamespaceKeyFlowStepGoal implements FlowStepGoal {
 	 * Search for any accesses the the given attribute name on the given
 	 * namespace key.
 	 */
-	private Set<FlowPosition> searchScopeForAccessToNamespaceEntry(
-			final Namespace scope, final String attributeName,
+	private Set<FlowPosition> searchCodeObjectForAccessToNamespaceEntry(
+			final CodeObject scope, final String attributeName,
 			final exprType expression) {
 
 		final Set<FlowPosition> positions = new HashSet<FlowPosition>();
@@ -413,9 +413,9 @@ final class NamespaceKeyFlowStepGoal implements FlowStepGoal {
 		new CodeObjectWalker() {
 
 			@Override
-			protected void visitCodeObject(final Namespace codeBlock) {
+			protected void visitCodeObject(final CodeObject codeObject) {
 				try {
-					codeBlock.asCodeBlock().accept(new LocalCodeBlockVisitor() {
+					codeObject.codeBlock().accept(new LocalCodeBlockVisitor() {
 
 						@Override
 						public Object visitAttribute(Attribute node)
@@ -425,7 +425,7 @@ final class NamespaceKeyFlowStepGoal implements FlowStepGoal {
 								positions
 										.add(new ExpressionPosition<Attribute>(
 												new ModelSite<Attribute>(node,
-														codeBlock)));
+														codeObject)));
 							}
 
 							return null;

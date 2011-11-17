@@ -4,6 +4,7 @@ import org.python.pydev.parser.jython.SimpleNode;
 import org.python.pydev.parser.jython.ast.Attribute;
 
 import uk.ac.ic.doc.gander.ast.LocalCodeBlockVisitor;
+import uk.ac.ic.doc.gander.model.codeobject.CodeObject;
 
 /**
  * Walk over all attribute references in the loaded model.
@@ -11,13 +12,13 @@ import uk.ac.ic.doc.gander.ast.LocalCodeBlockVisitor;
  * Reacts when it encounters an attribute by calling the {@link EventHandler}
  * passed to the constructor.
  * 
- * Each attribute consists of an AST node and its enclosing model namespace.
+ * Each attribute consists of an AST node and its enclosing code object.
  */
 public final class AttributeSitesWalker {
 
 	public interface EventHandler {
 		public void encounteredAttribute(Attribute attribute,
-				Namespace namespace);
+				CodeObject codeObject);
 	}
 
 	private final EventHandler eventHandler;
@@ -27,19 +28,19 @@ public final class AttributeSitesWalker {
 
 		new CodeObjectWalker() {
 			@Override
-			protected void visitCodeObject(Namespace codeBlock) {
-				processAttributesInCodeBlock(codeBlock);
+			protected void visitCodeObject(CodeObject codeObject) {
+				processAttributesInCodeBlock(codeObject);
 			}
-		}.walk(model.getTopLevel());
+		}.walk(model.getTopLevel().codeObject());
 	}
 
-	private void processAttributesInCodeBlock(final Namespace namespace) {
+	private void processAttributesInCodeBlock(final CodeObject codeObject) {
 		try {
-			namespace.asCodeBlock().accept(new LocalCodeBlockVisitor() {
+			codeObject.codeBlock().accept(new LocalCodeBlockVisitor() {
 
 				@Override
 				public Object visitAttribute(Attribute node) throws Exception {
-					eventHandler.encounteredAttribute(node, namespace);
+					eventHandler.encounteredAttribute(node, codeObject);
 					return null;
 				}
 

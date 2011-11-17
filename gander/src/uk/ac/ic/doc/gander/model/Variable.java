@@ -14,8 +14,9 @@ import uk.ac.ic.doc.gander.model.name_binding.NamespaceKey;
 public final class Variable {
 
 	private final String name;
-	private final Namespace codeBlock;
+	private final CodeObject codeObject;
 
+	@Deprecated
 	public Variable(String name, Namespace codeBlock) {
 		if (name == null)
 			throw new NullPointerException("A variable without a "
@@ -23,12 +24,27 @@ public final class Variable {
 		if (name.isEmpty())
 			throw new IllegalArgumentException("A variable without a "
 					+ "name doesn't make sense");
-		if (codeBlock == null)
+		if (codeBlock.codeObject() == null)
 			throw new NullPointerException(
 					"Variables can only appear in a code block");
 
 		this.name = name;
-		this.codeBlock = codeBlock;
+		this.codeObject = codeBlock.codeObject();
+	}
+
+	public Variable(String name, CodeObject codeObject) {
+		if (name == null)
+			throw new NullPointerException("A variable without a "
+					+ "name doesn't make sense");
+		if (name.isEmpty())
+			throw new IllegalArgumentException("A variable without a "
+					+ "name doesn't make sense");
+		if (codeObject == null)
+			throw new NullPointerException(
+					"Variables can only appear in a code object's block");
+
+		this.name = name;
+		this.codeObject = codeObject;
 	}
 
 	public String name() {
@@ -37,15 +53,15 @@ public final class Variable {
 
 	@Deprecated
 	public Namespace codeBlock() {
-		return codeBlock;
+		return codeObject.model().intrinsicNamespace(codeObject);
 	}
-	
+
 	public CodeObject codeObject() {
-		return codeBlock.codeObject();
+		return codeObject;
 	}
 
 	public Model model() {
-		return codeBlock.model();
+		return codeObject.model();
 	}
 
 	@Override
@@ -53,7 +69,7 @@ public final class Variable {
 		final int prime = 31;
 		int result = 1;
 		result = prime * result
-				+ ((codeBlock == null) ? 0 : codeBlock.hashCode());
+				+ ((codeObject == null) ? 0 : codeObject.hashCode());
 		result = prime * result + ((name == null) ? 0 : name.hashCode());
 		return result;
 	}
@@ -67,10 +83,10 @@ public final class Variable {
 		if (getClass() != obj.getClass())
 			return false;
 		Variable other = (Variable) obj;
-		if (codeBlock == null) {
-			if (other.codeBlock != null)
+		if (codeObject == null) {
+			if (other.codeObject != null)
 				return false;
-		} else if (!codeBlock.equals(other.codeBlock))
+		} else if (!codeObject.equals(other.codeObject))
 			return false;
 		if (name == null) {
 			if (other.name != null)
@@ -82,7 +98,7 @@ public final class Variable {
 
 	@Override
 	public String toString() {
-		return "Variable [codeBlock=" + codeBlock + ", name=" + name + "]";
+		return "Variable [codeObject=" + codeObject + ", name=" + name + "]";
 	}
 
 }

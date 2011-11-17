@@ -10,7 +10,8 @@ import uk.ac.ic.doc.gander.ast.LocalCodeBlockVisitor;
 import uk.ac.ic.doc.gander.model.CodeObjectWalker;
 import uk.ac.ic.doc.gander.model.Model;
 import uk.ac.ic.doc.gander.model.ModelSite;
-import uk.ac.ic.doc.gander.model.Namespace;
+import uk.ac.ic.doc.gander.model.Variable;
+import uk.ac.ic.doc.gander.model.codeobject.CodeObject;
 
 /**
  * Given a namespace key, finds the {@link Name}s that always bind to that
@@ -41,8 +42,8 @@ public final class InScopeNameFinder {
 		CodeObjectWalker walker = new CodeObjectWalker() {
 
 			@Override
-			protected void visitCodeObject(Namespace codeBlock) {
-				analyseCodeBlock(namespaceKey, codeBlock);
+			protected void visitCodeObject(CodeObject codeObject) {
+				analyseCodeBlock(namespaceKey, codeObject);
 			}
 
 		};
@@ -50,7 +51,7 @@ public final class InScopeNameFinder {
 		// Name bindings will only ever appear in or below the namespace they
 		// bind in so it it ok to start the search here rather than at the root
 		// of the model
-		walker.walk(namespaceKey.getNamespace()); // .walk(namespace.getCodeObject())
+		walker.walk(namespaceKey.getNamespace().codeObject());
 	}
 
 	/**
@@ -63,22 +64,22 @@ public final class InScopeNameFinder {
 	}
 
 	private void analyseCodeBlock(final NamespaceKey nameBinding,
-			Namespace codeBlock) {
-		if (nameBindingIsActiveInCodeBlock(nameBinding, codeBlock)) {
-			addAllNameInstances(nameBinding.getName(), codeBlock, nameBinding
+			CodeObject codeObject) {
+		if (nameBindingIsActiveInCodeBlock(nameBinding, codeObject)) {
+			addAllNameInstances(nameBinding.getName(), codeObject, nameBinding
 					.getModel());
 		}
 	}
 
 	private void addAllNameInstances(final String name,
-			final Namespace codeBlock, final Model model) {
+			final CodeObject codeObject, final Model model) {
 		try {
-			codeBlock.asCodeBlock().accept(new LocalCodeBlockVisitor() {
+			codeObject.codeBlock().accept(new LocalCodeBlockVisitor() {
 
 				@Override
 				public Object visitName(Name node) throws Exception {
 					if (node.id.equals(name)) {
-						nameBindings.add(new ModelSite<Name>(node, codeBlock));
+						nameBindings.add(new ModelSite<Name>(node, codeObject));
 					}
 					return null;
 				}
@@ -106,16 +107,16 @@ public final class InScopeNameFinder {
 	 * 
 	 * @param nameBinding
 	 *            name binding whose scope we are establishing
-	 * @param codeBlock
-	 *            code block in which we want to establish the given name
-	 *            binding's validity
+	 * @param codeObject
+	 *            code object in whose code block we want to establish the given
+	 *            name binding's validity
 	 * @return {@code true} if the given name binding is the active binding for
 	 *         that name in the given code block; {@code false} otherwise
 	 */
 	private boolean nameBindingIsActiveInCodeBlock(NamespaceKey nameBinding,
-			Namespace codeBlock) {
-		NamespaceKey otherBinding = Binder.resolveBindingScope(nameBinding
-				.getName(), codeBlock);
+			CodeObject codeObject) {
+		NamespaceKey otherBinding = Binder.resolveBindingScope(new Variable(
+				nameBinding.getName(), codeObject));
 		return otherBinding.getNamespace().equals(nameBinding.getNamespace());
 	}
 
