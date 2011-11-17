@@ -11,6 +11,7 @@ import org.python.pydev.parser.jython.ast.NameTok;
 import org.python.pydev.parser.jython.ast.exprType;
 
 import uk.ac.ic.doc.gander.ast.LocalCodeBlockVisitor;
+import uk.ac.ic.doc.gander.flowinference.ResultConcentrator;
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
 import uk.ac.ic.doc.gander.flowinference.modelgoals.BoundNamesGoal;
 import uk.ac.ic.doc.gander.importing.ImportSimulationWatcher;
@@ -88,6 +89,13 @@ final class NamespaceKeyFlowStepGoal implements FlowStepGoal {
 
 	private final NamespaceKey namespaceKey;
 
+	/**
+	 * XXX: This isn't quite right. A {@link NamespaceKey} has a strict meaning:
+	 * a 'naked' variable whose binding has been resolved to the namespace. But,
+	 * when reasoning about the flow of namespace entries as we do here,
+	 * variables are not the only way to access a namespace. For instance
+	 * attributes.
+	 */
 	NamespaceKeyFlowStepGoal(NamespaceKey namespaceKey) {
 		this.namespaceKey = namespaceKey;
 	}
@@ -98,13 +106,19 @@ final class NamespaceKeyFlowStepGoal implements FlowStepGoal {
 
 	public Set<FlowPosition> recalculateSolution(SubgoalManager goalManager) {
 
-		Set<FlowPosition> positions = new HashSet<FlowPosition>();
+		ResultConcentrator<FlowPosition> positions = new ResultConcentrator<FlowPosition>();
 
-		addNakedNameReferences(positions, goalManager);
-		addExplicitNameReferences(positions, goalManager);
-		addImportedKeyReferences(positions, goalManager);
+		positions.add(nakedNameReferences(goalManager));
+		if (positions.isTop())
+			return null;
 
-		return positions;
+		positions.add(explicitNameReferences(goalManager));
+		if (positions.isTop())
+			return null;
+
+		positions.add(importedKeyReferences(goalManager));
+
+		return positions.result();
 	}
 
 	/**
@@ -115,8 +129,9 @@ final class NamespaceKeyFlowStepGoal implements FlowStepGoal {
 	 * that namespace. In other words, the names in that namespace's code object
 	 * that aren't shadowed by a local variable or global keyword.
 	 */
-	private void addNakedNameReferences(final Set<FlowPosition> positions,
-			SubgoalManager goalManager) {
+	private Set<FlowPosition> nakedNameReferences(SubgoalManager goalManager) {
+		final Set<FlowPosition> positions = new HashSet<FlowPosition>();
+
 		/*
 		 * The name in the given namespace could be referenced by a 'naked' name
 		 * throughout the nested code blocks so we walk through them and check
@@ -129,6 +144,8 @@ final class NamespaceKeyFlowStepGoal implements FlowStepGoal {
 		for (ModelSite<Name> nameSite : lexicallyBoundNames) {
 			positions.add(new ExpressionPosition<Name>(nameSite));
 		}
+
+		return positions;
 	}
 
 	/**
@@ -143,9 +160,7 @@ final class NamespaceKeyFlowStepGoal implements FlowStepGoal {
 	 * functions do not allow they namespaces to be accessed this way as that
 	 * would allow local variables to be changed from outside the function body.
 	 */
-	private void addExplicitNameReferences(final Set<FlowPosition> positions,
-			SubgoalManager goalManager) {
-
+	private Set<FlowPosition> explicitNameReferences(SubgoalManager goalManager) {
 		/*
 		 * The name can flow beyond this namespace's code block if it is
 		 * imported anywhere. This can happen in two ways. The namespace itself
@@ -157,22 +172,36 @@ final class NamespaceKeyFlowStepGoal implements FlowStepGoal {
 		 * code object then search for attributes that reference the name that
 		 * the code object was bound to. This handles the first case
 		 */
-		Set<ModelSite<? extends exprType>> moduleReferences = goalManager
-				.registerSubgoal(new FlowGoal(new CodeObjectPosition(
+
+		Set<ModelSite<? extends exprType>> namespaceReferences = goalManager
+				.registerSubgoal(new FlowGoal(new CodeObjectNamespacePosition(
 						namespaceKey.getNamespace(), namespaceKey.getModel())));
-		for (ModelSite<? extends exprType> expression : moduleReferences) {
+		if (namespaceReferences == null) {
+			/*
+			 * We have no idea where the namespace flowed to so we can't say
+			 * what type the member might have.
+			 */
+			return null;
+		}
+
+		Set<FlowPosition> positions = new HashSet<FlowPosition>();
+		for (ModelSite<? extends exprType> expression : namespaceReferences) {
 
 			addExpressionIfAttributeLHSIsOurs(expression, positions);
 
 		}
+
+		return positions;
 	}
 
 	/**
 	 * Add positions for flow of the namespace key's value caused by importing
 	 * either the key itself or the code object of the namespace containing it.
 	 */
-	private void addImportedKeyReferences(final Set<FlowPosition> positions,
+	private Set<FlowPosition> importedKeyReferences(
 			final SubgoalManager goalManager) {
+
+		final ResultConcentrator<FlowPosition> positions = new ResultConcentrator<FlowPosition>();
 
 		/*
 		 * Our namespace's key could be imported anywhere in the system so we
@@ -207,13 +236,13 @@ final class NamespaceKeyFlowStepGoal implements FlowStepGoal {
 						&& loadedObject.getName()
 								.equals(namespaceKey.getName())) {
 					/* from codeobject import key */
-					addReferencesToImportedKey(importReceiver, loadedObject,
-							as, positions, goalManager);
+					positions.add(referencesToImportedKey(importReceiver,
+							loadedObject, as, goalManager));
 				} else if (loadedObject.equals(namespaceKey.getNamespace())) {
 
 					/* import codeobject */
-					addReferencesToKeyOfImportedCodeObject(importReceiver,
-							loadedObject, as, positions, goalManager);
+					positions.add(referencesToKeyOfImportedCodeObject(
+							importReceiver, loadedObject, as, goalManager));
 				}
 
 			}
@@ -221,6 +250,7 @@ final class NamespaceKeyFlowStepGoal implements FlowStepGoal {
 		};
 		new WholeModelImportSimulation(namespaceKey.getModel(), worker);
 
+		return positions.result();
 	}
 
 	/**
@@ -233,9 +263,9 @@ final class NamespaceKeyFlowStepGoal implements FlowStepGoal {
 	 * and modules) this happens through attribute expressions on the code
 	 * object where the attribute name is the name of the key being accessed.
 	 */
-	protected void addReferencesToKeyOfImportedCodeObject(
+	protected Set<FlowPosition> referencesToKeyOfImportedCodeObject(
 			Namespace importReceiver, Namespace loadedObject, String as,
-			Set<FlowPosition> positions, SubgoalManager goalManager) {
+			SubgoalManager goalManager) {
 		assert namespaceKey.getNamespace() instanceof Module;
 		assert loadedObject.equals(namespaceKey.getNamespace());
 
@@ -266,7 +296,9 @@ final class NamespaceKeyFlowStepGoal implements FlowStepGoal {
 					.registerSubgoal(new FlowGoal(new NamespaceKeyPosition(
 							importedCodeObjectKey)));
 
-			addAccessesToNamespaceEntry(moduleReferences, positions);
+			return accessesToNamespaceEntry(moduleReferences);
+		} else {
+			return Collections.emptySet();
 		}
 	}
 
@@ -285,8 +317,8 @@ final class NamespaceKeyFlowStepGoal implements FlowStepGoal {
 	 * determine exactly what value the old key has when the import occurs, the
 	 * analysis must flow all values arriving at the old key to the new key.
 	 */
-	protected void addReferencesToImportedKey(Namespace importReceiver,
-			Namespace loadedObject, String as, Set<FlowPosition> positions,
+	protected Set<FlowPosition> referencesToImportedKey(
+			Namespace importReceiver, Namespace loadedObject, String as,
 			SubgoalManager goalManager) {
 		assert namespaceKey.getNamespace() instanceof Module;
 
@@ -301,7 +333,8 @@ final class NamespaceKeyFlowStepGoal implements FlowStepGoal {
 		assert newKey.getNamespace().equals(importReceiver)
 				|| newKey.getNamespace().equals(
 						importReceiver.getGlobalNamespace());
-		positions.add(new NamespaceKeyPosition(newKey));
+		return Collections.<FlowPosition> singleton(new NamespaceKeyPosition(
+				newKey));
 	}
 
 	private void addExpressionIfAttributeLHSIsOurs(
@@ -353,28 +386,32 @@ final class NamespaceKeyFlowStepGoal implements FlowStepGoal {
 		}.walk(codeObjectReferenceSite.codeObject());
 	}
 
-	private void addAccessesToNamespaceEntry(
-			Set<ModelSite<? extends exprType>> moduleReferenceExpressions,
-			Set<FlowPosition> positions) {
+	private Set<FlowPosition> accessesToNamespaceEntry(
+			Set<ModelSite<? extends exprType>> moduleReferenceExpressions) {
+
+		ResultConcentrator<FlowPosition> positions = new ResultConcentrator<FlowPosition>();
+
 		for (ModelSite<? extends exprType> moduleReference : moduleReferenceExpressions) {
-			searchScopeForAccessToNamespaceEntry(moduleReference.codeObject(),
-					namespaceKey.getName(), moduleReference.astNode(),
-					positions);
+			positions.add(searchScopeForAccessToNamespaceEntry(moduleReference
+					.codeObject(), namespaceKey.getName(), moduleReference
+					.astNode()));
+
+			if (positions.isTop())
+				break;
 		}
+
+		return positions.result();
 	}
 
 	/**
 	 * Search for any accesses the the given attribute name on the given
 	 * namespace key.
-	 * 
-	 * @param scope
-	 * @param attributeName
-	 * @param expression
-	 * @param positions
 	 */
-	private void searchScopeForAccessToNamespaceEntry(final Namespace scope,
-			final String attributeName, final exprType expression,
-			final Set<FlowPosition> positions) {
+	private Set<FlowPosition> searchScopeForAccessToNamespaceEntry(
+			final Namespace scope, final String attributeName,
+			final exprType expression) {
+
+		final Set<FlowPosition> positions = new HashSet<FlowPosition>();
 
 		new CodeObjectWalker() {
 
@@ -414,6 +451,8 @@ final class NamespaceKeyFlowStepGoal implements FlowStepGoal {
 				}
 			}
 		}.walk(scope);
+
+		return positions;
 	}
 
 	@Override
