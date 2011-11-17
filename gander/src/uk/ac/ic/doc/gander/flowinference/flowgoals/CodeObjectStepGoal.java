@@ -7,7 +7,6 @@ import java.util.Set;
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
 import uk.ac.ic.doc.gander.importing.ImportSimulationWatcher;
 import uk.ac.ic.doc.gander.importing.WholeModelImportSimulation;
-import uk.ac.ic.doc.gander.model.Model;
 import uk.ac.ic.doc.gander.model.Module;
 import uk.ac.ic.doc.gander.model.Namespace;
 import uk.ac.ic.doc.gander.model.name_binding.Binder;
@@ -47,11 +46,9 @@ import uk.ac.ic.doc.gander.model.name_binding.NamespaceKey;
 final class CodeObjectStepGoal implements FlowStepGoal {
 
 	private final Namespace codeObject;
-	private final Model model;
 
-	CodeObjectStepGoal(Namespace codeObject, Model model) {
+	CodeObjectStepGoal(Namespace codeObject) {
 		this.codeObject = codeObject;
-		this.model = model;
 	}
 
 	public Set<FlowPosition> initialSolution() {
@@ -113,7 +110,7 @@ final class CodeObjectStepGoal implements FlowStepGoal {
 		 * reading the name).
 		 */
 		NamespaceKey nameBinding = Binder.resolveBindingScope(codeObject.getName(),
-				codeObject.getParentScope(), model);
+				codeObject.getParentScope());
 		positions.add(new NamespaceKeyPosition(nameBinding));
 
 	}
@@ -131,7 +128,7 @@ final class CodeObjectStepGoal implements FlowStepGoal {
 		 * it will be the namespace of the segment of the dotted name to the
 		 * left, for instance.
 		 */
-		new WholeModelImportSimulation(model, new ImportSimulationWatcher() {
+		new WholeModelImportSimulation(codeObject.model(), new ImportSimulationWatcher() {
 
 			public void bindingName(Namespace importReceiver,
 					Namespace loadedObject, String as) {
@@ -143,7 +140,7 @@ final class CodeObjectStepGoal implements FlowStepGoal {
 				 */
 
 				NamespaceKey nameBinding = Binder.resolveBindingScope(as,
-						importReceiver, model);
+						importReceiver);
 				assert nameBinding.getNamespace().equals(importReceiver)
 						|| nameBinding.getNamespace().equals(
 								importReceiver.getGlobalNamespace());
@@ -161,7 +158,6 @@ final class CodeObjectStepGoal implements FlowStepGoal {
 		int result = 1;
 		result = prime * result
 				+ ((codeObject == null) ? 0 : codeObject.hashCode());
-		result = prime * result + ((model == null) ? 0 : model.hashCode());
 		return result;
 	}
 
@@ -178,11 +174,6 @@ final class CodeObjectStepGoal implements FlowStepGoal {
 			if (other.codeObject != null)
 				return false;
 		} else if (!codeObject.equals(other.codeObject))
-			return false;
-		if (model == null) {
-			if (other.model != null)
-				return false;
-		} else if (!model.equals(other.model))
 			return false;
 		return true;
 	}

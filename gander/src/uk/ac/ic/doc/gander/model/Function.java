@@ -134,7 +134,7 @@ public final class Function implements Namespace {
 			List<ModelSite<exprType>> argumentSites = new ArrayList<ModelSite<exprType>>();
 			for (exprType argument : function.args.args) {
 				argumentSites.add(new ModelSite<exprType>(argument,
-						Function.this, model));
+						Function.this));
 			}
 			codeBlock = new DefaultCodeBlock(argumentSites, acceptor);
 		}
@@ -144,5 +144,9 @@ public final class Function implements Namespace {
 
 	public Module getGlobalNamespace() {
 		return getParentScope().getGlobalNamespace();
+	}
+
+	public Model model() {
+		return model;
 	}
 }

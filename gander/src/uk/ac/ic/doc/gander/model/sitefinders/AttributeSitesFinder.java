@@ -24,8 +24,7 @@ public final class AttributeSitesFinder {
 			public void encounteredAttribute(Attribute attribute,
 					Namespace namespace) {
 				if (((NameTok) attribute.attr).id.equals(attributeName)) {
-					sites.add(new ModelSite<Attribute>(attribute, namespace,
-							model));
+					sites.add(new ModelSite<Attribute>(attribute, namespace));
 				}
 			}
 		});

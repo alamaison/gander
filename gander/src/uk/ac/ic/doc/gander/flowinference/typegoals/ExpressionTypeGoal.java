@@ -49,8 +49,8 @@ public final class ExpressionTypeGoal implements TypeGoal {
 	private final ModelSite<? extends exprType> expression;
 
 	@Deprecated
-	public ExpressionTypeGoal(Model model, Namespace scope, exprType expression) {
-		this.expression = new ModelSite<exprType>(expression, scope, model);
+	public ExpressionTypeGoal(Namespace scope, exprType expression) {
+		this.expression = new ModelSite<exprType>(expression, scope);
 	}
 
 	public ExpressionTypeGoal(ModelSite<? extends exprType> expression) {
@@ -66,7 +66,7 @@ public final class ExpressionTypeGoal implements TypeGoal {
 	}
 
 	public TypeJudgement recalculateSolution(SubgoalManager goalManager) {
-		TypeFinder finder = new TypeFinder(expression.model(), expression
+		TypeFinder finder = new TypeFinder(expression
 				.codeObject(), goalManager);
 		try {
 			return (TypeJudgement) expression.astNode().accept(finder);
@@ -91,9 +91,9 @@ public final class ExpressionTypeGoal implements TypeGoal {
 		private final Top topType;
 		private final SubgoalManager goalManager;
 
-		public TypeFinder(Model model, Namespace scope,
-				SubgoalManager goalManager) {
+		public TypeFinder(Namespace scope, SubgoalManager goalManager) {
 			this.goalManager = goalManager;
+			Model model = scope.model();
 			dictType = new SetBasedTypeJudgement(new TObject(model
 					.getTopLevel().getClasses().get("dict")));
 			listType = new SetBasedTypeJudgement(new TObject(model
@@ -141,8 +141,7 @@ public final class ExpressionTypeGoal implements TypeGoal {
 		@Override
 		public Object visitAttribute(Attribute node) throws Exception {
 			AttributeTypeGoal attributeTyper = new AttributeTypeGoal(
-					new ModelSite<Attribute>(node, expression.codeObject(),
-							expression.model()));
+					new ModelSite<Attribute>(node, expression.codeObject()));
 			return goalManager.registerSubgoal(attributeTyper);
 		}
 
@@ -174,7 +173,7 @@ public final class ExpressionTypeGoal implements TypeGoal {
 		@Override
 		public Object visitCall(Call node) throws Exception {
 			ReturnTypeGoal typer = new ReturnTypeGoal(new ModelSite<Call>(node,
-					expression.codeObject(), expression.model()));
+					expression.codeObject()));
 			return goalManager.registerSubgoal(typer);
 		}
 
@@ -230,8 +229,7 @@ public final class ExpressionTypeGoal implements TypeGoal {
 
 		@Override
 		public Object visitName(Name node) throws Exception {
-			Variable variable = new Variable(node.id, expression.codeObject(),
-					expression.model());
+			Variable variable = new Variable(node.id, expression.codeObject());
 			VariableTypeGoal typer = new VariableTypeGoal(variable);
 			return goalManager.registerSubgoal(typer);
 		}

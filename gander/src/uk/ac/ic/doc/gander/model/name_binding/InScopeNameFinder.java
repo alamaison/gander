@@ -78,8 +78,7 @@ public final class InScopeNameFinder {
 				@Override
 				public Object visitName(Name node) throws Exception {
 					if (node.id.equals(name)) {
-						nameBindings.add(new ModelSite<Name>(node, codeBlock,
-								model));
+						nameBindings.add(new ModelSite<Name>(node, codeBlock));
 					}
 					return null;
 				}
@@ -116,7 +115,7 @@ public final class InScopeNameFinder {
 	private boolean nameBindingIsActiveInCodeBlock(NamespaceKey nameBinding,
 			Namespace codeBlock) {
 		NamespaceKey otherBinding = Binder.resolveBindingScope(nameBinding
-				.getName(), codeBlock, nameBinding.getModel());
+				.getName(), codeBlock);
 		return otherBinding.getNamespace().equals(nameBinding.getNamespace());
 	}
 

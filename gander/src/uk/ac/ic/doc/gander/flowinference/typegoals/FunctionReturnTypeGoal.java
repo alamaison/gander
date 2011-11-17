@@ -10,17 +10,14 @@ import uk.ac.ic.doc.gander.flowinference.types.judgement.SetBasedTypeJudgement;
 import uk.ac.ic.doc.gander.flowinference.types.judgement.TypeConcentrator;
 import uk.ac.ic.doc.gander.flowinference.types.judgement.TypeJudgement;
 import uk.ac.ic.doc.gander.model.Function;
-import uk.ac.ic.doc.gander.model.Model;
 import uk.ac.ic.doc.gander.model.ModelSite;
 import uk.ac.ic.doc.gander.model.Variable;
 
 public class FunctionReturnTypeGoal implements TypeGoal {
 
-	private final Model model;
 	private final Function function;
 
-	public FunctionReturnTypeGoal(Model model, Function function) {
-		this.model = model;
+	public FunctionReturnTypeGoal(Function function) {
 		this.function = function;
 	}
 
@@ -45,7 +42,7 @@ public class FunctionReturnTypeGoal implements TypeGoal {
 
 					if (node.value != null) {
 						ModelSite<exprType> returnValue = new ModelSite<exprType>(
-								node.value, function, model);
+								node.value, function);
 						ExpressionTypeGoal typer = new ExpressionTypeGoal(
 								returnValue);
 						returnTypes.add(goalManager.registerSubgoal(typer));
@@ -89,7 +86,7 @@ public class FunctionReturnTypeGoal implements TypeGoal {
 
 	private TypeJudgement noneType(SubgoalManager goalManager) {
 		VariableTypeGoal typer = new VariableTypeGoal(new Variable("None",
-				function, model));
+				function));
 		return goalManager.registerSubgoal(typer);
 	}
 
@@ -99,7 +96,6 @@ public class FunctionReturnTypeGoal implements TypeGoal {
 		int result = 1;
 		result = prime * result
 				+ ((function == null) ? 0 : function.hashCode());
-		result = prime * result + ((model == null) ? 0 : model.hashCode());
 		return result;
 	}
 
@@ -109,18 +105,13 @@ public class FunctionReturnTypeGoal implements TypeGoal {
 			return true;
 		if (obj == null)
 			return false;
-		if (!(obj instanceof FunctionReturnTypeGoal))
+		if (getClass() != obj.getClass())
 			return false;
 		FunctionReturnTypeGoal other = (FunctionReturnTypeGoal) obj;
 		if (function == null) {
 			if (other.function != null)
 				return false;
 		} else if (!function.equals(other.function))
-			return false;
-		if (model == null) {
-			if (other.model != null)
-				return false;
-		} else if (!model.equals(other.model))
 			return false;
 		return true;
 	}

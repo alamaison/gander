@@ -11,7 +11,6 @@ import org.python.pydev.parser.jython.ast.exprType;
 import uk.ac.ic.doc.gander.ast.AstParentNodeFinder;
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
 import uk.ac.ic.doc.gander.model.Class;
-import uk.ac.ic.doc.gander.model.Model;
 import uk.ac.ic.doc.gander.model.ModelSite;
 
 /**
@@ -22,11 +21,9 @@ import uk.ac.ic.doc.gander.model.ModelSite;
 final class InstanceCreationStepGoal implements FlowStepGoal {
 
 	private final Class klass;
-	private final Model model;
 
-	InstanceCreationStepGoal(Class klass, Model model) {
+	InstanceCreationStepGoal(Class klass) {
 		this.klass = klass;
-		this.model = model;
 	}
 
 	public Set<FlowPosition> initialSolution() {
@@ -40,8 +37,7 @@ final class InstanceCreationStepGoal implements FlowStepGoal {
 	public Set<FlowPosition> recalculateSolution(SubgoalManager goalManager) {
 
 		Set<ModelSite<? extends exprType>> classReferences = goalManager
-				.registerSubgoal(new FlowGoal(new CodeObjectPosition(klass,
-						model)));
+				.registerSubgoal(new FlowGoal(new CodeObjectPosition(klass)));
 
 		Set<FlowPosition> constructors = new HashSet<FlowPosition>();
 
@@ -51,7 +47,7 @@ final class InstanceCreationStepGoal implements FlowStepGoal {
 
 			if (parent instanceof Call) {
 				ModelSite<Call> constructor = new ModelSite<Call>(
-						(Call) parent, classSite.codeObject(), model);
+						(Call) parent, classSite.codeObject());
 				constructors.add(new ExpressionPosition<Call>(constructor));
 			}
 		}
@@ -64,7 +60,6 @@ final class InstanceCreationStepGoal implements FlowStepGoal {
 		final int prime = 31;
 		int result = 1;
 		result = prime * result + ((klass == null) ? 0 : klass.hashCode());
-		result = prime * result + ((model == null) ? 0 : model.hashCode());
 		return result;
 	}
 
@@ -82,11 +77,6 @@ final class InstanceCreationStepGoal implements FlowStepGoal {
 				return false;
 		} else if (!klass.equals(other.klass))
 			return false;
-		if (model == null) {
-			if (other.model != null)
-				return false;
-		} else if (!model.equals(other.model))
-			return false;
 		return true;
 	}
 
@@ -94,5 +84,5 @@ final class InstanceCreationStepGoal implements FlowStepGoal {
 	public String toString() {
 		return "InstanceCreationStepGoal [klass=" + klass + "]";
 	}
-	
+
 }

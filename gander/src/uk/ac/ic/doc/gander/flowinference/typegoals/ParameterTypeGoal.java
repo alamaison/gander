@@ -6,18 +6,15 @@ import uk.ac.ic.doc.gander.flowinference.types.judgement.TypeConcentrator;
 import uk.ac.ic.doc.gander.flowinference.types.judgement.TypeJudgement;
 import uk.ac.ic.doc.gander.model.Class;
 import uk.ac.ic.doc.gander.model.Function;
-import uk.ac.ic.doc.gander.model.Model;
 import uk.ac.ic.doc.gander.model.Namespace;
 import uk.ac.ic.doc.gander.model.codeblock.CodeBlock;
 
 final class ParameterTypeGoal implements TypeGoal {
 
-	private final Model model;
 	private final Namespace enclosingScope;
 	private final String name;
 
-	ParameterTypeGoal(Model model, Namespace enclosingScope, String name) {
-		this.model = model;
+	ParameterTypeGoal(Namespace enclosingScope, String name) {
 		this.enclosingScope = enclosingScope;
 		this.name = name;
 	}
@@ -41,13 +38,13 @@ final class ParameterTypeGoal implements TypeGoal {
 			if (enclosingScope instanceof Function) {
 				if (enclosingScope.getParentScope() instanceof Class) {
 					type.add(goalManager
-							.registerSubgoal(new MethodArgumentTypeGoal(model,
-									(Function) enclosingScope, name)));
+							.registerSubgoal(new MethodArgumentTypeGoal((Function) enclosingScope,
+									name)));
 
 				} else {
 					type.add(goalManager
 							.registerSubgoal(new FunctionArgumentTypeGoal(
-									model, (Function) enclosingScope, name)));
+									(Function) enclosingScope, name)));
 				}
 
 			} else {
@@ -58,14 +55,13 @@ final class ParameterTypeGoal implements TypeGoal {
 
 		return type.getJudgement();
 	}
-
+	
 	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
 		result = prime * result
 				+ ((enclosingScope == null) ? 0 : enclosingScope.hashCode());
-		result = prime * result + ((model == null) ? 0 : model.hashCode());
 		result = prime * result + ((name == null) ? 0 : name.hashCode());
 		return result;
 	}
@@ -83,11 +79,6 @@ final class ParameterTypeGoal implements TypeGoal {
 			if (other.enclosingScope != null)
 				return false;
 		} else if (!enclosingScope.equals(other.enclosingScope))
-			return false;
-		if (model == null) {
-			if (other.model != null)
-				return false;
-		} else if (!model.equals(other.model))
 			return false;
 		if (name == null) {
 			if (other.name != null)

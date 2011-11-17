@@ -34,7 +34,8 @@ public final class FileLoader {
 		// imported from within it, try to import this module again. In other
 		// words, we have to do this to avoid infinite recursion when there
 		// are import cycles.
-		module = new Module(sourceFile.getName(), parent, sourceFile.isSystem());
+		module = new Module(sourceFile.getName(), parent, model, sourceFile
+				.isSystem());
 		parent.addModule(module);
 
 		// XXX: If loading module fails (due to problems with imported modules,

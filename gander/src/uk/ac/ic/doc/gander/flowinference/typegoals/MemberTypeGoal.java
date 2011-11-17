@@ -8,7 +8,6 @@ import uk.ac.ic.doc.gander.flowinference.types.judgement.SetBasedTypeJudgement;
 import uk.ac.ic.doc.gander.flowinference.types.judgement.Top;
 import uk.ac.ic.doc.gander.flowinference.types.judgement.TypeJudgement;
 import uk.ac.ic.doc.gander.model.Class;
-import uk.ac.ic.doc.gander.model.Model;
 import uk.ac.ic.doc.gander.model.Namespace;
 
 /**
@@ -23,11 +22,9 @@ import uk.ac.ic.doc.gander.model.Namespace;
 final class MemberTypeGoal implements TypeGoal {
 
 	private final Type type;
-	private final Model model;
 	private final String memberName;
 
-	MemberTypeGoal(Model model, Type type, String memberName) {
-		this.model = model;
+	MemberTypeGoal(Type type, String memberName) {
 		this.type = type;
 		this.memberName = memberName;
 	}
@@ -41,11 +38,11 @@ final class MemberTypeGoal implements TypeGoal {
 		if (type instanceof TNamespace) {
 			Namespace namespace = ((TNamespace) type).getNamespaceInstance();
 			return goalManager.registerSubgoal(new NamespaceMemberTypeGoal(
-					model, namespace, memberName));
+					namespace, memberName));
 		} else if (type instanceof TObject) {
 			Class klass = ((TObject) type).getClassInstance();
-			return goalManager.registerSubgoal(new ObjectMemberTypeGoal(model,
-					klass, memberName));
+			return goalManager.registerSubgoal(new ObjectMemberTypeGoal(klass,
+					memberName));
 		} else {
 			return new Top();
 		}
@@ -58,7 +55,6 @@ final class MemberTypeGoal implements TypeGoal {
 		int result = 1;
 		result = prime * result
 				+ ((memberName == null) ? 0 : memberName.hashCode());
-		result = prime * result + ((model == null) ? 0 : model.hashCode());
 		result = prime * result + ((type == null) ? 0 : type.hashCode());
 		return result;
 	}
@@ -76,11 +72,6 @@ final class MemberTypeGoal implements TypeGoal {
 			if (other.memberName != null)
 				return false;
 		} else if (!memberName.equals(other.memberName))
-			return false;
-		if (model == null) {
-			if (other.model != null)
-				return false;
-		} else if (!model.equals(other.model))
 			return false;
 		if (type == null) {
 			if (other.type != null)

@@ -24,10 +24,12 @@ public final class Class implements Namespace {
 	private final ClassDef cls;
 	private final Namespace parent;
 	private CodeBlock codeBlock = null;
+	private final Model model;
 
-	public Class(ClassDef cls, Namespace parent) {
+	public Class(ClassDef cls, Namespace parent, Model model) {
 		this.cls = cls;
 		this.parent = parent;
+		this.model = model;
 	}
 
 	public exprType[] inheritsFrom() {
@@ -56,12 +58,12 @@ public final class Class implements Namespace {
 
 	public Map<String, Class> getClasses() {
 		return classes;
-		//return Collections.unmodifiableMap(classes);
+		// return Collections.unmodifiableMap(classes);
 	}
 
 	public Map<String, Function> getFunctions() {
 		return methods;
-//		return Collections.unmodifiableMap(methods);
+		// return Collections.unmodifiableMap(methods);
 	}
 
 	public void addModule(Module module) {
@@ -141,5 +143,9 @@ public final class Class implements Namespace {
 
 	public Module getGlobalNamespace() {
 		return getParentScope().getGlobalNamespace();
+	}
+
+	public Model model() {
+		return model;
 	}
 }

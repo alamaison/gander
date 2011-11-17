@@ -34,10 +34,12 @@ public final class Module implements Namespace {
 	private final String name;
 	private final Module parent;
 	private CodeBlock codeBlock = null;
+	private final Model model;
 
-	public Module(String name, Module parent, boolean isSystem) {
+	public Module(String name, Module parent, Model model, boolean isSystem) {
 		this.name = name;
 		this.parent = parent;
+		this.model = model;
 		this.isSystem = isSystem;
 	}
 
@@ -168,5 +170,9 @@ public final class Module implements Namespace {
 
 	public Module getGlobalNamespace() {
 		return this;
+	}
+
+	public Model model() {
+		return model;
 	}
 }

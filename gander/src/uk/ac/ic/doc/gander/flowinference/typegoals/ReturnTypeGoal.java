@@ -29,7 +29,7 @@ public final class ReturnTypeGoal implements TypeGoal {
 
 	public TypeJudgement recalculateSolution(SubgoalManager goalManager) {
 		ModelSite<exprType> callable = new ModelSite<exprType>(callSite
-				.astNode().func, callSite.codeObject(), callSite.model());
+				.astNode().func, callSite.codeObject());
 
 		ExpressionTypeGoal callableTyper = new ExpressionTypeGoal(callable);
 		TypeJudgement callableTypes = goalManager
@@ -51,7 +51,7 @@ public final class ReturnTypeGoal implements TypeGoal {
 							((TClass) callableType).getClassInstance()));
 				} else if (callableType instanceof TFunction) {
 					FunctionReturnTypeGoal typer = new FunctionReturnTypeGoal(
-							callSite.model(), ((TFunction) callableType)
+							((TFunction) callableType)
 									.getFunctionInstance());
 					return goalManager.registerSubgoal(typer);
 				}

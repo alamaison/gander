@@ -175,7 +175,7 @@ final class NamespaceKeyFlowStepGoal implements FlowStepGoal {
 
 		Set<ModelSite<? extends exprType>> namespaceReferences = goalManager
 				.registerSubgoal(new FlowGoal(new CodeObjectNamespacePosition(
-						namespaceKey.getNamespace(), namespaceKey.getModel())));
+						namespaceKey.getNamespace())));
 		if (namespaceReferences == null) {
 			/*
 			 * We have no idea where the namespace flowed to so we can't say
@@ -276,7 +276,7 @@ final class NamespaceKeyFlowStepGoal implements FlowStepGoal {
 		 * scope so we resolve the name here.
 		 */
 		NamespaceKey importedCodeObjectKey = Binder.resolveBindingScope(as,
-				importReceiver, namespaceKey.getModel());
+				importReceiver);
 		assert importedCodeObjectKey.getNamespace().equals(importReceiver)
 				|| importedCodeObjectKey.getNamespace().equals(
 						importReceiver.getGlobalNamespace());
@@ -328,8 +328,7 @@ final class NamespaceKeyFlowStepGoal implements FlowStepGoal {
 		 * added to. It depends on the binding scope of 'as' in importReceiver.
 		 * It could be the global scope so we resolve the name here.
 		 */
-		NamespaceKey newKey = Binder.resolveBindingScope(as, importReceiver,
-				namespaceKey.getModel());
+		NamespaceKey newKey = Binder.resolveBindingScope(as, importReceiver);
 		assert newKey.getNamespace().equals(importReceiver)
 				|| newKey.getNamespace().equals(
 						importReceiver.getGlobalNamespace());
@@ -360,9 +359,7 @@ final class NamespaceKeyFlowStepGoal implements FlowStepGoal {
 									positions
 											.add(new ExpressionPosition<Attribute>(
 													new ModelSite<Attribute>(
-															node, codeBlock,
-															namespaceKey
-																	.getModel())));
+															node, codeBlock)));
 								}
 							}
 							return null;
@@ -428,8 +425,7 @@ final class NamespaceKeyFlowStepGoal implements FlowStepGoal {
 								positions
 										.add(new ExpressionPosition<Attribute>(
 												new ModelSite<Attribute>(node,
-														codeBlock, namespaceKey
-																.getModel())));
+														codeBlock)));
 							}
 
 							return null;

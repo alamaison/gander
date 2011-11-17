@@ -26,8 +26,7 @@ final class AttributeTypeGoal implements TypeGoal {
 
 	public TypeJudgement recalculateSolution(SubgoalManager goalManager) {
 		ModelSite<exprType> lhs = new ModelSite<exprType>(
-				attribute.astNode().value, attribute.codeObject(), attribute
-						.model());
+				attribute.astNode().value, attribute.codeObject());
 		ExpressionTypeGoal typer = new ExpressionTypeGoal(lhs);
 		TypeJudgement targetTypes = goalManager.registerSubgoal(typer);
 
@@ -38,7 +37,7 @@ final class AttributeTypeGoal implements TypeGoal {
 			for (Type targetType : ((SetBasedTypeJudgement) targetTypes)
 					.getConstituentTypes()) {
 				types.add(goalManager.registerSubgoal(new MemberTypeGoal(
-						attribute.model(), targetType, attributeName)));
+						targetType, attributeName)));
 				if (types.isFinished())
 					break;
 			}

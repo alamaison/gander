@@ -14,12 +14,20 @@ public final class Variable {
 
 	private final String name;
 	private final Namespace codeBlock;
-	private final Model model;
 
-	public Variable(String name, Namespace codeBlock, Model model) {
+	public Variable(String name, Namespace codeBlock) {
+		if (name == null)
+			throw new NullPointerException("A variable without a "
+					+ "name doesn't make sense");
+		if (name.isEmpty())
+			throw new IllegalArgumentException("A variable without a "
+					+ "name doesn't make sense");
+		if (codeBlock == null)
+			throw new NullPointerException(
+					"Variables can only appear in a code block");
+
 		this.name = name;
 		this.codeBlock = codeBlock;
-		this.model = model;
 	}
 
 	public String name() {
@@ -31,7 +39,7 @@ public final class Variable {
 	}
 
 	public Model model() {
-		return model;
+		return codeBlock.model();
 	}
 
 	@Override
@@ -40,7 +48,6 @@ public final class Variable {
 		int result = 1;
 		result = prime * result
 				+ ((codeBlock == null) ? 0 : codeBlock.hashCode());
-		result = prime * result + ((model == null) ? 0 : model.hashCode());
 		result = prime * result + ((name == null) ? 0 : name.hashCode());
 		return result;
 	}
@@ -58,11 +65,6 @@ public final class Variable {
 			if (other.codeBlock != null)
 				return false;
 		} else if (!codeBlock.equals(other.codeBlock))
-			return false;
-		if (model == null) {
-			if (other.model != null)
-				return false;
-		} else if (!model.equals(other.model))
 			return false;
 		if (name == null) {
 			if (other.name != null)

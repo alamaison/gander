@@ -187,7 +187,7 @@ public class SymbolTable {
 	private class SymbolTableImportResolver extends ImportTyper {
 
 		public SymbolTableImportResolver(Model model, Namespace importReceiver) {
-			super(model, importReceiver);
+			super(importReceiver);
 		}
 
 		@Override

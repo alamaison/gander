@@ -63,7 +63,7 @@ class ModulePopulator extends ScopedAstVisitor<Namespace> {
 
 	@Override
 	protected Namespace atScope(ClassDef node) {
-		Class c = new Class(node, getScope());
+		Class c = new Class(node, getScope(), model);
 		Namespace parent = (Namespace) getScope();
 		if (parent != null)
 			parent.addClass(c);

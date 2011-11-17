@@ -67,7 +67,7 @@ public final class BoundTypeGoal implements TypeGoal {
 				variable.codeBlock().getGlobalNamespace())) {
 
 			types.add(new BoundTypeVisitor(manager, new Variable(variable
-					.name(), variable.model().getTopLevel(), variable.model()))
+					.name(), variable.model().getTopLevel()))
 					.getJudgement());
 		}
 
@@ -124,8 +124,8 @@ class BoundTypeVisitor extends BindingStatementVisitor {
 		this.variable = variable;
 
 		TypeJudgement parameterType = goalManager
-				.registerSubgoal(new ParameterTypeGoal(variable.model(),
-						variable.codeBlock(), variable.name()));
+				.registerSubgoal(new ParameterTypeGoal(variable.codeBlock(),
+						variable.name()));
 		if (parameterType instanceof SetBasedTypeJudgement) {
 			boundTypes.addAll(((SetBasedTypeJudgement) parameterType)
 					.getConstituentTypes());
@@ -248,7 +248,7 @@ class BoundTypeVisitor extends BindingStatementVisitor {
 	}
 
 	private ImportTyper newImportResolver() {
-		return new ImportTyper(variable.model(), variable.codeBlock()) {
+		return new ImportTyper(variable.codeBlock()) {
 
 			@Override
 			protected void put(Namespace scope, String name, Type type) {
@@ -371,7 +371,7 @@ class BoundTypeVisitor extends BindingStatementVisitor {
 				if (rhsType == null) {
 
 					ModelSite<exprType> rhs = new ModelSite<exprType>(
-							node.value, variable.codeBlock(), variable.model());
+							node.value, variable.codeBlock());
 					rhsType = goalManager
 							.registerSubgoal(new ExpressionTypeGoal(rhs));
 					// assert rhsType != null;

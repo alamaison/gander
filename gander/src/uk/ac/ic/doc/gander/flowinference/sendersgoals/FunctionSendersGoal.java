@@ -13,7 +13,6 @@ import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
 import uk.ac.ic.doc.gander.flowinference.flowgoals.CodeObjectPosition;
 import uk.ac.ic.doc.gander.flowinference.flowgoals.FlowGoal;
 import uk.ac.ic.doc.gander.model.Function;
-import uk.ac.ic.doc.gander.model.Model;
 import uk.ac.ic.doc.gander.model.ModelSite;
 
 /**
@@ -21,10 +20,8 @@ import uk.ac.ic.doc.gander.model.ModelSite;
  */
 public class FunctionSendersGoal implements SendersGoal {
 	private final Function callable;
-	private final Model model;
 
-	public FunctionSendersGoal(Model model, Function callable) {
-		this.model = model;
+	public FunctionSendersGoal(Function callable) {
 		this.callable = callable;
 	}
 
@@ -37,15 +34,14 @@ public class FunctionSendersGoal implements SendersGoal {
 		Set<ModelSite<Call>> callSites = new HashSet<ModelSite<Call>>();
 
 		Set<ModelSite<? extends exprType>> positions = goalManager
-				.registerSubgoal(new FlowGoal(new CodeObjectPosition(callable,
-						model)));
+				.registerSubgoal(new FlowGoal(new CodeObjectPosition(callable)));
 
 		for (ModelSite<? extends exprType> expression : positions) {
 			SimpleNode parent = AstParentNodeFinder.findParent(expression
 					.astNode(), expression.codeObject().getAst());
 			if (parent instanceof Call) {
 				callSites.add(new ModelSite<Call>((Call) parent, expression
-						.codeObject(), expression.model()));
+						.codeObject()));
 			}
 		}
 
@@ -58,7 +54,6 @@ public class FunctionSendersGoal implements SendersGoal {
 		int result = 1;
 		result = prime * result
 				+ ((callable == null) ? 0 : callable.hashCode());
-		result = prime * result + ((model == null) ? 0 : model.hashCode());
 		return result;
 	}
 
@@ -75,11 +70,6 @@ public class FunctionSendersGoal implements SendersGoal {
 			if (other.callable != null)
 				return false;
 		} else if (!callable.equals(other.callable))
-			return false;
-		if (model == null) {
-			if (other.model != null)
-				return false;
-		} else if (!model.equals(other.model))
 			return false;
 		return true;
 	}

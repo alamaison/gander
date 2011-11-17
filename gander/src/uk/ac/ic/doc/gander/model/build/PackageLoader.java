@@ -23,7 +23,8 @@ public final class PackageLoader {
 	 */
 	public PackageLoader(
 			uk.ac.ic.doc.gander.hierarchy.Package hierarchyPackage,
-			Module parent, MutableModel model) throws ParseException, IOException {
+			Module parent, MutableModel model) throws ParseException,
+			IOException {
 		assert parent != null;
 
 		// Parse __init__ file first so that parse errors abort loading
@@ -34,7 +35,7 @@ public final class PackageLoader {
 		// <b>loaded</b> when the package is loaded. They must be explicitly
 		// mentioned in the import statement.
 
-		pkg = new Module(hierarchyPackage.getName(), parent,
+		pkg = new Module(hierarchyPackage.getName(), parent, model,
 				hierarchyPackage.isSystem());
 
 		// Must add the package to the model before we load it in case the

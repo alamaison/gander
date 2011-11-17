@@ -6,7 +6,6 @@ import java.util.Set;
 
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
 import uk.ac.ic.doc.gander.model.Class;
-import uk.ac.ic.doc.gander.model.Model;
 import uk.ac.ic.doc.gander.model.Namespace;
 
 /**
@@ -20,11 +19,9 @@ import uk.ac.ic.doc.gander.model.Namespace;
 final class CodeObjectNamespaceStepGoal implements FlowStepGoal {
 
 	private final Namespace codeObject;
-	private final Model model;
 
-	CodeObjectNamespaceStepGoal(Namespace codeObject, Model model) {
+	CodeObjectNamespaceStepGoal(Namespace codeObject) {
 		this.codeObject = codeObject;
-		this.model = model;
 	}
 
 	public Set<FlowPosition> initialSolution() {
@@ -35,10 +32,10 @@ final class CodeObjectNamespaceStepGoal implements FlowStepGoal {
 
 		Set<FlowPosition> positions = new HashSet<FlowPosition>();
 
-		positions.add(new CodeObjectPosition(codeObject, model));
+		positions.add(new CodeObjectPosition(codeObject));
 
 		if (codeObject instanceof Class) {
-			positions.add(new InstancePosition((Class) codeObject, model));
+			positions.add(new InstancePosition((Class) codeObject));
 		}
 
 		return positions;
@@ -50,7 +47,6 @@ final class CodeObjectNamespaceStepGoal implements FlowStepGoal {
 		int result = 1;
 		result = prime * result
 				+ ((codeObject == null) ? 0 : codeObject.hashCode());
-		result = prime * result + ((model == null) ? 0 : model.hashCode());
 		return result;
 	}
 
@@ -67,11 +63,6 @@ final class CodeObjectNamespaceStepGoal implements FlowStepGoal {
 			if (other.codeObject != null)
 				return false;
 		} else if (!codeObject.equals(other.codeObject))
-			return false;
-		if (model == null) {
-			if (other.model != null)
-				return false;
-		} else if (!model.equals(other.model))
 			return false;
 		return true;
 	}

@@ -43,7 +43,7 @@ public class ZeroCfaTypeEngineTest {
 		listType = new TObject(model.getTopLevel().getClasses().get("list"));
 		noneType = new TObject(model.getTopLevel().getClasses().get(
 				"__BuiltinNoneType__"));
-		engine = new ZeroCfaTypeEngine(model);
+		engine = new ZeroCfaTypeEngine();
 	}
 
 	/**

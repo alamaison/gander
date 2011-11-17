@@ -14,18 +14,14 @@ import uk.ac.ic.doc.gander.flowinference.types.judgement.Top;
 import uk.ac.ic.doc.gander.flowinference.types.judgement.TypeConcentrator;
 import uk.ac.ic.doc.gander.flowinference.types.judgement.TypeJudgement;
 import uk.ac.ic.doc.gander.model.Function;
-import uk.ac.ic.doc.gander.model.Model;
 import uk.ac.ic.doc.gander.model.ModelSite;
 
 public class FunctionArgumentTypeGoal implements TypeGoal {
 
-	private final Model model;
 	private final Function function;
 	private final int argumentIndex;
 
-	public FunctionArgumentTypeGoal(Model model, Function function,
-			String argument) {
-		this.model = model;
+	public FunctionArgumentTypeGoal(Function function, String argument) {
 		this.function = function;
 		this.argumentIndex = findArgumentIndexInFunction(function, argument);
 	}
@@ -36,7 +32,7 @@ public class FunctionArgumentTypeGoal implements TypeGoal {
 
 	public TypeJudgement recalculateSolution(SubgoalManager goalManager) {
 		Set<ModelSite<Call>> callSites = goalManager
-				.registerSubgoal(new FunctionSendersGoal(model, function));
+				.registerSubgoal(new FunctionSendersGoal(function));
 
 		// XXX: HACK. A bit like pruning.
 		// if (callSites.size() > 5)
@@ -46,7 +42,7 @@ public class FunctionArgumentTypeGoal implements TypeGoal {
 		for (ModelSite<Call> callSite : callSites) {
 			if (argumentIndex < callSite.astNode().args.length) {
 				types.add(goalManager.registerSubgoal(new ExpressionTypeGoal(
-						model, callSite.codeObject(),
+						callSite.codeObject(),
 						callSite.astNode().args[argumentIndex])));
 			} else {
 				/*
@@ -61,7 +57,7 @@ public class FunctionArgumentTypeGoal implements TypeGoal {
 						 * the context of the function's parent?
 						 */
 						TypeJudgement defaultType = goalManager
-								.registerSubgoal(new ExpressionTypeGoal(model,
+								.registerSubgoal(new ExpressionTypeGoal(
 										function.getParentScope(), defaultVal));
 						types.add(defaultType);
 					} else {
@@ -105,7 +101,6 @@ public class FunctionArgumentTypeGoal implements TypeGoal {
 		result = prime * result + argumentIndex;
 		result = prime * result
 				+ ((function == null) ? 0 : function.hashCode());
-		result = prime * result + ((model == null) ? 0 : model.hashCode());
 		return result;
 	}
 
@@ -124,11 +119,6 @@ public class FunctionArgumentTypeGoal implements TypeGoal {
 			if (other.function != null)
 				return false;
 		} else if (!function.equals(other.function))
-			return false;
-		if (model == null) {
-			if (other.model != null)
-				return false;
-		} else if (!model.equals(other.model))
 			return false;
 		return true;
 	}

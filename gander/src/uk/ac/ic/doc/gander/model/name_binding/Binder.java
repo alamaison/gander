@@ -4,7 +4,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import uk.ac.ic.doc.gander.model.LexicalTokenResolver;
-import uk.ac.ic.doc.gander.model.Model;
 import uk.ac.ic.doc.gander.model.Module;
 import uk.ac.ic.doc.gander.model.Namespace;
 import uk.ac.ic.doc.gander.model.Variable;
@@ -32,7 +31,7 @@ public final class Binder {
 		NamespaceKey binding = bindings.get(variable);
 		if (binding == null) {
 			binding = new NamespaceKey(variable.name(), RESOLVER.resolveToken(
-					variable.name(), variable.codeBlock()), variable.model());
+					variable.name(), variable.codeBlock()));
 			bindings.put(variable, binding);
 		}
 
@@ -41,9 +40,8 @@ public final class Binder {
 
 	@Deprecated
 	public static NamespaceKey resolveBindingScope(String name,
-			Namespace enclosingCodeObject, Model model) {
-		return resolveBindingScope(new Variable(name, enclosingCodeObject,
-				model));
+			Namespace enclosingCodeObject) {
+		return resolveBindingScope(new Variable(name, enclosingCodeObject));
 	}
 
 	private Binder() {

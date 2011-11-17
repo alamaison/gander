@@ -14,7 +14,6 @@ import uk.ac.ic.doc.gander.model.Namespace;
 public final class NamespaceKey {
 	private final String name;
 	private final Namespace namespace;
-	private final Model model;
 
 	/**
 	 * Construct new name binding.
@@ -23,10 +22,8 @@ public final class NamespaceKey {
 	 *            the bound name
 	 * @param namespace
 	 *            the namespace the name is bound in
-	 * @param model
-	 *            runtime model to which the namespace belongs
 	 */
-	NamespaceKey(String name, Namespace namespace, Model model) {
+	NamespaceKey(String name, Namespace namespace) {
 		if (name == null)
 			throw new NullPointerException("A name binding without a "
 					+ "name doesn't make sense");
@@ -36,13 +33,9 @@ public final class NamespaceKey {
 		if (namespace == null)
 			throw new NullPointerException("A name binding without a "
 					+ "namespace doesn't make sense");
-		if (model == null)
-			throw new NullPointerException("A binding only exists "
-					+ "in the context of particular model");
 
 		this.name = name;
 		this.namespace = namespace;
-		this.model = model;
 	}
 
 	/**
@@ -63,14 +56,13 @@ public final class NamespaceKey {
 	 * @return the runtime model
 	 */
 	public Model getModel() {
-		return model;
+		return namespace.model();
 	}
 
 	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + ((model == null) ? 0 : model.hashCode());
 		result = prime * result + ((name == null) ? 0 : name.hashCode());
 		result = prime * result
 				+ ((namespace == null) ? 0 : namespace.hashCode());
@@ -86,11 +78,6 @@ public final class NamespaceKey {
 		if (getClass() != obj.getClass())
 			return false;
 		NamespaceKey other = (NamespaceKey) obj;
-		if (model == null) {
-			if (other.model != null)
-				return false;
-		} else if (!model.equals(other.model))
-			return false;
 		if (name == null) {
 			if (other.name != null)
 				return false;

@@ -1,7 +1,6 @@
 package uk.ac.ic.doc.gander.flowinference.flowgoals;
 
 import uk.ac.ic.doc.gander.model.Class;
-import uk.ac.ic.doc.gander.model.Model;
 
 /**
  * Models a {@link Class} instance's flow in a single execution step.
@@ -11,15 +10,13 @@ import uk.ac.ic.doc.gander.model.Model;
 public final class InstancePosition implements FlowPosition {
 
 	private final Class klass;
-	private final Model model;
 
-	public InstancePosition(Class klass, Model model) {
+	public InstancePosition(Class klass) {
 		this.klass = klass;
-		this.model = model;
 	}
 
 	public FlowStepGoal nextStepGoal() {
-		return new InstanceCreationStepGoal(klass, model);
+		return new InstanceCreationStepGoal(klass);
 	}
 
 	@Override
@@ -27,7 +24,6 @@ public final class InstancePosition implements FlowPosition {
 		final int prime = 31;
 		int result = 1;
 		result = prime * result + ((klass == null) ? 0 : klass.hashCode());
-		result = prime * result + ((model == null) ? 0 : model.hashCode());
 		return result;
 	}
 
@@ -44,11 +40,6 @@ public final class InstancePosition implements FlowPosition {
 			if (other.klass != null)
 				return false;
 		} else if (!klass.equals(other.klass))
-			return false;
-		if (model == null) {
-			if (other.model != null)
-				return false;
-		} else if (!model.equals(other.model))
 			return false;
 		return true;
 	}

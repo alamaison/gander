@@ -22,7 +22,7 @@ public class DefaultModel implements MutableModel {
 	public DefaultModel(Hierarchy hierarchy) throws ParseException, IOException {
 		this.hierarchy = hierarchy;
 
-		topLevelPackage = new Module("", null, true);
+		topLevelPackage = new Module("", null, this, true);
 		TopLevelModuleLoader.load(topLevelPackage, this);
 	}
 

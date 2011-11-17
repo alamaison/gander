@@ -7,7 +7,6 @@ import uk.ac.ic.doc.gander.flowinference.dda.GoalSolver;
 import uk.ac.ic.doc.gander.flowinference.dda.KnowledgeBase;
 import uk.ac.ic.doc.gander.flowinference.typegoals.ExpressionTypeGoal;
 import uk.ac.ic.doc.gander.flowinference.types.judgement.TypeJudgement;
-import uk.ac.ic.doc.gander.model.Model;
 import uk.ac.ic.doc.gander.model.Namespace;
 
 interface TypeEngine {
@@ -26,16 +25,13 @@ interface TypeEngine {
  * engine.
  */
 public final class ZeroCfaTypeEngine implements TypeEngine {
-	private Model model;
 	private KnowledgeBase blackboard = new KnowledgeBase();
 
-	public ZeroCfaTypeEngine(Model model) {
-		this.model = model;
+	public ZeroCfaTypeEngine() {
 	}
 
 	public TypeJudgement typeOf(exprType expression, Namespace scope) {
-		Goal<TypeJudgement> rootGoal = new ExpressionTypeGoal(model, scope,
-				expression);
+		Goal<TypeJudgement> rootGoal = new ExpressionTypeGoal(scope, expression);
 		System.out.print("Inferring type of " + expression);
 		GoalSolver<TypeJudgement> solver = new GoalSolver<TypeJudgement>(
 				rootGoal, blackboard);

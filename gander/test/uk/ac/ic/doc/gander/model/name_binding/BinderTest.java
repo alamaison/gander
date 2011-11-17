@@ -420,7 +420,7 @@ public final class BinderTest {
 
 	private Namespace resolveBindingScope(ScopedPrintNode node) {
 		return Binder.resolveBindingScope(node.getExpressionName(),
-				node.getScope(), model).getNamespace();
+				node.getScope()).getNamespace();
 	}
 
 	private ScopedPrintNode findPrintNode(String moduleName, String tag)

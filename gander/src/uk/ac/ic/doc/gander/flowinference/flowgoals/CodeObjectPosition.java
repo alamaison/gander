@@ -1,6 +1,5 @@
 package uk.ac.ic.doc.gander.flowinference.flowgoals;
 
-import uk.ac.ic.doc.gander.model.Model;
 import uk.ac.ic.doc.gander.model.Namespace;
 
 /**
@@ -14,15 +13,13 @@ import uk.ac.ic.doc.gander.model.Namespace;
 public final class CodeObjectPosition implements FlowPosition {
 
 	private final Namespace codeObject;
-	private final Model model;
 
-	public CodeObjectPosition(Namespace codeObject, Model model) {
+	public CodeObjectPosition(Namespace codeObject) {
 		this.codeObject = codeObject;
-		this.model = model;
 	}
 
 	public FlowStepGoal nextStepGoal() {
-		return new CodeObjectStepGoal(codeObject, model);
+		return new CodeObjectStepGoal(codeObject);
 	}
 
 	@Override
@@ -31,7 +28,6 @@ public final class CodeObjectPosition implements FlowPosition {
 		int result = 1;
 		result = prime * result
 				+ ((codeObject == null) ? 0 : codeObject.hashCode());
-		result = prime * result + ((model == null) ? 0 : model.hashCode());
 		return result;
 	}
 
@@ -48,11 +44,6 @@ public final class CodeObjectPosition implements FlowPosition {
 			if (other.codeObject != null)
 				return false;
 		} else if (!codeObject.equals(other.codeObject))
-			return false;
-		if (model == null) {
-			if (other.model != null)
-				return false;
-		} else if (!model.equals(other.model))
 			return false;
 		return true;
 	}

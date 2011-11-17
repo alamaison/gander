@@ -8,16 +8,14 @@ import uk.ac.ic.doc.gander.model.codeblock.CodeBlock;
 public class ModelSite<T extends SimpleNode> {
 	private final T node;
 	private final Namespace codeObject;
-	private final Model model;
 
-	public ModelSite(T node, Namespace codeObject, Model model) {
+	public ModelSite(T node, Namespace codeObject) {
 		this.node = node;
 		this.codeObject = codeObject;
-		this.model = model;
 	}
 
 	public Model model() {
-		return model;
+		return codeObject.model();
 	}
 
 	public Namespace codeObject() {
@@ -68,7 +66,6 @@ public class ModelSite<T extends SimpleNode> {
 		int result = 1;
 		result = prime * result
 				+ ((codeObject == null) ? 0 : codeObject.hashCode());
-		result = prime * result + ((model == null) ? 0 : model.hashCode());
 		result = prime * result + ((node == null) ? 0 : node.hashCode());
 		return result;
 	}
@@ -86,11 +83,6 @@ public class ModelSite<T extends SimpleNode> {
 			if (other.codeObject != null)
 				return false;
 		} else if (!codeObject.equals(other.codeObject))
-			return false;
-		if (model == null) {
-			if (other.model != null)
-				return false;
-		} else if (!model.equals(other.model))
 			return false;
 		if (node == null) {
 			if (other.node != null)

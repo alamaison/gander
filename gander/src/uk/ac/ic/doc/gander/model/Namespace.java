@@ -38,4 +38,6 @@ public interface Namespace extends Member {
 	 * @return the {@link Module} enclosing this item.
 	 */
 	public Module getGlobalNamespace();
+	
+	public Model model();
 }

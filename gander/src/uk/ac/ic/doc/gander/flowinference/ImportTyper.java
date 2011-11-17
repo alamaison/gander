@@ -22,11 +22,10 @@ public abstract class ImportTyper extends ImportSimulator {
 
 	protected abstract void put(Namespace scope, String name, Type type);
 
-	protected ImportTyper(Model model, Namespace importReceiver) {
+	protected ImportTyper(Namespace importReceiver) {
 		super(importReceiver);
 
-		assert model != null;
-		this.model = model;
+		this.model = importReceiver.model();
 	}
 
 	@Override

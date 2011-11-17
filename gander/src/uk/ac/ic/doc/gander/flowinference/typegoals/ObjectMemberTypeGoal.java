@@ -18,7 +18,6 @@ import uk.ac.ic.doc.gander.flowinference.types.judgement.SetBasedTypeJudgement;
 import uk.ac.ic.doc.gander.flowinference.types.judgement.TypeConcentrator;
 import uk.ac.ic.doc.gander.flowinference.types.judgement.TypeJudgement;
 import uk.ac.ic.doc.gander.model.Class;
-import uk.ac.ic.doc.gander.model.Model;
 import uk.ac.ic.doc.gander.model.ModelSite;
 
 /**
@@ -27,12 +26,10 @@ import uk.ac.ic.doc.gander.model.ModelSite;
  */
 final class ObjectMemberTypeGoal implements TypeGoal {
 
-	private final Model model;
 	private final Class klass;
 	private final String memberName;
 
-	ObjectMemberTypeGoal(Model model, Class klass, String memberName) {
-		this.model = model;
+	ObjectMemberTypeGoal(Class klass, String memberName) {
 		this.klass = klass;
 		this.memberName = memberName;
 	}
@@ -62,7 +59,7 @@ final class ObjectMemberTypeGoal implements TypeGoal {
 
 		Set<ModelSite<? extends exprType>> namespaceReferences = goalManager
 				.registerSubgoal(new FlowGoal(new CodeObjectNamespacePosition(
-						klass, model)));
+						klass)));
 		if (namespaceReferences == null) {
 			/*
 			 * We have no idea where the namespace flowed to so we can't say
@@ -87,7 +84,7 @@ final class ObjectMemberTypeGoal implements TypeGoal {
 			if (parent instanceof Attribute) {
 				if (((NameTok) ((Attribute) parent).attr).id.equals(memberName)) {
 					memberAccesses.add(new ModelSite<Attribute>(
-							(Attribute) parent, object.codeObject(), model));
+							(Attribute) parent, object.codeObject()));
 				}
 			}
 		}
@@ -106,8 +103,7 @@ final class ObjectMemberTypeGoal implements TypeGoal {
 							accessSite.astNode())) {
 
 				ModelSite<exprType> rhs = new ModelSite<exprType>(
-						((Assign) parent).value, accessSite.codeObject(),
-						accessSite.model());
+						((Assign) parent).value, accessSite.codeObject());
 				types.add(goalManager.registerSubgoal(new ExpressionTypeGoal(
 						rhs)));
 				if (types.isFinished())
@@ -120,8 +116,7 @@ final class ObjectMemberTypeGoal implements TypeGoal {
 		 * so we have to add these types too.
 		 */
 		TypeJudgement metaClassMemberTypes = goalManager
-				.registerSubgoal(new NamespaceMemberTypeGoal(model, klass,
-						memberName));
+				.registerSubgoal(new NamespaceMemberTypeGoal(klass, memberName));
 		types.add(metaClassMemberTypes);
 
 		return types.getJudgement();
@@ -131,10 +126,9 @@ final class ObjectMemberTypeGoal implements TypeGoal {
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
+		result = prime * result + ((klass == null) ? 0 : klass.hashCode());
 		result = prime * result
 				+ ((memberName == null) ? 0 : memberName.hashCode());
-		result = prime * result + ((klass == null) ? 0 : klass.hashCode());
-		result = prime * result + ((model == null) ? 0 : model.hashCode());
 		return result;
 	}
 
@@ -147,20 +141,15 @@ final class ObjectMemberTypeGoal implements TypeGoal {
 		if (getClass() != obj.getClass())
 			return false;
 		ObjectMemberTypeGoal other = (ObjectMemberTypeGoal) obj;
-		if (memberName == null) {
-			if (other.memberName != null)
-				return false;
-		} else if (!memberName.equals(other.memberName))
-			return false;
 		if (klass == null) {
 			if (other.klass != null)
 				return false;
 		} else if (!klass.equals(other.klass))
 			return false;
-		if (model == null) {
-			if (other.model != null)
+		if (memberName == null) {
+			if (other.memberName != null)
 				return false;
-		} else if (!model.equals(other.model))
+		} else if (!memberName.equals(other.memberName))
 			return false;
 		return true;
 	}

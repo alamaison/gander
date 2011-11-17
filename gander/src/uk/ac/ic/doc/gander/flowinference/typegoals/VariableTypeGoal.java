@@ -4,7 +4,6 @@ import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
 import uk.ac.ic.doc.gander.flowinference.types.judgement.SetBasedTypeJudgement;
 import uk.ac.ic.doc.gander.flowinference.types.judgement.TypeConcentrator;
 import uk.ac.ic.doc.gander.flowinference.types.judgement.TypeJudgement;
-import uk.ac.ic.doc.gander.model.Model;
 import uk.ac.ic.doc.gander.model.Module;
 import uk.ac.ic.doc.gander.model.Namespace;
 import uk.ac.ic.doc.gander.model.Variable;
@@ -29,9 +28,8 @@ final class VariableTypeGoal implements TypeGoal {
 	private final Variable variable;
 
 	@Deprecated
-	public VariableTypeGoal(Model model, Namespace enclosingScope,
-			String tokenName) {
-		this.variable = new Variable(tokenName, enclosingScope, model);
+	public VariableTypeGoal(Namespace enclosingScope, String tokenName) {
+		this.variable = new Variable(tokenName, enclosingScope);
 	}
 
 	public VariableTypeGoal(Variable variable) {
@@ -116,7 +114,7 @@ final class VariableTypeGoalSolver {
 		// The name in the nested code block may not bind in the same place as
 		// it does in the outer code block so we have to check
 		Variable localVariable = new Variable(bindingLocation.getName(),
-				codeObject, bindingLocation.getModel());
+				codeObject);
 		NamespaceKey localBindingLocation = Binder
 				.resolveBindingScope(localVariable);
 

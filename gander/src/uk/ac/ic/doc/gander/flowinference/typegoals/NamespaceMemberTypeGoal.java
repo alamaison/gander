@@ -10,19 +10,15 @@ import uk.ac.ic.doc.gander.flowinference.types.judgement.TypeJudgement;
 import uk.ac.ic.doc.gander.model.Class;
 import uk.ac.ic.doc.gander.model.Function;
 import uk.ac.ic.doc.gander.model.Member;
-import uk.ac.ic.doc.gander.model.Model;
 import uk.ac.ic.doc.gander.model.Module;
 import uk.ac.ic.doc.gander.model.Namespace;
 
 final class NamespaceMemberTypeGoal implements TypeGoal {
 
 	private final Namespace namespace;
-	private final Model model;
 	private final String attributeName;
 
-	NamespaceMemberTypeGoal(Model model, Namespace namespace,
-			String attributeName) {
-		this.model = model;
+	NamespaceMemberTypeGoal(Namespace namespace, String attributeName) {
 		this.namespace = namespace;
 		this.attributeName = attributeName;
 	}
@@ -41,8 +37,8 @@ final class NamespaceMemberTypeGoal implements TypeGoal {
 			 * is a method added at runtime. For the moment we return Top (don't
 			 * know) in that case.
 			 */
-			return extractTokenTypeFromNamespace(model, namespace,
-					attributeName, goalManager);
+			return extractTokenTypeFromNamespace(namespace, attributeName,
+					goalManager);
 		} else {
 
 			/*
@@ -53,13 +49,13 @@ final class NamespaceMemberTypeGoal implements TypeGoal {
 		}
 	}
 
-	private static TypeJudgement extractTokenTypeFromNamespace(Model model,
-			Namespace scope, String name, SubgoalManager goalManager) {
+	private static TypeJudgement extractTokenTypeFromNamespace(Namespace scope,
+			String name, SubgoalManager goalManager) {
 		Member member = scope.lookupMember(name);
 		if (member != null) {
 			return convertMemberToType(member);
 		} else {
-			VariableTypeGoal typer = new VariableTypeGoal(model, scope, name);
+			VariableTypeGoal typer = new VariableTypeGoal(scope, name);
 			return goalManager.registerSubgoal(typer);
 		}
 	}
@@ -82,7 +78,6 @@ final class NamespaceMemberTypeGoal implements TypeGoal {
 		int result = 1;
 		result = prime * result
 				+ ((attributeName == null) ? 0 : attributeName.hashCode());
-		result = prime * result + ((model == null) ? 0 : model.hashCode());
 		result = prime * result
 				+ ((namespace == null) ? 0 : namespace.hashCode());
 		return result;
@@ -101,11 +96,6 @@ final class NamespaceMemberTypeGoal implements TypeGoal {
 			if (other.attributeName != null)
 				return false;
 		} else if (!attributeName.equals(other.attributeName))
-			return false;
-		if (model == null) {
-			if (other.model != null)
-				return false;
-		} else if (!model.equals(other.model))
 			return false;
 		if (namespace == null) {
 			if (other.namespace != null)
