@@ -106,19 +106,66 @@ final class NamespaceKeyFlowStepGoal implements FlowStepGoal {
 	}
 
 	public Set<FlowPosition> recalculateSolution(SubgoalManager goalManager) {
+		return new NamespaceKeyFlowStepGoalSolver(goalManager, namespaceKey)
+				.solution();
+	}
 
-		ResultConcentrator<FlowPosition> positions = new ResultConcentrator<FlowPosition>();
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result
+				+ ((namespaceKey == null) ? 0 : namespaceKey.hashCode());
+		return result;
+	}
 
-		positions.add(nakedNameReferences(goalManager));
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		NamespaceKeyFlowStepGoal other = (NamespaceKeyFlowStepGoal) obj;
+		if (namespaceKey == null) {
+			if (other.namespaceKey != null)
+				return false;
+		} else if (!namespaceKey.equals(other.namespaceKey))
+			return false;
+		return true;
+	}
+
+	@Override
+	public String toString() {
+		return "NamespaceKeyFlowStepGoal [namespaceKey=" + namespaceKey + "]";
+	}
+
+}
+
+final class NamespaceKeyFlowStepGoalSolver {
+
+	private final SubgoalManager goalManager;
+	private final ResultConcentrator<FlowPosition> positions = new ResultConcentrator<FlowPosition>();
+	private final NamespaceKey namespaceKey;
+
+	public NamespaceKeyFlowStepGoalSolver(SubgoalManager goalManager,
+			NamespaceKey namespaceKey) {
+		this.goalManager = goalManager;
+		this.namespaceKey = namespaceKey;
+
+		positions.add(nakedNameReferences());
 		if (positions.isTop())
-			return null;
+			return;
 
-		positions.add(explicitNameReferences(goalManager));
+		positions.add(explicitNameReferences());
 		if (positions.isTop())
-			return null;
+			return;
 
-		positions.add(importedKeyReferences(goalManager));
+		positions.add(importedKeyReferences());
+	}
 
+	public Set<FlowPosition> solution() {
 		return positions.result();
 	}
 
@@ -130,7 +177,7 @@ final class NamespaceKeyFlowStepGoal implements FlowStepGoal {
 	 * that namespace. In other words, the names in that namespace's code object
 	 * that aren't shadowed by a local variable or global keyword.
 	 */
-	private Set<FlowPosition> nakedNameReferences(SubgoalManager goalManager) {
+	private Set<FlowPosition> nakedNameReferences() {
 		final Set<FlowPosition> positions = new HashSet<FlowPosition>();
 
 		/*
@@ -161,7 +208,7 @@ final class NamespaceKeyFlowStepGoal implements FlowStepGoal {
 	 * functions do not allow they namespaces to be accessed this way as that
 	 * would allow local variables to be changed from outside the function body.
 	 */
-	private Set<FlowPosition> explicitNameReferences(SubgoalManager goalManager) {
+	private Set<FlowPosition> explicitNameReferences() {
 		/*
 		 * The name can flow beyond this namespace's code block if it is
 		 * imported anywhere. This can happen in two ways. The namespace itself
@@ -199,8 +246,7 @@ final class NamespaceKeyFlowStepGoal implements FlowStepGoal {
 	 * Add positions for flow of the namespace key's value caused by importing
 	 * either the key itself or the code object of the namespace containing it.
 	 */
-	private Set<FlowPosition> importedKeyReferences(
-			final SubgoalManager goalManager) {
+	private Set<FlowPosition> importedKeyReferences() {
 
 		final ResultConcentrator<FlowPosition> positions = new ResultConcentrator<FlowPosition>();
 
@@ -450,36 +496,4 @@ final class NamespaceKeyFlowStepGoal implements FlowStepGoal {
 
 		return positions;
 	}
-
-	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result
-				+ ((namespaceKey == null) ? 0 : namespaceKey.hashCode());
-		return result;
-	}
-
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (obj == null)
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
-		NamespaceKeyFlowStepGoal other = (NamespaceKeyFlowStepGoal) obj;
-		if (namespaceKey == null) {
-			if (other.namespaceKey != null)
-				return false;
-		} else if (!namespaceKey.equals(other.namespaceKey))
-			return false;
-		return true;
-	}
-
-	@Override
-	public String toString() {
-		return "NamespaceKeyFlowStepGoal [namespaceKey=" + namespaceKey + "]";
-	}
-
 }
