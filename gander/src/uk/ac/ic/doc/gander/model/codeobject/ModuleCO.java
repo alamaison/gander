@@ -39,6 +39,10 @@ public final class ModuleCO implements NamedCodeObject {
 		return oldStyleFunctionNamespace.asCodeBlock();
 	}
 
+	public ModuleCO enclosingModule() {
+		return this;
+	}
+
 	public Set<CodeObject> nestedCodeObjects() {
 		Set<CodeObject> nestedCodeObjects = new HashSet<CodeObject>();
 		for (Namespace namespace : oldStyleFunctionNamespace.getModules()
@@ -54,6 +58,28 @@ public final class ModuleCO implements NamedCodeObject {
 			nestedCodeObjects.add(namespace.codeObject());
 		}
 		return nestedCodeObjects;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 * 
+	 * Modules are the root of any lexical binding. Any variables not already
+	 * bound must bind in the module (global) namespace (or the builtins but
+	 * that is a runtime decision).
+	 */
+	public CodeObject lexicallyNextCodeObject() {
+		return null;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 * 
+	 * Variables in code objects within a module can bind in the module (global)
+	 * scope if the variable is not defined in a scope between there and the
+	 * occurrence. In other words, yes.
+	 */
+	public boolean nestedVariablesCanBindHere() {
+		return true;
 	}
 
 	public Model model() {

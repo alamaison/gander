@@ -3,11 +3,13 @@ package uk.ac.ic.doc.gander.model.name_binding;
 import java.util.HashMap;
 import java.util.Map;
 
-import uk.ac.ic.doc.gander.model.LexicalTokenResolver;
+import uk.ac.ic.doc.gander.model.LexicalResolver;
 import uk.ac.ic.doc.gander.model.Module;
 import uk.ac.ic.doc.gander.model.Namespace;
 import uk.ac.ic.doc.gander.model.Variable;
 import uk.ac.ic.doc.gander.model.codeblock.CodeBlock;
+import uk.ac.ic.doc.gander.model.codeobject.CodeObject;
+import uk.ac.ic.doc.gander.model.codeobject.ModuleCO;
 
 /**
  * Although what a name is bound to is dynamically determined and not generally
@@ -31,7 +33,7 @@ public final class Binder {
 		NamespaceKey binding = bindings.get(variable);
 		if (binding == null) {
 			binding = new NamespaceKey(variable.name(), RESOLVER.resolveToken(
-					variable.name(), variable.codeBlock()));
+					variable.name(), variable.codeObject()));
 			bindings.put(variable, binding);
 		}
 
@@ -60,7 +62,7 @@ public final class Binder {
  * local or global or until the we reach the global namespace. At this point all
  * names are, by definition global.
  */
-final class BindingScopeResolver extends LexicalTokenResolver<Namespace> {
+final class BindingScopeResolver extends LexicalResolver<Namespace> {
 
 	/**
 	 * Find the scope that a name in a given scope binds in.
@@ -77,7 +79,7 @@ final class BindingScopeResolver extends LexicalTokenResolver<Namespace> {
 	 * 
 	 * XXX: Is this true? What about submodules (subpackages really).
 	 * 
-	 * @param name
+	 * @param variableName
 	 *            Name being bound.
 	 * @param scope
 	 *            Local (current) scope.
@@ -87,10 +89,10 @@ final class BindingScopeResolver extends LexicalTokenResolver<Namespace> {
 	 *         the enclosing scope.
 	 */
 	@Override
-	protected Namespace searchScopeForToken(final String name,
-			final Namespace scope) {
+	protected Namespace searchScopeForVariable(final String variableName,
+			final CodeObject scope) {
 
-		Namespace globalNamespace = getGlobalNamespace(scope);
+		ModuleCO containingModule = scope.enclosingModule();
 
 		/*
 		 * If we've reached the global namespace or the global keyword appears,
@@ -107,12 +109,12 @@ final class BindingScopeResolver extends LexicalTokenResolver<Namespace> {
 		 * We return the global namespace but this really means top-level
 		 * namespace.
 		 */
-		boolean nameIsGlobal = scope.equals(globalNamespace)
-				|| scope.asCodeBlock().getGlobals().contains(name);
+		boolean nameIsGlobal = scope.equals(containingModule)
+				|| scope.codeBlock().getGlobals().contains(variableName);
 		if (nameIsGlobal) {
-			return globalNamespace;
-		} else if (isNameBoundInCodeBlock(name, scope.asCodeBlock())) {
-			return scope;
+			return getGlobalNamespace(scope);
+		} else if (isNameBoundInCodeBlock(variableName, scope.codeBlock())) {
+			return scope.model().intrinsicNamespace(scope);
 		} else {
 			return null;
 		}
@@ -148,14 +150,13 @@ final class BindingScopeResolver extends LexicalTokenResolver<Namespace> {
 	 * 
 	 * If the current scope is a module then it is the global namespace so this
 	 * method returns the scope it is given.
-	 * 
-	 * XXX: Does the search look into a module's parent module (i.e. package)?
 	 */
-	private static Namespace getGlobalNamespace(Namespace localScope) {
+	private static Namespace getGlobalNamespace(CodeObject scope) {
 
-		Namespace scope = localScope.getGlobalNamespace();
+		Namespace globalNamespace = scope.model().intrinsicNamespace(
+				scope.enclosingModule());
 
-		assert scope instanceof Module;
-		return scope;
+		assert globalNamespace instanceof Module;
+		return globalNamespace;
 	}
 }

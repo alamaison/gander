@@ -5,6 +5,6 @@ public interface NestedCodeObject extends CodeObject {
 	/**
 	 * Returns the parent code object in which this code object appears
 	 */
-	CodeObject enclosingCodeObject();
+	CodeObject parent();
 
 }

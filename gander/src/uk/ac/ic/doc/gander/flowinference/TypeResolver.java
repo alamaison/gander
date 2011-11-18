@@ -16,9 +16,10 @@ import org.python.pydev.parser.jython.ast.VisitorBase;
 import uk.ac.ic.doc.gander.flowinference.types.TClass;
 import uk.ac.ic.doc.gander.flowinference.types.TNamespace;
 import uk.ac.ic.doc.gander.flowinference.types.Type;
-import uk.ac.ic.doc.gander.model.LexicalTokenResolver;
+import uk.ac.ic.doc.gander.model.LexicalResolver;
 import uk.ac.ic.doc.gander.model.Model;
 import uk.ac.ic.doc.gander.model.Namespace;
+import uk.ac.ic.doc.gander.model.codeobject.CodeObject;
 
 public class TypeResolver extends VisitorBase {
 
@@ -44,8 +45,14 @@ public class TypeResolver extends VisitorBase {
 
 	@Override
 	public Object visitName(Name node) throws Exception {
-		return new SymbolTableTypeResolver(table).resolveToken(node.id,
-				scopes.peek());
+		Type type = new SymbolTableTypeResolver(table).resolveToken(node.id, scopes
+				.peek().codeObject());
+		if (type == null) {
+			/* Token could not be resolved so look in the builtin namespace */
+			type = table.symbols(model.getTopLevel()).get(node.id);
+		}
+		
+		return type;
 	}
 
 	@Override
@@ -95,12 +102,10 @@ public class TypeResolver extends VisitorBase {
 		return null;
 	}
 
-	
 	/**
 	 * Token resolver using the existing symbol table to map names to types.
 	 */
-	private static class SymbolTableTypeResolver extends
-			LexicalTokenResolver<Type> {
+	private static class SymbolTableTypeResolver extends LexicalResolver<Type> {
 
 		private SymbolTable table;
 
@@ -109,8 +114,9 @@ public class TypeResolver extends VisitorBase {
 		}
 
 		@Override
-		protected Type searchScopeForToken(String token, Namespace scope) {
-			Map<String, Type> scopeTokens = table.symbols(scope);
+		protected Type searchScopeForVariable(String token, CodeObject scope) {
+			Map<String, Type> scopeTokens = table.symbols(scope.model()
+					.intrinsicNamespace(scope));
 			if (scopeTokens != null)
 				return scopeTokens.get(token);
 

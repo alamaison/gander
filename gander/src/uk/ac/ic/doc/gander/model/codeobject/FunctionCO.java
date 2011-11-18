@@ -58,6 +58,10 @@ public final class FunctionCO implements NamedCodeObject, NestedCodeObject {
 		return oldStyleFunctionNamespace.asCodeBlock();
 	}
 
+	public ModuleCO enclosingModule() {
+		return parent().enclosingModule();
+	}
+
 	public Set<CodeObject> nestedCodeObjects() {
 		Set<CodeObject> nestedCodeObjects = new HashSet<CodeObject>();
 		for (Namespace namespace : oldStyleFunctionNamespace.getModules()
@@ -75,6 +79,32 @@ public final class FunctionCO implements NamedCodeObject, NestedCodeObject {
 		return nestedCodeObjects;
 	}
 
+	/**
+	 * {@inheritDoc}
+	 * 
+	 * When a variable is known not to bind in this function's namespace, the
+	 * next code object that should be considered is the next code object that
+	 * allows nested code object's variables to bind in it. I.e. not classes.
+	 */
+	public CodeObject lexicallyNextCodeObject() {
+		if (parent().nestedVariablesCanBindHere())
+			return parent;
+		else
+			return parent.lexicallyNextCodeObject();
+	}
+
+	/**
+	 * {@inheritDoc}
+	 * 
+	 * Variables appearing in nested classes and functions within a function 
+	 * can bind in this function's namespace if the weren't define in a 
+	 * namespace between this function and their nested location.  In other 
+	 * words, yes.
+	 */
+	public boolean nestedVariablesCanBindHere() {
+		return true;
+	}
+
 	public Model model() {
 		return oldStyleFunctionNamespace.model();
 	}
@@ -83,7 +113,7 @@ public final class FunctionCO implements NamedCodeObject, NestedCodeObject {
 		return ((NameTok) ast.name).id;
 	}
 
-	public CodeObject enclosingCodeObject() {
+	public CodeObject parent() {
 		return parent;
 	}
 
