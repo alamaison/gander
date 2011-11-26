@@ -6,6 +6,7 @@ import java.util.Map;
 import uk.ac.ic.doc.gander.model.LexicalResolver;
 import uk.ac.ic.doc.gander.model.Module;
 import uk.ac.ic.doc.gander.model.Namespace;
+import uk.ac.ic.doc.gander.model.NamespaceName;
 import uk.ac.ic.doc.gander.model.Variable;
 import uk.ac.ic.doc.gander.model.codeblock.CodeBlock;
 import uk.ac.ic.doc.gander.model.codeobject.CodeObject;
@@ -26,14 +27,17 @@ import uk.ac.ic.doc.gander.model.codeobject.ModuleCO;
 public final class Binder {
 
 	private static final BindingScopeResolver RESOLVER = new BindingScopeResolver();
-	private static final Map<Variable, NamespaceKey> bindings = new HashMap<Variable, NamespaceKey>();
+	private static final Map<Variable, ScopedVariable> bindings = new HashMap<Variable, ScopedVariable>();
 
-	public static NamespaceKey resolveBindingScope(Variable variable) {
+	public static ScopedVariable resolveBindingScope(Variable variable) {
 
-		NamespaceKey binding = bindings.get(variable);
+		ScopedVariable binding = bindings.get(variable);
 		if (binding == null) {
-			binding = new NamespaceKey(variable.name(), RESOLVER.resolveToken(
-					variable.name(), variable.codeObject()));
+			Namespace bindingNamespace = RESOLVER.resolveToken(variable.name(),
+					variable.codeObject());
+			NamespaceName location = new NamespaceName(variable.name(),
+					bindingNamespace);
+			binding = new ScopedVariable(variable, location);
 			bindings.put(variable, binding);
 		}
 
@@ -41,7 +45,7 @@ public final class Binder {
 	}
 
 	@Deprecated
-	public static NamespaceKey resolveBindingScope(String name,
+	public static ScopedVariable resolveBindingScope(String name,
 			Namespace enclosingCodeObject) {
 		return resolveBindingScope(new Variable(name, enclosingCodeObject));
 	}

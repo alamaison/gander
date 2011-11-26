@@ -308,6 +308,39 @@ public final class BinderTest {
 				.getGlobalNamespace(), scope);
 	}
 
+	/**
+	 * Python is 'tending towards' static, lexical scoping but it has some dark
+	 * corners that still exhibit dynamic behaviour. This test is an example of
+	 * that.
+	 * 
+	 * The class variable 'i' is bound in two places: first in the global
+	 * namespace and then in the class's local namespace once it has been
+	 * assigned. This is notably different from how it would work in a function
+	 * which would disallow the use of the variable before the local assignment,
+	 * forcing all uses to bind locally.
+	 * 
+	 * We don't faithfully model this because it's just too complicated. So the
+	 * first use of 'i' in the class is modelled as binding to the local
+	 * namespace as well
+	 */
+	@Test
+	public void classScopeNonStatic() throws Throwable {
+		String testName = "class_scope_non_static";
+		ScopedPrintNode node = findPrintNode(testName,
+				"prints 42 so must have bound in global namespace");
+		Namespace scope = resolveBindingScope(node);
+
+		assertEquals("Even though this should bind globally we model it "
+				+ "as binding locally.", node.getScope(), scope);
+
+		node = findPrintNode(testName,
+				"prints hello so no longer looking at global namespace");
+		scope = resolveBindingScope(node);
+
+		assertEquals("After assignment must bind in local namespace.", node
+				.getScope(), scope);
+	}
+
 	@Test
 	public void subtleGlobalHiding() throws Throwable {
 		ScopedPrintNode node = findPrintNode("subtle_hiding_global", "who_am_i");
@@ -420,7 +453,7 @@ public final class BinderTest {
 
 	private Namespace resolveBindingScope(ScopedPrintNode node) {
 		return Binder.resolveBindingScope(node.getExpressionName(),
-				node.getScope()).getNamespace();
+				node.getScope()).bindingLocation().namespace();
 	}
 
 	private ScopedPrintNode findPrintNode(String moduleName, String tag)

@@ -10,7 +10,7 @@ import uk.ac.ic.doc.gander.importing.WholeModelImportSimulation;
 import uk.ac.ic.doc.gander.model.Module;
 import uk.ac.ic.doc.gander.model.Namespace;
 import uk.ac.ic.doc.gander.model.name_binding.Binder;
-import uk.ac.ic.doc.gander.model.name_binding.NamespaceKey;
+import uk.ac.ic.doc.gander.model.name_binding.ScopedVariable;
 
 /**
  * Flow goal for a function, class or module's value flow in a single execution.
@@ -109,7 +109,7 @@ final class CodeObjectStepGoal implements FlowStepGoal {
 		 * possible when binding a name (though others are possible when just
 		 * reading the name).
 		 */
-		NamespaceKey nameBinding = Binder.resolveBindingScope(codeObject.getName(),
+		ScopedVariable nameBinding = Binder.resolveBindingScope(codeObject.getName(),
 				codeObject.getParentScope());
 		positions.add(new NamespaceKeyPosition(nameBinding));
 
@@ -139,10 +139,10 @@ final class CodeObjectStepGoal implements FlowStepGoal {
 				 * could be the global scope so we resolve the name here.
 				 */
 
-				NamespaceKey nameBinding = Binder.resolveBindingScope(as,
+				ScopedVariable nameBinding = Binder.resolveBindingScope(as,
 						importReceiver);
-				assert nameBinding.getNamespace().equals(importReceiver)
-						|| nameBinding.getNamespace().equals(
+				assert nameBinding.bindingLocation().namespace().equals(importReceiver)
+						|| nameBinding.bindingLocation().namespace().equals(
 								importReceiver.getGlobalNamespace());
 
 				if (loadedObject.equals(codeObject)) {

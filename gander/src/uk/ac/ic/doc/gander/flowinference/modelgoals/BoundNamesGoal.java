@@ -7,7 +7,7 @@ import org.python.pydev.parser.jython.ast.Name;
 
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
 import uk.ac.ic.doc.gander.model.ModelSite;
-import uk.ac.ic.doc.gander.model.name_binding.NamespaceKey;
+import uk.ac.ic.doc.gander.model.name_binding.ScopedVariable;
 import uk.ac.ic.doc.gander.model.name_binding.InScopeNameFinder;
 
 /**
@@ -15,9 +15,9 @@ import uk.ac.ic.doc.gander.model.name_binding.InScopeNameFinder;
  */
 public final class BoundNamesGoal implements ModelGoal<Name> {
 
-	private final NamespaceKey namespaceKey;
+	private final ScopedVariable namespaceKey;
 
-	public BoundNamesGoal(NamespaceKey nameBinding) {
+	public BoundNamesGoal(ScopedVariable nameBinding) {
 		this.namespaceKey = nameBinding;
 	}
 

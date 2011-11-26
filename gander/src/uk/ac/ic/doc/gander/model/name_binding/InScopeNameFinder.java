@@ -37,7 +37,7 @@ public final class InScopeNameFinder {
 
 	private final Set<ModelSite<Name>> nameBindings = new HashSet<ModelSite<Name>>();
 
-	public InScopeNameFinder(final NamespaceKey namespaceKey) {
+	public InScopeNameFinder(final ScopedVariable namespaceKey) {
 
 		CodeObjectWalker walker = new CodeObjectWalker() {
 
@@ -51,7 +51,7 @@ public final class InScopeNameFinder {
 		// Name bindings will only ever appear in or below the namespace they
 		// bind in so it it ok to start the search here rather than at the root
 		// of the model
-		walker.walk(namespaceKey.getNamespace().codeObject());
+		walker.walk(namespaceKey.bindingLocation().namespace().codeObject());
 	}
 
 	/**
@@ -63,7 +63,7 @@ public final class InScopeNameFinder {
 		return nameBindings;
 	}
 
-	private void analyseCodeBlock(final NamespaceKey nameBinding,
+	private void analyseCodeBlock(final ScopedVariable nameBinding,
 			CodeObject codeObject) {
 		if (nameBindingIsActiveInCodeBlock(nameBinding, codeObject)) {
 			addAllNameInstances(nameBinding.getName(), codeObject, nameBinding
@@ -113,11 +113,11 @@ public final class InScopeNameFinder {
 	 * @return {@code true} if the given name binding is the active binding for
 	 *         that name in the given code block; {@code false} otherwise
 	 */
-	private boolean nameBindingIsActiveInCodeBlock(NamespaceKey nameBinding,
+	private boolean nameBindingIsActiveInCodeBlock(ScopedVariable nameBinding,
 			CodeObject codeObject) {
-		NamespaceKey otherBinding = Binder.resolveBindingScope(new Variable(
+		ScopedVariable otherBinding = Binder.resolveBindingScope(new Variable(
 				nameBinding.getName(), codeObject));
-		return otherBinding.getNamespace().equals(nameBinding.getNamespace());
+		return otherBinding.bindingLocation().namespace().equals(nameBinding.bindingLocation().namespace());
 	}
 
 }

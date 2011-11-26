@@ -85,7 +85,7 @@ public class FunctionReturnTypeGoal implements TypeGoal {
 	}
 
 	private TypeJudgement noneType(SubgoalManager goalManager) {
-		VariableTypeGoal typer = new VariableTypeGoal(new Variable("None",
+		VariableLocalTypeGoal typer = new VariableLocalTypeGoal(new Variable("None",
 				function));
 		return goalManager.registerSubgoal(typer);
 	}

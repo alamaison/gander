@@ -7,32 +7,28 @@ import uk.ac.ic.doc.gander.flowinference.types.judgement.TypeJudgement;
 import uk.ac.ic.doc.gander.model.Module;
 import uk.ac.ic.doc.gander.model.Namespace;
 import uk.ac.ic.doc.gander.model.Variable;
+import uk.ac.ic.doc.gander.model.codeobject.CodeObject;
 import uk.ac.ic.doc.gander.model.name_binding.Binder;
-import uk.ac.ic.doc.gander.model.name_binding.NamespaceKey;
+import uk.ac.ic.doc.gander.model.name_binding.ScopedVariable;
 
 /**
- * Infers the type of a name in a code block.
+ * Partially infers the type of a variable implied by bindings to the variable.
  * 
- * Establishes the type by finding bindings to that name in the same binding
- * scope as this one. The binding scope is not the same thing as the enclosing
- * code block scope. They may be the same, for instance a local variable defined
- * and used in the same function, however, they may well be different such as a
- * global variable being bound in a non-module code block.
- * 
- * The search is flow, context and container insensitive as it treats the token
- * as a simple string rather than an identifier at a particular location, stack
- * frame, or allocated object.
+ * This is not the complete type of the variable because a variable is just an
+ * unqualified reference to a namespace name. The objects this name (and
+ * therefore this variable) refers to can be bound using qualified references as
+ * well.
  */
-final class VariableTypeGoal implements TypeGoal {
+final class VariableLocalTypeGoal implements TypeGoal {
 
 	private final Variable variable;
 
 	@Deprecated
-	public VariableTypeGoal(Namespace enclosingScope, String tokenName) {
+	public VariableLocalTypeGoal(Namespace enclosingScope, String tokenName) {
 		this.variable = new Variable(tokenName, enclosingScope);
 	}
 
-	public VariableTypeGoal(Variable variable) {
+	public VariableLocalTypeGoal(Variable variable) {
 		this.variable = variable;
 	}
 
@@ -40,9 +36,24 @@ final class VariableTypeGoal implements TypeGoal {
 		return SetBasedTypeJudgement.BOTTOM;
 	}
 
+	/**
+	 * Establishes the type by finding bindings to the variable in the same
+	 * binding scope as this one. The binding scope is not the same thing as the
+	 * enclosing code block. They may be the same, for instance a local variable
+	 * defined and used in the same function, however, they may well be
+	 * different such as a global variable being bound in a non-module code
+	 * block.
+	 * 
+	 * The search is flow, context and container insensitive as it treats the
+	 * token as a simple string rather than an identifier at a particular
+	 * location, stack frame, or allocated object.
+	 */
 	public TypeJudgement recalculateSolution(SubgoalManager goalManager) {
 
-		return new VariableTypeGoalSolver(goalManager, variable).solution();
+		ScopedVariable resolvedVariable = Binder.resolveBindingScope(variable);
+
+		return goalManager.registerSubgoal(new UnqualifiedNamePartialTypeGoal(
+				resolvedVariable.bindingLocation()));
 	}
 
 	@Override
@@ -62,7 +73,7 @@ final class VariableTypeGoal implements TypeGoal {
 			return false;
 		if (getClass() != obj.getClass())
 			return false;
-		VariableTypeGoal other = (VariableTypeGoal) obj;
+		VariableLocalTypeGoal other = (VariableLocalTypeGoal) obj;
 		if (variable == null) {
 			if (other.variable != null)
 				return false;
@@ -73,29 +84,35 @@ final class VariableTypeGoal implements TypeGoal {
 
 	@Override
 	public String toString() {
-		return "VariableTypeGoal [variable=" + variable + "]";
+		return "VariableLocalTypeGoal [variable=" + variable + "]";
 	}
 
 }
 
 /**
- * Handles solving the {@link VariableTypeGoal}.
+ * Handles solving the {@link VariableLocalTypeGoal}.
  */
 final class VariableTypeGoalSolver {
 	private final SubgoalManager goalManager;
-	private final NamespaceKey bindingLocation;
+	private final ScopedVariable bindingLocation;
 	private final TypeConcentrator type = new TypeConcentrator();
 
 	VariableTypeGoalSolver(SubgoalManager goalManager, Variable variable) {
 		this.goalManager = goalManager;
 		this.bindingLocation = Binder.resolveBindingScope(variable);
 
+		TypeJudgement bob = goalManager
+				.registerSubgoal(new UnqualifiedNamePartialTypeGoal(
+						bindingLocation.bindingLocation()));
+
 		/*
-		 * Namespace keys can only be bound to values in or below the
-		 * namespace's code object, therefore we can use it as the root of the
-		 * search rather than having to search from the top level of the model.
+		 * Unqualified references to namespace names can only occur in or below
+		 * the namespace's code object, therefore we can use it as the root of
+		 * the search for bindings rather than having to search from the top
+		 * level of the model.
 		 */
-		addAssignmentsBelowCodeObject(bindingLocation.getNamespace());
+		addBindingsBelowCodeObject(bindingLocation.bindingLocation()
+				.namespace().codeObject());
 	}
 
 	TypeJudgement solution() {
@@ -103,19 +120,19 @@ final class VariableTypeGoalSolver {
 	}
 
 	/**
-	 * Add references to the name from all code objects contained in the given
+	 * Add bindings to the variable from all code objects contained in the given
 	 * one.
 	 * 
 	 * @param codeObject
 	 *            the root of the search
 	 */
-	private void addAssignmentsBelowCodeObject(Namespace codeObject) {
+	private void addBindingsBelowCodeObject(CodeObject codeObject) {
 
 		// The name in the nested code block may not bind in the same place as
 		// it does in the outer code block so we have to check
 		Variable localVariable = new Variable(bindingLocation.getName(),
 				codeObject);
-		NamespaceKey localBindingLocation = Binder
+		ScopedVariable localBindingLocation = Binder
 				.resolveBindingScope(localVariable);
 
 		if (localBindingLocation.equals(bindingLocation)) {
@@ -132,22 +149,15 @@ final class VariableTypeGoalSolver {
 		 * the code block they appear in so we make a shortcut here to save
 		 * unecessary processing.
 		 */
-		if (!(bindingLocation.getNamespace() instanceof Module)) {
+		if (!(bindingLocation.bindingLocation().namespace() instanceof Module)) {
 			return;
 		}
 
-		for (Namespace subCodeBlock : codeObject.getClasses().values()) {
+		for (CodeObject subCodeBlock : codeObject.nestedCodeObjects()) {
 			if (type.isFinished())
 				return;
 
-			addAssignmentsBelowCodeObject(subCodeBlock);
-		}
-
-		for (Namespace subCodeBlock : codeObject.getFunctions().values()) {
-			if (type.isFinished())
-				return;
-
-			addAssignmentsBelowCodeObject(subCodeBlock);
+			addBindingsBelowCodeObject(subCodeBlock);
 		}
 	}
 

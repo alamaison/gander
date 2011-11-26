@@ -9,6 +9,7 @@ import uk.ac.ic.doc.gander.flowinference.types.judgement.Top;
 import uk.ac.ic.doc.gander.flowinference.types.judgement.TypeJudgement;
 import uk.ac.ic.doc.gander.model.Class;
 import uk.ac.ic.doc.gander.model.Namespace;
+import uk.ac.ic.doc.gander.model.NamespaceName;
 
 /**
  * Infer the type of a named member of another type.
@@ -37,8 +38,16 @@ final class MemberTypeGoal implements TypeGoal {
 
 		if (type instanceof TNamespace) {
 			Namespace namespace = ((TNamespace) type).getNamespaceInstance();
-			return goalManager.registerSubgoal(new NamespaceMemberTypeGoal(
-					namespace, memberName));
+			if (namespace == null) {
+				/*
+				 * If we get here it means the attribute references the contents
+				 * of a module but the module couldn't be loaded.
+				 */
+				return new Top();
+			} else {
+				return goalManager.registerSubgoal(new NamespaceNameTypeGoal(
+						new NamespaceName(memberName, namespace)));
+			}
 		} else if (type instanceof TObject) {
 			Class klass = ((TObject) type).getClassInstance();
 			return goalManager.registerSubgoal(new ObjectMemberTypeGoal(klass,

@@ -231,6 +231,38 @@ public class ZeroCfaTypeEngineTest {
 	}
 
 	/**
+	 * Class scope attribute whose only definition appears outside the class
+	 * body.
+	 */
+	@Test
+	public void classAttributeAssignedOutside() throws Throwable {
+		String testName = "class_attribute_assigned_outside";
+		ScopedPrintNode node = findPrintNode(testName, "what_am_i");
+		TypeJudgement type = engine.typeOf(node.getExpression(), node
+				.getScope());
+
+		assertEquals("Attribute's type not inferred correctly "
+				+ "when accessed outside the scope of the namespace.",
+				new SetBasedTypeJudgement(stringType), type);
+
+		node = findPrintNode(testName, "what_am_i_via_self");
+		type = engine.typeOf(node.getExpression(), node.getScope());
+
+		assertEquals("Attribute's type not inferred correctly "
+				+ "when accessed via the object instance's 'self'.",
+				new SetBasedTypeJudgement(stringType), type);
+
+		node = findPrintNode(testName, "what_am_i_inside");
+		type = engine.typeOf(node.getExpression(), node.getScope());
+
+		assertEquals("Variable's type not inferred correctly. This "
+				+ "probably means the analysis didn't realise it "
+				+ "binds globally as there is no local definition "
+				+ "before it is 'executed'", new SetBasedTypeJudgement(
+				integerType), type);
+	}
+
+	/**
 	 * A variable is assigned directly to itself. This might cause type
 	 * inference to recurse infinitely leading to a stack overflow unless
 	 * handled properly.
@@ -1148,6 +1180,29 @@ public class ZeroCfaTypeEngineTest {
 				+ "realise the function is imported into another "
 				+ "module and called from there with a different type "
 				+ "of parameter.", expectedType, type);
+	}
+
+	@Test
+	public void inheritedMethod() throws Throwable {
+		String testName = "inherited_method";
+
+		ScopedPrintNode node = findPrintNode(testName, "what_am_i_parent");
+		TypeJudgement type = engine.typeOf(node.getExpression(), node
+				.getScope());
+
+		TypeJudgement expectedType = new SetBasedTypeJudgement(new TFunction(
+				node.getGlobalNamespace().getClasses().get("B").getFunctions()
+						.get("m")));
+		assertEquals("Didn't infer inherited method type correctly. "
+				+ "Probably forgot to look in the superclass.", expectedType,
+				type);
+
+		node = findPrintNode(testName, "what_am_i_grandparent");
+		type = engine.typeOf(node.getExpression(), node.getScope());
+
+		assertEquals("Didn't infer inherited method type correctly. "
+				+ "Probably forgot to look in the grandparent superclass.",
+				expectedType, type);
 	}
 
 	private ScopedAstNode findNode(String moduleName, String tag)

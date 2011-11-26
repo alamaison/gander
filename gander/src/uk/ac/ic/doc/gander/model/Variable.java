@@ -1,12 +1,12 @@
 package uk.ac.ic.doc.gander.model;
 
 import uk.ac.ic.doc.gander.model.codeobject.CodeObject;
-import uk.ac.ic.doc.gander.model.name_binding.NamespaceKey;
+import uk.ac.ic.doc.gander.model.name_binding.ScopedVariable;
 
 /**
  * Represents a name appearing in a code block.
  * 
- * This is notably different from {@link NamespaceKey} which represents a name
+ * This is notably different from {@link ScopedVariable} which represents a name
  * and the namespace it binds in. This class represents a name and the code
  * block it appears in. The code block and namespace may correspond or they may
  * not. Only a binding lookup can decide.

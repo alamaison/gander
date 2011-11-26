@@ -1,14 +1,14 @@
 package uk.ac.ic.doc.gander.flowinference.flowgoals;
 
-import uk.ac.ic.doc.gander.model.name_binding.NamespaceKey;
+import uk.ac.ic.doc.gander.model.name_binding.ScopedVariable;
 
 /**
  * A flow position where the value has been bound to a name in a namespace.
  */
 public final class NamespaceKeyPosition implements FlowPosition {
-	private final NamespaceKey nameBinding;
+	private final ScopedVariable nameBinding;
 
-	public NamespaceKeyPosition(NamespaceKey nameBinding) {
+	public NamespaceKeyPosition(ScopedVariable nameBinding) {
 		if (nameBinding == null)
 			throw new NullPointerException("A namespace position without a "
 					+ "key doesn't make sense");

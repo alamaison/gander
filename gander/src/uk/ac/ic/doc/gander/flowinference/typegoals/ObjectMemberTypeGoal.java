@@ -19,6 +19,7 @@ import uk.ac.ic.doc.gander.flowinference.types.judgement.TypeConcentrator;
 import uk.ac.ic.doc.gander.flowinference.types.judgement.TypeJudgement;
 import uk.ac.ic.doc.gander.model.Class;
 import uk.ac.ic.doc.gander.model.ModelSite;
+import uk.ac.ic.doc.gander.model.NamespaceName;
 
 /**
  * Infer the type of a member of an object's dictionary for an object that is an
@@ -74,7 +75,7 @@ final class ObjectMemberTypeGoal implements TypeGoal {
 		 */
 		// XXX: We only look at attributes referenced using a matching name.
 		// is this enough? What about fields of modules, for instance (yes I
-		// realise these never get here because NamespaceMemberTypeGoal
+		// realise these never get here because NamespaceNameTypeGoal
 		// handles them but they are technically objects).
 		Set<ModelSite<Attribute>> memberAccesses = new HashSet<ModelSite<Attribute>>();
 		for (ModelSite<? extends exprType> object : namespaceReferences) {
@@ -116,7 +117,8 @@ final class ObjectMemberTypeGoal implements TypeGoal {
 		 * so we have to add these types too.
 		 */
 		TypeJudgement metaClassMemberTypes = goalManager
-				.registerSubgoal(new NamespaceMemberTypeGoal(klass, memberName));
+				.registerSubgoal(new NamespaceNameTypeGoal(
+						new NamespaceName(memberName, klass)));
 		types.add(metaClassMemberTypes);
 
 		return types.getJudgement();
