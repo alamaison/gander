@@ -229,7 +229,7 @@ public final class ExpressionTypeGoal implements TypeGoal {
 		@Override
 		public Object visitName(Name node) throws Exception {
 			Variable variable = new Variable(node.id, expression.namespace());
-			VariableLocalTypeGoal typer = new VariableLocalTypeGoal(variable);
+			VariableTypeGoal typer = new VariableTypeGoal(variable);
 			return goalManager.registerSubgoal(typer);
 		}
 

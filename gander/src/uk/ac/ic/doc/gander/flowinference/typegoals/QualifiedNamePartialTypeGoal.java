@@ -11,11 +11,12 @@ import org.python.pydev.parser.jython.ast.NameTok;
 import org.python.pydev.parser.jython.ast.exprType;
 
 import uk.ac.ic.doc.gander.ast.AstParentNodeFinder;
+import uk.ac.ic.doc.gander.flowinference.ResultConcentrator;
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
 import uk.ac.ic.doc.gander.flowinference.flowgoals.CodeObjectPosition;
 import uk.ac.ic.doc.gander.flowinference.flowgoals.FlowGoal;
+import uk.ac.ic.doc.gander.flowinference.types.Type;
 import uk.ac.ic.doc.gander.flowinference.types.judgement.SetBasedTypeJudgement;
-import uk.ac.ic.doc.gander.flowinference.types.judgement.TypeConcentrator;
 import uk.ac.ic.doc.gander.flowinference.types.judgement.TypeJudgement;
 import uk.ac.ic.doc.gander.model.ModelSite;
 import uk.ac.ic.doc.gander.model.NamespaceName;
@@ -30,79 +31,22 @@ import uk.ac.ic.doc.gander.model.NamespaceName;
  * This is not the complete type of the name as it doesn't include values bound
  * to the name by unqualified reference.
  */
-final class QualifiedNamePartialTypeGoal implements TypeGoal {
+final class QualifiedNameDefinitionsPartialSolution implements
+		PartialTypeSolution {
 
-	private final NamespaceName name;
-
-	public QualifiedNamePartialTypeGoal(NamespaceName name) {
-		this.name = name;
-	}
-
-	public TypeJudgement initialSolution() {
-		return SetBasedTypeJudgement.BOTTOM;
-	}
-
-	/**
-	 * Establishes the type by finding bindings to the unqualified name in the
-	 * same binding scope as this one. The binding scope is not the same thing
-	 * as the enclosing code block. They may be the same, for instance a local
-	 * name defined and used in the same function, however, they may well be
-	 * different such as a global name being bound in a non-module code block.
-	 * 
-	 * The search is flow, context and container insensitive as it treats the
-	 * token as a simple string rather than an identifier at a particular
-	 * location, stack frame, or allocated object.
-	 */
-	public TypeJudgement recalculateSolution(SubgoalManager goalManager) {
-
-		return new QualifiedNamePartialTypeGoalSolver(goalManager, name)
-				.solution();
-	}
-
-	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + ((name == null) ? 0 : name.hashCode());
-		return result;
-	}
-
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (obj == null)
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
-		QualifiedNamePartialTypeGoal other = (QualifiedNamePartialTypeGoal) obj;
-		if (name == null) {
-			if (other.name != null)
-				return false;
-		} else if (!name.equals(other.name))
-			return false;
-		return true;
-	}
-
-	@Override
-	public String toString() {
-		return "QualifiedNamePartialTypeGoal [name=" + name + "]";
-	}
-
-}
-
-/**
- * Handles solving the {@link QualifiedNamePartialTypeGoal}.
- */
-final class QualifiedNamePartialTypeGoalSolver {
+	private final ResultConcentrator<Type> inferredType = new ResultConcentrator<Type>();
 	private final SubgoalManager goalManager;
-	private final TypeConcentrator type = new TypeConcentrator();
-	private final NamespaceName name;
 
-	QualifiedNamePartialTypeGoalSolver(SubgoalManager goalManager,
+	public Set<Type> partialSolution() {
+		return inferredType.result();
+	}
+
+	QualifiedNameDefinitionsPartialSolution(SubgoalManager goalManager,
 			NamespaceName name) {
+		assert goalManager != null;
+		assert name != null;
+
 		this.goalManager = goalManager;
-		this.name = name;
 
 		Set<ModelSite<? extends exprType>> namespacePositions = goalManager
 				.registerSubgoal(new FlowGoal(new CodeObjectPosition(name
@@ -139,17 +83,20 @@ final class QualifiedNamePartialTypeGoalSolver {
 
 				ModelSite<exprType> rhs = new ModelSite<exprType>(
 						((Assign) parent).value, attribute.codeObject());
-				type.add(goalManager
-						.registerSubgoal(new ExpressionTypeGoal(rhs)));
-				if (type.isFinished())
+				TypeJudgement rhsType = goalManager
+						.registerSubgoal(new ExpressionTypeGoal(rhs));
+				if (rhsType instanceof SetBasedTypeJudgement) {
+					inferredType.add(((SetBasedTypeJudgement) rhsType)
+							.getConstituentTypes());
+				} else {
+					inferredType.add(null);
+				}
+
+				if (inferredType.isTop())
 					break;
 			}
 		}
 
-	}
-
-	TypeJudgement solution() {
-		return type.getJudgement();
 	}
 
 }

@@ -1,12 +1,8 @@
 package uk.ac.ic.doc.gander.flowinference.typegoals;
 
-import java.util.HashSet;
-import java.util.Set;
-
-import javax.print.attribute.HashAttributeSet;
-
 import org.python.pydev.parser.jython.ast.exprType;
 
+import uk.ac.ic.doc.gander.flowinference.ResultConcentrator;
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
 import uk.ac.ic.doc.gander.flowinference.types.TClass;
 import uk.ac.ic.doc.gander.flowinference.types.TFunction;
@@ -59,25 +55,17 @@ final class NamespaceNameTypeGoal implements TypeGoal {
 		if (member != null) {
 			return convertMemberToType(member);
 		} else {
-			UnqualifiedNamePartialTypeGoalSolver typer = new UnqualifiedNamePartialTypeGoalSolver(
-					goalManager, name);
-			if (!(typer.solution() instanceof SetBasedTypeJudgement))
+
+			ResultConcentrator<Type> completeType = new ResultConcentrator<Type>();
+			completeType.add(new UnqualifiedNameDefinitionsPartialSolution(
+					goalManager, name).partialSolution());
+			completeType.add(new QualifiedNameDefinitionsPartialSolution(
+					goalManager, name).partialSolution());
+
+			if (completeType.isTop())
 				return new Top();
-			
-			Set<Type> unqualifiedPart = ((SetBasedTypeJudgement)typer.solution()).getConstituentTypes();
-			
-			QualifiedNamePartialTypeGoalSolver typer2 = new QualifiedNamePartialTypeGoalSolver(
-					goalManager, name);
-			if (!(typer2.solution() instanceof SetBasedTypeJudgement))
-				return new Top();
-			
-			Set<Type> qualifiedPart = ((SetBasedTypeJudgement)typer2.solution()).getConstituentTypes();
-			
-			Set<Type> completeType = new HashSet<Type>();
-			completeType.addAll(unqualifiedPart);
-			completeType.addAll(qualifiedPart);
-			
-			return new SetBasedTypeJudgement(completeType);
+			else
+				return new SetBasedTypeJudgement(completeType.result());
 		}
 	}
 

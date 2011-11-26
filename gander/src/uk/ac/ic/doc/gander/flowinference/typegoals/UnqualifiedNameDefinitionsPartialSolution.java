@@ -1,8 +1,11 @@
 package uk.ac.ic.doc.gander.flowinference.typegoals;
 
+import java.util.Set;
+
+import uk.ac.ic.doc.gander.flowinference.ResultConcentrator;
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
+import uk.ac.ic.doc.gander.flowinference.types.Type;
 import uk.ac.ic.doc.gander.flowinference.types.judgement.SetBasedTypeJudgement;
-import uk.ac.ic.doc.gander.flowinference.types.judgement.TypeConcentrator;
 import uk.ac.ic.doc.gander.flowinference.types.judgement.TypeJudgement;
 import uk.ac.ic.doc.gander.model.Module;
 import uk.ac.ic.doc.gander.model.NamespaceName;
@@ -20,78 +23,33 @@ import uk.ac.ic.doc.gander.model.name_binding.ScopedVariable;
  * 
  * This is not the complete type of the name as it doesn't include values bound
  * to the name by qualified reference.
+ * 
+ * Establishes the type by finding bindings to the unqualified name in the same
+ * binding scope as this one. The binding scope is not the same thing as the
+ * enclosing code block. They may be the same, for instance a local name defined
+ * and used in the same function, however, they may well be different such as a
+ * global name being bound in a non-module code block.
+ * 
+ * The search is flow, context and container insensitive as it treats the token
+ * as a simple string rather than an identifier at a particular location, stack
+ * frame, or allocated object.
  */
-final class UnqualifiedNamePartialTypeGoal implements TypeGoal {
+final class UnqualifiedNameDefinitionsPartialSolution implements
+		PartialTypeSolution {
 
-	private final NamespaceName name;
-
-	public UnqualifiedNamePartialTypeGoal(NamespaceName name) {
-		this.name = name;
-	}
-
-	public TypeJudgement initialSolution() {
-		return SetBasedTypeJudgement.BOTTOM;
-	}
-
-	/**
-	 * Establishes the type by finding bindings to the unqualified name in the
-	 * same binding scope as this one. The binding scope is not the same thing
-	 * as the enclosing code block. They may be the same, for instance a local
-	 * name defined and used in the same function, however, they may well be
-	 * different such as a global name being bound in a non-module code block.
-	 * 
-	 * The search is flow, context and container insensitive as it treats the
-	 * token as a simple string rather than an identifier at a particular
-	 * location, stack frame, or allocated object.
-	 */
-	public TypeJudgement recalculateSolution(SubgoalManager goalManager) {
-
-		return new UnqualifiedNamePartialTypeGoalSolver(goalManager, name)
-				.solution();
-	}
-
-	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + ((name == null) ? 0 : name.hashCode());
-		return result;
-	}
-
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (obj == null)
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
-		UnqualifiedNamePartialTypeGoal other = (UnqualifiedNamePartialTypeGoal) obj;
-		if (name == null) {
-			if (other.name != null)
-				return false;
-		} else if (!name.equals(other.name))
-			return false;
-		return true;
-	}
-
-	@Override
-	public String toString() {
-		return "UnqualifiedNamePartialTypeGoal [name=" + name + "]";
-	}
-
-}
-
-/**
- * Handles solving the {@link UnqualifiedNamePartialTypeGoal}.
- */
-final class UnqualifiedNamePartialTypeGoalSolver {
+	private final ResultConcentrator<Type> inferredType = new ResultConcentrator<Type>();
 	private final SubgoalManager goalManager;
-	private final TypeConcentrator type = new TypeConcentrator();
 	private final NamespaceName name;
 
-	UnqualifiedNamePartialTypeGoalSolver(SubgoalManager goalManager,
+	public Set<Type> partialSolution() {
+		return inferredType.result();
+	}
+
+	UnqualifiedNameDefinitionsPartialSolution(SubgoalManager goalManager,
 			NamespaceName name) {
+		assert goalManager != null;
+		assert name != null;
+
 		this.goalManager = goalManager;
 		this.name = name;
 
@@ -107,10 +65,6 @@ final class UnqualifiedNamePartialTypeGoalSolver {
 		 * level of the model.
 		 */
 		addUnqualifiedBindingsBelowCodeObject(name.namespace().codeObject());
-	}
-
-	TypeJudgement solution() {
-		return type.getJudgement();
 	}
 
 	/**
@@ -134,8 +88,15 @@ final class UnqualifiedNamePartialTypeGoalSolver {
 			// Ok, we're sure that the name in this code object is talking about
 			// the same namespace location that we are interested in. So now
 			// we want to know what this code object binds to it
-			type.add(goalManager.registerSubgoal(new BoundTypeGoal(
-					localVariable)));
+			TypeJudgement variableType = goalManager
+					.registerSubgoal(new BoundTypeGoal(localVariable));
+
+			if (variableType instanceof SetBasedTypeJudgement) {
+				inferredType.add(((SetBasedTypeJudgement) variableType)
+						.getConstituentTypes());
+			} else {
+				inferredType.add(null);
+			}
 		}
 
 		/*
@@ -149,12 +110,10 @@ final class UnqualifiedNamePartialTypeGoalSolver {
 		}
 
 		for (CodeObject nestedCodeObject : codeObject.nestedCodeObjects()) {
-			if (type.isFinished())
+			if (inferredType.isTop())
 				return;
 
 			addUnqualifiedBindingsBelowCodeObject(nestedCodeObject);
 		}
 	}
-
 }
-
