@@ -61,7 +61,7 @@ public final class ReturnTypeGoal implements TypeGoal {
 			 */
 		}
 
-		return new Top();
+		return Top.INSTANCE;
 	}
 
 	@Override

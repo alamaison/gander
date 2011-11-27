@@ -63,7 +63,7 @@ final class NamespaceNameTypeGoal implements TypeGoal {
 					goalManager, name).partialSolution());
 
 			if (completeType.isTop())
-				return new Top();
+				return Top.INSTANCE;
 			else
 				return new SetBasedTypeJudgement(completeType.result());
 		}
@@ -117,7 +117,7 @@ final class NamespaceNameTypeGoal implements TypeGoal {
 		} else if (member instanceof Function) {
 			return new SetBasedTypeJudgement(new TFunction((Function) member));
 		} else {
-			return new Top();
+			return Top.INSTANCE;
 		}
 	}
 

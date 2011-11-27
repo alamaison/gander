@@ -130,7 +130,7 @@ class BoundTypeVisitor extends BindingStatementVisitor {
 			boundTypes.addAll(((SetBasedTypeJudgement) parameterType)
 					.getConstituentTypes());
 		} else {
-			judgement = new Top();
+			judgement = Top.INSTANCE;
 			return;
 		}
 
@@ -179,7 +179,7 @@ class BoundTypeVisitor extends BindingStatementVisitor {
 						} else {
 
 							// Give up early because nothing beats Top
-							judgement = new Top();
+							judgement = Top.INSTANCE;
 							return null;
 						}
 					} else {
@@ -187,7 +187,7 @@ class BoundTypeVisitor extends BindingStatementVisitor {
 						// exception class
 
 						// Give up early because nothing beats Top
-						judgement = new Top();
+						judgement = Top.INSTANCE;
 						return null;
 					}
 
@@ -313,7 +313,7 @@ class BoundTypeVisitor extends BindingStatementVisitor {
 			// TODO: Try to infer type of iterable
 
 			// Give up early because nothing beats Top
-			judgement = new Top();
+			judgement = Top.INSTANCE;
 			return null;
 		}
 
@@ -388,7 +388,7 @@ class BoundTypeVisitor extends BindingStatementVisitor {
 								.getConstituentTypes());
 					} else {
 
-						judgement = new Top();
+						judgement = Top.INSTANCE;
 						return null;
 					}
 				}

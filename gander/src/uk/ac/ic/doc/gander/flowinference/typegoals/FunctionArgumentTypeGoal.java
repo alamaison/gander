@@ -38,7 +38,7 @@ public class FunctionArgumentTypeGoal implements TypeGoal {
 
 		// XXX: HACK. A bit like pruning.
 		// if (callSites.size() > 5)
-		// return new Top();
+		// return Top.INSTANCE;
 
 		TypeConcentrator types = new TypeConcentrator();
 		for (ModelSite<Call> callSite : callSites) {
@@ -64,7 +64,7 @@ public class FunctionArgumentTypeGoal implements TypeGoal {
 						types.add(defaultType);
 					} else {
 						/* No default. The program is probably wrong. */
-						types.add(new Top());
+						types.add(Top.INSTANCE);
 					}
 				} else {
 					/*
@@ -72,7 +72,7 @@ public class FunctionArgumentTypeGoal implements TypeGoal {
 					 * be smaller than the argument array
 					 */
 					assert false;
-					types.add(new Top());
+					types.add(Top.INSTANCE);
 				}
 			}
 			if (types.isFinished())

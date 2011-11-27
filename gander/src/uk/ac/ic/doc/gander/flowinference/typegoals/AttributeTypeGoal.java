@@ -44,7 +44,7 @@ final class AttributeTypeGoal implements TypeGoal {
 
 			return types.getJudgement();
 		} else {
-			return new Top();
+			return Top.INSTANCE;
 		}
 	}
 

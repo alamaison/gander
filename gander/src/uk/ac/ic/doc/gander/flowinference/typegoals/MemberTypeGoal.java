@@ -43,7 +43,7 @@ final class MemberTypeGoal implements TypeGoal {
 				 * If we get here it means the attribute references the contents
 				 * of a module but the module couldn't be loaded.
 				 */
-				return new Top();
+				return Top.INSTANCE;
 			} else {
 				return goalManager.registerSubgoal(new NamespaceNameTypeGoal(
 						new NamespaceName(memberName, namespace)));
@@ -53,7 +53,7 @@ final class MemberTypeGoal implements TypeGoal {
 			return goalManager.registerSubgoal(new ObjectMemberTypeGoal(klass,
 					memberName));
 		} else {
-			return new Top();
+			return Top.INSTANCE;
 		}
 
 	}

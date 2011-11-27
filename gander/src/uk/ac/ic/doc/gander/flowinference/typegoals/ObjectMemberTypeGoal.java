@@ -62,7 +62,7 @@ final class ObjectMemberTypeGoal implements TypeGoal {
 			 * We have no idea where the namespace flowed to so we can't say
 			 * what type the member might have.
 			 */
-			return new Top();
+			return Top.INSTANCE;
 		}
 
 		/*
@@ -83,7 +83,7 @@ final class ObjectMemberTypeGoal implements TypeGoal {
 		if (attributeSummary != null)
 			types.add(new SetBasedTypeJudgement(attributeSummary));
 		else
-			return new Top();
+			return Top.INSTANCE;
 
 		/*
 		 * An object member may also refer to the member in the metaclass object

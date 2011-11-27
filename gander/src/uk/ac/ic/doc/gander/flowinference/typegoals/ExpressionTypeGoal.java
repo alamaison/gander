@@ -109,7 +109,7 @@ public final class ExpressionTypeGoal implements TypeGoal {
 					.getClasses().get("str")));
 			tupleType = new SetBasedTypeJudgement(new TObject(model
 					.getTopLevel().getClasses().get("tuple")));
-			topType = new Top();
+			topType = Top.INSTANCE;
 		}
 
 		@Override
