@@ -1,20 +1,16 @@
 package uk.ac.ic.doc.gander.flowinference.typegoals;
 
-import java.util.Arrays;
-import java.util.HashSet;
 import java.util.Set;
 
-import org.python.pydev.parser.jython.SimpleNode;
-import org.python.pydev.parser.jython.ast.Assign;
 import org.python.pydev.parser.jython.ast.Attribute;
-import org.python.pydev.parser.jython.ast.NameTok;
 import org.python.pydev.parser.jython.ast.exprType;
 
-import uk.ac.ic.doc.gander.ast.AstParentNodeFinder;
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
 import uk.ac.ic.doc.gander.flowinference.flowgoals.CodeObjectNamespacePosition;
 import uk.ac.ic.doc.gander.flowinference.flowgoals.FlowGoal;
+import uk.ac.ic.doc.gander.flowinference.types.Type;
 import uk.ac.ic.doc.gander.flowinference.types.judgement.SetBasedTypeJudgement;
+import uk.ac.ic.doc.gander.flowinference.types.judgement.Top;
 import uk.ac.ic.doc.gander.flowinference.types.judgement.TypeConcentrator;
 import uk.ac.ic.doc.gander.flowinference.types.judgement.TypeJudgement;
 import uk.ac.ic.doc.gander.model.Class;
@@ -45,7 +41,7 @@ final class ObjectMemberTypeGoal implements TypeGoal {
 	 * container-insensitive analysis, this is summarised to become the union of
 	 * the types assigned to that member of any instance of the same class.
 	 */
-	public TypeJudgement recalculateSolution(SubgoalManager goalManager) {
+	public TypeJudgement recalculateSolution(final SubgoalManager goalManager) {
 
 		/*
 		 * To decide on the type of the member we have to look at all
@@ -66,7 +62,7 @@ final class ObjectMemberTypeGoal implements TypeGoal {
 			 * We have no idea where the namespace flowed to so we can't say
 			 * what type the member might have.
 			 */
-			return null;
+			return new Top();
 		}
 
 		/*
@@ -77,48 +73,25 @@ final class ObjectMemberTypeGoal implements TypeGoal {
 		// is this enough? What about fields of modules, for instance (yes I
 		// realise these never get here because NamespaceNameTypeGoal
 		// handles them but they are technically objects).
-		Set<ModelSite<Attribute>> memberAccesses = new HashSet<ModelSite<Attribute>>();
-		for (ModelSite<? extends exprType> object : namespaceReferences) {
+		Set<ModelSite<Attribute>> memberAccesses = new NamedAttributeAccessFinder(
+				namespaceReferences, memberName).accesses();
 
-			SimpleNode parent = AstParentNodeFinder.findParent(
-					object.astNode(), object.codeObject().ast());
-			if (parent instanceof Attribute) {
-				if (((NameTok) ((Attribute) parent).attr).id.equals(memberName)) {
-					memberAccesses.add(new ModelSite<Attribute>(
-							(Attribute) parent, object.codeObject()));
-				}
-			}
-		}
+		final TypeConcentrator types = new TypeConcentrator();
 
-		TypeConcentrator types = new TypeConcentrator();
-
-		for (ModelSite<Attribute> accessSite : memberAccesses) {
-
-			SimpleNode parent = AstParentNodeFinder.findParent(accessSite
-					.astNode(), accessSite.codeObject().ast());
-
-			// Check that attribute is being bound by assignment
-			// FIXME: Attributes can be bound by any of the binding statements
-			if (parent instanceof Assign
-					&& Arrays.asList(((Assign) parent).targets).contains(
-							accessSite.astNode())) {
-
-				ModelSite<exprType> rhs = new ModelSite<exprType>(
-						((Assign) parent).value, accessSite.codeObject());
-				types.add(goalManager.registerSubgoal(new ExpressionTypeGoal(
-						rhs)));
-				if (types.isFinished())
-					break;
-			}
-		}
+		Set<Type> attributeSummary = new AttributeTypeSummariser(
+				memberAccesses, goalManager).type();
+		if (attributeSummary != null)
+			types.add(new SetBasedTypeJudgement(attributeSummary));
+		else
+			return new Top();
 
 		/*
 		 * An object member may also refer to the member in the metaclass object
 		 * so we have to add these types too.
 		 */
 		TypeJudgement metaClassMemberTypes = goalManager
-				.registerSubgoal(new NamespaceNameTypeGoal(
-						new NamespaceName(memberName, klass)));
+				.registerSubgoal(new NamespaceNameTypeGoal(new NamespaceName(
+						memberName, klass)));
 		types.add(metaClassMemberTypes);
 
 		return types.getJudgement();

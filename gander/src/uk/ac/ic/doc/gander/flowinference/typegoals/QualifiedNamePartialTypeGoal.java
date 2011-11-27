@@ -1,23 +1,15 @@
 package uk.ac.ic.doc.gander.flowinference.typegoals;
 
-import java.util.Arrays;
-import java.util.HashSet;
 import java.util.Set;
 
-import org.python.pydev.parser.jython.SimpleNode;
-import org.python.pydev.parser.jython.ast.Assign;
 import org.python.pydev.parser.jython.ast.Attribute;
-import org.python.pydev.parser.jython.ast.NameTok;
 import org.python.pydev.parser.jython.ast.exprType;
 
-import uk.ac.ic.doc.gander.ast.AstParentNodeFinder;
 import uk.ac.ic.doc.gander.flowinference.ResultConcentrator;
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
 import uk.ac.ic.doc.gander.flowinference.flowgoals.CodeObjectPosition;
 import uk.ac.ic.doc.gander.flowinference.flowgoals.FlowGoal;
 import uk.ac.ic.doc.gander.flowinference.types.Type;
-import uk.ac.ic.doc.gander.flowinference.types.judgement.SetBasedTypeJudgement;
-import uk.ac.ic.doc.gander.flowinference.types.judgement.TypeJudgement;
 import uk.ac.ic.doc.gander.model.ModelSite;
 import uk.ac.ic.doc.gander.model.NamespaceName;
 
@@ -52,17 +44,8 @@ final class QualifiedNameDefinitionsPartialSolution implements
 				.registerSubgoal(new FlowGoal(new CodeObjectPosition(name
 						.namespace())));
 
-		Set<ModelSite<Attribute>> qualifiedReferences = new HashSet<ModelSite<Attribute>>();
-		for (ModelSite<? extends exprType> expression : namespacePositions) {
-			SimpleNode parent = AstParentNodeFinder.findParent(expression
-					.astNode(), expression.codeObject().ast());
-			if (parent instanceof Attribute
-					&& ((NameTok) ((Attribute) parent).attr).id.equals(name
-							.name())) {
-				qualifiedReferences.add(new ModelSite<Attribute>(
-						(Attribute) parent, expression.codeObject()));
-			}
-		}
+		Set<ModelSite<Attribute>> qualifiedReferences = new NamedAttributeAccessFinder(
+				namespacePositions, name.name()).accesses();
 
 		addBindingsReferences(qualifiedReferences);
 	}
@@ -70,32 +53,8 @@ final class QualifiedNameDefinitionsPartialSolution implements
 	private void addBindingsReferences(
 			Set<ModelSite<Attribute>> qualifiedReferences) {
 
-		for (ModelSite<Attribute> attribute : qualifiedReferences) {
-
-			SimpleNode parent = AstParentNodeFinder.findParent(attribute
-					.astNode(), attribute.codeObject().ast());
-
-			// Check that attribute is being bound by assignment
-			// FIXME: Attributes can be bound by any of the binding statements
-			if (parent instanceof Assign
-					&& Arrays.asList(((Assign) parent).targets).contains(
-							attribute.astNode())) {
-
-				ModelSite<exprType> rhs = new ModelSite<exprType>(
-						((Assign) parent).value, attribute.codeObject());
-				TypeJudgement rhsType = goalManager
-						.registerSubgoal(new ExpressionTypeGoal(rhs));
-				if (rhsType instanceof SetBasedTypeJudgement) {
-					inferredType.add(((SetBasedTypeJudgement) rhsType)
-							.getConstituentTypes());
-				} else {
-					inferredType.add(null);
-				}
-
-				if (inferredType.isTop())
-					break;
-			}
-		}
+		inferredType.add(new AttributeTypeSummariser(qualifiedReferences,
+				goalManager).type());
 
 	}
 
