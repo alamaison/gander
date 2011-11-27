@@ -43,11 +43,15 @@ final class QualifiedNameDefinitionsPartialSolution implements
 		Set<ModelSite<? extends exprType>> namespacePositions = goalManager
 				.registerSubgoal(new FlowGoal(new CodeObjectPosition(name
 						.namespace())));
+		if (namespacePositions == null) {
+			inferredType.add(null);
+		} else {
 
-		Set<ModelSite<Attribute>> qualifiedReferences = new NamedAttributeAccessFinder(
-				namespacePositions, name.name()).accesses();
+			Set<ModelSite<Attribute>> qualifiedReferences = new NamedAttributeAccessFinder(
+					namespacePositions, name.name()).accesses();
 
-		addBindingsReferences(qualifiedReferences);
+			addBindingsReferences(qualifiedReferences);
+		}
 	}
 
 	private void addBindingsReferences(

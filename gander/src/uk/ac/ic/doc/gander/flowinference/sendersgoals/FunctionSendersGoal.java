@@ -35,13 +35,16 @@ public class FunctionSendersGoal implements SendersGoal {
 
 		Set<ModelSite<? extends exprType>> positions = goalManager
 				.registerSubgoal(new FlowGoal(new CodeObjectPosition(callable)));
-
-		for (ModelSite<? extends exprType> expression : positions) {
-			SimpleNode parent = AstParentNodeFinder.findParent(expression
-					.astNode(), expression.codeObject().ast());
-			if (parent instanceof Call) {
-				callSites.add(new ModelSite<Call>((Call) parent, expression
-						.codeObject()));
+		if (positions == null) {
+			return null;
+		} else {
+			for (ModelSite<? extends exprType> expression : positions) {
+				SimpleNode parent = AstParentNodeFinder.findParent(expression
+						.astNode(), expression.codeObject().ast());
+				if (parent instanceof Call) {
+					callSites.add(new ModelSite<Call>((Call) parent, expression
+							.codeObject()));
+				}
 			}
 		}
 

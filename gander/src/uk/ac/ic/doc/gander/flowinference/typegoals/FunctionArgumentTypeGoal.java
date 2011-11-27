@@ -33,6 +33,8 @@ public class FunctionArgumentTypeGoal implements TypeGoal {
 	public TypeJudgement recalculateSolution(SubgoalManager goalManager) {
 		Set<ModelSite<Call>> callSites = goalManager
 				.registerSubgoal(new FunctionSendersGoal(function));
+		if (callSites == null)
+			return Top.INSTANCE;
 
 		// XXX: HACK. A bit like pruning.
 		// if (callSites.size() > 5)

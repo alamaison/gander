@@ -20,6 +20,7 @@ final class AttributeAccessFinder {
 
 	AttributeAccessFinder(Set<ModelSite<? extends exprType>> objectPositions,
 			Event eventHandler) {
+		assert objectPositions != null;
 
 		for (ModelSite<? extends exprType> object : objectPositions) {
 

@@ -8,6 +8,7 @@ import java.util.Set;
 
 import org.python.pydev.parser.jython.ast.exprType;
 
+import uk.ac.ic.doc.gander.flowinference.ResultConcentrator;
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
 import uk.ac.ic.doc.gander.flowinference.flowgoals.flowsituations.FlowSituation;
 import uk.ac.ic.doc.gander.flowinference.flowgoals.flowsituations.FlowSituationFinder;
@@ -40,12 +41,12 @@ final class ExpressionFlowStepGoal<T extends exprType> implements FlowStepGoal {
 		Set<FlowSituation> situations = FlowSituationFinder
 				.findFlowSituations(expression);
 		
-		Set<FlowPosition> nextPositions = new HashSet<FlowPosition>();
+		ResultConcentrator<FlowPosition> nextPositions = new ResultConcentrator<FlowPosition>();
 		for (FlowSituation flowSituation : situations) {
-			nextPositions.addAll(flowSituation.nextFlowPositions(goalManager));
+			nextPositions.add(flowSituation.nextFlowPositions(goalManager));
 		}
 		
-		return nextPositions;
+		return nextPositions.result();
 	}
 
 	private Set<FlowPosition> handleMethodSelfFlow(SubgoalManager goalManager) {

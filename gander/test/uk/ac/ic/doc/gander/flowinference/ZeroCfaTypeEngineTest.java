@@ -915,6 +915,70 @@ public class ZeroCfaTypeEngineTest {
 	}
 
 	@Test
+	public void functionParameterCalledThroughList() throws Throwable {
+		String testName = "function_parameter_called_through_list";
+		ScopedPrintNode node = findPrintNode(testName, "what_am_i");
+		TypeJudgement type = engine.typeOf(node.getExpression(), node
+				.getScope());
+
+		assertEquals("Function parameter's type not inferred "
+				+ "correctly. This probably means that the analysis didn't "
+				+ "do the honourable thing when it lost track of the function "
+				+ "object's flow.  It should have said I don't know (Top).",
+				new Top(), type);
+	}
+
+	@Test
+	public void functionParameterCalledThroughDict() throws Throwable {
+		String testName = "function_parameter_called_through_dict";
+		ScopedPrintNode node = findPrintNode(testName, "what_am_i");
+		TypeJudgement type = engine.typeOf(node.getExpression(), node
+				.getScope());
+
+		assertEquals("Function parameter's type not inferred "
+				+ "correctly. This probably means that the analysis didn't "
+				+ "do the honourable thing when it lost track of the function "
+				+ "object's flow.  It should have said I don't know (Top).",
+				new Top(), type);
+	}
+
+	@Test
+	public void functionParameterCalledThroughObject1() throws Throwable {
+		String testName = "function_parameter_called_through_object1";
+		ScopedPrintNode node = findPrintNode(testName, "what_am_i");
+		TypeJudgement type = engine.typeOf(node.getExpression(), node
+				.getScope());
+
+		ArrayList<Type> types = new ArrayList<Type>();
+		types.add(stringType);
+		types.add(listType);
+		TypeJudgement expectedType = new SetBasedTypeJudgement(types);
+
+		assertEquals("Function parameter's type not inferred "
+				+ "correctly. This probably means that the analysis didn't "
+				+ "follow the flow of the function via an object's attribute.",
+				expectedType, type);
+	}
+
+	@Test
+	public void functionParameterCalledThroughObject2() throws Throwable {
+		String testName = "function_parameter_called_through_object2";
+		ScopedPrintNode node = findPrintNode(testName, "what_am_i");
+		TypeJudgement type = engine.typeOf(node.getExpression(), node
+				.getScope());
+
+		ArrayList<Type> types = new ArrayList<Type>();
+		types.add(stringType);
+		types.add(listType);
+		TypeJudgement expectedType = new SetBasedTypeJudgement(types);
+
+		assertEquals("Function parameter's type not inferred "
+				+ "correctly. This probably means that the analysis didn't "
+				+ "follow the flow of the function via an object's attribute.",
+				expectedType, type);
+	}
+
+	@Test
 	public void functionParameterCalledThroughClass() throws Throwable {
 		String testName = "function_parameter_called_through_class";
 		ScopedPrintNode node = findPrintNode(testName, "what_am_i");
@@ -1203,6 +1267,31 @@ public class ZeroCfaTypeEngineTest {
 		assertEquals("Didn't infer inherited method type correctly. "
 				+ "Probably forgot to look in the grandparent superclass.",
 				expectedType, type);
+	}
+
+	@Test
+	public void listTypeEscape() throws Throwable {
+		String testName = "list_type_escape";
+
+		ScopedPrintNode node = findPrintNode(testName, "what_am_i");
+		TypeJudgement type = engine.typeOf(node.getExpression(), node
+				.getScope());
+
+		assertEquals(
+				"We shouldn't be able to infer a type for items in a list.",
+				new Top(), type);
+	}
+
+	@Test
+	public void dictTypeEscape() throws Throwable {
+		String testName = "dict_type_escape";
+
+		ScopedPrintNode node = findPrintNode(testName, "what_am_i");
+		TypeJudgement type = engine.typeOf(node.getExpression(), node
+				.getScope());
+
+		assertEquals("We shouldn't be able to infer a type for items in "
+				+ "a dictionary.", new Top(), type);
 	}
 
 	private ScopedAstNode findNode(String moduleName, String tag)

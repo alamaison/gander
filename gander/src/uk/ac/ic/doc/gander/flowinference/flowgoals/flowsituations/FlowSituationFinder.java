@@ -316,7 +316,13 @@ final class SituationMapper implements VisitorIF {
 		}
 		for (exprType value : node.values) {
 			if (isMatch(value)) {
-				return notInAFlowSituation(); // TODO
+				/*
+				 * Using an expression in a dictionary literal flows that
+				 * expression's value into the dictionary. Unfortunately we
+				 * can't track this flow so we model it as escaping to all
+				 * possible flow positions.
+				 */
+				return new EscapeSituation();
 			}
 		}
 		return notInAFlowSituation();
@@ -426,7 +432,16 @@ final class SituationMapper implements VisitorIF {
 	}
 
 	public Object visitList(List node) throws Exception {
-		// TODO Auto-generated method stub
+		for (exprType value : node.elts) {
+			if (isMatch(value)) {
+				/*
+				 * Using an expression in a list literal flows that expression's
+				 * value into the list. Unfortunately we can't track this flow
+				 * so we model it as escaping to all possible flow positions.
+				 */
+				return new EscapeSituation();
+			}
+		}
 		return notInAFlowSituation();
 	}
 

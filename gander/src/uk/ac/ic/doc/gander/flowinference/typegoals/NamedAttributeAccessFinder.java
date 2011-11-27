@@ -21,6 +21,8 @@ final class NamedAttributeAccessFinder {
 	NamedAttributeAccessFinder(
 			Set<ModelSite<? extends exprType>> namespacePositions,
 			String attributeName) {
+		assert namespacePositions != null;
+		
 		this.attributeName = attributeName;
 		new AttributeAccessFinder(namespacePositions,
 				new AttributeNameMatcher());
