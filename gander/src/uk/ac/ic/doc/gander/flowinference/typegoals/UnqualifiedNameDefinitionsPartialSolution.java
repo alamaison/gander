@@ -5,8 +5,6 @@ import java.util.Set;
 import uk.ac.ic.doc.gander.flowinference.ResultConcentrator;
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
 import uk.ac.ic.doc.gander.flowinference.types.Type;
-import uk.ac.ic.doc.gander.flowinference.types.judgement.SetBasedTypeJudgement;
-import uk.ac.ic.doc.gander.flowinference.types.judgement.TypeJudgement;
 import uk.ac.ic.doc.gander.model.Module;
 import uk.ac.ic.doc.gander.model.NamespaceName;
 import uk.ac.ic.doc.gander.model.Variable;
@@ -91,9 +89,8 @@ final class UnqualifiedNameDefinitionsPartialSolution implements
 			TypeJudgement variableType = goalManager
 					.registerSubgoal(new BoundTypeGoal(localVariable));
 
-			if (variableType instanceof SetBasedTypeJudgement) {
-				inferredType.add(((SetBasedTypeJudgement) variableType)
-						.getConstituentTypes());
+			if (variableType instanceof FiniteTypeJudgement) {
+				inferredType.add((FiniteTypeJudgement) variableType);
 			} else {
 				inferredType.add(null);
 			}

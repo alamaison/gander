@@ -13,10 +13,10 @@ import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
 import uk.ac.ic.doc.gander.flowinference.modelgoals.CallSitesGoal;
 import uk.ac.ic.doc.gander.flowinference.modelgoals.CallSitesGoal.Predicate;
 import uk.ac.ic.doc.gander.flowinference.typegoals.ExpressionTypeGoal;
+import uk.ac.ic.doc.gander.flowinference.typegoals.FiniteTypeJudgement;
+import uk.ac.ic.doc.gander.flowinference.typegoals.TypeJudgement;
 import uk.ac.ic.doc.gander.flowinference.types.TFunction;
 import uk.ac.ic.doc.gander.flowinference.types.Type;
-import uk.ac.ic.doc.gander.flowinference.types.judgement.SetBasedTypeJudgement;
-import uk.ac.ic.doc.gander.flowinference.types.judgement.TypeJudgement;
 import uk.ac.ic.doc.gander.model.Class;
 import uk.ac.ic.doc.gander.model.Function;
 import uk.ac.ic.doc.gander.model.ModelSite;
@@ -101,9 +101,8 @@ public final class MethodSendersGoal implements SendersGoal {
 			 * are those that guarantee they never call send to the receiver in
 			 * question.
 			 */
-			if (type instanceof SetBasedTypeJudgement) {
-				Set<Type> receiverTypes = ((SetBasedTypeJudgement) type)
-						.getConstituentTypes();
+			if (type instanceof FiniteTypeJudgement) {
+				Set<Type> receiverTypes = (FiniteTypeJudgement) type;
 				if (!receiverTypes.contains(new TFunction(method)))
 					continue; // not this call site
 			}

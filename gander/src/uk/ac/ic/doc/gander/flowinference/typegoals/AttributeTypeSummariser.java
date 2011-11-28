@@ -8,8 +8,6 @@ import org.python.pydev.parser.jython.ast.exprType;
 import uk.ac.ic.doc.gander.flowinference.ResultConcentrator;
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
 import uk.ac.ic.doc.gander.flowinference.types.Type;
-import uk.ac.ic.doc.gander.flowinference.types.judgement.SetBasedTypeJudgement;
-import uk.ac.ic.doc.gander.flowinference.types.judgement.TypeJudgement;
 import uk.ac.ic.doc.gander.model.ModelSite;
 
 /**
@@ -42,9 +40,8 @@ final class AttributeTypeSummariser {
 
 			TypeJudgement valueType = goalManager
 					.registerSubgoal(new ExpressionTypeGoal(value));
-			if (valueType instanceof SetBasedTypeJudgement) {
-				typeSummary.add(((SetBasedTypeJudgement) valueType)
-						.getConstituentTypes());
+			if (valueType instanceof FiniteTypeJudgement) {
+				typeSummary.add((FiniteTypeJudgement) valueType);
 			} else {
 				typeSummary.add(null);
 			}

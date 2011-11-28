@@ -1,5 +1,7 @@
 package uk.ac.ic.doc.gander.flowinference.typegoals;
 
+import java.util.Collections;
+
 import org.python.pydev.parser.jython.ast.exprType;
 
 import uk.ac.ic.doc.gander.flowinference.ResultConcentrator;
@@ -8,9 +10,6 @@ import uk.ac.ic.doc.gander.flowinference.types.TClass;
 import uk.ac.ic.doc.gander.flowinference.types.TFunction;
 import uk.ac.ic.doc.gander.flowinference.types.TModule;
 import uk.ac.ic.doc.gander.flowinference.types.Type;
-import uk.ac.ic.doc.gander.flowinference.types.judgement.SetBasedTypeJudgement;
-import uk.ac.ic.doc.gander.flowinference.types.judgement.Top;
-import uk.ac.ic.doc.gander.flowinference.types.judgement.TypeJudgement;
 import uk.ac.ic.doc.gander.model.Class;
 import uk.ac.ic.doc.gander.model.Function;
 import uk.ac.ic.doc.gander.model.Member;
@@ -76,9 +75,8 @@ final class NamespaceNameTypeGoal implements TypeGoal {
 					.registerSubgoal(new ExpressionTypeGoal(
 							new ModelSite<exprType>(supertype, klass
 									.getParentScope().codeObject())));
-			if (supertypeTypes instanceof SetBasedTypeJudgement) {
-				for (Type supertypeType : (((SetBasedTypeJudgement) supertypeTypes)
-						.getConstituentTypes())) {
+			if (supertypeTypes instanceof FiniteTypeJudgement) {
+				for (Type supertypeType : (FiniteTypeJudgement) supertypeTypes) {
 					if (supertypeType instanceof TClass) {
 						Class superclass = ((TClass) supertypeType)
 								.getClassInstance();
@@ -111,11 +109,14 @@ final class NamespaceNameTypeGoal implements TypeGoal {
 
 	private static TypeJudgement convertMemberToType(Member member) {
 		if (member instanceof Module) {
-			return new SetBasedTypeJudgement(new TModule((Module) member));
+			return new SetBasedTypeJudgement(Collections.singleton(new TModule(
+					(Module) member)));
 		} else if (member instanceof Class) {
-			return new SetBasedTypeJudgement(new TClass((Class) member));
+			return new SetBasedTypeJudgement(Collections.singleton(new TClass(
+					(Class) member)));
 		} else if (member instanceof Function) {
-			return new SetBasedTypeJudgement(new TFunction((Function) member));
+			return new SetBasedTypeJudgement(Collections
+					.singleton(new TFunction((Function) member)));
 		} else {
 			return Top.INSTANCE;
 		}

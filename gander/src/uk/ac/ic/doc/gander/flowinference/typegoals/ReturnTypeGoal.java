@@ -1,5 +1,6 @@
 package uk.ac.ic.doc.gander.flowinference.typegoals;
 
+import java.util.Collections;
 import java.util.Set;
 
 import org.python.pydev.parser.jython.ast.Call;
@@ -10,9 +11,6 @@ import uk.ac.ic.doc.gander.flowinference.types.TClass;
 import uk.ac.ic.doc.gander.flowinference.types.TFunction;
 import uk.ac.ic.doc.gander.flowinference.types.TObject;
 import uk.ac.ic.doc.gander.flowinference.types.Type;
-import uk.ac.ic.doc.gander.flowinference.types.judgement.SetBasedTypeJudgement;
-import uk.ac.ic.doc.gander.flowinference.types.judgement.Top;
-import uk.ac.ic.doc.gander.flowinference.types.judgement.TypeJudgement;
 import uk.ac.ic.doc.gander.model.ModelSite;
 
 public final class ReturnTypeGoal implements TypeGoal {
@@ -35,10 +33,9 @@ public final class ReturnTypeGoal implements TypeGoal {
 		TypeJudgement callableTypes = goalManager
 				.registerSubgoal(callableTyper);
 
-		if (callableTypes instanceof SetBasedTypeJudgement) {
+		if (callableTypes instanceof FiniteTypeJudgement) {
 
-			Set<Type> types = ((SetBasedTypeJudgement) callableTypes)
-					.getConstituentTypes();
+			Set<Type> types = (FiniteTypeJudgement) callableTypes;
 			if (types.size() == 1) {
 				Type callableType = types.iterator().next();
 				if (callableType instanceof TClass) {
@@ -47,8 +44,9 @@ public final class ReturnTypeGoal implements TypeGoal {
 					 * special functions so we can infer the return type
 					 * immediately. It is an instance of the class being called.
 					 */
-					return new SetBasedTypeJudgement(new TObject(
-							((TClass) callableType).getClassInstance()));
+					return new SetBasedTypeJudgement(Collections
+							.singleton(new TObject(((TClass) callableType)
+									.getClassInstance())));
 				} else if (callableType instanceof TFunction) {
 					FunctionReturnTypeGoal typer = new FunctionReturnTypeGoal(
 							((TFunction) callableType).getFunctionInstance());

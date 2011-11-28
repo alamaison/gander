@@ -1,5 +1,7 @@
 package uk.ac.ic.doc.gander.flowinference.typegoals;
 
+import java.util.Collections;
+
 import org.python.pydev.parser.jython.SimpleNode;
 import org.python.pydev.parser.jython.ast.Attribute;
 import org.python.pydev.parser.jython.ast.BinOp;
@@ -36,9 +38,6 @@ import org.python.pydev.parser.jython.ast.num_typeType;
 import uk.ac.ic.doc.gander.ast.ExpressionVisitor;
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
 import uk.ac.ic.doc.gander.flowinference.types.TObject;
-import uk.ac.ic.doc.gander.flowinference.types.judgement.SetBasedTypeJudgement;
-import uk.ac.ic.doc.gander.flowinference.types.judgement.Top;
-import uk.ac.ic.doc.gander.flowinference.types.judgement.TypeJudgement;
 import uk.ac.ic.doc.gander.model.Model;
 import uk.ac.ic.doc.gander.model.ModelSite;
 import uk.ac.ic.doc.gander.model.Namespace;
@@ -93,22 +92,30 @@ public final class ExpressionTypeGoal implements TypeGoal {
 		public TypeFinder(Namespace scope, SubgoalManager goalManager) {
 			this.goalManager = goalManager;
 			Model model = scope.model();
-			dictType = new SetBasedTypeJudgement(new TObject(model
-					.getTopLevel().getClasses().get("dict")));
-			listType = new SetBasedTypeJudgement(new TObject(model
-					.getTopLevel().getClasses().get("list")));
-			setType = new SetBasedTypeJudgement(new TObject(model.getTopLevel()
-					.getClasses().get("set")));
-			intType = new SetBasedTypeJudgement(new TObject(model.getTopLevel()
-					.getClasses().get("int")));
-			longType = new SetBasedTypeJudgement(new TObject(model
-					.getTopLevel().getClasses().get("long")));
-			floatType = new SetBasedTypeJudgement(new TObject(model
-					.getTopLevel().getClasses().get("float")));
-			strType = new SetBasedTypeJudgement(new TObject(model.getTopLevel()
-					.getClasses().get("str")));
-			tupleType = new SetBasedTypeJudgement(new TObject(model
-					.getTopLevel().getClasses().get("tuple")));
+			dictType = new SetBasedTypeJudgement(Collections
+					.singleton(new TObject(model.getTopLevel().getClasses()
+							.get("dict"))));
+			listType = new SetBasedTypeJudgement(Collections
+					.singleton(new TObject(model.getTopLevel().getClasses()
+							.get("list"))));
+			setType = new SetBasedTypeJudgement(Collections
+					.singleton(new TObject(model.getTopLevel().getClasses()
+							.get("set"))));
+			intType = new SetBasedTypeJudgement(Collections
+					.singleton(new TObject(model.getTopLevel().getClasses()
+							.get("int"))));
+			longType = new SetBasedTypeJudgement(Collections
+					.singleton(new TObject(model.getTopLevel().getClasses()
+							.get("long"))));
+			floatType = new SetBasedTypeJudgement(Collections
+					.singleton(new TObject(model.getTopLevel().getClasses()
+							.get("float"))));
+			strType = new SetBasedTypeJudgement(Collections
+					.singleton(new TObject(model.getTopLevel().getClasses()
+							.get("str"))));
+			tupleType = new SetBasedTypeJudgement(Collections
+					.singleton(new TObject(model.getTopLevel().getClasses()
+							.get("tuple"))));
 			topType = Top.INSTANCE;
 		}
 

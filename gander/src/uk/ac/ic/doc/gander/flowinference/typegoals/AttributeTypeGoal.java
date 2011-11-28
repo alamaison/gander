@@ -6,10 +6,6 @@ import org.python.pydev.parser.jython.ast.exprType;
 
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
 import uk.ac.ic.doc.gander.flowinference.types.Type;
-import uk.ac.ic.doc.gander.flowinference.types.judgement.SetBasedTypeJudgement;
-import uk.ac.ic.doc.gander.flowinference.types.judgement.Top;
-import uk.ac.ic.doc.gander.flowinference.types.judgement.TypeConcentrator;
-import uk.ac.ic.doc.gander.flowinference.types.judgement.TypeJudgement;
 import uk.ac.ic.doc.gander.model.ModelSite;
 
 final class AttributeTypeGoal implements TypeGoal {
@@ -30,12 +26,11 @@ final class AttributeTypeGoal implements TypeGoal {
 		ExpressionTypeGoal typer = new ExpressionTypeGoal(lhs);
 		TypeJudgement targetTypes = goalManager.registerSubgoal(typer);
 
-		if (targetTypes instanceof SetBasedTypeJudgement) {
+		if (targetTypes instanceof FiniteTypeJudgement) {
 			TypeConcentrator types = new TypeConcentrator();
 			String attributeName = ((NameTok) attribute.astNode().attr).id;
 
-			for (Type targetType : ((SetBasedTypeJudgement) targetTypes)
-					.getConstituentTypes()) {
+			for (Type targetType : (FiniteTypeJudgement) targetTypes) {
 				types.add(goalManager.registerSubgoal(new MemberTypeGoal(
 						targetType, attributeName)));
 				if (types.isFinished())

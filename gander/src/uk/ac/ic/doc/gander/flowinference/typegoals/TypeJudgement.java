@@ -1,4 +1,4 @@
-package uk.ac.ic.doc.gander.flowinference.types.judgement;
+package uk.ac.ic.doc.gander.flowinference.typegoals;
 
 /**
  * Represents an approximation of the possible values of an expression.

@@ -13,10 +13,10 @@ import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
 import uk.ac.ic.doc.gander.flowinference.flowgoals.flowsituations.FlowSituation;
 import uk.ac.ic.doc.gander.flowinference.flowgoals.flowsituations.FlowSituationFinder;
 import uk.ac.ic.doc.gander.flowinference.typegoals.ExpressionTypeGoal;
+import uk.ac.ic.doc.gander.flowinference.typegoals.FiniteTypeJudgement;
+import uk.ac.ic.doc.gander.flowinference.typegoals.TypeJudgement;
 import uk.ac.ic.doc.gander.flowinference.types.TObject;
 import uk.ac.ic.doc.gander.flowinference.types.Type;
-import uk.ac.ic.doc.gander.flowinference.types.judgement.SetBasedTypeJudgement;
-import uk.ac.ic.doc.gander.flowinference.types.judgement.TypeJudgement;
 import uk.ac.ic.doc.gander.model.Class;
 import uk.ac.ic.doc.gander.model.Function;
 import uk.ac.ic.doc.gander.model.ModelSite;
@@ -40,12 +40,12 @@ final class ExpressionFlowStepGoal<T extends exprType> implements FlowStepGoal {
 
 		Set<FlowSituation> situations = FlowSituationFinder
 				.findFlowSituations(expression);
-		
+
 		ResultConcentrator<FlowPosition> nextPositions = new ResultConcentrator<FlowPosition>();
 		for (FlowSituation flowSituation : situations) {
 			nextPositions.add(flowSituation.nextFlowPositions(goalManager));
 		}
-		
+
 		return nextPositions.result();
 	}
 
@@ -53,11 +53,10 @@ final class ExpressionFlowStepGoal<T extends exprType> implements FlowStepGoal {
 
 		TypeJudgement types = goalManager
 				.registerSubgoal(new ExpressionTypeGoal(expression));
-		if (types instanceof SetBasedTypeJudgement) {
+		if (types instanceof FiniteTypeJudgement) {
 			Set<FlowPosition> positions = new HashSet<FlowPosition>();
 
-			for (Type type : ((SetBasedTypeJudgement) types)
-					.getConstituentTypes()) {
+			for (Type type : (FiniteTypeJudgement) types) {
 				if (type instanceof TObject) {
 					addSelfFromMethods(((TObject) type).getClassInstance(),
 							positions);

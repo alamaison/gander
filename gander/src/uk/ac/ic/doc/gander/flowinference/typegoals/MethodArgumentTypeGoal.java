@@ -1,5 +1,6 @@
 package uk.ac.ic.doc.gander.flowinference.typegoals;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -9,9 +10,6 @@ import org.python.pydev.parser.jython.ast.exprType;
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
 import uk.ac.ic.doc.gander.flowinference.sendersgoals.FunctionSendersGoal;
 import uk.ac.ic.doc.gander.flowinference.types.TObject;
-import uk.ac.ic.doc.gander.flowinference.types.judgement.SetBasedTypeJudgement;
-import uk.ac.ic.doc.gander.flowinference.types.judgement.TypeConcentrator;
-import uk.ac.ic.doc.gander.flowinference.types.judgement.TypeJudgement;
 import uk.ac.ic.doc.gander.model.Class;
 import uk.ac.ic.doc.gander.model.Function;
 import uk.ac.ic.doc.gander.model.ModelSite;
@@ -39,8 +37,8 @@ final class MethodArgumentTypeGoal implements TypeGoal {
 		int argumentIndex = findArgumentIndexInFunction(method, name);
 
 		if (argumentIndex == 0) {
-			return new SetBasedTypeJudgement(new TObject((Class) method
-					.getParentScope()));
+			return new SetBasedTypeJudgement(Collections.singleton(new TObject(
+					(Class) method.getParentScope())));
 		} else {
 			Set<ModelSite<Call>> callSites = goalManager
 					.registerSubgoal(new FunctionSendersGoal(method));

@@ -23,10 +23,6 @@ import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
 import uk.ac.ic.doc.gander.flowinference.types.TClass;
 import uk.ac.ic.doc.gander.flowinference.types.TFunction;
 import uk.ac.ic.doc.gander.flowinference.types.Type;
-import uk.ac.ic.doc.gander.flowinference.types.judgement.SetBasedTypeJudgement;
-import uk.ac.ic.doc.gander.flowinference.types.judgement.Top;
-import uk.ac.ic.doc.gander.flowinference.types.judgement.TypeConcentrator;
-import uk.ac.ic.doc.gander.flowinference.types.judgement.TypeJudgement;
 import uk.ac.ic.doc.gander.model.Class;
 import uk.ac.ic.doc.gander.model.Function;
 import uk.ac.ic.doc.gander.model.ModelSite;
@@ -67,8 +63,7 @@ public final class BoundTypeGoal implements TypeGoal {
 				variable.codeBlock().getGlobalNamespace())) {
 
 			types.add(new BoundTypeVisitor(manager, new Variable(variable
-					.name(), variable.model().getTopLevel()))
-					.getJudgement());
+					.name(), variable.model().getTopLevel())).getJudgement());
 		}
 
 		return types.getJudgement();
@@ -126,9 +121,8 @@ class BoundTypeVisitor extends BindingStatementVisitor {
 		TypeJudgement parameterType = goalManager
 				.registerSubgoal(new ParameterTypeGoal(variable.codeBlock(),
 						variable.name()));
-		if (parameterType instanceof SetBasedTypeJudgement) {
-			boundTypes.addAll(((SetBasedTypeJudgement) parameterType)
-					.getConstituentTypes());
+		if (parameterType instanceof FiniteTypeJudgement) {
+			boundTypes.addAll((FiniteTypeJudgement) parameterType);
 		} else {
 			judgement = Top.INSTANCE;
 			return;
@@ -383,9 +377,8 @@ class BoundTypeVisitor extends BindingStatementVisitor {
 					 * XXX: This is stupid. Shouldn't need this nasty
 					 * interrogation. Can we get rid of the boundTypes set?
 					 */
-					if (rhsType instanceof SetBasedTypeJudgement) {
-						boundTypes.addAll(((SetBasedTypeJudgement) rhsType)
-								.getConstituentTypes());
+					if (rhsType instanceof FiniteTypeJudgement) {
+						boundTypes.addAll((FiniteTypeJudgement) rhsType);
 					} else {
 
 						judgement = Top.INSTANCE;

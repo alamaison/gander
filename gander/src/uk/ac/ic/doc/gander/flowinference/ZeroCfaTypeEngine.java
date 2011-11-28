@@ -6,7 +6,7 @@ import uk.ac.ic.doc.gander.flowinference.dda.Goal;
 import uk.ac.ic.doc.gander.flowinference.dda.GoalSolver;
 import uk.ac.ic.doc.gander.flowinference.dda.KnowledgeBase;
 import uk.ac.ic.doc.gander.flowinference.typegoals.ExpressionTypeGoal;
-import uk.ac.ic.doc.gander.flowinference.types.judgement.TypeJudgement;
+import uk.ac.ic.doc.gander.flowinference.typegoals.TypeJudgement;
 import uk.ac.ic.doc.gander.model.Namespace;
 
 interface TypeEngine {
