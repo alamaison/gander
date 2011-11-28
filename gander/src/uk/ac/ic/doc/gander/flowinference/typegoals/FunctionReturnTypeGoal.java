@@ -8,7 +8,7 @@ import uk.ac.ic.doc.gander.ast.LocalCodeBlockVisitor;
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
 import uk.ac.ic.doc.gander.model.Function;
 import uk.ac.ic.doc.gander.model.ModelSite;
-import uk.ac.ic.doc.gander.model.Variable;
+import uk.ac.ic.doc.gander.model.name_binding.Variable;
 
 public class FunctionReturnTypeGoal implements TypeGoal {
 

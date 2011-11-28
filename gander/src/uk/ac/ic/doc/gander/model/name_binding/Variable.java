@@ -1,17 +1,20 @@
-package uk.ac.ic.doc.gander.model;
+package uk.ac.ic.doc.gander.model.name_binding;
 
+import uk.ac.ic.doc.gander.model.Model;
+import uk.ac.ic.doc.gander.model.Namespace;
+import uk.ac.ic.doc.gander.model.NamespaceName;
 import uk.ac.ic.doc.gander.model.codeobject.CodeObject;
-import uk.ac.ic.doc.gander.model.name_binding.ScopedVariable;
 
 /**
  * Represents a name appearing in a code block.
  * 
- * This is notably different from {@link ScopedVariable} which represents a name
- * and the namespace it binds in. This class represents a name and the code
- * block it appears in. The code block and namespace may correspond or they may
- * not. Only a binding lookup can decide.
+ * This class represents a name and the code block it appears in. The code block
+ * and namespace may correspond or they may not. Only a binding lookup can
+ * decide.
+ * 
+ * To look up the binding namespace, call {@link bindingLocation}.
  */
-public final class Variable {
+public class Variable {
 
 	private final String name;
 	private final CodeObject codeObject;
@@ -51,15 +54,34 @@ public final class Variable {
 		return name;
 	}
 
+	public CodeObject codeObject() {
+		return codeObject;
+	}
+
+	/**
+	 * Return the namespace whose matching name the variable bind to.
+	 * 
+	 * Variables have two namespaces of interest. One is the namespace of the
+	 * code object they appear in, the enclosing namespace. The other is the
+	 * namespace whose matching name they are an unqualified reference to, the
+	 * binding namespace.
+	 * 
+	 * Variables can appear all over the place but, in a lexically bound
+	 * language like Python, each appearance of a variable binds in a single
+	 * namespace. This namespace, the binding namespace, will be the same
+	 * throughout the code block it appears in. This method finds that
+	 * namespace.
+	 */
+	public NamespaceName bindingLocation() {
+		return Binder.resolveBindingLocation(this);
+	}
+
 	@Deprecated
 	public Namespace codeBlock() {
 		return codeObject.model().intrinsicNamespace(codeObject);
 	}
 
-	public CodeObject codeObject() {
-		return codeObject;
-	}
-
+	@Deprecated
 	public Model model() {
 		return codeObject.model();
 	}
@@ -98,7 +120,7 @@ public final class Variable {
 
 	@Override
 	public String toString() {
-		return "Variable [codeObject=" + codeObject + ", name=" + name + "]";
+		return "Variable [name=" + name + ", codeObject=" + codeObject + "]";
 	}
 
 }

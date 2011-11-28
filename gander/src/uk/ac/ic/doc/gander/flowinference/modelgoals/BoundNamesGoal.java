@@ -7,17 +7,17 @@ import org.python.pydev.parser.jython.ast.Name;
 
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
 import uk.ac.ic.doc.gander.model.ModelSite;
-import uk.ac.ic.doc.gander.model.name_binding.ScopedVariable;
 import uk.ac.ic.doc.gander.model.name_binding.InScopeNameFinder;
+import uk.ac.ic.doc.gander.model.name_binding.Variable;
 
 /**
  * Goal for {@link Name}s that bind to the given token in the given namespace.
  */
 public final class BoundNamesGoal implements ModelGoal<Name> {
 
-	private final ScopedVariable namespaceKey;
+	private final Variable namespaceKey;
 
-	public BoundNamesGoal(ScopedVariable nameBinding) {
+	public BoundNamesGoal(Variable nameBinding) {
 		this.namespaceKey = nameBinding;
 	}
 

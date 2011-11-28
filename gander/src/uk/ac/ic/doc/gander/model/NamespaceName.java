@@ -1,13 +1,13 @@
 package uk.ac.ic.doc.gander.model;
 
-import uk.ac.ic.doc.gander.model.name_binding.ScopedVariable;
+import uk.ac.ic.doc.gander.model.name_binding.Variable;
 
 /**
  * Represents a name in a namespace.
  * 
- * This differs from {@link ScopedVariable} as it doesn't represent a variable
- * name, just a named entry in the namespace. Each variable can be resolved to
- * an instance of this class.
+ * This differs from {@link Variable} as it doesn't represent a variable name,
+ * just a named entry in the namespace. Each variable can be resolved to an
+ * instance of this class.
  */
 public final class NamespaceName {
 
@@ -36,7 +36,7 @@ public final class NamespaceName {
 		this.name = name;
 		this.namespace = namespace;
 	}
-	
+
 	public String name() {
 		return name;
 	}

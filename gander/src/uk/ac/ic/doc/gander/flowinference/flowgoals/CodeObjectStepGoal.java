@@ -9,8 +9,7 @@ import uk.ac.ic.doc.gander.importing.ImportSimulationWatcher;
 import uk.ac.ic.doc.gander.importing.WholeModelImportSimulation;
 import uk.ac.ic.doc.gander.model.Module;
 import uk.ac.ic.doc.gander.model.Namespace;
-import uk.ac.ic.doc.gander.model.name_binding.Binder;
-import uk.ac.ic.doc.gander.model.name_binding.ScopedVariable;
+import uk.ac.ic.doc.gander.model.name_binding.Variable;
 
 /**
  * Flow goal for a function, class or module's value flow in a single execution.
@@ -109,8 +108,8 @@ final class CodeObjectStepGoal implements FlowStepGoal {
 		 * possible when binding a name (though others are possible when just
 		 * reading the name).
 		 */
-		ScopedVariable nameBinding = Binder.resolveBindingScope(codeObject.getName(),
-				codeObject.getParentScope());
+		Variable nameBinding = new Variable(codeObject.getName(), codeObject
+				.getParentScope().codeObject());
 		positions.add(new NamespaceKeyPosition(nameBinding));
 
 	}
@@ -128,28 +127,33 @@ final class CodeObjectStepGoal implements FlowStepGoal {
 		 * it will be the namespace of the segment of the dotted name to the
 		 * left, for instance.
 		 */
-		new WholeModelImportSimulation(codeObject.model(), new ImportSimulationWatcher() {
+		new WholeModelImportSimulation(codeObject.model(),
+				new ImportSimulationWatcher() {
 
-			public void bindingName(Namespace importReceiver,
-					Namespace loadedObject, String as) {
+					public void bindingName(Namespace importReceiver,
+							Namespace loadedObject, String as) {
 
-				/*
-				 * importReceiver may not actually be the import receiver. It
-				 * depends on the binding scope of 'as' in importReceiver. It
-				 * could be the global scope so we resolve the name here.
-				 */
+						/*
+						 * importReceiver may not actually be the import
+						 * receiver. It depends on the binding scope of 'as' in
+						 * importReceiver. It could be the global scope so we
+						 * resolve the name here.
+						 */
 
-				ScopedVariable nameBinding = Binder.resolveBindingScope(as,
-						importReceiver);
-				assert nameBinding.bindingLocation().namespace().equals(importReceiver)
-						|| nameBinding.bindingLocation().namespace().equals(
-								importReceiver.getGlobalNamespace());
+						Variable nameBinding = new Variable(as, importReceiver);
+						assert nameBinding.bindingLocation().namespace()
+								.equals(importReceiver)
+								|| nameBinding.bindingLocation().namespace()
+										.equals(
+												importReceiver
+														.getGlobalNamespace());
 
-				if (loadedObject.equals(codeObject)) {
-					positions.add(new NamespaceKeyPosition(nameBinding));
-				}
-			}
-		});
+						if (loadedObject.equals(codeObject)) {
+							positions
+									.add(new NamespaceKeyPosition(nameBinding));
+						}
+					}
+				});
 	}
 
 	@Override

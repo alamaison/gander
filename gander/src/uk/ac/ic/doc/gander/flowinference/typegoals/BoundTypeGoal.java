@@ -27,9 +27,7 @@ import uk.ac.ic.doc.gander.model.Class;
 import uk.ac.ic.doc.gander.model.Function;
 import uk.ac.ic.doc.gander.model.ModelSite;
 import uk.ac.ic.doc.gander.model.Namespace;
-import uk.ac.ic.doc.gander.model.Variable;
-import uk.ac.ic.doc.gander.model.name_binding.Binder;
-import uk.ac.ic.doc.gander.model.name_binding.ScopedVariable;
+import uk.ac.ic.doc.gander.model.name_binding.Variable;
 
 /**
  * Find conservative approximation of the types bound to a given name in a
@@ -58,8 +56,7 @@ public final class BoundTypeGoal implements TypeGoal {
 		 * mythical 'top-level' namespace where the decision as to which one the
 		 * value comes from is made at runtime.
 		 */
-		ScopedVariable bindingLocation = Binder.resolveBindingScope(variable);
-		if (bindingLocation.bindingLocation().namespace().equals(
+		if (variable.bindingLocation().namespace().equals(
 				variable.codeBlock().getGlobalNamespace())) {
 
 			types.add(new BoundTypeVisitor(manager, new Variable(variable

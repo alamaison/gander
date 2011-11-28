@@ -1,6 +1,6 @@
 package uk.ac.ic.doc.gander.model.name_binding;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -9,7 +9,6 @@ import uk.ac.ic.doc.gander.RelativeTestModelCreator;
 import uk.ac.ic.doc.gander.ScopedPrintNode;
 import uk.ac.ic.doc.gander.model.MutableModel;
 import uk.ac.ic.doc.gander.model.Namespace;
-import uk.ac.ic.doc.gander.model.name_binding.Binder;
 
 public final class BinderTest {
 	private static final String TEST_FOLDER = "../python_test_code/name_binding";
@@ -452,8 +451,8 @@ public final class BinderTest {
 	}
 
 	private Namespace resolveBindingScope(ScopedPrintNode node) {
-		return Binder.resolveBindingScope(node.getExpressionName(),
-				node.getScope()).bindingLocation().namespace();
+		return new Variable(node.getExpressionName(), node.getScope())
+				.bindingLocation().namespace();
 	}
 
 	private ScopedPrintNode findPrintNode(String moduleName, String tag)

@@ -7,10 +7,8 @@ import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
 import uk.ac.ic.doc.gander.flowinference.types.Type;
 import uk.ac.ic.doc.gander.model.Module;
 import uk.ac.ic.doc.gander.model.NamespaceName;
-import uk.ac.ic.doc.gander.model.Variable;
 import uk.ac.ic.doc.gander.model.codeobject.CodeObject;
-import uk.ac.ic.doc.gander.model.name_binding.Binder;
-import uk.ac.ic.doc.gander.model.name_binding.ScopedVariable;
+import uk.ac.ic.doc.gander.model.name_binding.Variable;
 
 /**
  * Infers the part of the type of a namespace name that comes from unqualified
@@ -79,10 +77,8 @@ final class UnqualifiedNameDefinitionsPartialSolution implements
 		 * namespace name we have been given so we have to check
 		 */
 		Variable localVariable = new Variable(name.name(), codeObject);
-		ScopedVariable localBindingLocation = Binder
-				.resolveBindingScope(localVariable);
 
-		if (localBindingLocation.bindingLocation().equals(name)) {
+		if (localVariable.bindingLocation().equals(name)) {
 			// Ok, we're sure that the name in this code object is talking about
 			// the same namespace location that we are interested in. So now
 			// we want to know what this code object binds to it

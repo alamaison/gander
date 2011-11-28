@@ -21,8 +21,7 @@ import uk.ac.ic.doc.gander.model.ModelSite;
 import uk.ac.ic.doc.gander.model.Module;
 import uk.ac.ic.doc.gander.model.Namespace;
 import uk.ac.ic.doc.gander.model.codeobject.CodeObject;
-import uk.ac.ic.doc.gander.model.name_binding.Binder;
-import uk.ac.ic.doc.gander.model.name_binding.ScopedVariable;
+import uk.ac.ic.doc.gander.model.name_binding.Variable;
 
 /**
  * Goal modelling the flow of a value out of a namespace over one execution
@@ -88,16 +87,16 @@ import uk.ac.ic.doc.gander.model.name_binding.ScopedVariable;
  */
 final class NamespaceKeyFlowStepGoal implements FlowStepGoal {
 
-	private final ScopedVariable namespaceKey;
+	private final Variable namespaceKey;
 
 	/**
-	 * XXX: This isn't quite right. A {@link ScopedVariable} has a strict meaning:
-	 * a 'naked' variable whose binding has been resolved to the namespace. But,
+	 * XXX: This isn't quite right. A {@link Variable} has a strict meaning: a
+	 * 'naked' variable whose binding has been resolved to the namespace. But,
 	 * when reasoning about the flow of namespace entries as we do here,
 	 * variables are not the only way to access a namespace. For instance
 	 * attributes.
 	 */
-	NamespaceKeyFlowStepGoal(ScopedVariable namespaceKey) {
+	NamespaceKeyFlowStepGoal(Variable namespaceKey) {
 		this.namespaceKey = namespaceKey;
 	}
 
@@ -147,10 +146,10 @@ final class NamespaceKeyFlowStepGoalSolver {
 
 	private final SubgoalManager goalManager;
 	private final ResultConcentrator<FlowPosition> positions = new ResultConcentrator<FlowPosition>();
-	private final ScopedVariable namespaceKey;
+	private final Variable namespaceKey;
 
 	public NamespaceKeyFlowStepGoalSolver(SubgoalManager goalManager,
-			ScopedVariable namespaceKey) {
+			Variable namespaceKey) {
 		this.goalManager = goalManager;
 		this.namespaceKey = namespaceKey;
 
@@ -280,12 +279,12 @@ final class NamespaceKeyFlowStepGoalSolver {
 				 */
 				if (loadedObject.getParentScope().equals(
 						namespaceKey.bindingLocation().namespace())
-						&& loadedObject.getName()
-								.equals(namespaceKey.getName())) {
+						&& loadedObject.getName().equals(namespaceKey.name())) {
 					/* from codeobject import key */
 					positions.add(referencesToImportedKey(importReceiver,
 							loadedObject, as, goalManager));
-				} else if (loadedObject.equals(namespaceKey.bindingLocation().namespace())) {
+				} else if (loadedObject.equals(namespaceKey.bindingLocation()
+						.namespace())) {
 
 					/* import codeobject */
 					positions.add(referencesToKeyOfImportedCodeObject(
@@ -295,7 +294,7 @@ final class NamespaceKeyFlowStepGoalSolver {
 			}
 
 		};
-		new WholeModelImportSimulation(namespaceKey.getModel(), worker);
+		new WholeModelImportSimulation(namespaceKey.model(), worker);
 
 		return positions.result();
 	}
@@ -322,9 +321,9 @@ final class NamespaceKeyFlowStepGoalSolver {
 		 * the binding scope of 'as' in importReceiver. It could be the global
 		 * scope so we resolve the name here.
 		 */
-		ScopedVariable importedCodeObjectKey = Binder.resolveBindingScope(as,
-				importReceiver);
-		assert importedCodeObjectKey.bindingLocation().namespace().equals(importReceiver)
+		Variable importedCodeObjectKey = new Variable(as, importReceiver);
+		assert importedCodeObjectKey.bindingLocation().namespace().equals(
+				importReceiver)
 				|| importedCodeObjectKey.bindingLocation().namespace().equals(
 						importReceiver.getGlobalNamespace());
 
@@ -375,7 +374,7 @@ final class NamespaceKeyFlowStepGoalSolver {
 		 * added to. It depends on the binding scope of 'as' in importReceiver.
 		 * It could be the global scope so we resolve the name here.
 		 */
-		ScopedVariable newKey = Binder.resolveBindingScope(as, importReceiver);
+		Variable newKey = new Variable(as, importReceiver);
 		assert newKey.bindingLocation().namespace().equals(importReceiver)
 				|| newKey.bindingLocation().namespace().equals(
 						importReceiver.getGlobalNamespace());
@@ -399,7 +398,7 @@ final class NamespaceKeyFlowStepGoalSolver {
 								throws Exception {
 							if (node.value
 									.equals(codeObjectReference.astNode())) {
-								String name = namespaceKey.getName();
+								String name = namespaceKey.name();
 
 								if (((NameTok) node.attr).id.equals(name)) {
 									positions
@@ -436,7 +435,7 @@ final class NamespaceKeyFlowStepGoalSolver {
 
 		for (ModelSite<? extends exprType> moduleReference : moduleReferenceExpressions) {
 			positions.add(searchCodeObjectForAccessToNamespaceEntry(
-					moduleReference.codeObject(), namespaceKey.getName(),
+					moduleReference.codeObject(), namespaceKey.name(),
 					moduleReference.astNode()));
 
 			if (positions.isTop())

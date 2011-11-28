@@ -10,7 +10,6 @@ import uk.ac.ic.doc.gander.ast.LocalCodeBlockVisitor;
 import uk.ac.ic.doc.gander.model.CodeObjectWalker;
 import uk.ac.ic.doc.gander.model.Model;
 import uk.ac.ic.doc.gander.model.ModelSite;
-import uk.ac.ic.doc.gander.model.Variable;
 import uk.ac.ic.doc.gander.model.codeobject.CodeObject;
 
 /**
@@ -37,7 +36,7 @@ public final class InScopeNameFinder {
 
 	private final Set<ModelSite<Name>> nameBindings = new HashSet<ModelSite<Name>>();
 
-	public InScopeNameFinder(final ScopedVariable namespaceKey) {
+	public InScopeNameFinder(final Variable namespaceKey) {
 
 		CodeObjectWalker walker = new CodeObjectWalker() {
 
@@ -63,11 +62,10 @@ public final class InScopeNameFinder {
 		return nameBindings;
 	}
 
-	private void analyseCodeBlock(final ScopedVariable nameBinding,
+	private void analyseCodeBlock(final Variable nameBinding,
 			CodeObject codeObject) {
 		if (nameBindingIsActiveInCodeBlock(nameBinding, codeObject)) {
-			addAllNameInstances(nameBinding.getName(), codeObject, nameBinding
-					.getModel());
+			addAllNameInstances(nameBinding.name(), codeObject, nameBinding.model());
 		}
 	}
 
@@ -113,11 +111,11 @@ public final class InScopeNameFinder {
 	 * @return {@code true} if the given name binding is the active binding for
 	 *         that name in the given code block; {@code false} otherwise
 	 */
-	private boolean nameBindingIsActiveInCodeBlock(ScopedVariable nameBinding,
+	private boolean nameBindingIsActiveInCodeBlock(Variable nameBinding,
 			CodeObject codeObject) {
-		ScopedVariable otherBinding = Binder.resolveBindingScope(new Variable(
-				nameBinding.getName(), codeObject));
-		return otherBinding.bindingLocation().namespace().equals(nameBinding.bindingLocation().namespace());
+		Variable otherBinding = new Variable(nameBinding.name(), codeObject);
+		return otherBinding.bindingLocation().namespace().equals(
+				nameBinding.bindingLocation().namespace());
 	}
 
 }

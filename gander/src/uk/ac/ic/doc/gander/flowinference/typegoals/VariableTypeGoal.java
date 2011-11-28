@@ -1,9 +1,7 @@
 package uk.ac.ic.doc.gander.flowinference.typegoals;
 
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
-import uk.ac.ic.doc.gander.model.Variable;
-import uk.ac.ic.doc.gander.model.name_binding.Binder;
-import uk.ac.ic.doc.gander.model.name_binding.ScopedVariable;
+import uk.ac.ic.doc.gander.model.name_binding.Variable;
 
 /**
  * Infers the type of a named variable in a code block.
@@ -30,10 +28,8 @@ final class VariableTypeGoal implements TypeGoal {
 	 */
 	public TypeJudgement recalculateSolution(SubgoalManager goalManager) {
 
-		ScopedVariable resolvedVariable = Binder.resolveBindingScope(variable);
-
-		return goalManager.registerSubgoal(new NamespaceNameTypeGoal(
-				resolvedVariable.bindingLocation()));
+		return goalManager.registerSubgoal(new NamespaceNameTypeGoal(variable
+				.bindingLocation()));
 	}
 
 	@Override

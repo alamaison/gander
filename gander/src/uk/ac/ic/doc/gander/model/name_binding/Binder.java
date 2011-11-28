@@ -7,7 +7,6 @@ import uk.ac.ic.doc.gander.model.LexicalResolver;
 import uk.ac.ic.doc.gander.model.Module;
 import uk.ac.ic.doc.gander.model.Namespace;
 import uk.ac.ic.doc.gander.model.NamespaceName;
-import uk.ac.ic.doc.gander.model.Variable;
 import uk.ac.ic.doc.gander.model.codeblock.CodeBlock;
 import uk.ac.ic.doc.gander.model.codeobject.CodeObject;
 import uk.ac.ic.doc.gander.model.codeobject.ModuleCO;
@@ -24,30 +23,23 @@ import uk.ac.ic.doc.gander.model.codeobject.ModuleCO;
  * there is always exactly one scope whose version of the name binding that name
  * might refer to. This class determines what that scope
  */
-public final class Binder {
+final class Binder {
 
 	private static final BindingScopeResolver RESOLVER = new BindingScopeResolver();
-	private static final Map<Variable, ScopedVariable> bindings = new HashMap<Variable, ScopedVariable>();
+	private static final Map<Variable, NamespaceName> locations = new HashMap<Variable, NamespaceName>();
+	
+	public static NamespaceName resolveBindingLocation(Variable variable) {
 
-	public static ScopedVariable resolveBindingScope(Variable variable) {
-
-		ScopedVariable binding = bindings.get(variable);
-		if (binding == null) {
+		NamespaceName location = locations.get(variable);
+		if (location == null) {
 			Namespace bindingNamespace = RESOLVER.resolveToken(variable.name(),
 					variable.codeObject());
-			NamespaceName location = new NamespaceName(variable.name(),
+			location = new NamespaceName(variable.name(),
 					bindingNamespace);
-			binding = new ScopedVariable(variable, location);
-			bindings.put(variable, binding);
+			locations.put(variable, location);
 		}
 
-		return binding;
-	}
-
-	@Deprecated
-	public static ScopedVariable resolveBindingScope(String name,
-			Namespace enclosingCodeObject) {
-		return resolveBindingScope(new Variable(name, enclosingCodeObject));
+		return location;
 	}
 
 	private Binder() {

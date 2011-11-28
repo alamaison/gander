@@ -41,7 +41,7 @@ import uk.ac.ic.doc.gander.flowinference.types.TObject;
 import uk.ac.ic.doc.gander.model.Model;
 import uk.ac.ic.doc.gander.model.ModelSite;
 import uk.ac.ic.doc.gander.model.Namespace;
-import uk.ac.ic.doc.gander.model.Variable;
+import uk.ac.ic.doc.gander.model.name_binding.Variable;
 
 public final class ExpressionTypeGoal implements TypeGoal {
 

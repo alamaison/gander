@@ -9,8 +9,7 @@ import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
 import uk.ac.ic.doc.gander.flowinference.flowgoals.FlowPosition;
 import uk.ac.ic.doc.gander.flowinference.flowgoals.NamespaceKeyPosition;
 import uk.ac.ic.doc.gander.model.ModelSite;
-import uk.ac.ic.doc.gander.model.name_binding.Binder;
-import uk.ac.ic.doc.gander.model.name_binding.ScopedVariable;
+import uk.ac.ic.doc.gander.model.name_binding.Variable;
 
 final class NameSituation implements FlowSituation {
 
@@ -35,8 +34,8 @@ final class NameSituation implements FlowSituation {
 		 * The name doesn't necessarily bind in the enclosing code object's
 		 * namespace. We have to resolve the lexical binding first.
 		 */
-		ScopedVariable bindingNamespace = Binder.resolveBindingScope(name.id,
-				expressionSite.namespace());
+		Variable bindingNamespace = new Variable(name.id, expressionSite
+				.codeObject());
 
 		return Collections.<FlowPosition> singleton(new NamespaceKeyPosition(
 				bindingNamespace));
