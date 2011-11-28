@@ -9,7 +9,7 @@ import java.util.Set;
 
 import uk.ac.ic.doc.gander.flowinference.types.Type;
 
-public class SetBasedTypeJudgement extends AbstractSet<Type> implements
+class SetBasedTypeJudgement extends AbstractSet<Type> implements
 		FiniteTypeJudgement {
 
 	public static final FiniteTypeJudgement BOTTOM = new SetBasedTypeJudgement(
@@ -17,7 +17,7 @@ public class SetBasedTypeJudgement extends AbstractSet<Type> implements
 
 	private final Set<Type> constituentTypes;
 
-	public SetBasedTypeJudgement(Collection<? extends Type> constituentTypes) {
+	SetBasedTypeJudgement(Collection<? extends Type> constituentTypes) {
 		assert constituentTypes != null;
 		assert !constituentTypes.contains(null);
 		

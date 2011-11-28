@@ -2,8 +2,10 @@ package uk.ac.ic.doc.gander.flowinference;
 
 import static org.junit.Assert.assertEquals;
 
-import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -16,7 +18,6 @@ import uk.ac.ic.doc.gander.ScopedAstNode;
 import uk.ac.ic.doc.gander.ScopedPrintNode;
 import uk.ac.ic.doc.gander.TaggedNodeAndScopeFinder;
 import uk.ac.ic.doc.gander.flowinference.typegoals.FiniteTypeJudgement;
-import uk.ac.ic.doc.gander.flowinference.typegoals.SetBasedTypeJudgement;
 import uk.ac.ic.doc.gander.flowinference.typegoals.Top;
 import uk.ac.ic.doc.gander.flowinference.typegoals.TypeJudgement;
 import uk.ac.ic.doc.gander.flowinference.types.TClass;
@@ -96,12 +97,12 @@ public class ZeroCfaTypeEngineTest {
 		exprType lhs = ((Assign) literal.getNode()).targets[0];
 		TypeJudgement type = engine.typeOf(lhs, literal.getScope());
 
-		Type expectedType = new TObject(model.getTopLevel().getClasses().get(
-				expectedClassName));
+		Set<Type> expectedType = Collections.<Type> singleton(new TObject(model
+				.getTopLevel().getClasses().get(expectedClassName)));
 
 		assertEquals("Target of " + literalName.toLowerCase()
 				+ " literal assignment's type not inferred correctly",
-				typeJudgement(expectedType), type);
+				expectedType, type);
 	}
 
 	@Test
@@ -181,10 +182,9 @@ public class ZeroCfaTypeEngineTest {
 		TypeJudgement type = engine.typeOf(node.getExpression(), node
 				.getScope());
 
-		ArrayList<Type> types = new ArrayList<Type>();
-		types.add(stringType);
-		types.add(integerType);
-		TypeJudgement expectedType = typeJudgement(types);
+		Set<Type> expectedType = new HashSet<Type>();
+		expectedType.add(stringType);
+		expectedType.add(integerType);
 
 		assertEquals("Variable's type not inferred correctly. We're "
 				+ "expecting a union of str and int because the analysis is "
@@ -382,7 +382,7 @@ public class ZeroCfaTypeEngineTest {
 		ScopedPrintNode node = findPrintNode("function", "what_am_i");
 		TypeJudgement type = engine.typeOf(node.getExpression(), node
 				.getScope());
-		TypeJudgement expectedType = typeJudgement(new TFunction(node
+		Set<Type> expectedType = typeJudgement(new TFunction(node
 				.getGlobalNamespace().getFunctions().get("f")));
 
 		assertEquals("Function type not inferred correctly", expectedType, type);
@@ -397,7 +397,7 @@ public class ZeroCfaTypeEngineTest {
 		ScopedPrintNode node = findPrintNode(testName, "what_am_i_via_class");
 		TypeJudgement type = engine.typeOf(node.getExpression(), node
 				.getScope());
-		TypeJudgement expectedType = typeJudgement(new TFunction(node
+		Set<Type> expectedType = typeJudgement(new TFunction(node
 				.getGlobalNamespace().getClasses().get("A").getFunctions().get(
 						"method")));
 
@@ -423,7 +423,7 @@ public class ZeroCfaTypeEngineTest {
 		ScopedPrintNode node = findPrintNode(testName, "what_am_i");
 		TypeJudgement type = engine.typeOf(node.getExpression(), node
 				.getScope());
-		TypeJudgement expectedType = typeJudgement(new TFunction(node
+		Set<Type> expectedType = typeJudgement(new TFunction(node
 				.getGlobalNamespace().getClasses().get("A").getFunctions().get(
 						"g")));
 
@@ -440,7 +440,7 @@ public class ZeroCfaTypeEngineTest {
 				"what_am_i");
 		TypeJudgement type = engine.typeOf(node.getExpression(), node
 				.getScope());
-		TypeJudgement expectedType = typeJudgement(integerType);
+		Set<Type> expectedType = typeJudgement(integerType);
 
 		assertEquals("Function return's type not inferred correctly",
 				expectedType, type);
@@ -460,11 +460,10 @@ public class ZeroCfaTypeEngineTest {
 		TypeJudgement type = engine.typeOf(node.getExpression(), node
 				.getScope());
 
-		ArrayList<Type> types = new ArrayList<Type>();
-		types.add(integerType);
-		types.add(new TObject(node.getGlobalNamespace().getFunctions().get("f")
-				.getClasses().get("X")));
-		TypeJudgement expectedType = typeJudgement(types);
+		Set<Type> expectedType = new HashSet<Type>();
+		expectedType.add(integerType);
+		expectedType.add(new TObject(node.getGlobalNamespace().getFunctions()
+				.get("f").getClasses().get("X")));
 
 		assertEquals("Function return's type not inferred correctly",
 				expectedType, type);
@@ -481,12 +480,11 @@ public class ZeroCfaTypeEngineTest {
 		TypeJudgement type = engine.typeOf(node.getExpression(), node
 				.getScope());
 
-		ArrayList<Type> types = new ArrayList<Type>();
-		types.add(stringType);
-		types.add(integerType);
-		types.add(new TObject(node.getGlobalNamespace().getFunctions().get("f")
-				.getClasses().get("X")));
-		TypeJudgement expectedType = typeJudgement(types);
+		Set<Type> expectedType = new HashSet<Type>();
+		expectedType.add(stringType);
+		expectedType.add(integerType);
+		expectedType.add(new TObject(node.getGlobalNamespace().getFunctions()
+				.get("f").getClasses().get("X")));
 
 		assertEquals("Function return's type not inferred correctly",
 				expectedType, type);
@@ -526,10 +524,9 @@ public class ZeroCfaTypeEngineTest {
 	}
 
 	private void doGlobalTest(String tag) throws Exception {
-		ArrayList<Type> types = new ArrayList<Type>();
-		types.add(stringType);
-		types.add(integerType);
-		TypeJudgement expectedType = typeJudgement(types);
+		Set<Type> expectedType = new HashSet<Type>();
+		expectedType.add(stringType);
+		expectedType.add(integerType);
 
 		ScopedPrintNode node = findPrintNode("global", tag);
 		TypeJudgement type = engine.typeOf(node.getExpression(), node
@@ -544,14 +541,13 @@ public class ZeroCfaTypeEngineTest {
 			throws Exception {
 		ScopedPrintNode node = findPrintNode(moduleName, tag);
 
-		ArrayList<Type> types = new ArrayList<Type>();
-		types.add(stringType);
-		types.add(integerType);
-		types.add(listType);
-		types.add(new TObject(model.loadModule(
+		Set<Type> expectedType = new HashSet<Type>();
+		expectedType.add(stringType);
+		expectedType.add(integerType);
+		expectedType.add(listType);
+		expectedType.add(new TObject(model.loadModule(
 				"global_defined_in_other_module_worker").getClasses()
 				.get("Bob")));
-		TypeJudgement expectedType = typeJudgement(types);
 
 		TypeJudgement type = engine.typeOf(node.getExpression(), node
 				.getScope());
@@ -589,7 +585,7 @@ public class ZeroCfaTypeEngineTest {
 	@Test
 	public void methodParameterMono() throws Throwable {
 		String testName = "method_parameter_mono";
-		TypeJudgement expectedType = typeJudgement(integerType);
+		Set<Type> expectedType = typeJudgement(integerType);
 
 		ScopedPrintNode node = findPrintNode(testName, "what_am_i");
 		TypeJudgement type = engine.typeOf(node.getExpression(), node
@@ -602,11 +598,10 @@ public class ZeroCfaTypeEngineTest {
 	@Test
 	public void methodParameterPoly() throws Throwable {
 		String testName = "method_parameter_poly";
-		ArrayList<Type> types = new ArrayList<Type>();
-		types.add(stringType);
-		types.add(integerType);
-		types.add(listType);
-		TypeJudgement expectedType = typeJudgement(types);
+		Set<Type> expectedType = new HashSet<Type>();
+		expectedType.add(stringType);
+		expectedType.add(integerType);
+		expectedType.add(listType);
 
 		ScopedPrintNode node = findPrintNode(testName, "what_am_i");
 		TypeJudgement type = engine.typeOf(node.getExpression(), node
@@ -619,10 +614,9 @@ public class ZeroCfaTypeEngineTest {
 	@Test
 	public void methodParameterBound() throws Throwable {
 		String testName = "method_parameter_bound";
-		ArrayList<Type> types = new ArrayList<Type>();
-		types.add(stringType);
-		types.add(integerType);
-		TypeJudgement expectedType = typeJudgement(types);
+		Set<Type> expectedType = new HashSet<Type>();
+		expectedType.add(stringType);
+		expectedType.add(integerType);
 
 		ScopedPrintNode node = findPrintNode(testName, "what_am_i");
 		TypeJudgement type = engine.typeOf(node.getExpression(), node
@@ -640,7 +634,7 @@ public class ZeroCfaTypeEngineTest {
 				"what_am_i");
 		TypeJudgement type = engine.typeOf(node.getExpression(), node
 				.getScope());
-		TypeJudgement expectedType = typeJudgement(new TObject(node
+		Set<Type> expectedType = typeJudgement(new TObject(node
 				.getGlobalNamespace().getClasses().get("A")));
 
 		assertEquals("Method parameter's type not inferred correctly",
@@ -653,7 +647,7 @@ public class ZeroCfaTypeEngineTest {
 				"method_parameter_self_constructor", "what_am_i");
 		TypeJudgement type = engine.typeOf(node.getExpression(), node
 				.getScope());
-		TypeJudgement expectedType = typeJudgement(new TObject(node
+		Set<Type> expectedType = typeJudgement(new TObject(node
 				.getGlobalNamespace().getClasses().get("A")));
 
 		assertEquals("Constructor parameter's type not inferred correctly",
@@ -667,7 +661,7 @@ public class ZeroCfaTypeEngineTest {
 
 		TypeJudgement type = engine.typeOf(node.getExpression(), node
 				.getScope());
-		TypeJudgement expectedType = typeJudgement(stringType);
+		Set<Type> expectedType = typeJudgement(stringType);
 
 		assertEquals("Function parameter's type not inferred correctly",
 				expectedType, type);
@@ -680,10 +674,9 @@ public class ZeroCfaTypeEngineTest {
 		TypeJudgement type = engine.typeOf(node.getExpression(), node
 				.getScope());
 
-		ArrayList<Type> types = new ArrayList<Type>();
-		types.add(stringType);
-		types.add(integerType);
-		TypeJudgement expectedType = typeJudgement(types);
+		Set<Type> expectedType = new HashSet<Type>();
+		expectedType.add(stringType);
+		expectedType.add(integerType);
 
 		assertEquals("Function parameter's type not inferred correctly",
 				expectedType, type);
@@ -696,10 +689,9 @@ public class ZeroCfaTypeEngineTest {
 		TypeJudgement type = engine.typeOf(node.getExpression(), node
 				.getScope());
 
-		ArrayList<Type> types = new ArrayList<Type>();
-		types.add(stringType);
-		types.add(integerType);
-		TypeJudgement expectedType = typeJudgement(types);
+		Set<Type> expectedType = new HashSet<Type>();
+		expectedType.add(stringType);
+		expectedType.add(integerType);
 
 		assertEquals("Function parameter's type not inferred "
 				+ "correctly. This probably means that the analysis didn't "
@@ -714,10 +706,9 @@ public class ZeroCfaTypeEngineTest {
 		TypeJudgement type = engine.typeOf(node.getExpression(), node
 				.getScope());
 
-		ArrayList<Type> types = new ArrayList<Type>();
-		types.add(stringType);
-		types.add(integerType);
-		TypeJudgement expectedType = typeJudgement(types);
+		Set<Type> expectedType = new HashSet<Type>();
+		expectedType.add(stringType);
+		expectedType.add(integerType);
 
 		assertEquals("Function parameter's type not inferred "
 				+ "correctly. This probably means that the analysis didn't "
@@ -734,10 +725,9 @@ public class ZeroCfaTypeEngineTest {
 		TypeJudgement type = engine.typeOf(node.getExpression(), node
 				.getScope());
 
-		ArrayList<Type> types = new ArrayList<Type>();
-		types.add(stringType);
-		types.add(integerType);
-		TypeJudgement expectedType = typeJudgement(types);
+		Set<Type> expectedType = new HashSet<Type>();
+		expectedType.add(stringType);
+		expectedType.add(integerType);
 
 		assertEquals("Function parameter's type not inferred "
 				+ "correctly. This probably means that the analysis didn't "
@@ -754,10 +744,9 @@ public class ZeroCfaTypeEngineTest {
 		TypeJudgement type = engine.typeOf(node.getExpression(), node
 				.getScope());
 
-		ArrayList<Type> types = new ArrayList<Type>();
-		types.add(stringType);
-		types.add(integerType);
-		TypeJudgement expectedType = typeJudgement(types);
+		Set<Type> expectedType = new HashSet<Type>();
+		expectedType.add(stringType);
+		expectedType.add(integerType);
 
 		assertEquals("Function parameter's type not inferred "
 				+ "correctly. This probably means that the analysis didn't "
@@ -774,10 +763,9 @@ public class ZeroCfaTypeEngineTest {
 		TypeJudgement type = engine.typeOf(node.getExpression(), node
 				.getScope());
 
-		ArrayList<Type> types = new ArrayList<Type>();
-		types.add(stringType);
-		types.add(integerType);
-		TypeJudgement expectedType = typeJudgement(types);
+		Set<Type> expectedType = new HashSet<Type>();
+		expectedType.add(stringType);
+		expectedType.add(integerType);
 
 		assertEquals("Function parameter's type not inferred "
 				+ "correctly. This probably means that the analysis didn't "
@@ -794,10 +782,9 @@ public class ZeroCfaTypeEngineTest {
 		TypeJudgement type = engine.typeOf(node.getExpression(), node
 				.getScope());
 
-		ArrayList<Type> types = new ArrayList<Type>();
-		types.add(stringType);
-		types.add(integerType);
-		TypeJudgement expectedType = typeJudgement(types);
+		Set<Type> expectedType = new HashSet<Type>();
+		expectedType.add(stringType);
+		expectedType.add(integerType);
 
 		assertEquals("Function parameter's type not inferred "
 				+ "correctly. This probably means that the analysis didn't "
@@ -814,14 +801,13 @@ public class ZeroCfaTypeEngineTest {
 		TypeJudgement type = engine.typeOf(node.getExpression(), node
 				.getScope());
 
-		ArrayList<Type> types = new ArrayList<Type>();
-		types.add(stringType);
+		Set<Type> expectedType = new HashSet<Type>();
+		expectedType.add(stringType);
 		Class x = model
 				.lookup(
 						"function_parameter_called_from_other_module_through_class_aux")
 				.getClasses().get("X");
-		types.add(new TObject(x));
-		TypeJudgement expectedType = typeJudgement(types);
+		expectedType.add(new TObject(x));
 
 		assertEquals("Function parameter's type not inferred "
 				+ "correctly. This probably means that the analysis didn't "
@@ -838,10 +824,9 @@ public class ZeroCfaTypeEngineTest {
 		TypeJudgement type = engine.typeOf(node.getExpression(), node
 				.getScope());
 
-		ArrayList<Type> types = new ArrayList<Type>();
-		types.add(stringType);
-		types.add(integerType);
-		TypeJudgement expectedType = typeJudgement(types);
+		Set<Type> expectedType = new HashSet<Type>();
+		expectedType.add(stringType);
+		expectedType.add(integerType);
 
 		assertEquals("Function parameter's type not inferred "
 				+ "correctly. This probably means that the analysis didn't "
@@ -858,10 +843,9 @@ public class ZeroCfaTypeEngineTest {
 		TypeJudgement type = engine.typeOf(node.getExpression(), node
 				.getScope());
 
-		ArrayList<Type> types = new ArrayList<Type>();
-		types.add(stringType);
-		types.add(integerType);
-		TypeJudgement expectedType = typeJudgement(types);
+		Set<Type> expectedType = new HashSet<Type>();
+		expectedType.add(stringType);
+		expectedType.add(integerType);
 
 		assertEquals("Function parameter's type not inferred "
 				+ "correctly. This probably means that the analysis didn't "
@@ -878,10 +862,9 @@ public class ZeroCfaTypeEngineTest {
 		TypeJudgement type = engine.typeOf(node.getExpression(), node
 				.getScope());
 
-		ArrayList<Type> types = new ArrayList<Type>();
-		types.add(stringType);
-		types.add(integerType);
-		TypeJudgement expectedType = typeJudgement(types);
+		Set<Type> expectedType = new HashSet<Type>();
+		expectedType.add(stringType);
+		expectedType.add(integerType);
 
 		assertEquals("Function parameter's type not inferred "
 				+ "correctly. This probably means that the analysis didn't "
@@ -896,11 +879,10 @@ public class ZeroCfaTypeEngineTest {
 		TypeJudgement type = engine.typeOf(node.getExpression(), node
 				.getScope());
 
-		ArrayList<Type> types = new ArrayList<Type>();
-		types.add(stringType);
-		types.add(integerType);
-		types.add(listType);
-		TypeJudgement expectedType = typeJudgement(types);
+		Set<Type> expectedType = new HashSet<Type>();
+		expectedType.add(stringType);
+		expectedType.add(integerType);
+		expectedType.add(listType);
 
 		assertEquals("Function parameter's type not inferred "
 				+ "correctly. This probably means that the analysis didn't "
@@ -944,10 +926,9 @@ public class ZeroCfaTypeEngineTest {
 		TypeJudgement type = engine.typeOf(node.getExpression(), node
 				.getScope());
 
-		ArrayList<Type> types = new ArrayList<Type>();
-		types.add(stringType);
-		types.add(listType);
-		TypeJudgement expectedType = typeJudgement(types);
+		Set<Type> expectedType = new HashSet<Type>();
+		expectedType.add(stringType);
+		expectedType.add(listType);
 
 		assertEquals("Function parameter's type not inferred "
 				+ "correctly. This probably means that the analysis didn't "
@@ -962,10 +943,9 @@ public class ZeroCfaTypeEngineTest {
 		TypeJudgement type = engine.typeOf(node.getExpression(), node
 				.getScope());
 
-		ArrayList<Type> types = new ArrayList<Type>();
-		types.add(stringType);
-		types.add(listType);
-		TypeJudgement expectedType = typeJudgement(types);
+		Set<Type> expectedType = new HashSet<Type>();
+		expectedType.add(stringType);
+		expectedType.add(listType);
 
 		assertEquals("Function parameter's type not inferred "
 				+ "correctly. This probably means that the analysis didn't "
@@ -980,10 +960,10 @@ public class ZeroCfaTypeEngineTest {
 		TypeJudgement type = engine.typeOf(node.getExpression(), node
 				.getScope());
 
-		ArrayList<Type> types = new ArrayList<Type>();
-		types.add(stringType);
-		types.add(new TObject(node.getGlobalNamespace().getClasses().get("X")));
-		TypeJudgement expectedType = typeJudgement(types);
+		Set<Type> expectedType = new HashSet<Type>();
+		expectedType.add(stringType);
+		expectedType.add(new TObject(node.getGlobalNamespace().getClasses()
+				.get("X")));
 
 		assertEquals("Function parameter's type not inferred "
 				+ "correctly. This probably means that the analysis didn't "
@@ -999,10 +979,10 @@ public class ZeroCfaTypeEngineTest {
 		TypeJudgement type = engine.typeOf(node.getExpression(), node
 				.getScope());
 
-		ArrayList<Type> types = new ArrayList<Type>();
-		types.add(stringType);
-		types.add(new TObject(node.getGlobalNamespace().getClasses().get("X")));
-		TypeJudgement expectedType = typeJudgement(types);
+		Set<Type> expectedType = new HashSet<Type>();
+		expectedType.add(stringType);
+		expectedType.add(new TObject(node.getGlobalNamespace().getClasses()
+				.get("X")));
 
 		assertEquals("Function parameter's type not inferred "
 				+ "correctly. This probably means that the analysis didn't "
@@ -1018,10 +998,9 @@ public class ZeroCfaTypeEngineTest {
 		TypeJudgement type = engine.typeOf(node.getExpression(), node
 				.getScope());
 
-		ArrayList<Type> types = new ArrayList<Type>();
-		types.add(stringType);
-		types.add(integerType);
-		TypeJudgement expectedType = typeJudgement(types);
+		Set<Type> expectedType = new HashSet<Type>();
+		expectedType.add(stringType);
+		expectedType.add(integerType);
 
 		assertEquals("Function parameter's type not inferred "
 				+ "correctly. This probably means that the analysis didn't "
@@ -1033,7 +1012,7 @@ public class ZeroCfaTypeEngineTest {
 	@Test
 	public void objectAttributeMono() throws Throwable {
 		String testName = "object_attribute_mono";
-		TypeJudgement expectedType = typeJudgement(listType);
+		Set<Type> expectedType = typeJudgement(listType);
 
 		ScopedPrintNode node = findPrintNode(testName, "what_am_i_inside");
 		TypeJudgement type = engine.typeOf(node.getExpression(), node
@@ -1057,12 +1036,12 @@ public class ZeroCfaTypeEngineTest {
 		TypeJudgement type = engine.typeOf(node.getExpression(), node
 				.getScope());
 
-		ArrayList<Type> types = new ArrayList<Type>();
-		types.add(stringType);
-		types.add(integerType);
-		types.add(listType);
-		types.add(new TObject(node.getGlobalNamespace().getClasses().get("A")));
-		TypeJudgement expectedType = typeJudgement(types);
+		Set<Type> expectedType = new HashSet<Type>();
+		expectedType.add(stringType);
+		expectedType.add(integerType);
+		expectedType.add(listType);
+		expectedType.add(new TObject(node.getGlobalNamespace().getClasses()
+				.get("A")));
 
 		assertEquals("Attribute's type not inferred correctly", expectedType,
 				type);
@@ -1077,7 +1056,7 @@ public class ZeroCfaTypeEngineTest {
 	@Test
 	public void objectAttributeDistracted() throws Throwable {
 		String testName = "object_attribute_distracted";
-		TypeJudgement expectedType = typeJudgement(listType);
+		Set<Type> expectedType = typeJudgement(listType);
 
 		ScopedPrintNode node = findPrintNode(testName, "what_am_i_inside");
 		TypeJudgement type = engine.typeOf(node.getExpression(), node
@@ -1091,10 +1070,9 @@ public class ZeroCfaTypeEngineTest {
 		node = findPrintNode(testName, "what_am_i_outside");
 		type = engine.typeOf(node.getExpression(), node.getScope());
 
-		ArrayList<Type> types = new ArrayList<Type>();
-		types.add(stringType);
-		types.add(listType);
-		expectedType = typeJudgement(types);
+		expectedType = new HashSet<Type>();
+		expectedType.add(stringType);
+		expectedType.add(listType);
 
 		assertEquals("Attribute's type not inferred correctly. "
 				+ "It should include both possibilities for i as it can't "
@@ -1105,7 +1083,7 @@ public class ZeroCfaTypeEngineTest {
 	@Test
 	public void objectAttributeSetInConstructor() throws Throwable {
 		String testName = "object_attribute_set_in_constructor";
-		TypeJudgement expectedType = typeJudgement(listType);
+		Set<Type> expectedType = typeJudgement(listType);
 
 		ScopedPrintNode node = findPrintNode(testName, "what_am_i");
 		TypeJudgement type = engine.typeOf(node.getExpression(), node
@@ -1126,10 +1104,9 @@ public class ZeroCfaTypeEngineTest {
 		TypeJudgement type = engine.typeOf(node.getExpression(), node
 				.getScope());
 
-		ArrayList<Type> types = new ArrayList<Type>();
-		types.add(stringType);
-		types.add(listType);
-		TypeJudgement expectedType = typeJudgement(types);
+		Set<Type> expectedType = new HashSet<Type>();
+		expectedType.add(stringType);
+		expectedType.add(listType);
 
 		assertEquals("Attribute's type not inferred correctly", expectedType,
 				type);
@@ -1150,10 +1127,9 @@ public class ZeroCfaTypeEngineTest {
 		TypeJudgement type = engine.typeOf(node.getExpression(), node
 				.getScope());
 
-		ArrayList<Type> types = new ArrayList<Type>();
-		types.add(stringType);
-		types.add(listType);
-		TypeJudgement expectedType = typeJudgement(types);
+		Set<Type> expectedType = new HashSet<Type>();
+		expectedType.add(stringType);
+		expectedType.add(listType);
 
 		assertEquals("Attribute's type not inferred correctly", expectedType,
 				type);
@@ -1173,7 +1149,7 @@ public class ZeroCfaTypeEngineTest {
 		TypeJudgement type = engine.typeOf(node.getExpression(), node
 				.getScope());
 
-		TypeJudgement expectedType = typeJudgement(new TModule(model
+		Set<Type> expectedType = typeJudgement(new TModule(model
 				.lookup("import_module_aux")));
 
 		assertEquals("Imported module's type not inferred correctly",
@@ -1188,7 +1164,7 @@ public class ZeroCfaTypeEngineTest {
 		TypeJudgement type = engine.typeOf(node.getExpression(), node
 				.getScope());
 
-		TypeJudgement expectedType = typeJudgement(new TModule(model
+		Set<Type> expectedType = typeJudgement(new TModule(model
 				.lookup("import_module_aux")));
 
 		assertEquals("Imported module's type not inferred correctly",
@@ -1203,7 +1179,7 @@ public class ZeroCfaTypeEngineTest {
 		TypeJudgement type = engine.typeOf(node.getExpression(), node
 				.getScope());
 
-		TypeJudgement expectedType = typeJudgement(new TFunction(model.lookup(
+		Set<Type> expectedType = typeJudgement(new TFunction(model.lookup(
 				"import_function_aux").getFunctions().get("fun")));
 
 		assertEquals("Imported function's type not inferred correctly",
@@ -1218,7 +1194,7 @@ public class ZeroCfaTypeEngineTest {
 		TypeJudgement type = engine.typeOf(node.getExpression(), node
 				.getScope());
 
-		TypeJudgement expectedType = typeJudgement(new TFunction(model.lookup(
+		Set<Type> expectedType = typeJudgement(new TFunction(model.lookup(
 				"import_function_aux").getFunctions().get("fun")));
 
 		assertEquals("Imported function's type not inferred correctly",
@@ -1232,7 +1208,7 @@ public class ZeroCfaTypeEngineTest {
 		TypeJudgement type = engine.typeOf(node.getExpression(), node
 				.getScope());
 
-		TypeJudgement expectedType = typeJudgement(noneType);
+		Set<Type> expectedType = typeJudgement(noneType);
 
 		assertEquals("Function parameter's type not inferred "
 				+ "correctly. This probably means that the analysis didn't "
@@ -1249,7 +1225,7 @@ public class ZeroCfaTypeEngineTest {
 		TypeJudgement type = engine.typeOf(node.getExpression(), node
 				.getScope());
 
-		TypeJudgement expectedType = typeJudgement(new TFunction(node
+		Set<Type> expectedType = typeJudgement(new TFunction(node
 				.getGlobalNamespace().getClasses().get("B").getFunctions().get(
 						"m")));
 		assertEquals("Didn't infer inherited method type correctly. "
@@ -1300,11 +1276,7 @@ public class ZeroCfaTypeEngineTest {
 		return ScopedPrintNode.findPrintNode(model, moduleName, tag);
 	}
 
-	private SetBasedTypeJudgement typeJudgement(ArrayList<Type> types) {
-		return new SetBasedTypeJudgement(types);
-	}
-
-	private SetBasedTypeJudgement typeJudgement(Type... types) {
-		return new SetBasedTypeJudgement(Arrays.asList(types));
+	private Set<Type> typeJudgement(Type... types) {
+		return new HashSet<Type>(Arrays.asList(types));
 	}
 }
