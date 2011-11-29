@@ -6,10 +6,11 @@ import org.python.pydev.parser.jython.ast.Name;
 
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
 import uk.ac.ic.doc.gander.flowinference.flowgoals.FlowPosition;
-import uk.ac.ic.doc.gander.flowinference.flowgoals.NamespaceKeyPosition;
+import uk.ac.ic.doc.gander.flowinference.flowgoals.NamespaceNamePosition;
 import uk.ac.ic.doc.gander.flowinference.result.FiniteResult;
 import uk.ac.ic.doc.gander.flowinference.result.Result;
 import uk.ac.ic.doc.gander.model.ModelSite;
+import uk.ac.ic.doc.gander.model.NamespaceName;
 import uk.ac.ic.doc.gander.model.name_binding.Variable;
 
 final class NameSituation implements FlowSituation {
@@ -35,11 +36,11 @@ final class NameSituation implements FlowSituation {
 		 * The name doesn't necessarily bind in the enclosing code object's
 		 * namespace. We have to resolve the lexical binding first.
 		 */
-		Variable bindingNamespace = new Variable(name.id, expressionSite
-				.codeObject());
+		NamespaceName bindingNamespace = new Variable(name.id, expressionSite
+				.codeObject()).bindingLocation();
 
 		return new FiniteResult<FlowPosition>(Collections
-				.singleton(new NamespaceKeyPosition(bindingNamespace)));
+				.singleton(new NamespaceNamePosition(bindingNamespace)));
 	}
 
 	@Override

@@ -43,7 +43,7 @@ public class FunctionReturnTypeGoal implements TypeGoal {
 
 					if (node.value != null) {
 						ModelSite<exprType> returnValue = new ModelSite<exprType>(
-								node.value, function);
+								node.value, function.codeObject());
 						ExpressionTypeGoal typer = new ExpressionTypeGoal(
 								returnValue);
 						returnTypes.add(goalManager.registerSubgoal(typer));
@@ -87,7 +87,7 @@ public class FunctionReturnTypeGoal implements TypeGoal {
 
 	private Result<Type> noneType(SubgoalManager goalManager) {
 		VariableTypeGoal typer = new VariableTypeGoal(new Variable("None",
-				function));
+				function.codeObject()));
 		return goalManager.registerSubgoal(typer);
 	}
 

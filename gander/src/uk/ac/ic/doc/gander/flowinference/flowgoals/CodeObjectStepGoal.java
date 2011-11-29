@@ -10,6 +10,7 @@ import uk.ac.ic.doc.gander.importing.ImportSimulationWatcher;
 import uk.ac.ic.doc.gander.importing.WholeModelImportSimulation;
 import uk.ac.ic.doc.gander.model.Module;
 import uk.ac.ic.doc.gander.model.Namespace;
+import uk.ac.ic.doc.gander.model.NamespaceName;
 import uk.ac.ic.doc.gander.model.name_binding.Variable;
 
 /**
@@ -60,7 +61,7 @@ final class CodeObjectStepGoal implements FlowStepGoal {
 		Set<FlowPosition> positions = new HashSet<FlowPosition>();
 
 		addLocalFlow(positions);
-		//addNamespacesNamesThatReferenceOurCodeObject(positions);
+		// addNamespacesNamesThatReferenceOurCodeObject(positions);
 
 		return new FiniteResult<FlowPosition>(positions);
 	}
@@ -111,7 +112,7 @@ final class CodeObjectStepGoal implements FlowStepGoal {
 		 */
 		Variable nameBinding = new Variable(codeObject.getName(), codeObject
 				.getParentScope().codeObject());
-		positions.add(new NamespaceKeyPosition(nameBinding));
+		positions.add(new NamespaceNamePosition(nameBinding.bindingLocation()));
 
 	}
 
@@ -141,17 +142,15 @@ final class CodeObjectStepGoal implements FlowStepGoal {
 						 * resolve the name here.
 						 */
 
-						Variable nameBinding = new Variable(as, importReceiver);
-						assert nameBinding.bindingLocation().namespace()
-								.equals(importReceiver)
-								|| nameBinding.bindingLocation().namespace()
-										.equals(
-												importReceiver
-														.getGlobalNamespace());
+						NamespaceName nameBinding = new Variable(as,
+								importReceiver.codeObject()).bindingLocation();
+						assert nameBinding.namespace().equals(importReceiver)
+								|| nameBinding.namespace().equals(
+										importReceiver.getGlobalNamespace());
 
 						if (loadedObject.equals(codeObject)) {
 							positions
-									.add(new NamespaceKeyPosition(nameBinding));
+									.add(new NamespaceNamePosition(nameBinding));
 						}
 					}
 				});

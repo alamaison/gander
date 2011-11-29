@@ -7,7 +7,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 
-public class FiniteResult<T> extends AbstractSet<T> implements Result<T> {
+public final class FiniteResult<T> extends AbstractSet<T> implements Result<T> {
 
 	private final Set<T> constituentResults; // unmodifiable
 

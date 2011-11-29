@@ -7,18 +7,20 @@ import org.python.pydev.parser.jython.ast.Name;
 
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
 import uk.ac.ic.doc.gander.model.ModelSite;
-import uk.ac.ic.doc.gander.model.name_binding.InScopeNameFinder;
-import uk.ac.ic.doc.gander.model.name_binding.Variable;
+import uk.ac.ic.doc.gander.model.NamespaceName;
+import uk.ac.ic.doc.gander.model.name_binding.NameScopeFinder;
 
 /**
- * Goal for {@link Name}s that bind to the given token in the given namespace.
+ * Goal finding which variables (AST {@link Name}s) bind in the given namespace.
+ * 
+ * In other words, which are in this namespace's scope for the given name.
  */
-public final class BoundNamesGoal implements ModelGoal<Name> {
+public final class NameScopeGoal implements ModelGoal<Name> {
 
-	private final Variable namespaceKey;
+	private final NamespaceName name;
 
-	public BoundNamesGoal(Variable nameBinding) {
-		this.namespaceKey = nameBinding;
+	public NameScopeGoal(NamespaceName namespaceName) {
+		this.name = namespaceName;
 	}
 
 	public Set<ModelSite<Name>> initialSolution() {
@@ -26,15 +28,14 @@ public final class BoundNamesGoal implements ModelGoal<Name> {
 	}
 
 	public Set<ModelSite<Name>> recalculateSolution(SubgoalManager goalManager) {
-		return new InScopeNameFinder(namespaceKey).getNameBindings();
+		return new NameScopeFinder(name).getNameBindings();
 	}
 
 	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result
-				+ ((namespaceKey == null) ? 0 : namespaceKey.hashCode());
+		result = prime * result + ((name == null) ? 0 : name.hashCode());
 		return result;
 	}
 
@@ -46,18 +47,18 @@ public final class BoundNamesGoal implements ModelGoal<Name> {
 			return false;
 		if (getClass() != obj.getClass())
 			return false;
-		BoundNamesGoal other = (BoundNamesGoal) obj;
-		if (namespaceKey == null) {
-			if (other.namespaceKey != null)
+		NameScopeGoal other = (NameScopeGoal) obj;
+		if (name == null) {
+			if (other.name != null)
 				return false;
-		} else if (!namespaceKey.equals(other.namespaceKey))
+		} else if (!name.equals(other.name))
 			return false;
 		return true;
 	}
 
 	@Override
 	public String toString() {
-		return "BoundNamesGoal [namespaceKey=" + namespaceKey + "]";
+		return "NameScopeGoal [name=" + name + "]";
 	}
 
 }

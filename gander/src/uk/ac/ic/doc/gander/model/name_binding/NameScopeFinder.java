@@ -8,8 +8,8 @@ import org.python.pydev.parser.jython.ast.Name;
 
 import uk.ac.ic.doc.gander.ast.LocalCodeBlockVisitor;
 import uk.ac.ic.doc.gander.model.CodeObjectWalker;
-import uk.ac.ic.doc.gander.model.Model;
 import uk.ac.ic.doc.gander.model.ModelSite;
+import uk.ac.ic.doc.gander.model.NamespaceName;
 import uk.ac.ic.doc.gander.model.codeobject.CodeObject;
 
 /**
@@ -32,17 +32,17 @@ import uk.ac.ic.doc.gander.model.codeobject.CodeObject;
  * Names can be shadowed by local variable declarations or global statements in
  * their code block. This class essentially filters those out.
  */
-public final class InScopeNameFinder {
+public final class NameScopeFinder {
 
 	private final Set<ModelSite<Name>> nameBindings = new HashSet<ModelSite<Name>>();
 
-	public InScopeNameFinder(final Variable namespaceKey) {
+	public NameScopeFinder(final NamespaceName name) {
 
 		CodeObjectWalker walker = new CodeObjectWalker() {
 
 			@Override
 			protected void visitCodeObject(CodeObject codeObject) {
-				analyseCodeBlock(namespaceKey, codeObject);
+				analyseCodeBlock(name, codeObject);
 			}
 
 		};
@@ -50,7 +50,7 @@ public final class InScopeNameFinder {
 		// Name bindings will only ever appear in or below the namespace they
 		// bind in so it it ok to start the search here rather than at the root
 		// of the model
-		walker.walk(namespaceKey.bindingLocation().namespace().codeObject());
+		walker.walk(name.namespace().codeObject());
 	}
 
 	/**
@@ -62,15 +62,15 @@ public final class InScopeNameFinder {
 		return nameBindings;
 	}
 
-	private void analyseCodeBlock(final Variable nameBinding,
+	private void analyseCodeBlock(NamespaceName nameBinding,
 			CodeObject codeObject) {
 		if (nameBindingIsActiveInCodeBlock(nameBinding, codeObject)) {
-			addAllNameInstances(nameBinding.name(), codeObject, nameBinding.model());
+			addAllNameInstances(nameBinding.name(), codeObject);
 		}
 	}
 
 	private void addAllNameInstances(final String name,
-			final CodeObject codeObject, final Model model) {
+			final CodeObject codeObject) {
 		try {
 			codeObject.codeBlock().accept(new LocalCodeBlockVisitor() {
 
@@ -111,11 +111,12 @@ public final class InScopeNameFinder {
 	 * @return {@code true} if the given name binding is the active binding for
 	 *         that name in the given code block; {@code false} otherwise
 	 */
-	private boolean nameBindingIsActiveInCodeBlock(Variable nameBinding,
+	private boolean nameBindingIsActiveInCodeBlock(NamespaceName nameBinding,
 			CodeObject codeObject) {
+
 		Variable otherBinding = new Variable(nameBinding.name(), codeObject);
-		return otherBinding.bindingLocation().namespace().equals(
-				nameBinding.bindingLocation().namespace());
+
+		return otherBinding.bindingLocation().equals(nameBinding);
 	}
 
 }

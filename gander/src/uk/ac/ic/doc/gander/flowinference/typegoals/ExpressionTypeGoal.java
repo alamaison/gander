@@ -95,22 +95,27 @@ public final class ExpressionTypeGoal implements TypeGoal {
 		public TypeFinder(Namespace scope, SubgoalManager goalManager) {
 			this.goalManager = goalManager;
 			Model model = scope.model();
-			dictType = new FiniteResult<Type>(Collections.singleton(new TObject(
-			model.getTopLevel().getClasses().get("dict"))));
-			listType = new FiniteResult<Type>(Collections.singleton(new TObject(
-			model.getTopLevel().getClasses().get("list"))));
+			dictType = new FiniteResult<Type>(Collections
+					.singleton(new TObject(model.getTopLevel().getClasses()
+							.get("dict"))));
+			listType = new FiniteResult<Type>(Collections
+					.singleton(new TObject(model.getTopLevel().getClasses()
+							.get("list"))));
 			setType = new FiniteResult<Type>(Collections.singleton(new TObject(
-			model.getTopLevel().getClasses().get("set"))));
+					model.getTopLevel().getClasses().get("set"))));
 			intType = new FiniteResult<Type>(Collections.singleton(new TObject(
-			model.getTopLevel().getClasses().get("int"))));
-			longType = new FiniteResult<Type>(Collections.singleton(new TObject(
-			model.getTopLevel().getClasses().get("long"))));
-			floatType = new FiniteResult<Type>(Collections.singleton(new TObject(
-			model.getTopLevel().getClasses().get("float"))));
+					model.getTopLevel().getClasses().get("int"))));
+			longType = new FiniteResult<Type>(Collections
+					.singleton(new TObject(model.getTopLevel().getClasses()
+							.get("long"))));
+			floatType = new FiniteResult<Type>(Collections
+					.singleton(new TObject(model.getTopLevel().getClasses()
+							.get("float"))));
 			strType = new FiniteResult<Type>(Collections.singleton(new TObject(
-			model.getTopLevel().getClasses().get("str"))));
-			tupleType = new FiniteResult<Type>(Collections.singleton(new TObject(
-			model.getTopLevel().getClasses().get("tuple"))));
+					model.getTopLevel().getClasses().get("str"))));
+			tupleType = new FiniteResult<Type>(Collections
+					.singleton(new TObject(model.getTopLevel().getClasses()
+							.get("tuple"))));
 			topType = TopT.INSTANCE;
 		}
 
@@ -230,7 +235,7 @@ public final class ExpressionTypeGoal implements TypeGoal {
 
 		@Override
 		public Object visitName(Name node) throws Exception {
-			Variable variable = new Variable(node.id, expression.namespace());
+			Variable variable = new Variable(node.id, expression.codeObject());
 			VariableTypeGoal typer = new VariableTypeGoal(variable);
 			return goalManager.registerSubgoal(typer);
 		}
