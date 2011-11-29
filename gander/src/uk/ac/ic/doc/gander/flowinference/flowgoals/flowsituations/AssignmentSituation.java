@@ -9,6 +9,8 @@ import org.python.pydev.parser.jython.ast.exprType;
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
 import uk.ac.ic.doc.gander.flowinference.flowgoals.ExpressionPosition;
 import uk.ac.ic.doc.gander.flowinference.flowgoals.FlowPosition;
+import uk.ac.ic.doc.gander.flowinference.result.FiniteResult;
+import uk.ac.ic.doc.gander.flowinference.result.Result;
 import uk.ac.ic.doc.gander.model.ModelSite;
 
 /**
@@ -32,7 +34,7 @@ final class AssignmentSituation implements FlowSituation {
 	 * An expression on the RHS of an assignment can flow to all the targets on
 	 * the LHS.
 	 */
-	public Set<FlowPosition> nextFlowPositions(SubgoalManager goalManager) {
+	public Result<FlowPosition> nextFlowPositions(SubgoalManager goalManager) {
 		Set<FlowPosition> positions = new HashSet<FlowPosition>();
 
 		for (exprType lhsTarget : node.targets) {
@@ -40,7 +42,7 @@ final class AssignmentSituation implements FlowSituation {
 					new ModelSite<exprType>(lhsTarget, site.codeObject())));
 		}
 
-		return positions;
+		return new FiniteResult<FlowPosition>(positions);
 	}
 
 	@Override

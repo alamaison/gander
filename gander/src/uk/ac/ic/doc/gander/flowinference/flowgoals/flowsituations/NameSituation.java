@@ -1,13 +1,14 @@
 package uk.ac.ic.doc.gander.flowinference.flowgoals.flowsituations;
 
 import java.util.Collections;
-import java.util.Set;
 
 import org.python.pydev.parser.jython.ast.Name;
 
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
 import uk.ac.ic.doc.gander.flowinference.flowgoals.FlowPosition;
 import uk.ac.ic.doc.gander.flowinference.flowgoals.NamespaceKeyPosition;
+import uk.ac.ic.doc.gander.flowinference.result.FiniteResult;
+import uk.ac.ic.doc.gander.flowinference.result.Result;
 import uk.ac.ic.doc.gander.model.ModelSite;
 import uk.ac.ic.doc.gander.model.name_binding.Variable;
 
@@ -29,7 +30,7 @@ final class NameSituation implements FlowSituation {
 	 * In a single step of execution Name instances can flow into any use of the
 	 * name bound in the same binding namespace.
 	 */
-	public Set<FlowPosition> nextFlowPositions(SubgoalManager goalManager) {
+	public Result<FlowPosition> nextFlowPositions(SubgoalManager goalManager) {
 		/*
 		 * The name doesn't necessarily bind in the enclosing code object's
 		 * namespace. We have to resolve the lexical binding first.
@@ -37,8 +38,8 @@ final class NameSituation implements FlowSituation {
 		Variable bindingNamespace = new Variable(name.id, expressionSite
 				.codeObject());
 
-		return Collections.<FlowPosition> singleton(new NamespaceKeyPosition(
-				bindingNamespace));
+		return new FiniteResult<FlowPosition>(Collections
+				.singleton(new NamespaceKeyPosition(bindingNamespace)));
 	}
 
 	@Override

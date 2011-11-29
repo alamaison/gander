@@ -11,9 +11,12 @@ import org.python.pydev.parser.jython.ast.NameTok;
 import org.python.pydev.parser.jython.ast.exprType;
 
 import uk.ac.ic.doc.gander.ast.LocalCodeBlockVisitor;
-import uk.ac.ic.doc.gander.flowinference.ResultConcentrator;
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
 import uk.ac.ic.doc.gander.flowinference.modelgoals.BoundNamesGoal;
+import uk.ac.ic.doc.gander.flowinference.result.FiniteResult;
+import uk.ac.ic.doc.gander.flowinference.result.RedundancyEliminator;
+import uk.ac.ic.doc.gander.flowinference.result.Result;
+import uk.ac.ic.doc.gander.flowinference.result.Result.Processor;
 import uk.ac.ic.doc.gander.importing.ImportSimulationWatcher;
 import uk.ac.ic.doc.gander.importing.WholeModelImportSimulation;
 import uk.ac.ic.doc.gander.model.CodeObjectWalker;
@@ -100,11 +103,11 @@ final class NamespaceKeyFlowStepGoal implements FlowStepGoal {
 		this.namespaceKey = namespaceKey;
 	}
 
-	public Set<FlowPosition> initialSolution() {
-		return Collections.emptySet();
+	public Result<FlowPosition> initialSolution() {
+		return FiniteResult.bottom();
 	}
 
-	public Set<FlowPosition> recalculateSolution(SubgoalManager goalManager) {
+	public Result<FlowPosition> recalculateSolution(SubgoalManager goalManager) {
 		return new NamespaceKeyFlowStepGoalSolver(goalManager, namespaceKey)
 				.solution();
 	}
@@ -145,7 +148,7 @@ final class NamespaceKeyFlowStepGoal implements FlowStepGoal {
 final class NamespaceKeyFlowStepGoalSolver {
 
 	private final SubgoalManager goalManager;
-	private final ResultConcentrator<FlowPosition> positions = new ResultConcentrator<FlowPosition>();
+	private final RedundancyEliminator<FlowPosition> positions = new RedundancyEliminator<FlowPosition>();
 	private final Variable namespaceKey;
 
 	public NamespaceKeyFlowStepGoalSolver(SubgoalManager goalManager,
@@ -153,23 +156,25 @@ final class NamespaceKeyFlowStepGoalSolver {
 		this.goalManager = goalManager;
 		this.namespaceKey = namespaceKey;
 
-		positions.add(nakedNameReferences());
-		if (positions.isTop())
+		positions.add(new FiniteResult<FlowPosition>(nakedNameReferences()));
+		if (positions.isFinished())
 			return;
 
-		positions.add(explicitNameReferences());
-		if (positions.isTop())
+		positions.add(new ExplicitNameReferenceFlower().positions);
+		if (positions.isFinished())
 			return;
 
-		positions.add(importedKeyReferences());
+		positions.add(new ImportedKeyReferenceFlower().importedReferences);
+		if (positions.isFinished())
+			return;
 	}
 
-	public Set<FlowPosition> solution() {
+	public Result<FlowPosition> solution() {
 		return positions.result();
 	}
 
 	/**
-	 * Add positions for flow of the namespace key's value to 'naked' name
+	 * Flow positions for flow of the namespace key's value to 'naked' name
 	 * references.
 	 * 
 	 * These are the names in the namespace's code object that bind that name in
@@ -196,7 +201,7 @@ final class NamespaceKeyFlowStepGoalSolver {
 	}
 
 	/**
-	 * Add positions for the flow of name's value to references where the
+	 * Flow positions for the flow of name's value to references where the
 	 * namespace is explicitly specified.
 	 * 
 	 * These are attribute expressions anywhere in the system where the
@@ -207,96 +212,119 @@ final class NamespaceKeyFlowStepGoalSolver {
 	 * functions do not allow they namespaces to be accessed this way as that
 	 * would allow local variables to be changed from outside the function body.
 	 */
-	private Set<FlowPosition> explicitNameReferences() {
-		/*
-		 * The name can flow beyond this namespace's code block if it is
-		 * imported anywhere. This can happen in two ways. The namespace itself
-		 * is imported into the other namespace and the name is referenced by
-		 * attribute or the particular name is imported into the other
-		 * namespace.
-		 * 
-		 * The first task is to find any namespace that imports this namespace's
-		 * code object then search for attributes that reference the name that
-		 * the code object was bound to. This handles the first case
-		 */
+	final class ExplicitNameReferenceFlower {
 
-		Set<ModelSite<? extends exprType>> namespaceReferences = goalManager
-				.registerSubgoal(new FlowGoal(new CodeObjectNamespacePosition(
-						namespaceKey.bindingLocation().namespace())));
-		if (namespaceReferences == null) {
+		Result<FlowPosition> positions;
+
+		private final Processor<ModelSite<? extends exprType>> processor = new Processor<ModelSite<? extends exprType>>() {
+
+			public void processInfiniteResult() {
+				positions = TopFp.INSTANCE;
+			}
+
+			public void processFiniteResult(
+					Set<ModelSite<? extends exprType>> namespaceReferences) {
+
+				Set<FlowPosition> newPositions = new HashSet<FlowPosition>();
+				for (ModelSite<? extends exprType> expression : namespaceReferences) {
+
+					addExpressionIfAttributeLHSIsOurs(expression, newPositions);
+
+				}
+
+				positions = new FiniteResult<FlowPosition>(newPositions);
+			}
+		};
+
+		ExplicitNameReferenceFlower() {
+
 			/*
-			 * We have no idea where the namespace flowed to so we can't say
-			 * what type the member might have.
+			 * The name can flow beyond this namespace's code block if it is
+			 * imported anywhere. This can happen in two ways. The namespace
+			 * itself is imported into the other namespace and the name is
+			 * referenced by attribute or the particular name is imported into
+			 * the other namespace.
+			 * 
+			 * The first task is to find any namespace that imports this
+			 * namespace's code object then search for attributes that reference
+			 * the name that the code object was bound to. This handles the
+			 * first case
 			 */
-			return null;
+			Result<ModelSite<? extends exprType>> namespaceReferences = goalManager
+					.registerSubgoal(new FlowGoal(
+							new CodeObjectNamespacePosition(namespaceKey
+									.bindingLocation().namespace())));
+
+			namespaceReferences.actOnResult(processor);
 		}
 
-		Set<FlowPosition> positions = new HashSet<FlowPosition>();
-		for (ModelSite<? extends exprType> expression : namespaceReferences) {
-
-			addExpressionIfAttributeLHSIsOurs(expression, positions);
-
-		}
-
-		return positions;
 	}
 
 	/**
 	 * Add positions for flow of the namespace key's value caused by importing
 	 * either the key itself or the code object of the namespace containing it.
 	 */
-	private Set<FlowPosition> importedKeyReferences() {
-
-		final ResultConcentrator<FlowPosition> positions = new ResultConcentrator<FlowPosition>();
+	final class ImportedKeyReferenceFlower {
 
 		/*
-		 * Our namespace's key could be imported anywhere in the system so we
-		 * have to walk the entire thing searching any code block for import
-		 * statements that result in our key's value bound to a new key.
-		 * 
-		 * That somewhere is not necessarily the namespace of the code object
-		 * containing the import statement. If the name it is bound to is
-		 * declared global then it is bound to a key in the global namespace
-		 * instead.
+		 * Can never be Top because we believe there is no such thing as an
+		 * import we can't follow.
 		 */
+		Result<FlowPosition> importedReferences = FiniteResult.bottom();
 
-		ImportSimulationWatcher worker = new ImportSimulationWatcher() {
+		ImportedKeyReferenceFlower() {
 
-			public void bindingName(Namespace importReceiver,
-					Namespace loadedObject, String as) {
+			/*
+			 * Our namespace's key could be imported anywhere in the system so
+			 * we have to walk the entire thing searching any code block for
+			 * import statements that result in our key's value bound to a new
+			 * key.
+			 * 
+			 * That somewhere is not necessarily the namespace of the code
+			 * object containing the import statement. If the name it is bound
+			 * to is declared global then it is bound to a key in the global
+			 * namespace instead.
+			 */
 
-				/*
-				 * XXX: HACK: comparing the name by name of code object is BAD.
-				 * What if the code object was aliased and that alias was
-				 * imported? Should fix simulator so it tells us the actual key
-				 * that was imported from the other namespace.
-				 * 
-				 * XXX: HACK: using the loadedObject's parent to check if the
-				 * object came from our namespace is BAD. What if the thing was
-				 * imported from somewhere else then imported again? Should fix
-				 * simulator so it tells us where the key was actually imported
-				 * from.
-				 */
-				if (loadedObject.getParentScope().equals(
-						namespaceKey.bindingLocation().namespace())
-						&& loadedObject.getName().equals(namespaceKey.name())) {
-					/* from codeobject import key */
-					positions.add(referencesToImportedKey(importReceiver,
-							loadedObject, as, goalManager));
-				} else if (loadedObject.equals(namespaceKey.bindingLocation()
-						.namespace())) {
+			ImportSimulationWatcher worker = new ImportSimulationWatcher() {
 
-					/* import codeobject */
-					positions.add(referencesToKeyOfImportedCodeObject(
-							importReceiver, loadedObject, as, goalManager));
+				public void bindingName(Namespace importReceiver,
+						Namespace loadedObject, String as) {
+
+					/*
+					 * XXX: HACK: comparing the name by name of code object is
+					 * BAD. What if the code object was aliased and that alias
+					 * was imported? Should fix simulator so it tells us the
+					 * actual key that was imported from the other namespace.
+					 * 
+					 * XXX: HACK: using the loadedObject's parent to check if
+					 * the object came from our namespace is BAD. What if the
+					 * thing was imported from somewhere else then imported
+					 * again? Should fix simulator so it tells us where the key
+					 * was actually imported from.
+					 */
+
+					if (loadedObject.getParentScope().equals(
+							namespaceKey.bindingLocation().namespace())
+							&& loadedObject.getName().equals(
+									namespaceKey.name())) {
+						/* from codeobject import key */
+						importedReferences = new FiniteResult<FlowPosition>(
+								referencesToImportedKey(importReceiver, as));
+					} else if (loadedObject.equals(namespaceKey
+							.bindingLocation().namespace())) {
+
+						/* import codeobject */
+						importedReferences = referencesToKeyOfImportedCodeObject(
+								importReceiver, loadedObject, as);
+					}
+
 				}
 
-			}
+			};
+			new WholeModelImportSimulation(namespaceKey.model(), worker);
 
-		};
-		new WholeModelImportSimulation(namespaceKey.model(), worker);
-
-		return positions.result();
+		}
 	}
 
 	/**
@@ -309,9 +337,8 @@ final class NamespaceKeyFlowStepGoalSolver {
 	 * and modules) this happens through attribute expressions on the code
 	 * object where the attribute name is the name of the key being accessed.
 	 */
-	protected Set<FlowPosition> referencesToKeyOfImportedCodeObject(
-			Namespace importReceiver, Namespace loadedObject, String as,
-			SubgoalManager goalManager) {
+	private Result<FlowPosition> referencesToKeyOfImportedCodeObject(
+			Namespace importReceiver, Namespace loadedObject, String as) {
 		assert namespaceKey.bindingLocation().namespace() instanceof Module;
 		assert loadedObject.equals(namespaceKey.bindingLocation().namespace());
 
@@ -321,7 +348,7 @@ final class NamespaceKeyFlowStepGoalSolver {
 		 * the binding scope of 'as' in importReceiver. It could be the global
 		 * scope so we resolve the name here.
 		 */
-		Variable importedCodeObjectKey = new Variable(as, importReceiver);
+		final Variable importedCodeObjectKey = new Variable(as, importReceiver);
 		assert importedCodeObjectKey.bindingLocation().namespace().equals(
 				importReceiver)
 				|| importedCodeObjectKey.bindingLocation().namespace().equals(
@@ -334,17 +361,42 @@ final class NamespaceKeyFlowStepGoalSolver {
 		 */
 		if (!importedCodeObjectKey.equals(namespaceKey)) {
 
-			// Set<ModelSite<? extends exprType>> moduleReferences = goalManager
-			// .registerSubgoal(new FlowGoal(new CodeObjectPosition(
-			// namespaceKey.getNamespace(), namespaceKey)));
+			final class NamespaceAccessFlower {
 
-			Set<ModelSite<? extends exprType>> moduleReferences = goalManager
-					.registerSubgoal(new FlowGoal(new NamespaceKeyPosition(
-							importedCodeObjectKey)));
+				Result<FlowPosition> namespaceAccesses;
 
-			return accessesToNamespaceEntry(moduleReferences);
+				public NamespaceAccessFlower() {
+
+					// Set<ModelSite<? extends exprType>> moduleReferences =
+					// goalManager
+					// .registerSubgoal(new FlowGoal(new CodeObjectPosition(
+					// namespaceKey.getNamespace(), namespaceKey)));
+
+					Result<ModelSite<? extends exprType>> moduleReferences = goalManager
+							.registerSubgoal(new FlowGoal(
+									new NamespaceKeyPosition(
+											importedCodeObjectKey)));
+
+					moduleReferences
+							.actOnResult(new Processor<ModelSite<? extends exprType>>() {
+
+								public void processInfiniteResult() {
+									namespaceAccesses = TopFp.INSTANCE;
+								}
+
+								public void processFiniteResult(
+										Set<ModelSite<? extends exprType>> moduleReferences) {
+									namespaceAccesses = new FiniteResult<FlowPosition>(
+											accessesToNamespaceEntry(moduleReferences));
+								}
+							});
+
+				}
+
+			}
+			return new NamespaceAccessFlower().namespaceAccesses;
 		} else {
-			return Collections.emptySet();
+			return FiniteResult.bottom();
 		}
 	}
 
@@ -364,8 +416,7 @@ final class NamespaceKeyFlowStepGoalSolver {
 	 * analysis must flow all values arriving at the old key to the new key.
 	 */
 	protected Set<FlowPosition> referencesToImportedKey(
-			Namespace importReceiver, Namespace loadedObject, String as,
-			SubgoalManager goalManager) {
+			Namespace importReceiver, String as) {
 		assert namespaceKey.bindingLocation().namespace() instanceof Module;
 
 		/*
@@ -431,18 +482,15 @@ final class NamespaceKeyFlowStepGoalSolver {
 	private Set<FlowPosition> accessesToNamespaceEntry(
 			Set<ModelSite<? extends exprType>> moduleReferenceExpressions) {
 
-		ResultConcentrator<FlowPosition> positions = new ResultConcentrator<FlowPosition>();
+		Set<FlowPosition> positions = new HashSet<FlowPosition>();
 
 		for (ModelSite<? extends exprType> moduleReference : moduleReferenceExpressions) {
-			positions.add(searchCodeObjectForAccessToNamespaceEntry(
+			positions.addAll(searchCodeObjectForAccessToNamespaceEntry(
 					moduleReference.codeObject(), namespaceKey.name(),
 					moduleReference.astNode()));
-
-			if (positions.isTop())
-				break;
 		}
 
-		return positions.result();
+		return positions;
 	}
 
 	/**

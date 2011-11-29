@@ -2,14 +2,18 @@ package uk.ac.ic.doc.gander.flowinference.typegoals;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Set;
 
 import org.python.pydev.parser.jython.ast.Call;
 import org.python.pydev.parser.jython.ast.exprType;
 
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
+import uk.ac.ic.doc.gander.flowinference.result.Concentrator;
+import uk.ac.ic.doc.gander.flowinference.result.FiniteResult;
+import uk.ac.ic.doc.gander.flowinference.result.Result;
+import uk.ac.ic.doc.gander.flowinference.result.Concentrator.DatumProcessor;
 import uk.ac.ic.doc.gander.flowinference.sendersgoals.FunctionSendersGoal;
 import uk.ac.ic.doc.gander.flowinference.types.TObject;
+import uk.ac.ic.doc.gander.flowinference.types.Type;
 import uk.ac.ic.doc.gander.model.Class;
 import uk.ac.ic.doc.gander.model.Function;
 import uk.ac.ic.doc.gander.model.ModelSite;
@@ -25,56 +29,13 @@ final class MethodArgumentTypeGoal implements TypeGoal {
 		this.name = name;
 	}
 
-	public TypeJudgement initialSolution() {
-		return SetBasedTypeJudgement.BOTTOM;
+	public Result<Type> initialSolution() {
+		return FiniteResult.bottom();
 	}
 
-	public TypeJudgement recalculateSolution(SubgoalManager goalManager) {
-		/*
-		 * The first parameter of a function in a class (usually called self) is
-		 * always an instance of the class so we can trivially infer its type
-		 */
-		int argumentIndex = findArgumentIndexInFunction(method, name);
-
-		if (argumentIndex == 0) {
-			return new SetBasedTypeJudgement(Collections.singleton(new TObject(
-					(Class) method.getParentScope())));
-		} else {
-			Set<ModelSite<Call>> callSites = goalManager
-					.registerSubgoal(new FunctionSendersGoal(method));
-
-			assert argumentIndex > 0;
-
-			TypeConcentrator types = new TypeConcentrator();
-			for (ModelSite<Call> callSite : callSites) {
-				exprType[] args = callSite.astNode().args;
-				if (argumentIndex <= args.length) {
-					ModelSite<exprType> argument = new ModelSite<exprType>(
-							callSite.astNode().args[argumentIndex - 1],
-							callSite.codeObject());
-					types.add(goalManager
-							.registerSubgoal(new ExpressionTypeGoal(argument)));
-				} else {
-					// TODO: probably using the default argument
-				}
-				if (types.isFinished())
-					break;
-			}
-
-			return types.getJudgement();
-		}
-	}
-
-	private static int findArgumentIndexInFunction(Function function,
-			String argument) {
-		List<String> args = function.asCodeBlock().getNamedFormalParameters();
-
-		for (int i = 0; i < args.size(); ++i) {
-			if (args.get(i).equals(argument))
-				return i;
-		}
-
-		return -1;
+	public Result<Type> recalculateSolution(SubgoalManager goalManager) {
+		return new MethodArgumentTypeGoalSolver(method, name, goalManager)
+				.solution();
 	}
 
 	@Override
@@ -112,6 +73,81 @@ final class MethodArgumentTypeGoal implements TypeGoal {
 	public String toString() {
 		return "MethodArgumentTypeGoal [method=" + method + ", name=" + name
 				+ "]";
+	}
+
+}
+
+final class MethodArgumentTypeGoalSolver {
+
+	private final class MethodArgumentTyper implements
+			DatumProcessor<ModelSite<Call>, Type> {
+
+		public Result<Type> process(ModelSite<Call> callSite) {
+			exprType[] args = callSite.astNode().args;
+			if (argumentIndex <= args.length) {
+				ModelSite<exprType> argument = new ModelSite<exprType>(callSite
+						.astNode().args[argumentIndex - 1], callSite
+						.codeObject());
+				return goalManager.registerSubgoal(new ExpressionTypeGoal(
+						argument));
+			} else {
+				// TODO: probably using the default argument
+				return FiniteResult.bottom();
+			}
+		}
+	};
+
+	private final SubgoalManager goalManager;
+	private final Result<Type> solution;
+	private final int argumentIndex;
+
+	MethodArgumentTypeGoalSolver(Function method, String name,
+			SubgoalManager goalManager) {
+		assert method.getParentScope() instanceof Class;
+
+		this.goalManager = goalManager;
+		this.argumentIndex = findArgumentIndexInFunction(method, name);
+
+		/*
+		 * The first parameter of a function in a class (usually called self) is
+		 * always an instance of the class so we can trivially infer its type.
+		 * 
+		 * Although the else branch should be able to infer this result by
+		 * following flow, this will be much quicker.
+		 * 
+		 * XXX: it may be quicker but it's also wrong. For instance, it doesn't
+		 * model other instances flowing to self due to inheritance.
+		 */
+		if (this.argumentIndex == 0) {
+			solution = new FiniteResult<Type>(Collections.singleton(new TObject(
+			(Class) method.getParentScope())));
+		} else {
+
+			Result<ModelSite<Call>> callSites = goalManager
+					.registerSubgoal(new FunctionSendersGoal(method));
+
+			Concentrator<ModelSite<Call>, Type> processor = Concentrator
+					.newInstance(new MethodArgumentTyper(), TopT.INSTANCE);
+			callSites.actOnResult(processor);
+
+			solution = processor.result();
+		}
+	}
+
+	public Result<Type> solution() {
+		return solution;
+	}
+
+	private static int findArgumentIndexInFunction(Function function,
+			String argument) {
+		List<String> args = function.asCodeBlock().getNamedFormalParameters();
+
+		for (int i = 0; i < args.size(); ++i) {
+			if (args.get(i).equals(argument))
+				return i;
+		}
+
+		return -1;
 	}
 
 }

@@ -8,6 +8,10 @@ import org.python.pydev.parser.jython.ast.Call;
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
 import uk.ac.ic.doc.gander.flowinference.flowgoals.ExpressionPosition;
 import uk.ac.ic.doc.gander.flowinference.flowgoals.FlowPosition;
+import uk.ac.ic.doc.gander.flowinference.flowgoals.TopFp;
+import uk.ac.ic.doc.gander.flowinference.result.FiniteResult;
+import uk.ac.ic.doc.gander.flowinference.result.Result;
+import uk.ac.ic.doc.gander.flowinference.result.Result.Processor;
 import uk.ac.ic.doc.gander.flowinference.sendersgoals.FunctionSendersGoal;
 import uk.ac.ic.doc.gander.model.Function;
 import uk.ac.ic.doc.gander.model.ModelSite;
@@ -29,15 +33,8 @@ final class ReturnSituation implements FlowSituation {
 	 * In a single step of execution, a return value can flow to any caller of
 	 * the enclosing callable.
 	 */
-	public Set<FlowPosition> nextFlowPositions(SubgoalManager goalManager) {
-		Set<ModelSite<Call>> callers = goalManager
-				.registerSubgoal(new FunctionSendersGoal((Function) expression.namespace()));
-
-		Set<FlowPosition> positions = new HashSet<FlowPosition>();
-		for (ModelSite<Call> callSite : callers) {
-			positions.add(new ExpressionPosition<Call>(callSite));
-		}
-		return positions;
+	public Result<FlowPosition> nextFlowPositions(SubgoalManager goalManager) {
+		return new ReturnSituationSolver(expression, goalManager).solution();
 	}
 
 	@Override
@@ -69,6 +66,43 @@ final class ReturnSituation implements FlowSituation {
 	@Override
 	public String toString() {
 		return "ReturnSituation [expression=" + expression + "]";
+	}
+
+}
+
+final class ReturnSituationSolver {
+
+	private Result<FlowPosition> solution;
+
+	ReturnSituationSolver(ModelSite<?> expression, SubgoalManager goalManager) {
+
+		Result<ModelSite<Call>> callers = goalManager
+				.registerSubgoal(new FunctionSendersGoal((Function) expression
+						.namespace()));
+
+		callers.actOnResult(new Processor<ModelSite<Call>>() {
+
+			public void processInfiniteResult() {
+				solution = TopFp.INSTANCE;
+			}
+
+			public void processFiniteResult(Set<ModelSite<Call>> callers) {
+
+				Set<FlowPosition> positions = new HashSet<FlowPosition>();
+
+				for (ModelSite<Call> callSite : callers) {
+					positions.add(new ExpressionPosition<Call>(callSite));
+				}
+
+				solution = new FiniteResult<FlowPosition>(positions);
+
+			}
+		});
+
+	}
+
+	public Result<FlowPosition> solution() {
+		return solution;
 	}
 
 }

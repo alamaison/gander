@@ -1,6 +1,5 @@
 package uk.ac.ic.doc.gander.flowinference.sendersgoals;
 
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -12,6 +11,9 @@ import uk.ac.ic.doc.gander.ast.AstParentNodeFinder;
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
 import uk.ac.ic.doc.gander.flowinference.flowgoals.CodeObjectPosition;
 import uk.ac.ic.doc.gander.flowinference.flowgoals.FlowGoal;
+import uk.ac.ic.doc.gander.flowinference.result.FiniteResult;
+import uk.ac.ic.doc.gander.flowinference.result.Result;
+import uk.ac.ic.doc.gander.flowinference.result.Result.Processor;
 import uk.ac.ic.doc.gander.model.Function;
 import uk.ac.ic.doc.gander.model.ModelSite;
 
@@ -25,30 +27,13 @@ public class FunctionSendersGoal implements SendersGoal {
 		this.callable = callable;
 	}
 
-	public Set<ModelSite<Call>> initialSolution() {
-		return Collections.emptySet();
+	public Result<ModelSite<Call>> initialSolution() {
+		return FiniteResult.bottom();
 	}
 
-	public Set<ModelSite<Call>> recalculateSolution(
+	public Result<ModelSite<Call>> recalculateSolution(
 			final SubgoalManager goalManager) {
-		Set<ModelSite<Call>> callSites = new HashSet<ModelSite<Call>>();
-
-		Set<ModelSite<? extends exprType>> positions = goalManager
-				.registerSubgoal(new FlowGoal(new CodeObjectPosition(callable)));
-		if (positions == null) {
-			return null;
-		} else {
-			for (ModelSite<? extends exprType> expression : positions) {
-				SimpleNode parent = AstParentNodeFinder.findParent(expression
-						.astNode(), expression.codeObject().ast());
-				if (parent instanceof Call) {
-					callSites.add(new ModelSite<Call>((Call) parent, expression
-							.codeObject()));
-				}
-			}
-		}
-
-		return callSites;
+		return new FunctionSendersGoalSolver(callable, goalManager).solution();
 	}
 
 	@Override
@@ -80,6 +65,46 @@ public class FunctionSendersGoal implements SendersGoal {
 	@Override
 	public String toString() {
 		return "FunctionSendersGoal [callable=" + callable + "]";
+	}
+
+}
+
+final class FunctionSendersGoalSolver {
+
+	private Result<ModelSite<Call>> callSites;
+
+	public FunctionSendersGoalSolver(Function callable,
+			SubgoalManager goalManager) {
+
+		Result<ModelSite<? extends exprType>> positions = goalManager
+				.registerSubgoal(new FlowGoal(new CodeObjectPosition(callable)));
+
+		positions.actOnResult(new Processor<ModelSite<? extends exprType>>() {
+
+			public void processInfiniteResult() {
+				callSites = TopS.INSTANCE;
+			}
+
+			public void processFiniteResult(
+					Set<ModelSite<? extends exprType>> positions) {
+				Set<ModelSite<Call>> callSitePositions = new HashSet<ModelSite<Call>>();
+				for (ModelSite<? extends exprType> expression : positions) {
+					SimpleNode parent = AstParentNodeFinder
+							.findParent(expression.astNode(), expression
+									.codeObject().ast());
+					if (parent instanceof Call) {
+						callSitePositions.add(new ModelSite<Call>(
+								(Call) parent, expression.codeObject()));
+					}
+				}
+				callSites = new FiniteResult<ModelSite<Call>>(callSitePositions);
+			}
+		});
+
+	}
+
+	Result<ModelSite<Call>> solution() {
+		return callSites;
 	}
 
 }

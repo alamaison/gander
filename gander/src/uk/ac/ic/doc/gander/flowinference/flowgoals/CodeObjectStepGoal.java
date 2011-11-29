@@ -1,10 +1,11 @@
 package uk.ac.ic.doc.gander.flowinference.flowgoals;
 
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
+import uk.ac.ic.doc.gander.flowinference.result.FiniteResult;
+import uk.ac.ic.doc.gander.flowinference.result.Result;
 import uk.ac.ic.doc.gander.importing.ImportSimulationWatcher;
 import uk.ac.ic.doc.gander.importing.WholeModelImportSimulation;
 import uk.ac.ic.doc.gander.model.Module;
@@ -50,18 +51,18 @@ final class CodeObjectStepGoal implements FlowStepGoal {
 		this.codeObject = codeObject;
 	}
 
-	public Set<FlowPosition> initialSolution() {
-		return Collections.emptySet();
+	public Result<FlowPosition> initialSolution() {
+		return FiniteResult.bottom();
 	}
 
-	public Set<FlowPosition> recalculateSolution(SubgoalManager goalManager) {
+	public Result<FlowPosition> recalculateSolution(SubgoalManager goalManager) {
 
 		Set<FlowPosition> positions = new HashSet<FlowPosition>();
 
 		addLocalFlow(positions);
 		//addNamespacesNamesThatReferenceOurCodeObject(positions);
 
-		return positions;
+		return new FiniteResult<FlowPosition>(positions);
 	}
 
 	/**

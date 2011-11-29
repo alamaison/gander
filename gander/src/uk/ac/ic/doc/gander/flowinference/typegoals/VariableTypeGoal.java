@@ -1,6 +1,9 @@
 package uk.ac.ic.doc.gander.flowinference.typegoals;
 
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
+import uk.ac.ic.doc.gander.flowinference.result.FiniteResult;
+import uk.ac.ic.doc.gander.flowinference.result.Result;
+import uk.ac.ic.doc.gander.flowinference.types.Type;
 import uk.ac.ic.doc.gander.model.name_binding.Variable;
 
 /**
@@ -18,15 +21,15 @@ final class VariableTypeGoal implements TypeGoal {
 		this.variable = variable;
 	}
 
-	public TypeJudgement initialSolution() {
-		return SetBasedTypeJudgement.BOTTOM;
+	public Result<Type> initialSolution() {
+		return FiniteResult.bottom();
 	}
 
 	/**
 	 * Resolves the variable to the namespace in which it binds and delegates
 	 * the type inference to a type goal for that namespace name.
 	 */
-	public TypeJudgement recalculateSolution(SubgoalManager goalManager) {
+	public Result<Type> recalculateSolution(SubgoalManager goalManager) {
 
 		return goalManager.registerSubgoal(new NamespaceNameTypeGoal(variable
 				.bindingLocation()));

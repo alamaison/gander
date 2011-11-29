@@ -1,6 +1,8 @@
 package uk.ac.ic.doc.gander.flowinference.typegoals;
 
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
+import uk.ac.ic.doc.gander.flowinference.result.FiniteResult;
+import uk.ac.ic.doc.gander.flowinference.result.Result;
 import uk.ac.ic.doc.gander.flowinference.types.TNamespace;
 import uk.ac.ic.doc.gander.flowinference.types.TObject;
 import uk.ac.ic.doc.gander.flowinference.types.Type;
@@ -27,11 +29,11 @@ final class MemberTypeGoal implements TypeGoal {
 		this.memberName = memberName;
 	}
 
-	public TypeJudgement initialSolution() {
-		return SetBasedTypeJudgement.BOTTOM;
+	public Result<Type> initialSolution() {
+		return FiniteResult.bottom();
 	}
 
-	public TypeJudgement recalculateSolution(SubgoalManager goalManager) {
+	public Result<Type> recalculateSolution(SubgoalManager goalManager) {
 
 		if (type instanceof TNamespace) {
 			Namespace namespace = ((TNamespace) type).getNamespaceInstance();
@@ -40,7 +42,7 @@ final class MemberTypeGoal implements TypeGoal {
 				 * If we get here it means the attribute references the contents
 				 * of a module but the module couldn't be loaded.
 				 */
-				return Top.INSTANCE;
+				return TopT.INSTANCE;
 			} else {
 				return goalManager.registerSubgoal(new NamespaceNameTypeGoal(
 						new NamespaceName(memberName, namespace)));
@@ -50,7 +52,7 @@ final class MemberTypeGoal implements TypeGoal {
 			return goalManager.registerSubgoal(new ObjectMemberTypeGoal(klass,
 					memberName));
 		} else {
-			return Top.INSTANCE;
+			return TopT.INSTANCE;
 		}
 
 	}

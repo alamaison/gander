@@ -5,8 +5,9 @@ import java.util.Set;
 import org.python.pydev.parser.jython.ast.Attribute;
 import org.python.pydev.parser.jython.ast.exprType;
 
-import uk.ac.ic.doc.gander.flowinference.ResultConcentrator;
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
+import uk.ac.ic.doc.gander.flowinference.result.Result;
+import uk.ac.ic.doc.gander.flowinference.result.RedundancyEliminator;
 import uk.ac.ic.doc.gander.flowinference.types.Type;
 import uk.ac.ic.doc.gander.model.ModelSite;
 
@@ -18,7 +19,7 @@ import uk.ac.ic.doc.gander.model.ModelSite;
  */
 final class AttributeTypeSummariser {
 
-	private final ResultConcentrator<Type> typeSummary = new ResultConcentrator<Type>();
+	private final RedundancyEliminator<Type> typeSummary = new RedundancyEliminator<Type>();
 	private final SubgoalManager goalManager;
 
 	AttributeTypeSummariser(Set<ModelSite<Attribute>> attributes,
@@ -30,7 +31,7 @@ final class AttributeTypeSummariser {
 		new AttributeDefinitionFinder(attributes, new DefinitionTyper());
 	}
 
-	public Set<Type> type() {
+	public Result<Type> type() {
 		return typeSummary.result();
 	}
 
@@ -38,15 +39,12 @@ final class AttributeTypeSummariser {
 		public boolean attributeDefined(ModelSite<Attribute> attribute,
 				ModelSite<exprType> value) {
 
-			TypeJudgement valueType = goalManager
+			Result<Type> valueType = goalManager
 					.registerSubgoal(new ExpressionTypeGoal(value));
-			if (valueType instanceof FiniteTypeJudgement) {
-				typeSummary.add((FiniteTypeJudgement) valueType);
-			} else {
-				typeSummary.add(null);
-			}
 
-			return typeSummary.isTop();
+			typeSummary.add(valueType);
+
+			return typeSummary.isFinished();
 		}
 	}
 

@@ -1,6 +1,10 @@
 package uk.ac.ic.doc.gander.flowinference.typegoals;
 
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
+import uk.ac.ic.doc.gander.flowinference.result.FiniteResult;
+import uk.ac.ic.doc.gander.flowinference.result.RedundancyEliminator;
+import uk.ac.ic.doc.gander.flowinference.result.Result;
+import uk.ac.ic.doc.gander.flowinference.types.Type;
 import uk.ac.ic.doc.gander.model.Class;
 import uk.ac.ic.doc.gander.model.Function;
 import uk.ac.ic.doc.gander.model.Namespace;
@@ -16,14 +20,14 @@ final class ParameterTypeGoal implements TypeGoal {
 		this.name = name;
 	}
 
-	public TypeJudgement initialSolution() {
-		return SetBasedTypeJudgement.BOTTOM;
+	public Result<Type> initialSolution() {
+		return FiniteResult.bottom();
 	}
 
-	public TypeJudgement recalculateSolution(SubgoalManager goalManager) {
+	public Result<Type> recalculateSolution(SubgoalManager goalManager) {
 		CodeBlock codeBlock = enclosingScope.asCodeBlock();
 
-		TypeConcentrator type = new TypeConcentrator();
+		final RedundancyEliminator<Type> type = new RedundancyEliminator<Type>();
 
 		if (codeBlock.getNamedFormalParameters().contains(name)) {
 
@@ -35,8 +39,8 @@ final class ParameterTypeGoal implements TypeGoal {
 			if (enclosingScope instanceof Function) {
 				if (enclosingScope.getParentScope() instanceof Class) {
 					type.add(goalManager
-							.registerSubgoal(new MethodArgumentTypeGoal((Function) enclosingScope,
-									name)));
+							.registerSubgoal(new MethodArgumentTypeGoal(
+									(Function) enclosingScope, name)));
 
 				} else {
 					type.add(goalManager
@@ -50,9 +54,9 @@ final class ParameterTypeGoal implements TypeGoal {
 			}
 		}
 
-		return type.getJudgement();
+		return type.result();
 	}
-	
+
 	@Override
 	public int hashCode() {
 		final int prime = 31;

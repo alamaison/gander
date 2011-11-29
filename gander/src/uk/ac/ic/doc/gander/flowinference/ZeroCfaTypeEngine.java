@@ -5,8 +5,9 @@ import org.python.pydev.parser.jython.ast.exprType;
 import uk.ac.ic.doc.gander.flowinference.dda.Goal;
 import uk.ac.ic.doc.gander.flowinference.dda.GoalSolver;
 import uk.ac.ic.doc.gander.flowinference.dda.KnowledgeBase;
+import uk.ac.ic.doc.gander.flowinference.result.Result;
 import uk.ac.ic.doc.gander.flowinference.typegoals.ExpressionTypeGoal;
-import uk.ac.ic.doc.gander.flowinference.typegoals.TypeJudgement;
+import uk.ac.ic.doc.gander.flowinference.types.Type;
 import uk.ac.ic.doc.gander.model.Namespace;
 
 interface TypeEngine {
@@ -17,7 +18,7 @@ interface TypeEngine {
 	 * TODO: Can we get rid of the scope parameter? It shouldn't strictly be
 	 * necessary.
 	 */
-	public TypeJudgement typeOf(exprType expression, Namespace scope);
+	public Result<Type> typeOf(exprType expression, Namespace scope);
 }
 
 /**
@@ -30,12 +31,12 @@ public final class ZeroCfaTypeEngine implements TypeEngine {
 	public ZeroCfaTypeEngine() {
 	}
 
-	public TypeJudgement typeOf(exprType expression, Namespace scope) {
-		Goal<TypeJudgement> rootGoal = new ExpressionTypeGoal(scope, expression);
+	public Result<Type> typeOf(exprType expression, Namespace scope) {
+		Goal<Result<Type>> rootGoal = new ExpressionTypeGoal(scope, expression);
 		System.out.print("Inferring type of " + expression + " in " + scope);
-		GoalSolver<TypeJudgement> solver = new GoalSolver<TypeJudgement>(
+		GoalSolver<Result<Type>> solver = new GoalSolver<Result<Type>>(
 				rootGoal, blackboard);
-		TypeJudgement j = solver.solve();
+		Result<Type> j = solver.solve();
 		System.out.println(" as " + j);
 		return j;
 	}

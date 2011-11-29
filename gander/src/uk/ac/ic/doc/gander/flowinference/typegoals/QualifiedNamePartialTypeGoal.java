@@ -5,10 +5,12 @@ import java.util.Set;
 import org.python.pydev.parser.jython.ast.Attribute;
 import org.python.pydev.parser.jython.ast.exprType;
 
-import uk.ac.ic.doc.gander.flowinference.ResultConcentrator;
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
 import uk.ac.ic.doc.gander.flowinference.flowgoals.CodeObjectPosition;
 import uk.ac.ic.doc.gander.flowinference.flowgoals.FlowGoal;
+import uk.ac.ic.doc.gander.flowinference.result.Result;
+import uk.ac.ic.doc.gander.flowinference.result.RedundancyEliminator;
+import uk.ac.ic.doc.gander.flowinference.result.Result.Processor;
 import uk.ac.ic.doc.gander.flowinference.types.Type;
 import uk.ac.ic.doc.gander.model.ModelSite;
 import uk.ac.ic.doc.gander.model.NamespaceName;
@@ -26,32 +28,39 @@ import uk.ac.ic.doc.gander.model.NamespaceName;
 final class QualifiedNameDefinitionsPartialSolution implements
 		PartialTypeSolution {
 
-	private final ResultConcentrator<Type> inferredType = new ResultConcentrator<Type>();
+	private final RedundancyEliminator<Type> inferredType = new RedundancyEliminator<Type>();
 	private final SubgoalManager goalManager;
 
-	public Set<Type> partialSolution() {
+	public Result<Type> partialSolution() {
 		return inferredType.result();
 	}
 
 	QualifiedNameDefinitionsPartialSolution(SubgoalManager goalManager,
-			NamespaceName name) {
+			final NamespaceName name) {
 		assert goalManager != null;
 		assert name != null;
 
 		this.goalManager = goalManager;
 
-		Set<ModelSite<? extends exprType>> namespacePositions = goalManager
+		Result<ModelSite<? extends exprType>> namespacePositions = goalManager
 				.registerSubgoal(new FlowGoal(new CodeObjectPosition(name
 						.namespace())));
-		if (namespacePositions == null) {
-			inferredType.add(null);
-		} else {
+		namespacePositions
+				.actOnResult(new Processor<ModelSite<? extends exprType>>() {
 
-			Set<ModelSite<Attribute>> qualifiedReferences = new NamedAttributeAccessFinder(
-					namespacePositions, name.name()).accesses();
+					public void processInfiniteResult() {
+						inferredType.add(TopT.INSTANCE);
+					}
 
-			addBindingsReferences(qualifiedReferences);
-		}
+					public void processFiniteResult(
+							Set<ModelSite<? extends exprType>> namespacePositions) {
+
+						Set<ModelSite<Attribute>> qualifiedReferences = new NamedAttributeAccessFinder(
+								namespacePositions, name.name()).accesses();
+
+						addBindingsReferences(qualifiedReferences);
+					}
+				});
 	}
 
 	private void addBindingsReferences(

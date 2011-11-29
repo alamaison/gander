@@ -1,9 +1,8 @@
 package uk.ac.ic.doc.gander.flowinference.flowgoals.flowsituations;
 
-import java.util.Set;
-
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
 import uk.ac.ic.doc.gander.flowinference.flowgoals.FlowPosition;
+import uk.ac.ic.doc.gander.flowinference.result.Result;
 
 /**
  * Represent the situation that an expression finds itself in that could lead to
@@ -18,6 +17,6 @@ public interface FlowSituation {
 	 * Returns the flow positions that the expression can flow to in a single
 	 * execution step.
 	 */
-	Set<FlowPosition> nextFlowPositions(SubgoalManager goalManager);
+	Result<FlowPosition> nextFlowPositions(SubgoalManager goalManager);
 
 }

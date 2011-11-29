@@ -1,12 +1,15 @@
 package uk.ac.ic.doc.gander.flowinference.typegoals;
 
 import java.util.Collections;
-import java.util.Set;
 
 import org.python.pydev.parser.jython.ast.Call;
 import org.python.pydev.parser.jython.ast.exprType;
 
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
+import uk.ac.ic.doc.gander.flowinference.result.Concentrator;
+import uk.ac.ic.doc.gander.flowinference.result.FiniteResult;
+import uk.ac.ic.doc.gander.flowinference.result.Result;
+import uk.ac.ic.doc.gander.flowinference.result.Concentrator.DatumProcessor;
 import uk.ac.ic.doc.gander.flowinference.types.TClass;
 import uk.ac.ic.doc.gander.flowinference.types.TFunction;
 import uk.ac.ic.doc.gander.flowinference.types.TObject;
@@ -21,45 +24,45 @@ public final class ReturnTypeGoal implements TypeGoal {
 		this.callSite = callSite;
 	}
 
-	public TypeJudgement initialSolution() {
-		return SetBasedTypeJudgement.BOTTOM;
+	public Result<Type> initialSolution() {
+		return FiniteResult.bottom();
 	}
 
-	public TypeJudgement recalculateSolution(SubgoalManager goalManager) {
+	public Result<Type> recalculateSolution(final SubgoalManager goalManager) {
 		ModelSite<exprType> callable = new ModelSite<exprType>(callSite
 				.astNode().func, callSite.codeObject());
 
 		ExpressionTypeGoal callableTyper = new ExpressionTypeGoal(callable);
-		TypeJudgement callableTypes = goalManager
-				.registerSubgoal(callableTyper);
+		Result<Type> callableTypes = goalManager.registerSubgoal(callableTyper);
 
-		if (callableTypes instanceof FiniteTypeJudgement) {
+		Concentrator<Type, Type> action = Concentrator.newInstance(
+				new DatumProcessor<Type, Type>() {
 
-			Set<Type> types = (FiniteTypeJudgement) callableTypes;
-			if (types.size() == 1) {
-				Type callableType = types.iterator().next();
-				if (callableType instanceof TClass) {
-					/*
-					 * Calling a class is a constructor call. Constructors are
-					 * special functions so we can infer the return type
-					 * immediately. It is an instance of the class being called.
-					 */
-					return new SetBasedTypeJudgement(Collections
-							.singleton(new TObject(((TClass) callableType)
-									.getClassInstance())));
-				} else if (callableType instanceof TFunction) {
-					FunctionReturnTypeGoal typer = new FunctionReturnTypeGoal(
-							((TFunction) callableType).getFunctionInstance());
-					return goalManager.registerSubgoal(typer);
-				}
-			}
-			/*
-			 * TODO: Handle the case where there is more than one possible type.
-			 * Just union the possible results.
-			 */
-		}
+					public Result<Type> process(Type callableType) {
+						if (callableType instanceof TClass) {
+							/*
+							 * Calling a class is a constructor call.
+							 * Constructors are special functions so we can
+							 * infer the return type immediately. It is an
+							 * instance of the class being called.
+							 */
+							return new FiniteResult<Type>(Collections
+							.singleton(new TObject(
+									((TClass) callableType)
+											.getClassInstance())));
+						} else if (callableType instanceof TFunction) {
+							FunctionReturnTypeGoal typer = new FunctionReturnTypeGoal(
+									((TFunction) callableType)
+											.getFunctionInstance());
+							return goalManager.registerSubgoal(typer);
+						} else {
+							return TopT.INSTANCE;
+						}
+					}
+				}, TopT.INSTANCE);
+		callableTypes.actOnResult(action);
 
-		return Top.INSTANCE;
+		return action.result();
 	}
 
 	@Override

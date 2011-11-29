@@ -1,9 +1,8 @@
 package uk.ac.ic.doc.gander.flowinference.typegoals;
 
-import java.util.Set;
-
-import uk.ac.ic.doc.gander.flowinference.ResultConcentrator;
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
+import uk.ac.ic.doc.gander.flowinference.result.Result;
+import uk.ac.ic.doc.gander.flowinference.result.RedundancyEliminator;
 import uk.ac.ic.doc.gander.flowinference.types.Type;
 import uk.ac.ic.doc.gander.model.Module;
 import uk.ac.ic.doc.gander.model.NamespaceName;
@@ -33,11 +32,11 @@ import uk.ac.ic.doc.gander.model.name_binding.Variable;
 final class UnqualifiedNameDefinitionsPartialSolution implements
 		PartialTypeSolution {
 
-	private final ResultConcentrator<Type> inferredType = new ResultConcentrator<Type>();
+	private final RedundancyEliminator<Type> inferredType = new RedundancyEliminator<Type>();
 	private final SubgoalManager goalManager;
 	private final NamespaceName name;
 
-	public Set<Type> partialSolution() {
+	public Result<Type> partialSolution() {
 		return inferredType.result();
 	}
 
@@ -82,14 +81,9 @@ final class UnqualifiedNameDefinitionsPartialSolution implements
 			// Ok, we're sure that the name in this code object is talking about
 			// the same namespace location that we are interested in. So now
 			// we want to know what this code object binds to it
-			TypeJudgement variableType = goalManager
+			Result<Type> variableType = goalManager
 					.registerSubgoal(new BoundTypeGoal(localVariable));
-
-			if (variableType instanceof FiniteTypeJudgement) {
-				inferredType.add((FiniteTypeJudgement) variableType);
-			} else {
-				inferredType.add(null);
-			}
+			inferredType.add(variableType);
 		}
 
 		/*
@@ -103,7 +97,7 @@ final class UnqualifiedNameDefinitionsPartialSolution implements
 		}
 
 		for (CodeObject nestedCodeObject : codeObject.nestedCodeObjects()) {
-			if (inferredType.isTop())
+			if (inferredType.isFinished())
 				return;
 
 			addUnqualifiedBindingsBelowCodeObject(nestedCodeObject);

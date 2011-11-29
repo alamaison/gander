@@ -1,7 +1,6 @@
 package uk.ac.ic.doc.gander.flowinference.typegoals;
 
-import java.util.Set;
-
+import uk.ac.ic.doc.gander.flowinference.result.Result;
 import uk.ac.ic.doc.gander.flowinference.types.Type;
 
 /**
@@ -9,5 +8,5 @@ import uk.ac.ic.doc.gander.flowinference.types.Type;
  */
 interface PartialTypeSolution {
 
-	Set<Type> partialSolution();
+	Result<Type> partialSolution();
 }

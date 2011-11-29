@@ -11,9 +11,12 @@ import org.python.pydev.parser.jython.ast.exprType;
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
 import uk.ac.ic.doc.gander.flowinference.flowgoals.ExpressionPosition;
 import uk.ac.ic.doc.gander.flowinference.flowgoals.FlowPosition;
+import uk.ac.ic.doc.gander.flowinference.flowgoals.TopFp;
+import uk.ac.ic.doc.gander.flowinference.result.Concentrator;
+import uk.ac.ic.doc.gander.flowinference.result.FiniteResult;
+import uk.ac.ic.doc.gander.flowinference.result.Result;
+import uk.ac.ic.doc.gander.flowinference.result.Concentrator.DatumProcessor;
 import uk.ac.ic.doc.gander.flowinference.typegoals.ExpressionTypeGoal;
-import uk.ac.ic.doc.gander.flowinference.typegoals.FiniteTypeJudgement;
-import uk.ac.ic.doc.gander.flowinference.typegoals.TypeJudgement;
 import uk.ac.ic.doc.gander.flowinference.types.TObject;
 import uk.ac.ic.doc.gander.flowinference.types.Type;
 import uk.ac.ic.doc.gander.model.Class;
@@ -37,47 +40,10 @@ final class CallResultSituation implements FlowSituation {
 		this.expression = expression;
 	}
 
-	public Set<FlowPosition> nextFlowPositions(SubgoalManager goalManager) {
+	public Result<FlowPosition> nextFlowPositions(SubgoalManager goalManager) {
 
-		return handleMethodSelfFlow(goalManager);
-	}
-
-	private Set<FlowPosition> handleMethodSelfFlow(SubgoalManager goalManager) {
-
-		TypeJudgement types = goalManager
-				.registerSubgoal(new ExpressionTypeGoal(expression));
-		if (types instanceof FiniteTypeJudgement) {
-			Set<FlowPosition> positions = new HashSet<FlowPosition>();
-
-			for (Type type : (FiniteTypeJudgement) types) {
-				if (type instanceof TObject) {
-					addSelfFromMethods(((TObject) type).getClassInstance(),
-							positions);
-				}
-			}
-
-			return positions;
-		} else {
-			return Collections.emptySet();
-		}
-	}
-
-	private void addSelfFromMethods(Class classObject,
-			Set<FlowPosition> positions) {
-		Collection<Function> methods = classObject.getFunctions().values();
-
-		for (Function method : methods) {
-			List<ModelSite<exprType>> parameters = method.asCodeBlock()
-					.getFormalParameters();
-
-			if (parameters.size() > 0) {
-				ModelSite<exprType> selfParameter = parameters.get(0);
-				assert selfParameter.namespace().equals(method);
-				positions.add(new ExpressionPosition<exprType>(selfParameter));
-			} else {
-				// Method is missing its self parameter!
-			}
-		}
+		return new CallResultSituationSolver(expression, goalManager)
+				.solution();
 	}
 
 	@Override
@@ -109,6 +75,70 @@ final class CallResultSituation implements FlowSituation {
 	@Override
 	public String toString() {
 		return "CallResultSituation [expression=" + expression + "]";
+	}
+
+}
+
+final class CallResultSituationSolver {
+
+	private final Result<FlowPosition> solution;
+
+	CallResultSituationSolver(ModelSite<? extends exprType> expression,
+			SubgoalManager goalManager) {
+
+		Result<Type> types = goalManager
+				.registerSubgoal(new ExpressionTypeGoal(expression));
+
+		Concentrator<Type, FlowPosition> action = Concentrator
+				.newInstance(new ConstructorValueFlower(), TopFp.INSTANCE);
+		types.actOnResult(action);
+		solution = action.result();
+	}
+
+	public Result<FlowPosition> solution() {
+		return solution;
+	}
+}
+
+/**
+ * Flows the value produced by contructor calls to the positions of the {@code
+ * self} parameter in each method.
+ */
+final class ConstructorValueFlower implements DatumProcessor<Type, FlowPosition> {
+
+	public Result<FlowPosition> process(Type datum) {
+
+		Set<FlowPosition> positions;
+		if (datum instanceof TObject) {
+			positions = selfPositionsInMethods(((TObject) datum)
+					.getClassInstance());
+		} else {
+			positions = Collections.emptySet();
+		}
+		return new FiniteResult<FlowPosition>(positions);
+
+	}
+
+	private static Set<FlowPosition> selfPositionsInMethods(Class classObject) {
+
+		Set<FlowPosition> positions = new HashSet<FlowPosition>();
+
+		Collection<Function> methods = classObject.getFunctions().values();
+
+		for (Function method : methods) {
+			List<ModelSite<exprType>> parameters = method.asCodeBlock()
+					.getFormalParameters();
+
+			if (parameters.size() > 0) {
+				ModelSite<exprType> selfParameter = parameters.get(0);
+				assert selfParameter.codeObject().equals(method.codeObject());
+				positions.add(new ExpressionPosition<exprType>(selfParameter));
+			} else {
+				// Method is missing its self parameter!
+			}
+		}
+
+		return positions;
 	}
 
 }

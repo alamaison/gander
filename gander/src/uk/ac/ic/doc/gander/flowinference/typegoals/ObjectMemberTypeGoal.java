@@ -8,6 +8,10 @@ import org.python.pydev.parser.jython.ast.exprType;
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
 import uk.ac.ic.doc.gander.flowinference.flowgoals.CodeObjectNamespacePosition;
 import uk.ac.ic.doc.gander.flowinference.flowgoals.FlowGoal;
+import uk.ac.ic.doc.gander.flowinference.result.FiniteResult;
+import uk.ac.ic.doc.gander.flowinference.result.RedundancyEliminator;
+import uk.ac.ic.doc.gander.flowinference.result.Result;
+import uk.ac.ic.doc.gander.flowinference.result.Result.Processor;
 import uk.ac.ic.doc.gander.flowinference.types.Type;
 import uk.ac.ic.doc.gander.model.Class;
 import uk.ac.ic.doc.gander.model.ModelSite;
@@ -27,8 +31,8 @@ final class ObjectMemberTypeGoal implements TypeGoal {
 		this.memberName = memberName;
 	}
 
-	public TypeJudgement initialSolution() {
-		return SetBasedTypeJudgement.BOTTOM;
+	public Result<Type> initialSolution() {
+		return FiniteResult.bottom();
 	}
 
 	/**
@@ -37,7 +41,7 @@ final class ObjectMemberTypeGoal implements TypeGoal {
 	 * container-insensitive analysis, this is summarised to become the union of
 	 * the types assigned to that member of any instance of the same class.
 	 */
-	public TypeJudgement recalculateSolution(final SubgoalManager goalManager) {
+	public Result<Type> recalculateSolution(final SubgoalManager goalManager) {
 
 		/*
 		 * To decide on the type of the member we have to look at all
@@ -50,47 +54,60 @@ final class ObjectMemberTypeGoal implements TypeGoal {
 		 * itself, is bound to a value.
 		 */
 
-		Set<ModelSite<? extends exprType>> namespaceReferences = goalManager
+		Result<ModelSite<? extends exprType>> namespaceReferences = goalManager
 				.registerSubgoal(new FlowGoal(new CodeObjectNamespacePosition(
 						klass)));
-		if (namespaceReferences == null) {
-			/*
-			 * We have no idea where the namespace flowed to so we can't say
-			 * what type the member might have.
-			 */
-			return Top.INSTANCE;
+
+		final class ObjectMemberProcessor implements
+				Processor<ModelSite<? extends exprType>> {
+
+			private Result<Type> memberType;
+
+			public void processInfiniteResult() {
+				/*
+				 * We have no idea where the namespace flowed to so we can't say
+				 * what type the member might have.
+				 */
+				memberType = TopT.INSTANCE;
+
+			}
+
+			public void processFiniteResult(
+					Set<ModelSite<? extends exprType>> namespaceReferences) {
+				/*
+				 * Collect the expressions that access our named member on an
+				 * instance of our class.
+				 */
+				// XXX: We only look at attributes referenced using a matching
+				// name.
+				// is this enough? What about fields of modules, for instance
+				// (yes I
+				// realise these never get here because NamespaceNameTypeGoal
+				// handles them but they are technically objects).
+				Set<ModelSite<Attribute>> memberAccesses = new NamedAttributeAccessFinder(
+						namespaceReferences, memberName).accesses();
+
+				memberType = new AttributeTypeSummariser(memberAccesses,
+						goalManager).type();
+			}
 		}
 
-		/*
-		 * Collect the expressions that access our named member on an instance
-		 * of our class.
-		 */
-		// XXX: We only look at attributes referenced using a matching name.
-		// is this enough? What about fields of modules, for instance (yes I
-		// realise these never get here because NamespaceNameTypeGoal
-		// handles them but they are technically objects).
-		Set<ModelSite<Attribute>> memberAccesses = new NamedAttributeAccessFinder(
-				namespaceReferences, memberName).accesses();
+		ObjectMemberProcessor processor = new ObjectMemberProcessor();
+		namespaceReferences.actOnResult(processor);
 
-		final TypeConcentrator types = new TypeConcentrator();
-
-		Set<Type> attributeSummary = new AttributeTypeSummariser(
-				memberAccesses, goalManager).type();
-		if (attributeSummary != null)
-			types.add(new SetBasedTypeJudgement(attributeSummary));
-		else
-			return Top.INSTANCE;
+		RedundancyEliminator<Type> memberType = new RedundancyEliminator<Type>();
+		memberType.add(processor.memberType);
 
 		/*
 		 * An object member may also refer to the member in the metaclass object
 		 * so we have to add these types too.
 		 */
-		TypeJudgement metaClassMemberTypes = goalManager
+		Result<Type> metaClassMemberTypes = goalManager
 				.registerSubgoal(new NamespaceNameTypeGoal(new NamespaceName(
 						memberName, klass)));
-		types.add(metaClassMemberTypes);
+		memberType.add(metaClassMemberTypes);
 
-		return types.getJudgement();
+		return memberType.result();
 	}
 
 	@Override

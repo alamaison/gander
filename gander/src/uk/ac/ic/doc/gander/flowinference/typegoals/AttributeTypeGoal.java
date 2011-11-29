@@ -5,6 +5,10 @@ import org.python.pydev.parser.jython.ast.NameTok;
 import org.python.pydev.parser.jython.ast.exprType;
 
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
+import uk.ac.ic.doc.gander.flowinference.result.Concentrator;
+import uk.ac.ic.doc.gander.flowinference.result.FiniteResult;
+import uk.ac.ic.doc.gander.flowinference.result.Result;
+import uk.ac.ic.doc.gander.flowinference.result.Concentrator.DatumProcessor;
 import uk.ac.ic.doc.gander.flowinference.types.Type;
 import uk.ac.ic.doc.gander.model.ModelSite;
 
@@ -16,31 +20,29 @@ final class AttributeTypeGoal implements TypeGoal {
 		this.attribute = attribute;
 	}
 
-	public TypeJudgement initialSolution() {
-		return SetBasedTypeJudgement.BOTTOM;
+	public Result<Type> initialSolution() {
+		return FiniteResult.bottom();
 	}
 
-	public TypeJudgement recalculateSolution(SubgoalManager goalManager) {
+	public Result<Type> recalculateSolution(final SubgoalManager goalManager) {
 		ModelSite<exprType> lhs = new ModelSite<exprType>(
 				attribute.astNode().value, attribute.codeObject());
 		ExpressionTypeGoal typer = new ExpressionTypeGoal(lhs);
-		TypeJudgement targetTypes = goalManager.registerSubgoal(typer);
+		Result<Type> targetTypes = goalManager.registerSubgoal(typer);
 
-		if (targetTypes instanceof FiniteTypeJudgement) {
-			TypeConcentrator types = new TypeConcentrator();
-			String attributeName = ((NameTok) attribute.astNode().attr).id;
+		final String attributeName = ((NameTok) attribute.astNode().attr).id;
 
-			for (Type targetType : (FiniteTypeJudgement) targetTypes) {
-				types.add(goalManager.registerSubgoal(new MemberTypeGoal(
-						targetType, attributeName)));
-				if (types.isFinished())
-					break;
-			}
+		Concentrator<Type, Type> processor = Concentrator.newInstance(
+				new DatumProcessor<Type, Type>() {
 
-			return types.getJudgement();
-		} else {
-			return Top.INSTANCE;
-		}
+					public Result<Type> process(Type targetType) {
+						return goalManager.registerSubgoal(new MemberTypeGoal(
+								targetType, attributeName));
+					}
+				}, TopT.INSTANCE);
+		targetTypes.actOnResult(processor);
+
+		return processor.result();
 	}
 
 	@Override

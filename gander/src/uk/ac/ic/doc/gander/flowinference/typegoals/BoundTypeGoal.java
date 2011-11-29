@@ -1,6 +1,6 @@
 package uk.ac.ic.doc.gander.flowinference.typegoals;
 
-import java.util.HashSet;
+import java.util.Collections;
 
 import org.python.pydev.parser.jython.SimpleNode;
 import org.python.pydev.parser.jython.ast.Assign;
@@ -20,6 +20,9 @@ import org.python.pydev.parser.jython.ast.stmtType;
 import uk.ac.ic.doc.gander.ast.BindingStatementVisitor;
 import uk.ac.ic.doc.gander.flowinference.ImportTyper;
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
+import uk.ac.ic.doc.gander.flowinference.result.FiniteResult;
+import uk.ac.ic.doc.gander.flowinference.result.RedundancyEliminator;
+import uk.ac.ic.doc.gander.flowinference.result.Result;
 import uk.ac.ic.doc.gander.flowinference.types.TClass;
 import uk.ac.ic.doc.gander.flowinference.types.TFunction;
 import uk.ac.ic.doc.gander.flowinference.types.Type;
@@ -40,13 +43,13 @@ public final class BoundTypeGoal implements TypeGoal {
 		this.variable = variable;
 	}
 
-	public TypeJudgement initialSolution() {
-		return SetBasedTypeJudgement.BOTTOM;
+	public Result<Type> initialSolution() {
+		return FiniteResult.bottom();
 	}
 
-	public TypeJudgement recalculateSolution(SubgoalManager manager) {
+	public Result<Type> recalculateSolution(SubgoalManager manager) {
 
-		TypeConcentrator types = new TypeConcentrator();
+		RedundancyEliminator<Type> types = new RedundancyEliminator<Type>();
 
 		types.add(new BoundTypeVisitor(manager, variable).getJudgement());
 
@@ -63,7 +66,7 @@ public final class BoundTypeGoal implements TypeGoal {
 					.name(), variable.model().getTopLevel())).getJudgement());
 		}
 
-		return types.getJudgement();
+		return types.result();
 	}
 
 	@Override
@@ -99,50 +102,35 @@ public final class BoundTypeGoal implements TypeGoal {
 }
 
 class BoundTypeVisitor extends BindingStatementVisitor {
-	private final HashSet<Type> boundTypes = new HashSet<Type>();
 	private final SubgoalManager goalManager;
 	private final Variable variable;
-
-	/*
-	 * Keep adding to boundTypes until this stops being null which indicates a
-	 * judgement has been reached. Basically this doesn't happen until be decide
-	 * on Top or finish processing everything and convert our set to a type
-	 * judgement.
-	 */
-	private TypeJudgement judgement = null;
+	private final RedundancyEliminator<Type> judgement = new RedundancyEliminator<Type>();
 
 	BoundTypeVisitor(SubgoalManager goalManager, Variable variable) {
 		this.goalManager = goalManager;
 		this.variable = variable;
 
-		TypeJudgement parameterType = goalManager
+		Result<Type> parameterType = goalManager
 				.registerSubgoal(new ParameterTypeGoal(variable.codeBlock(),
 						variable.name()));
-		if (parameterType instanceof FiniteTypeJudgement) {
-			boundTypes.addAll((FiniteTypeJudgement) parameterType);
-		} else {
-			judgement = Top.INSTANCE;
-			return;
-		}
+		judgement.add(parameterType);
+		if (!judgement.isFinished()) {
 
-		try {
-			variable.codeBlock().asCodeBlock().accept(this);
-		} catch (Exception e) {
-			throw new RuntimeException(e);
-		}
-
-		if (judgement == null) {
-			judgement = new SetBasedTypeJudgement(boundTypes);
+			try {
+				variable.codeBlock().asCodeBlock().accept(this);
+			} catch (Exception e) {
+				throw new RuntimeException(e);
+			}
 		}
 	}
 
-	public TypeJudgement getJudgement() {
-		return judgement;
+	public Result<Type> getJudgement() {
+		return judgement.result();
 	}
 
 	@Override
 	public Object visitTryExcept(TryExcept node) throws Exception {
-		if (judgement != null)
+		if (judgement.isFinished())
 			return null;
 
 		for (excepthandlerType handler : node.handlers) {
@@ -151,8 +139,8 @@ class BoundTypeVisitor extends BindingStatementVisitor {
 
 					/*
 					 * If any of the above attempts to convert the declared type
-					 * to a model class fail, we must add Top as we _have_ found
-					 * the name, we just don't know its type. Not adding
+					 * to a model class fail, we must add TopT as we _have_
+					 * found the name, we just don't know its type. Not adding
 					 * anything would mean we found no binding for that name
 					 * which would be a lie.
 					 */
@@ -166,11 +154,12 @@ class BoundTypeVisitor extends BindingStatementVisitor {
 						Class exceptionClass = variable.model().getTopLevel()
 								.getClasses().get(((Name) handler.type).id);
 						if (exceptionClass != null) {
-							boundTypes.add(new TClass(exceptionClass));
+							judgement.add(new FiniteResult<Type>(Collections
+									.singleton(new TClass(exceptionClass))));
 						} else {
 
 							// Give up early because nothing beats Top
-							judgement = Top.INSTANCE;
+							judgement.add(TopT.INSTANCE);
 							return null;
 						}
 					} else {
@@ -178,7 +167,7 @@ class BoundTypeVisitor extends BindingStatementVisitor {
 						// exception class
 
 						// Give up early because nothing beats Top
-						judgement = Top.INSTANCE;
+						judgement.add(TopT.INSTANCE);
 						return null;
 					}
 
@@ -261,14 +250,15 @@ class BoundTypeVisitor extends BindingStatementVisitor {
 				 * single import we asked to resolve, giving us a single type.
 				 */
 				if (scope.equals(scope) && name.equals(variable.name()))
-					boundTypes.add(type);
+					judgement.add(new FiniteResult<Type>(Collections
+							.singleton(type)));
 			}
 		};
 	}
 
 	@Override
 	public Object visitFunctionDef(FunctionDef node) throws Exception {
-		if (judgement != null)
+		if (judgement.isFinished())
 			return null;
 
 		if (((NameTok) node.name).id.equals(variable.name())) {
@@ -281,7 +271,8 @@ class BoundTypeVisitor extends BindingStatementVisitor {
 			// relate conceptually. We've had this issue before as
 			// well. Needs more thought.
 			assert function != null;
-			boundTypes.add(new TFunction(function));
+			judgement.add(new FiniteResult<Type>(Collections
+					.singleton(new TFunction(function))));
 		}
 
 		// Do NOT recurse into the FunctionDef body. Despite
@@ -296,7 +287,7 @@ class BoundTypeVisitor extends BindingStatementVisitor {
 
 	@Override
 	public Object visitFor(For node) throws Exception {
-		if (judgement != null)
+		if (judgement.isFinished())
 			return null;
 
 		if (node.target instanceof Name
@@ -304,7 +295,7 @@ class BoundTypeVisitor extends BindingStatementVisitor {
 			// TODO: Try to infer type of iterable
 
 			// Give up early because nothing beats Top
-			judgement = Top.INSTANCE;
+			judgement.add(TopT.INSTANCE);
 			return null;
 		}
 
@@ -321,7 +312,7 @@ class BoundTypeVisitor extends BindingStatementVisitor {
 
 	@Override
 	public Object visitClassDef(ClassDef node) throws Exception {
-		if (judgement != null)
+		if (judgement.isFinished())
 			return null;
 
 		if (((NameTok) node.name).id.equals(variable.name())) {
@@ -334,7 +325,8 @@ class BoundTypeVisitor extends BindingStatementVisitor {
 			// relate conceptually. We've had this issue before as
 			// well. Needs more thought.
 			assert klass != null;
-			boundTypes.add(new TClass(klass));
+			judgement.add(new FiniteResult<Type>(Collections
+					.singleton(new TClass(klass))));
 		}
 
 		// Do NOT recurse into the ClassDef body. Despite
@@ -349,41 +341,30 @@ class BoundTypeVisitor extends BindingStatementVisitor {
 
 	@Override
 	public Object visitAssign(Assign node) throws Exception {
-		if (judgement != null)
-			return null;
 
-		// TODO: compute rhs type on demand
-		TypeJudgement rhsType = null;
+		/* We compute rhs type on demand, once */
+		Result<Type> rhsType = null;
+
 		for (exprType lhsExpression : node.targets) {
+
+			if (judgement.isFinished())
+				return null;
 
 			if (lhsExpression instanceof Name
 					&& ((Name) lhsExpression).id.equals(variable.name())) {
-				// compute rhs type on demand
 				if (rhsType == null) {
 
 					ModelSite<exprType> rhs = new ModelSite<exprType>(
 							node.value, variable.codeObject());
 					rhsType = goalManager
 							.registerSubgoal(new ExpressionTypeGoal(rhs));
-					// assert rhsType != null;
+					assert rhsType != null;
 				}
 
-				if (rhsType != null) {
-
-					/*
-					 * XXX: This is stupid. Shouldn't need this nasty
-					 * interrogation. Can we get rid of the boundTypes set?
-					 */
-					if (rhsType instanceof FiniteTypeJudgement) {
-						boundTypes.addAll((FiniteTypeJudgement) rhsType);
-					} else {
-
-						judgement = Top.INSTANCE;
-						return null;
-					}
-				}
+				judgement.add(rhsType);
 			}
 		}
+
 		/*
 		 * FIXME: If this search is happening on a global, we limit this search
 		 * to the enclosing module scope completely ignoring the fact that
@@ -397,7 +378,7 @@ class BoundTypeVisitor extends BindingStatementVisitor {
 
 	@Override
 	public void traverse(SimpleNode node) throws Exception {
-		if (judgement == null) {
+		if (!judgement.isFinished()) {
 			// Traverse by default so that we catch all assignments even
 			// if they are nested
 			node.traverse(this);

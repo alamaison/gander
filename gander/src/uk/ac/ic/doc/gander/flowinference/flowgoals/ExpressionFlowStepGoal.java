@@ -1,24 +1,15 @@
 package uk.ac.ic.doc.gander.flowinference.flowgoals;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 import org.python.pydev.parser.jython.ast.exprType;
 
-import uk.ac.ic.doc.gander.flowinference.ResultConcentrator;
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
 import uk.ac.ic.doc.gander.flowinference.flowgoals.flowsituations.FlowSituation;
 import uk.ac.ic.doc.gander.flowinference.flowgoals.flowsituations.FlowSituationFinder;
-import uk.ac.ic.doc.gander.flowinference.typegoals.ExpressionTypeGoal;
-import uk.ac.ic.doc.gander.flowinference.typegoals.FiniteTypeJudgement;
-import uk.ac.ic.doc.gander.flowinference.typegoals.TypeJudgement;
-import uk.ac.ic.doc.gander.flowinference.types.TObject;
-import uk.ac.ic.doc.gander.flowinference.types.Type;
-import uk.ac.ic.doc.gander.model.Class;
-import uk.ac.ic.doc.gander.model.Function;
+import uk.ac.ic.doc.gander.flowinference.result.FiniteResult;
+import uk.ac.ic.doc.gander.flowinference.result.Result;
+import uk.ac.ic.doc.gander.flowinference.result.RedundancyEliminator;
 import uk.ac.ic.doc.gander.model.ModelSite;
 
 /**
@@ -32,59 +23,14 @@ final class ExpressionFlowStepGoal<T extends exprType> implements FlowStepGoal {
 		this.expression = expression;
 	}
 
-	public Set<FlowPosition> initialSolution() {
-		return Collections.emptySet();
+	public Result<FlowPosition> initialSolution() {
+		return FiniteResult.bottom();
 	}
 
-	public Set<FlowPosition> recalculateSolution(SubgoalManager goalManager) {
+	public Result<FlowPosition> recalculateSolution(SubgoalManager goalManager) {
 
-		Set<FlowSituation> situations = FlowSituationFinder
-				.findFlowSituations(expression);
-
-		ResultConcentrator<FlowPosition> nextPositions = new ResultConcentrator<FlowPosition>();
-		for (FlowSituation flowSituation : situations) {
-			nextPositions.add(flowSituation.nextFlowPositions(goalManager));
-		}
-
-		return nextPositions.result();
-	}
-
-	private Set<FlowPosition> handleMethodSelfFlow(SubgoalManager goalManager) {
-
-		TypeJudgement types = goalManager
-				.registerSubgoal(new ExpressionTypeGoal(expression));
-		if (types instanceof FiniteTypeJudgement) {
-			Set<FlowPosition> positions = new HashSet<FlowPosition>();
-
-			for (Type type : (FiniteTypeJudgement) types) {
-				if (type instanceof TObject) {
-					addSelfFromMethods(((TObject) type).getClassInstance(),
-							positions);
-				}
-			}
-
-			return positions;
-		} else {
-			return Collections.emptySet();
-		}
-	}
-
-	private void addSelfFromMethods(Class classObject,
-			Set<FlowPosition> positions) {
-		Collection<Function> methods = classObject.getFunctions().values();
-
-		for (Function method : methods) {
-			List<ModelSite<exprType>> parameters = method.asCodeBlock()
-					.getFormalParameters();
-
-			if (parameters.size() > 0) {
-				ModelSite<exprType> selfParameter = parameters.get(0);
-				assert selfParameter.namespace().equals(method);
-				positions.add(new ExpressionPosition<exprType>(selfParameter));
-			} else {
-				// Method is missing its self parameter!
-			}
-		}
+		return new ExpressionFlowStepGoalSolver<T>(expression, goalManager)
+				.solution();
 	}
 
 	@Override
@@ -116,6 +62,29 @@ final class ExpressionFlowStepGoal<T extends exprType> implements FlowStepGoal {
 	@Override
 	public String toString() {
 		return "ExpressionFlowStepGoal [expression=" + expression + "]";
+	}
+
+}
+
+final class ExpressionFlowStepGoalSolver<T extends exprType> {
+
+	private final RedundancyEliminator<FlowPosition> nextPositions = new RedundancyEliminator<FlowPosition>();
+
+	public ExpressionFlowStepGoalSolver(ModelSite<T> expression,
+			SubgoalManager goalManager) {
+
+		Set<FlowSituation> situations = FlowSituationFinder
+				.findFlowSituations(expression);
+
+		for (FlowSituation flowSituation : situations) {
+			nextPositions.add(flowSituation.nextFlowPositions(goalManager));
+			if (nextPositions.isFinished())
+				break;
+		}
+	}
+
+	public Result<FlowPosition> solution() {
+		return nextPositions.result();
 	}
 
 }

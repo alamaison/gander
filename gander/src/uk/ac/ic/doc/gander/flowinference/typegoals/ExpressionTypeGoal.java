@@ -37,7 +37,10 @@ import org.python.pydev.parser.jython.ast.num_typeType;
 
 import uk.ac.ic.doc.gander.ast.ExpressionVisitor;
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
+import uk.ac.ic.doc.gander.flowinference.result.FiniteResult;
+import uk.ac.ic.doc.gander.flowinference.result.Result;
 import uk.ac.ic.doc.gander.flowinference.types.TObject;
+import uk.ac.ic.doc.gander.flowinference.types.Type;
 import uk.ac.ic.doc.gander.model.Model;
 import uk.ac.ic.doc.gander.model.ModelSite;
 import uk.ac.ic.doc.gander.model.Namespace;
@@ -60,14 +63,14 @@ public final class ExpressionTypeGoal implements TypeGoal {
 		this.expression = expression;
 	}
 
-	public TypeJudgement initialSolution() {
-		return SetBasedTypeJudgement.BOTTOM;
+	public Result<Type> initialSolution() {
+		return FiniteResult.bottom();
 	}
 
-	public TypeJudgement recalculateSolution(SubgoalManager goalManager) {
+	public Result<Type> recalculateSolution(SubgoalManager goalManager) {
 		TypeFinder finder = new TypeFinder(expression.namespace(), goalManager);
 		try {
-			return (TypeJudgement) expression.astNode().accept(finder);
+			return (Result<Type>) expression.astNode().accept(finder);
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}
@@ -78,45 +81,37 @@ public final class ExpressionTypeGoal implements TypeGoal {
 	 */
 	private final class TypeFinder extends ExpressionVisitor {
 
-		private final TypeJudgement dictType;
-		private final TypeJudgement listType;
-		private final TypeJudgement setType;
-		private final TypeJudgement intType;
-		private final TypeJudgement longType;
-		private final TypeJudgement floatType;
-		private final TypeJudgement strType;
-		private final TypeJudgement tupleType;
-		private final Top topType;
+		private final Result<Type> dictType;
+		private final Result<Type> listType;
+		private final Result<Type> setType;
+		private final Result<Type> intType;
+		private final Result<Type> longType;
+		private final Result<Type> floatType;
+		private final Result<Type> strType;
+		private final Result<Type> tupleType;
+		private final TopT topType;
 		private final SubgoalManager goalManager;
 
 		public TypeFinder(Namespace scope, SubgoalManager goalManager) {
 			this.goalManager = goalManager;
 			Model model = scope.model();
-			dictType = new SetBasedTypeJudgement(Collections
-					.singleton(new TObject(model.getTopLevel().getClasses()
-							.get("dict"))));
-			listType = new SetBasedTypeJudgement(Collections
-					.singleton(new TObject(model.getTopLevel().getClasses()
-							.get("list"))));
-			setType = new SetBasedTypeJudgement(Collections
-					.singleton(new TObject(model.getTopLevel().getClasses()
-							.get("set"))));
-			intType = new SetBasedTypeJudgement(Collections
-					.singleton(new TObject(model.getTopLevel().getClasses()
-							.get("int"))));
-			longType = new SetBasedTypeJudgement(Collections
-					.singleton(new TObject(model.getTopLevel().getClasses()
-							.get("long"))));
-			floatType = new SetBasedTypeJudgement(Collections
-					.singleton(new TObject(model.getTopLevel().getClasses()
-							.get("float"))));
-			strType = new SetBasedTypeJudgement(Collections
-					.singleton(new TObject(model.getTopLevel().getClasses()
-							.get("str"))));
-			tupleType = new SetBasedTypeJudgement(Collections
-					.singleton(new TObject(model.getTopLevel().getClasses()
-							.get("tuple"))));
-			topType = Top.INSTANCE;
+			dictType = new FiniteResult<Type>(Collections.singleton(new TObject(
+			model.getTopLevel().getClasses().get("dict"))));
+			listType = new FiniteResult<Type>(Collections.singleton(new TObject(
+			model.getTopLevel().getClasses().get("list"))));
+			setType = new FiniteResult<Type>(Collections.singleton(new TObject(
+			model.getTopLevel().getClasses().get("set"))));
+			intType = new FiniteResult<Type>(Collections.singleton(new TObject(
+			model.getTopLevel().getClasses().get("int"))));
+			longType = new FiniteResult<Type>(Collections.singleton(new TObject(
+			model.getTopLevel().getClasses().get("long"))));
+			floatType = new FiniteResult<Type>(Collections.singleton(new TObject(
+			model.getTopLevel().getClasses().get("float"))));
+			strType = new FiniteResult<Type>(Collections.singleton(new TObject(
+			model.getTopLevel().getClasses().get("str"))));
+			tupleType = new FiniteResult<Type>(Collections.singleton(new TObject(
+			model.getTopLevel().getClasses().get("tuple"))));
+			topType = TopT.INSTANCE;
 		}
 
 		@Override

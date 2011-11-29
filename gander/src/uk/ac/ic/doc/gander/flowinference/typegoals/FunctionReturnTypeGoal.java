@@ -6,6 +6,10 @@ import org.python.pydev.parser.jython.ast.exprType;
 
 import uk.ac.ic.doc.gander.ast.LocalCodeBlockVisitor;
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
+import uk.ac.ic.doc.gander.flowinference.result.FiniteResult;
+import uk.ac.ic.doc.gander.flowinference.result.RedundancyEliminator;
+import uk.ac.ic.doc.gander.flowinference.result.Result;
+import uk.ac.ic.doc.gander.flowinference.types.Type;
 import uk.ac.ic.doc.gander.model.Function;
 import uk.ac.ic.doc.gander.model.ModelSite;
 import uk.ac.ic.doc.gander.model.name_binding.Variable;
@@ -18,12 +22,12 @@ public class FunctionReturnTypeGoal implements TypeGoal {
 		this.function = function;
 	}
 
-	public TypeJudgement initialSolution() {
-		return SetBasedTypeJudgement.BOTTOM;
+	public Result<Type> initialSolution() {
+		return FiniteResult.bottom();
 	}
 
-	public TypeJudgement recalculateSolution(final SubgoalManager goalManager) {
-		final TypeConcentrator returnTypes = new TypeConcentrator();
+	public Result<Type> recalculateSolution(final SubgoalManager goalManager) {
+		final RedundancyEliminator<Type> returnTypes = new RedundancyEliminator<Type>();
 
 		/* Bizarre declaration to allow modification in anonymous class */
 		final boolean seenReturnStatement[] = { false };
@@ -78,10 +82,10 @@ public class FunctionReturnTypeGoal implements TypeGoal {
 			returnTypes.add(noneType(goalManager));
 		}
 
-		return returnTypes.getJudgement();
+		return returnTypes.result();
 	}
 
-	private TypeJudgement noneType(SubgoalManager goalManager) {
+	private Result<Type> noneType(SubgoalManager goalManager) {
 		VariableTypeGoal typer = new VariableTypeGoal(new Variable("None",
 				function));
 		return goalManager.registerSubgoal(typer);

@@ -1,11 +1,15 @@
 package uk.ac.ic.doc.gander.flowinference.typegoals;
 
 import java.util.Collections;
+import java.util.Set;
 
 import org.python.pydev.parser.jython.ast.exprType;
 
-import uk.ac.ic.doc.gander.flowinference.ResultConcentrator;
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
+import uk.ac.ic.doc.gander.flowinference.result.FiniteResult;
+import uk.ac.ic.doc.gander.flowinference.result.Result;
+import uk.ac.ic.doc.gander.flowinference.result.RedundancyEliminator;
+import uk.ac.ic.doc.gander.flowinference.result.Result.Processor;
 import uk.ac.ic.doc.gander.flowinference.types.TClass;
 import uk.ac.ic.doc.gander.flowinference.types.TFunction;
 import uk.ac.ic.doc.gander.flowinference.types.TModule;
@@ -19,6 +23,54 @@ import uk.ac.ic.doc.gander.model.NamespaceName;
 
 final class NamespaceNameTypeGoal implements TypeGoal {
 
+	private static final class MemberFinder implements Processor<Type> {
+		private final String name;
+		private final Class klass;
+		private final SubgoalManager goalManager;
+
+		private Member member = null;
+
+		private MemberFinder(String name, Class klass,
+				SubgoalManager goalManager) {
+			this.name = name;
+			this.klass = klass;
+			this.goalManager = goalManager;
+		}
+
+		public void processInfiniteResult() {
+			// do nothing, no member found
+		}
+
+		public void processFiniteResult(Set<Type> result) {
+			for (Type supertypeType : result) {
+				if (supertypeType instanceof TClass) {
+					Class superclass = ((TClass) supertypeType)
+							.getClassInstance();
+
+					// XXX: only fixes single-level recursion
+					if (superclass.equals(klass))
+						continue;
+
+					member = superclass.lookupMember(name);
+					if (member != null) {
+						return;
+					} else {
+						// FIXME: This searches depth-first rather than
+						// breadth first as it should be
+						//
+						// FIXME: Also leads to infinite recursion
+						member = lookForMemberInInheritanceChain(superclass,
+								name, goalManager);
+						if (member != null) {
+							return;
+						}
+					}
+
+				}
+			}
+		}
+	}
+
 	private NamespaceName name;
 
 	NamespaceNameTypeGoal(NamespaceName name) {
@@ -29,18 +81,18 @@ final class NamespaceNameTypeGoal implements TypeGoal {
 		this.name = name;
 	}
 
-	public TypeJudgement initialSolution() {
-		return SetBasedTypeJudgement.BOTTOM;
+	public Result<Type> initialSolution() {
+		return FiniteResult.bottom();
 	}
 
-	public TypeJudgement recalculateSolution(SubgoalManager goalManager) {
+	public Result<Type> recalculateSolution(SubgoalManager goalManager) {
 
 		/*
 		 * TODO: If we can't find a matching entry in the namespace type
 		 * definition then we will have to do something more complex to deal
 		 * with the possibility that it is a field. Or even worse, that it is a
-		 * method added at runtime. For the moment we return Top (don't know) in
-		 * that case.
+		 * method added at runtime. For the moment we return TopT (don't know)
+		 * in that case.
 		 */
 
 		Member member = name.namespace().lookupMember(name.name());
@@ -55,70 +107,49 @@ final class NamespaceNameTypeGoal implements TypeGoal {
 			return convertMemberToType(member);
 		} else {
 
-			ResultConcentrator<Type> completeType = new ResultConcentrator<Type>();
+			RedundancyEliminator<Type> completeType = new RedundancyEliminator<Type>();
+
 			completeType.add(new UnqualifiedNameDefinitionsPartialSolution(
 					goalManager, name).partialSolution());
 			completeType.add(new QualifiedNameDefinitionsPartialSolution(
 					goalManager, name).partialSolution());
 
-			if (completeType.isTop())
-				return Top.INSTANCE;
-			else
-				return new SetBasedTypeJudgement(completeType.result());
+			return completeType.result();
 		}
 	}
 
-	private static Member lookForMemberInInheritanceChain(Class klass,
-			String name, SubgoalManager goalManager) {
+	private static Member lookForMemberInInheritanceChain(final Class klass,
+			final String name, final SubgoalManager goalManager) {
+
 		for (exprType supertype : klass.inheritsFrom()) {
-			TypeJudgement supertypeTypes = goalManager
+
+			Result<Type> supertypeTypes = goalManager
 					.registerSubgoal(new ExpressionTypeGoal(
 							new ModelSite<exprType>(supertype, klass
 									.getParentScope().codeObject())));
-			if (supertypeTypes instanceof FiniteTypeJudgement) {
-				for (Type supertypeType : (FiniteTypeJudgement) supertypeTypes) {
-					if (supertypeType instanceof TClass) {
-						Class superclass = ((TClass) supertypeType)
-								.getClassInstance();
 
-						// XXX: only fixes single-level recursion
-						if (superclass.equals(klass))
-							continue;
+			MemberFinder memberFinder = new MemberFinder(name, klass,
+					goalManager);
+			supertypeTypes.actOnResult(memberFinder);
+			if (memberFinder.member != null)
+				return memberFinder.member;
 
-						Member member = superclass.lookupMember(name);
-						if (member != null) {
-							return member;
-						} else {
-							// FIXME: This searches depth-first rather than
-							// breadth first as it should be
-							//
-							// FIXME: Also leads to infinite recursion
-							member = lookForMemberInInheritanceChain(
-									superclass, name, goalManager);
-							if (member != null) {
-								return member;
-							}
-						}
-
-					}
-				}
-			}
 		}
 		return null;
 	}
 
-	private static TypeJudgement convertMemberToType(Member member) {
+	private static Result<Type> convertMemberToType(Member member) {
 		if (member instanceof Module) {
-			return new SetBasedTypeJudgement(Collections.singleton(new TModule(
-					(Module) member)));
+			return new FiniteResult<Type>(Collections.singleton(new TModule(
+			(Module) member)));
 		} else if (member instanceof Class) {
-			return new SetBasedTypeJudgement(Collections.singleton(new TClass(
-					(Class) member)));
+			return new FiniteResult<Type>(Collections.singleton(new TClass(
+			(Class) member)));
 		} else if (member instanceof Function) {
-			return new SetBasedTypeJudgement(Collections
-					.singleton(new TFunction((Function) member)));
+			return new FiniteResult<Type>(Collections.singleton(new TFunction(
+			(Function) member)));
 		} else {
-			return Top.INSTANCE;
+			return TopT.INSTANCE;
 		}
 	}
 
