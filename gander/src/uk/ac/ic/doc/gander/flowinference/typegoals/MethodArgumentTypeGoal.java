@@ -15,16 +15,17 @@ import uk.ac.ic.doc.gander.flowinference.sendersgoals.FunctionSendersGoal;
 import uk.ac.ic.doc.gander.flowinference.types.TObject;
 import uk.ac.ic.doc.gander.flowinference.types.Type;
 import uk.ac.ic.doc.gander.model.Class;
-import uk.ac.ic.doc.gander.model.Function;
 import uk.ac.ic.doc.gander.model.ModelSite;
+import uk.ac.ic.doc.gander.model.codeobject.ClassCO;
+import uk.ac.ic.doc.gander.model.codeobject.FunctionCO;
 
 final class MethodArgumentTypeGoal implements TypeGoal {
 
-	private final Function method;
+	private final FunctionCO method;
 	private final String name;
 
-	MethodArgumentTypeGoal(Function method, String name) {
-		assert method.getParentScope() instanceof Class;
+	MethodArgumentTypeGoal(FunctionCO method, String name) {
+		assert method.parent() instanceof ClassCO;
 		this.method = method;
 		this.name = name;
 	}
@@ -101,9 +102,9 @@ final class MethodArgumentTypeGoalSolver {
 	private final Result<Type> solution;
 	private final int argumentIndex;
 
-	MethodArgumentTypeGoalSolver(Function method, String name,
+	MethodArgumentTypeGoalSolver(FunctionCO method, String name,
 			SubgoalManager goalManager) {
-		assert method.getParentScope() instanceof Class;
+		assert method.parent() instanceof ClassCO;
 
 		this.goalManager = goalManager;
 		this.argumentIndex = findArgumentIndexInFunction(method, name);
@@ -119,8 +120,9 @@ final class MethodArgumentTypeGoalSolver {
 		 * model other instances flowing to self due to inheritance.
 		 */
 		if (this.argumentIndex == 0) {
-			solution = new FiniteResult<Type>(Collections.singleton(new TObject(
-			(Class) method.getParentScope())));
+			solution = new FiniteResult<Type>(Collections
+					.singleton(new TObject((Class) ((ClassCO) method.parent())
+							.oldStyleConflatedNamespace())));
 		} else {
 
 			Result<ModelSite<Call>> callSites = goalManager
@@ -138,9 +140,9 @@ final class MethodArgumentTypeGoalSolver {
 		return solution;
 	}
 
-	private static int findArgumentIndexInFunction(Function function,
+	private static int findArgumentIndexInFunction(FunctionCO function,
 			String argument) {
-		List<String> args = function.asCodeBlock().getNamedFormalParameters();
+		List<String> args = function.codeBlock().getNamedFormalParameters();
 
 		for (int i = 0; i < args.size(); ++i) {
 			if (args.get(i).equals(argument))

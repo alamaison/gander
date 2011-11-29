@@ -3,7 +3,6 @@ package uk.ac.ic.doc.gander.model.codeobject;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.python.pydev.parser.jython.SimpleNode;
 import org.python.pydev.parser.jython.ast.FunctionDef;
 import org.python.pydev.parser.jython.ast.NameTok;
 
@@ -50,7 +49,7 @@ public final class FunctionCO implements NamedCodeObject, NestedCodeObject {
 		this.ast = oldStyleFunctionNamespace.getAst();
 	}
 
-	public SimpleNode ast() {
+	public FunctionDef ast() {
 		return ast;
 	}
 

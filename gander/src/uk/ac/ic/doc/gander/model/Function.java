@@ -16,7 +16,6 @@ import uk.ac.ic.doc.gander.cfg.Cfg;
 import uk.ac.ic.doc.gander.model.codeblock.CodeBlock;
 import uk.ac.ic.doc.gander.model.codeblock.DefaultCodeBlock;
 import uk.ac.ic.doc.gander.model.codeblock.DefaultCodeBlock.Acceptor;
-import uk.ac.ic.doc.gander.model.codeobject.CodeObject;
 import uk.ac.ic.doc.gander.model.codeobject.FunctionCO;
 
 public final class Function implements Namespace {
@@ -154,7 +153,7 @@ public final class Function implements Namespace {
 		return model;
 	}
 
-	public CodeObject codeObject() {
+	public FunctionCO codeObject() {
 		return codeObject;
 	}
 }

@@ -13,9 +13,9 @@ import uk.ac.ic.doc.gander.flowinference.result.RedundancyEliminator;
 import uk.ac.ic.doc.gander.flowinference.result.Result;
 import uk.ac.ic.doc.gander.flowinference.result.Result.Processor;
 import uk.ac.ic.doc.gander.flowinference.types.Type;
-import uk.ac.ic.doc.gander.model.Class;
 import uk.ac.ic.doc.gander.model.ModelSite;
 import uk.ac.ic.doc.gander.model.NamespaceName;
+import uk.ac.ic.doc.gander.model.codeobject.ClassCO;
 
 /**
  * Infer the type of a member of an object's dictionary for an object that is an
@@ -23,10 +23,10 @@ import uk.ac.ic.doc.gander.model.NamespaceName;
  */
 final class ObjectMemberTypeGoal implements TypeGoal {
 
-	private final Class klass;
+	private final ClassCO klass;
 	private final String memberName;
 
-	ObjectMemberTypeGoal(Class klass, String memberName) {
+	ObjectMemberTypeGoal(ClassCO klass, String memberName) {
 		this.klass = klass;
 		this.memberName = memberName;
 	}
@@ -69,7 +69,6 @@ final class ObjectMemberTypeGoal implements TypeGoal {
 				 * what type the member might have.
 				 */
 				memberType = TopT.INSTANCE;
-
 			}
 
 			public void processFiniteResult(
@@ -104,7 +103,7 @@ final class ObjectMemberTypeGoal implements TypeGoal {
 		 */
 		Result<Type> metaClassMemberTypes = goalManager
 				.registerSubgoal(new NamespaceNameTypeGoal(new NamespaceName(
-						memberName, klass)));
+						memberName, klass.model().intrinsicNamespace(klass))));
 		memberType.add(metaClassMemberTypes);
 
 		return memberType.result();

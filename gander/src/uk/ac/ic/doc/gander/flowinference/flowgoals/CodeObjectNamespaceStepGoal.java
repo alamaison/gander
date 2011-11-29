@@ -6,8 +6,8 @@ import java.util.Set;
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
 import uk.ac.ic.doc.gander.flowinference.result.FiniteResult;
 import uk.ac.ic.doc.gander.flowinference.result.Result;
-import uk.ac.ic.doc.gander.model.Class;
-import uk.ac.ic.doc.gander.model.Namespace;
+import uk.ac.ic.doc.gander.model.codeobject.ClassCO;
+import uk.ac.ic.doc.gander.model.codeobject.CodeObject;
 
 /**
  * Goal solving the flow of namespaces from a code object.
@@ -19,9 +19,9 @@ import uk.ac.ic.doc.gander.model.Namespace;
  */
 final class CodeObjectNamespaceStepGoal implements FlowStepGoal {
 
-	private final Namespace codeObject;
+	private final CodeObject codeObject;
 
-	CodeObjectNamespaceStepGoal(Namespace codeObject) {
+	CodeObjectNamespaceStepGoal(CodeObject codeObject) {
 		this.codeObject = codeObject;
 	}
 
@@ -33,10 +33,15 @@ final class CodeObjectNamespaceStepGoal implements FlowStepGoal {
 
 		Set<FlowPosition> positions = new HashSet<FlowPosition>();
 
+		/*
+		 * Code objects are flowed using this special CodeObjectPosition because
+		 * they don't have expressions to represent them. They have to be
+		 * modelled specially.
+		 */
 		positions.add(new CodeObjectPosition(codeObject));
 
-		if (codeObject instanceof Class) {
-			positions.add(new InstancePosition((Class) codeObject));
+		if (codeObject instanceof ClassCO) {
+			positions.add(new InstancePosition((ClassCO) codeObject));
 		}
 
 		return new FiniteResult<FlowPosition>(positions);

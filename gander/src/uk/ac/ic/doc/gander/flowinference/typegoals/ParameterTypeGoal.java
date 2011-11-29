@@ -5,17 +5,17 @@ import uk.ac.ic.doc.gander.flowinference.result.FiniteResult;
 import uk.ac.ic.doc.gander.flowinference.result.RedundancyEliminator;
 import uk.ac.ic.doc.gander.flowinference.result.Result;
 import uk.ac.ic.doc.gander.flowinference.types.Type;
-import uk.ac.ic.doc.gander.model.Class;
-import uk.ac.ic.doc.gander.model.Function;
-import uk.ac.ic.doc.gander.model.Namespace;
 import uk.ac.ic.doc.gander.model.codeblock.CodeBlock;
+import uk.ac.ic.doc.gander.model.codeobject.ClassCO;
+import uk.ac.ic.doc.gander.model.codeobject.CodeObject;
+import uk.ac.ic.doc.gander.model.codeobject.FunctionCO;
 
 final class ParameterTypeGoal implements TypeGoal {
 
-	private final Namespace enclosingScope;
+	private final CodeObject enclosingScope;
 	private final String name;
 
-	ParameterTypeGoal(Namespace enclosingScope, String name) {
+	ParameterTypeGoal(CodeObject enclosingScope, String name) {
 		this.enclosingScope = enclosingScope;
 		this.name = name;
 	}
@@ -25,7 +25,7 @@ final class ParameterTypeGoal implements TypeGoal {
 	}
 
 	public Result<Type> recalculateSolution(SubgoalManager goalManager) {
-		CodeBlock codeBlock = enclosingScope.asCodeBlock();
+		CodeBlock codeBlock = enclosingScope.codeBlock();
 
 		final RedundancyEliminator<Type> type = new RedundancyEliminator<Type>();
 
@@ -36,16 +36,16 @@ final class ParameterTypeGoal implements TypeGoal {
 			 * self) is always an instance of the class so we can trivially
 			 * infer its type
 			 */
-			if (enclosingScope instanceof Function) {
-				if (enclosingScope.getParentScope() instanceof Class) {
+			if (enclosingScope instanceof FunctionCO) {
+				if (((FunctionCO) enclosingScope).parent() instanceof ClassCO) {
 					type.add(goalManager
 							.registerSubgoal(new MethodArgumentTypeGoal(
-									(Function) enclosingScope, name)));
+									(FunctionCO) enclosingScope, name)));
 
 				} else {
 					type.add(goalManager
 							.registerSubgoal(new FunctionArgumentTypeGoal(
-									(Function) enclosingScope, name)));
+									(FunctionCO) enclosingScope, name)));
 				}
 
 			} else {

@@ -12,8 +12,8 @@ import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
 import uk.ac.ic.doc.gander.flowinference.result.FiniteResult;
 import uk.ac.ic.doc.gander.flowinference.result.Result;
 import uk.ac.ic.doc.gander.flowinference.result.Result.Processor;
-import uk.ac.ic.doc.gander.model.Class;
 import uk.ac.ic.doc.gander.model.ModelSite;
+import uk.ac.ic.doc.gander.model.codeobject.ClassCO;
 
 /**
  * Goal modelling the flow of class instances in the first step after creation.
@@ -22,9 +22,9 @@ import uk.ac.ic.doc.gander.model.ModelSite;
  */
 final class InstanceCreationStepGoal implements FlowStepGoal {
 
-	private final Class klass;
+	private final ClassCO klass;
 
-	InstanceCreationStepGoal(Class klass) {
+	InstanceCreationStepGoal(ClassCO klass) {
 		this.klass = klass;
 	}
 
@@ -102,7 +102,7 @@ final class InstanceCreationStepGoalSolver {
 
 	private Result<FlowPosition> constructors;
 
-	InstanceCreationStepGoalSolver(Class klass, SubgoalManager goalManager) {
+	InstanceCreationStepGoalSolver(ClassCO klass, SubgoalManager goalManager) {
 
 		Result<ModelSite<? extends exprType>> classReferences = goalManager
 				.registerSubgoal(new FlowGoal(new CodeObjectPosition(klass)));

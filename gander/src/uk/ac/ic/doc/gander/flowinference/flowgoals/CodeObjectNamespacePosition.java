@@ -1,6 +1,6 @@
 package uk.ac.ic.doc.gander.flowinference.flowgoals;
 
-import uk.ac.ic.doc.gander.model.Namespace;
+import uk.ac.ic.doc.gander.model.codeobject.CodeObject;
 
 /**
  * Models the flow of namespaces from a code object.
@@ -12,9 +12,9 @@ import uk.ac.ic.doc.gander.model.Namespace;
  */
 public final class CodeObjectNamespacePosition implements FlowPosition {
 
-	private final Namespace codeObject;
+	private final CodeObject codeObject;
 
-	public CodeObjectNamespacePosition(Namespace codeObject) {
+	public CodeObjectNamespacePosition(CodeObject codeObject) {
 		this.codeObject = codeObject;
 	}
 

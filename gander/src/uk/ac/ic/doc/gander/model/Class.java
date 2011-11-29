@@ -16,7 +16,6 @@ import uk.ac.ic.doc.gander.model.codeblock.CodeBlock;
 import uk.ac.ic.doc.gander.model.codeblock.DefaultCodeBlock;
 import uk.ac.ic.doc.gander.model.codeblock.DefaultCodeBlock.Acceptor;
 import uk.ac.ic.doc.gander.model.codeobject.ClassCO;
-import uk.ac.ic.doc.gander.model.codeobject.CodeObject;
 
 public final class Class implements Namespace {
 
@@ -153,7 +152,7 @@ public final class Class implements Namespace {
 		return model;
 	}
 
-	public CodeObject codeObject() {
+	public ClassCO codeObject() {
 		return codeObject;
 	}
 }

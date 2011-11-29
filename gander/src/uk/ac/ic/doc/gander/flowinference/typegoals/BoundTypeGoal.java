@@ -111,13 +111,13 @@ class BoundTypeVisitor extends BindingStatementVisitor {
 		this.variable = variable;
 
 		Result<Type> parameterType = goalManager
-				.registerSubgoal(new ParameterTypeGoal(variable.codeBlock(),
+				.registerSubgoal(new ParameterTypeGoal(variable.codeObject(),
 						variable.name()));
 		judgement.add(parameterType);
 		if (!judgement.isFinished()) {
 
 			try {
-				variable.codeBlock().asCodeBlock().accept(this);
+				variable.codeObject().codeBlock().accept(this);
 			} catch (Exception e) {
 				throw new RuntimeException(e);
 			}

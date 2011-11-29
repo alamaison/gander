@@ -1,17 +1,17 @@
 package uk.ac.ic.doc.gander.flowinference.flowgoals;
 
-import uk.ac.ic.doc.gander.model.Class;
+import uk.ac.ic.doc.gander.model.codeobject.ClassCO;
 
 /**
- * Models a {@link Class} instance's flow in a single execution step.
+ * Models a {@link ClassCO} instance's flow in a single execution step.
  * 
  * A class instance can flow to an class constructor call in a single step.
  */
 public final class InstancePosition implements FlowPosition {
 
-	private final Class klass;
+	private final ClassCO klass;
 
-	public InstancePosition(Class klass) {
+	public InstancePosition(ClassCO klass) {
 		this.klass = klass;
 	}
 

@@ -13,8 +13,8 @@ import uk.ac.ic.doc.gander.flowinference.result.FiniteResult;
 import uk.ac.ic.doc.gander.flowinference.result.Result;
 import uk.ac.ic.doc.gander.flowinference.result.Result.Processor;
 import uk.ac.ic.doc.gander.flowinference.sendersgoals.FunctionSendersGoal;
-import uk.ac.ic.doc.gander.model.Function;
 import uk.ac.ic.doc.gander.model.ModelSite;
+import uk.ac.ic.doc.gander.model.codeobject.FunctionCO;
 
 final class ReturnSituation implements FlowSituation {
 
@@ -77,8 +77,7 @@ final class ReturnSituationSolver {
 	ReturnSituationSolver(ModelSite<?> expression, SubgoalManager goalManager) {
 
 		Result<ModelSite<Call>> callers = goalManager
-				.registerSubgoal(new FunctionSendersGoal((Function) expression
-						.namespace()));
+				.registerSubgoal(new FunctionSendersGoal((FunctionCO) expression.codeObject()));
 
 		callers.actOnResult(new Processor<ModelSite<Call>>() {
 

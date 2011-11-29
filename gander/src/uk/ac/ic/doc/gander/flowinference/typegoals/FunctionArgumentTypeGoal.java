@@ -13,15 +13,15 @@ import uk.ac.ic.doc.gander.flowinference.result.Result;
 import uk.ac.ic.doc.gander.flowinference.result.Concentrator.DatumProcessor;
 import uk.ac.ic.doc.gander.flowinference.sendersgoals.FunctionSendersGoal;
 import uk.ac.ic.doc.gander.flowinference.types.Type;
-import uk.ac.ic.doc.gander.model.Function;
 import uk.ac.ic.doc.gander.model.ModelSite;
+import uk.ac.ic.doc.gander.model.codeobject.FunctionCO;
 
 public class FunctionArgumentTypeGoal implements TypeGoal {
 
-	private final Function function;
+	private final FunctionCO function;
 	private final String argument;
 
-	public FunctionArgumentTypeGoal(Function function, String argument) {
+	public FunctionArgumentTypeGoal(FunctionCO function, String argument) {
 		this.function = function;
 		this.argument = argument;
 	}
@@ -93,13 +93,12 @@ final class FunctionArgumentTypeGoalSolver {
 				 * Few argument were passed to the function than are declared in
 				 * its signature. It's probably expecting default arguments.
 				 */
-				if (argumentIndex < function.getAst().args.defaults.length) {
-					exprType defaultVal = function.getAst().args.defaults[argumentIndex];
+				if (argumentIndex < function.ast().args.defaults.length) {
+					exprType defaultVal = function.ast().args.defaults[argumentIndex];
 					if (defaultVal != null) {
 
 						ModelSite<exprType> defaultArgument = new ModelSite<exprType>(
-								defaultVal, function.getParentScope()
-										.codeObject());
+								defaultVal, function.parent());
 						/*
 						 * XXX: Are we sure default arguments are evaluated in
 						 * the context of the function's parent?
@@ -121,20 +120,19 @@ final class FunctionArgumentTypeGoalSolver {
 				}
 			}
 		}
-
 	}
 
 	private final int argumentIndex;
-	private final Function function;
+	private final FunctionCO function;
 	private final SubgoalManager goalManager;
 	private final Result<Type> solution;
 
-	public FunctionArgumentTypeGoalSolver(Function function, String argument,
+	public FunctionArgumentTypeGoalSolver(FunctionCO function, String argument,
 			SubgoalManager goalManager) {
 		this.function = function;
 		this.goalManager = goalManager;
 		this.argumentIndex = findArgumentIndexInFunction(function, argument);
-		
+
 		Result<ModelSite<Call>> callSites = goalManager
 				.registerSubgoal(new FunctionSendersGoal(function));
 
@@ -148,9 +146,9 @@ final class FunctionArgumentTypeGoalSolver {
 		return solution;
 	}
 
-	private static int findArgumentIndexInFunction(Function function,
+	private static int findArgumentIndexInFunction(FunctionCO function,
 			String argument) {
-		List<ModelSite<exprType>> args = function.asCodeBlock()
+		List<ModelSite<exprType>> args = function.codeBlock()
 				.getFormalParameters();
 
 		for (int i = 0; i < args.size(); ++i) {

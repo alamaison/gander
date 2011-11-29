@@ -8,9 +8,11 @@ import uk.ac.ic.doc.gander.flowinference.result.FiniteResult;
 import uk.ac.ic.doc.gander.flowinference.result.Result;
 import uk.ac.ic.doc.gander.importing.ImportSimulationWatcher;
 import uk.ac.ic.doc.gander.importing.WholeModelImportSimulation;
-import uk.ac.ic.doc.gander.model.Module;
 import uk.ac.ic.doc.gander.model.Namespace;
 import uk.ac.ic.doc.gander.model.NamespaceName;
+import uk.ac.ic.doc.gander.model.codeobject.CodeObject;
+import uk.ac.ic.doc.gander.model.codeobject.NamedCodeObject;
+import uk.ac.ic.doc.gander.model.codeobject.NestedCodeObject;
 import uk.ac.ic.doc.gander.model.name_binding.Variable;
 
 /**
@@ -46,9 +48,9 @@ import uk.ac.ic.doc.gander.model.name_binding.Variable;
  */
 final class CodeObjectStepGoal implements FlowStepGoal {
 
-	private final Namespace codeObject;
+	private final CodeObject codeObject;
 
-	CodeObjectStepGoal(Namespace codeObject) {
+	CodeObjectStepGoal(CodeObject codeObject) {
 		this.codeObject = codeObject;
 	}
 
@@ -98,21 +100,39 @@ final class CodeObjectStepGoal implements FlowStepGoal {
 	 */
 	private void addLocalFlow(Set<FlowPosition> positions) {
 
-		/* Modules don't flow anywhere by default */
-		if (codeObject instanceof Module) {
-			return;
-		}
-
 		/*
-		 * First we have to find what scope the code object's name binds in when
-		 * appearing in the code object's parent. This will either be the
-		 * parent's namespace or the global namespace. No other namespace are
-		 * possible when binding a name (though others are possible when just
-		 * reading the name).
+		 * Only code object contained within another can flow their code object
+		 * into a namespace simply by existing. In other words, modules don't
+		 * flow anywhere by default but everything else does.
 		 */
-		Variable nameBinding = new Variable(codeObject.getName(), codeObject
-				.getParentScope().codeObject());
-		positions.add(new NamespaceNamePosition(nameBinding.bindingLocation()));
+		if (codeObject instanceof NestedCodeObject) {
+
+			/*
+			 * First we have to find what scope the code object's name binds in
+			 * when appearing in the code object's parent. This will either be
+			 * the parent's namespace or the global namespace. No other
+			 * namespace are possible when binding a name (though others are
+			 * possible when just reading the name).
+			 */
+			if (codeObject instanceof NamedCodeObject) {
+				/*
+				 * We rely on the declared name of our code object to bind it to
+				 * the same name in the namespace lexically in scope for that
+				 * name
+				 */
+				Variable nameBinding = new Variable(
+						((NamedCodeObject) codeObject).declaredName(),
+						((NestedCodeObject) codeObject).parent());
+				positions.add(new NamespaceNamePosition(nameBinding
+						.bindingLocation()));
+			} else {
+				/*
+				 * TODO: handle lambdas etc which are unnamed code object. These
+				 * will probably have to try to detect their own flow situation
+				 * as they can't just flow to a name in the local namespace.
+				 */
+			}
+		}
 
 	}
 

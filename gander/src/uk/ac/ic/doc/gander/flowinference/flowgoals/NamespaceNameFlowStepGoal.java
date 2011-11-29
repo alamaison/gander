@@ -153,7 +153,7 @@ final class NamespaceNameFlowStepGoalSolver {
 		if (positions.isFinished())
 			return;
 
-		positions.add(new ExplicitNameReferenceFlower().positions);
+		positions.add(new ExplicitNameReferenceFlower().positions());
 		if (positions.isFinished())
 			return;
 
@@ -184,10 +184,10 @@ final class NamespaceNameFlowStepGoalSolver {
 		 * it does, this name in the namespace flows to all uses of that name in
 		 * the codeblock.
 		 */
-		Set<ModelSite<Name>> lexicallyBoundNames = goalManager
+		Set<ModelSite<Name>> lexicallyBoundVariables = goalManager
 				.registerSubgoal(new NameScopeGoal(namespaceName));
-		for (ModelSite<Name> nameSite : lexicallyBoundNames) {
-			positions.add(new ExpressionPosition<Name>(nameSite));
+		for (ModelSite<Name> variable : lexicallyBoundVariables) {
+			positions.add(new ExpressionPosition<Name>(variable));
 		}
 
 		return positions;
@@ -205,52 +205,99 @@ final class NamespaceNameFlowStepGoalSolver {
 	 * functions do not allow they namespaces to be accessed this way as that
 	 * would allow local variables to be changed from outside the function body.
 	 */
-	final class ExplicitNameReferenceFlower {
+	final class ExplicitNameReferenceFlower implements
+			Processor<ModelSite<? extends exprType>> {
 
-		Result<FlowPosition> positions;
-
-		private final Processor<ModelSite<? extends exprType>> processor = new Processor<ModelSite<? extends exprType>>() {
-
-			public void processInfiniteResult() {
-				positions = TopFp.INSTANCE;
-			}
-
-			public void processFiniteResult(
-					Set<ModelSite<? extends exprType>> namespaceReferences) {
-
-				Set<FlowPosition> newPositions = new HashSet<FlowPosition>();
-				for (ModelSite<? extends exprType> expression : namespaceReferences) {
-
-					addExpressionIfAttributeLHSIsOurs(expression, newPositions);
-
-				}
-
-				positions = new FiniteResult<FlowPosition>(newPositions);
-			}
-		};
+		private Result<FlowPosition> positions;
 
 		ExplicitNameReferenceFlower() {
 
 			/*
-			 * The name can flow beyond this namespace's code block if it is
-			 * imported anywhere. This can happen in two ways. The namespace
-			 * itself is imported into the other namespace and the name is
-			 * referenced by attribute or the particular name is imported into
-			 * the other namespace.
+			 * The first task is to find where our namespace can flow to.
 			 * 
-			 * The first task is to find any namespace that imports this
-			 * namespace's code object then search for attributes that reference
-			 * the name that the code object was bound to. This handles the
-			 * first case
+			 * This is done using CodeObjectNamespacePosition because namespaces
+			 * don't follow the code object slavishly. For example, a class's
+			 * namespace flows to the class body as well as its instances
+			 * methods.
+			 * 
+			 * XXX: these will always be attribute references so why don't we
+			 * get the attributes instead of the expression on the LHS?
 			 */
 			Result<ModelSite<? extends exprType>> namespaceReferences = goalManager
 					.registerSubgoal(new FlowGoal(
-							new CodeObjectNamespacePosition(getNamespaceName()
-									.namespace())));
+							new CodeObjectNamespacePosition(namespaceName
+									.namespace().codeObject())));
 
-			namespaceReferences.actOnResult(processor);
+			namespaceReferences.actOnResult(this);
 		}
 
+		public void processInfiniteResult() {
+			positions = TopFp.INSTANCE;
+		}
+
+		public void processFiniteResult(
+				Set<ModelSite<? extends exprType>> namespaceReferences) {
+
+			Set<FlowPosition> newPositions = new HashSet<FlowPosition>();
+			for (ModelSite<? extends exprType> expression : namespaceReferences) {
+
+				addExpressionIfAttributeLHSIsOurs(expression, newPositions);
+
+			}
+
+			positions = new FiniteResult<FlowPosition>(newPositions);
+		}
+
+		public Result<FlowPosition> positions() {
+			return positions;
+		}
+
+	}
+
+	private void addExpressionIfAttributeLHSIsOurs(
+			final ModelSite<?> codeObjectReference,
+			final Set<FlowPosition> positions) {
+
+		new CodeObjectWalker() {
+
+			@Override
+			protected void visitCodeObject(final CodeObject codeObject) {
+				try {
+					codeObject.codeBlock().accept(new LocalCodeBlockVisitor() {
+
+						@Override
+						public Object visitAttribute(Attribute node)
+								throws Exception {
+							if (node.value
+									.equals(codeObjectReference.astNode())) {
+								String name = namespaceName.name();
+
+								if (((NameTok) node.attr).id.equals(name)) {
+									positions
+											.add(new ExpressionPosition<Attribute>(
+													new ModelSite<Attribute>(
+															node, codeObject)));
+								}
+							}
+							return null;
+						}
+
+						@Override
+						protected Object unhandled_node(SimpleNode node)
+								throws Exception {
+							return null;
+						}
+
+						@Override
+						public void traverse(SimpleNode node) throws Exception {
+							node.traverse(this);
+						}
+					});
+				} catch (Exception e) {
+					throw new RuntimeException(e);
+				}
+			}
+		}.walk(codeObjectReference.codeObject());
 	}
 
 	/**
@@ -298,14 +345,13 @@ final class NamespaceNameFlowStepGoalSolver {
 					 */
 
 					if (loadedObject.getParentScope().equals(
-							getNamespaceName().namespace())
+							namespaceName.namespace())
 							&& loadedObject.getName().equals(
-									getNamespaceName().name())) {
+									namespaceName.name())) {
 						/* from codeobject import key */
 						importedReferences = new FiniteResult<FlowPosition>(
 								referencesToImportedKey(importReceiver, as));
-					} else if (loadedObject.equals(getNamespaceName()
-							.namespace())) {
+					} else if (loadedObject.equals(namespaceName.namespace())) {
 
 						/* import codeobject */
 						importedReferences = referencesToKeyOfImportedCodeObject(
@@ -315,8 +361,8 @@ final class NamespaceNameFlowStepGoalSolver {
 				}
 
 			};
-			new WholeModelImportSimulation(getNamespaceName().namespace()
-					.model(), worker);
+			new WholeModelImportSimulation(namespaceName.namespace().model(),
+					worker);
 
 		}
 	}
@@ -333,8 +379,8 @@ final class NamespaceNameFlowStepGoalSolver {
 	 */
 	private Result<FlowPosition> referencesToKeyOfImportedCodeObject(
 			Namespace importReceiver, Namespace loadedObject, String as) {
-		assert getNamespaceName().namespace() instanceof Module;
-		assert loadedObject.equals(getNamespaceName().namespace());
+		assert namespaceName.namespace() instanceof Module;
+		assert loadedObject.equals(namespaceName.namespace());
 
 		/*
 		 * importReceiver is the code object containing the import statement but
@@ -412,7 +458,7 @@ final class NamespaceNameFlowStepGoalSolver {
 	 */
 	protected Set<FlowPosition> referencesToImportedKey(
 			Namespace importReceiver, String as) {
-		assert getNamespaceName().namespace() instanceof Module;
+		assert namespaceName.namespace() instanceof Module;
 
 		/*
 		 * importReceiver is the code object containing the import statement but
@@ -424,59 +470,9 @@ final class NamespaceNameFlowStepGoalSolver {
 		assert importAs.bindingLocation().namespace().equals(importReceiver)
 				|| importAs.bindingLocation().namespace().equals(
 						importReceiver.getGlobalNamespace());
-		
+
 		return Collections.<FlowPosition> singleton(new NamespaceNamePosition(
 				importAs.bindingLocation()));
-	}
-
-	private NamespaceName getNamespaceName() {
-		return namespaceName;
-	}
-
-	private void addExpressionIfAttributeLHSIsOurs(
-			final ModelSite<?> codeObjectReference,
-			final Set<FlowPosition> positions) {
-
-		new CodeObjectWalker() {
-
-			@Override
-			protected void visitCodeObject(final CodeObject codeObject) {
-				try {
-					codeObject.codeBlock().accept(new LocalCodeBlockVisitor() {
-
-						@Override
-						public Object visitAttribute(Attribute node)
-								throws Exception {
-							if (node.value
-									.equals(codeObjectReference.astNode())) {
-								String name = getNamespaceName().name();
-
-								if (((NameTok) node.attr).id.equals(name)) {
-									positions
-											.add(new ExpressionPosition<Attribute>(
-													new ModelSite<Attribute>(
-															node, codeObject)));
-								}
-							}
-							return null;
-						}
-
-						@Override
-						protected Object unhandled_node(SimpleNode node)
-								throws Exception {
-							return null;
-						}
-
-						@Override
-						public void traverse(SimpleNode node) throws Exception {
-							node.traverse(this);
-						}
-					});
-				} catch (Exception e) {
-					throw new RuntimeException(e);
-				}
-			}
-		}.walk(codeObjectReference.codeObject());
 	}
 
 	private Set<FlowPosition> accessesToNamespaceEntry(
@@ -486,7 +482,7 @@ final class NamespaceNameFlowStepGoalSolver {
 
 		for (ModelSite<? extends exprType> moduleReference : moduleReferenceExpressions) {
 			positions.addAll(searchCodeObjectForAccessToNamespaceEntry(
-					moduleReference.codeObject(), getNamespaceName().name(),
+					moduleReference.codeObject(), namespaceName.name(),
 					moduleReference.astNode()));
 		}
 

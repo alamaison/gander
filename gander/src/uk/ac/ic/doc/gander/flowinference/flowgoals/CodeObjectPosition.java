@@ -1,20 +1,19 @@
 package uk.ac.ic.doc.gander.flowinference.flowgoals;
 
-import uk.ac.ic.doc.gander.model.Namespace;
+import uk.ac.ic.doc.gander.model.codeobject.CodeObject;
 
 /**
  * Model of a code object's flow in a single execution step.
  * 
- * Code objects (currently namespaces) such as modules, classes and functions
- * are Python objects like any other. Their 'value' can flow into any named
- * reference in their enclosing code block as well as anywhere they are
- * explicitly imported.
+ * Code objects such as modules, classes and functions are Python objects like
+ * any other. Their 'value' can flow into any named reference in their enclosing
+ * code block as well as anywhere they are explicitly imported.
  */
 public final class CodeObjectPosition implements FlowPosition {
 
-	private final Namespace codeObject;
+	private final CodeObject codeObject;
 
-	public CodeObjectPosition(Namespace codeObject) {
+	public CodeObjectPosition(CodeObject codeObject) {
 		this.codeObject = codeObject;
 	}
 

@@ -49,8 +49,8 @@ final class MemberTypeGoal implements TypeGoal {
 			}
 		} else if (type instanceof TObject) {
 			Class klass = ((TObject) type).getClassInstance();
-			return goalManager.registerSubgoal(new ObjectMemberTypeGoal(klass,
-					memberName));
+			return goalManager.registerSubgoal(new ObjectMemberTypeGoal(klass
+					.codeObject(), memberName));
 		} else {
 			return TopT.INSTANCE;
 		}

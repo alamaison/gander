@@ -44,7 +44,7 @@ final class QualifiedNameDefinitionsPartialSolution implements
 
 		Result<ModelSite<? extends exprType>> namespacePositions = goalManager
 				.registerSubgoal(new FlowGoal(new CodeObjectPosition(name
-						.namespace())));
+						.namespace().codeObject())));
 		namespacePositions
 				.actOnResult(new Processor<ModelSite<? extends exprType>>() {
 
