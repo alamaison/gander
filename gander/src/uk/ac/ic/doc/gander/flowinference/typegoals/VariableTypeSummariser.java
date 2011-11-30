@@ -3,21 +3,13 @@ package uk.ac.ic.doc.gander.flowinference.typegoals;
 import java.util.Collections;
 
 import org.python.pydev.parser.jython.SimpleNode;
-import org.python.pydev.parser.jython.ast.Assign;
 import org.python.pydev.parser.jython.ast.ClassDef;
-import org.python.pydev.parser.jython.ast.For;
 import org.python.pydev.parser.jython.ast.FunctionDef;
-import org.python.pydev.parser.jython.ast.Import;
-import org.python.pydev.parser.jython.ast.ImportFrom;
 import org.python.pydev.parser.jython.ast.Name;
-import org.python.pydev.parser.jython.ast.NameTok;
-import org.python.pydev.parser.jython.ast.TryExcept;
-import org.python.pydev.parser.jython.ast.aliasType;
-import org.python.pydev.parser.jython.ast.excepthandlerType;
 import org.python.pydev.parser.jython.ast.exprType;
-import org.python.pydev.parser.jython.ast.stmtType;
 
-import uk.ac.ic.doc.gander.ast.BindingStatementVisitor;
+import uk.ac.ic.doc.gander.ast.BindingDetector;
+import uk.ac.ic.doc.gander.ast.LocalCodeBlockVisitor;
 import uk.ac.ic.doc.gander.flowinference.ImportTyper;
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
 import uk.ac.ic.doc.gander.flowinference.result.FiniteResult;
@@ -69,10 +61,11 @@ final class VariableTypeSummariser {
 
 }
 
-class BoundTypeVisitor extends BindingStatementVisitor {
+class BoundTypeVisitor implements BindingDetector.DetectionEvent {
 	private final SubgoalManager goalManager;
 	private final Variable variable;
 	private final RedundancyEliminator<Type> judgement = new RedundancyEliminator<Type>();
+	private final BindingDetector detector = new BindingDetector(this);
 
 	BoundTypeVisitor(SubgoalManager goalManager, Variable variable) {
 		this.goalManager = goalManager;
@@ -81,17 +74,41 @@ class BoundTypeVisitor extends BindingStatementVisitor {
 		processParameters(variable.codeObject(), variable.name(), goalManager);
 
 		if (!judgement.isFinished()) {
-
-			try {
-				variable.codeObject().codeBlock().accept(this);
-			} catch (Exception e) {
-				throw new RuntimeException(e);
-			}
+			processBody(variable);
 		}
 	}
 
 	private boolean isMatch(String name) {
 		return name.equals(variable.name());
+	}
+
+	private void processBody(Variable variable) {
+		class BodyProcessor extends LocalCodeBlockVisitor {
+
+			@Override
+			protected Object unhandled_node(SimpleNode node) throws Exception {
+				return node.accept(detector);
+			}
+
+			@Override
+			public void traverse(SimpleNode node) throws Exception {
+				if (!judgement.isFinished()) {
+					/*
+					 * Traverse by default so that we catch all assignments even
+					 * if they are nested. The LocalCodeBlockVisitor takes care
+					 * of stopping us traversing into class and function
+					 * definitions.
+					 */
+					node.traverse(this);
+				}
+			}
+		}
+
+		try {
+			variable.codeObject().codeBlock().accept(new BodyProcessor());
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 	private void processParameters(CodeObject enclosingScope, String name,
@@ -128,101 +145,131 @@ class BoundTypeVisitor extends BindingStatementVisitor {
 		return judgement.result();
 	}
 
-	@Override
-	public Object visitTryExcept(TryExcept node) throws Exception {
-		if (judgement.isFinished())
-			return null;
+	public boolean assignment(exprType lhs, exprType rhs) {
 
-		for (excepthandlerType handler : node.handlers) {
-			if (handler.name instanceof Name) {
-				if (isMatch(((Name) handler.name).id)) {
+		/* We compute rhs type on demand, once */
+		Result<Type> rhsType = null;
 
-					/*
-					 * If any of the above attempts to convert the declared type
-					 * to a model class fail, we must add TopT as we _have_
-					 * found the name, we just don't know its type. Not adding
-					 * anything would mean we found no binding for that name
-					 * which would be a lie.
-					 */
-					if (handler.type instanceof Name) {
+		if (lhs instanceof Name && isMatch(((Name) lhs).id)) {
+			if (rhsType == null) {
 
-						// XXX: Very bad! We're not trying to
-						// resolve the type expression properly.
-						// Instead we look blindly at the top level
-						// hoping that any exception will be
-						// declared there. Do this right.
-						Class exceptionClass = variable.model().getTopLevel()
-								.getClasses().get(((Name) handler.type).id);
-						if (exceptionClass != null) {
-							judgement.add(new FiniteResult<Type>(Collections
-									.singleton(new TClass(exceptionClass))));
-						} else {
+				ModelSite<exprType> rhsSite = new ModelSite<exprType>(rhs,
+						variable.codeObject());
+				rhsType = goalManager.registerSubgoal(new ExpressionTypeGoal(
+						rhsSite));
+				assert rhsType != null;
+			}
 
-							// Give up early because nothing beats Top
-							judgement.add(TopT.INSTANCE);
-							return null;
-						}
+			judgement.add(rhsType);
+		}
+
+		return judgement.isFinished();
+	}
+
+	public void classDefiniton(String name, ClassDef node) {
+
+		if (isMatch(name)) {
+			Class klass = variable.codeBlock().getClasses().get(name);
+			// If we can see the ClassDef here, it _must_ already be
+			// in the model.
+			//
+			// XXX: Not sure exactly how our model Classes and this
+			// relate conceptually. We've had this issue before as
+			// well. Needs more thought.
+			assert klass != null;
+			judgement.add(new FiniteResult<Type>(Collections
+					.singleton(new TClass(klass))));
+		}
+
+		// Do NOT recurse into the ClassDef body. Despite
+		// appearances, it is not part of this namespace's code object.
+		// It is a declaration of the nested class's code object.
+		// Another way to think about it: the class's body is not
+		// being 'executed' now whereas the enclosing namespace's
+		// body is.
+	}
+
+	public void function(String name, FunctionDef node) {
+
+		if (isMatch(name)) {
+			Function function = variable.codeBlock().getFunctions().get(name);
+			// If we can see the FunctionDef here, it _must_ already be
+			// in the model.
+			//
+			// XXX: Not sure exactly how our model Functions and this
+			// relate conceptually. We've had this issue before as
+			// well. Needs more thought.
+			assert function != null;
+			judgement.add(new FiniteResult<Type>(Collections
+					.singleton(new TFunction(function))));
+		}
+
+		// Do NOT recurse into the FunctionDef body. Despite
+		// appearances, it is not part of this namespace's code object.
+		// It is a declaration of the nested function's code object.
+		// Another way to think about it: the nested function's body is not
+		// being 'executed' now whereas the enclosing namespace's
+		// body is.
+
+	}
+
+	public void forLoop(exprType target, exprType iterable) {
+
+		if (target instanceof Name && isMatch(((Name) target).id)) {
+			// TODO: Try to infer type of iterable
+
+			// Give up early because nothing beats Top
+			judgement.add(TopT.INSTANCE);
+		}
+	}
+
+	public boolean moduleImport(String moduleName, String as) {
+		newImportResolver().simulateImportAs(moduleName, as);
+		return judgement.isFinished();
+	}
+
+	public boolean fromModuleImport(String moduleName, String itemName,
+			String as) {
+		newImportResolver().simulateImportFromAs(moduleName, itemName, as);
+		return judgement.isFinished();
+	}
+
+	public boolean exception(exprType name, exprType type) {
+		if (name instanceof Name) {
+			if (isMatch(((Name) name).id)) {
+
+				/*
+				 * If any of the above attempts to convert the declared type to
+				 * a model class fail, we must add TopT as we _have_ found the
+				 * name, we just don't know its type. Not adding anything would
+				 * mean we found no binding for that name which would be a lie.
+				 */
+				if (type instanceof Name) {
+
+					// XXX: Very bad! We're not trying to
+					// resolve the type expression properly.
+					// Instead we look blindly at the top level
+					// hoping that any exception will be
+					// declared there. Do this right.
+					Class exceptionClass = variable.model().getTopLevel()
+							.getClasses().get(((Name) type).id);
+					if (exceptionClass != null) {
+						judgement.add(new FiniteResult<Type>(Collections
+								.singleton(new TClass(exceptionClass))));
 					} else {
-						// TODO: Try to resolve the expression to an
-						// exception class
-
-						// Give up early because nothing beats Top
 						judgement.add(TopT.INSTANCE);
-						return null;
 					}
-
-					// The exception handler could rebind the
-					// exception so we must investigate its body.
-					for (stmtType stmt : handler.body) {
-						stmt.accept(this);
-					}
+				} else {
+					// TODO: Try to resolve the expression to an
+					// exception class
+					judgement.add(TopT.INSTANCE);
 				}
-			} else {
-				// XXX: No idea what happens here. How could the
-				// name of the exception object _not_ be a name?
 			}
+		} else {
+			// XXX: No idea what happens here. How could the
+			// name of the exception object _not_ be a name?
 		}
-
-		// XXX: Is it possible for the try block to bind one of the
-		// handler's exception objects before the handler is
-		// reached? It would seem odd but the spec [PEP 227] seems
-		// to imply it is. Anyway, let's look for the name in it
-		// anyway.
-		for (stmtType stmt : node.body) {
-			stmt.accept(this);
-		}
-
-		return null;
-	}
-
-	@Override
-	public Object visitImportFrom(ImportFrom node) throws Exception {
-		for (aliasType alias : node.names) {
-			if (alias.asname != null && isMatch(((NameTok) alias.asname).id)) {
-				newImportResolver().simulateImportFromAs(
-						((NameTok) node.module).id, ((NameTok) alias.name).id,
-						((NameTok) alias.asname).id);
-			} else if (isMatch(((NameTok) alias.name).id)) {
-				newImportResolver().simulateImportFrom(
-						((NameTok) node.module).id, ((NameTok) alias.name).id);
-			}
-		}
-
-		return null;
-	}
-
-	@Override
-	public Object visitImport(Import node) throws Exception {
-		for (aliasType alias : node.names) {
-			if (alias.asname != null && isMatch(((NameTok) alias.asname).id)) {
-				newImportResolver().simulateImportAs(((NameTok) alias.name).id,
-						((NameTok) alias.asname).id);
-			} else if (isMatch(((NameTok) alias.name).id)) {
-				newImportResolver().simulateImport(((NameTok) alias.name).id);
-			}
-		}
-
-		return null;
+		return judgement.isFinished();
 	}
 
 	private ImportTyper newImportResolver() {
@@ -254,136 +301,4 @@ class BoundTypeVisitor extends BindingStatementVisitor {
 		};
 	}
 
-	@Override
-	public Object visitFunctionDef(FunctionDef node) throws Exception {
-		if (judgement.isFinished())
-			return null;
-
-		if (isMatch(((NameTok) node.name).id)) {
-			Function function = variable.codeBlock().getFunctions().get(
-					((NameTok) node.name).id);
-			// If we can see the FunctionDef here, it _must_ already be
-			// in the model.
-			//
-			// XXX: Not sure exactly how our model Functions and this
-			// relate conceptually. We've had this issue before as
-			// well. Needs more thought.
-			assert function != null;
-			judgement.add(new FiniteResult<Type>(Collections
-					.singleton(new TFunction(function))));
-		}
-
-		// Do NOT recurse into the FunctionDef body. Despite
-		// appearances, it is not part of this namespace's code object.
-		// It is a declaration of the nested function's code object.
-		// Another way to think about it: the nested function's body is not
-		// being 'executed' now whereas the enclosing namespace's
-		// body is.
-
-		return null;
-	}
-
-	@Override
-	public Object visitFor(For node) throws Exception {
-		if (judgement.isFinished())
-			return null;
-
-		if (node.target instanceof Name && isMatch(((Name) node.target).id)) {
-			// TODO: Try to infer type of iterable
-
-			// Give up early because nothing beats Top
-			judgement.add(TopT.INSTANCE);
-			return null;
-		}
-
-		// Either the body or the else block may rebind the loop
-		// variable so we continue the search there
-		for (stmtType stmt : node.body) {
-			stmt.accept(this);
-		}
-		if (node.orelse != null)
-			node.orelse.accept(this);
-
-		return null;
-	}
-
-	@Override
-	public Object visitClassDef(ClassDef node) throws Exception {
-		if (judgement.isFinished())
-			return null;
-
-		if (isMatch(((NameTok) node.name).id)) {
-			Class klass = variable.codeBlock().getClasses().get(
-					((NameTok) node.name).id);
-			// If we can see the ClassDef here, it _must_ already be
-			// in the model.
-			//
-			// XXX: Not sure exactly how our model Classes and this
-			// relate conceptually. We've had this issue before as
-			// well. Needs more thought.
-			assert klass != null;
-			judgement.add(new FiniteResult<Type>(Collections
-					.singleton(new TClass(klass))));
-		}
-
-		// Do NOT recurse into the ClassDef body. Despite
-		// appearances, it is not part of this namespace's code object.
-		// It is a declaration of the nested class's code object.
-		// Another way to think about it: the class's body is not
-		// being 'executed' now whereas the enclosing namespace's
-		// body is.
-
-		return null;
-	}
-
-	@Override
-	public Object visitAssign(Assign node) throws Exception {
-
-		/* We compute rhs type on demand, once */
-		Result<Type> rhsType = null;
-
-		for (exprType lhsExpression : node.targets) {
-
-			if (judgement.isFinished())
-				return null;
-
-			if (lhsExpression instanceof Name
-					&& isMatch(((Name) lhsExpression).id)) {
-				if (rhsType == null) {
-
-					ModelSite<exprType> rhs = new ModelSite<exprType>(
-							node.value, variable.codeObject());
-					rhsType = goalManager
-							.registerSubgoal(new ExpressionTypeGoal(rhs));
-					assert rhsType != null;
-				}
-
-				judgement.add(rhsType);
-			}
-		}
-
-		/*
-		 * FIXME: If this search is happening on a global, we limit this search
-		 * to the enclosing module scope completely ignoring the fact that
-		 * another module can assign to the global by importing the module and
-		 * referencing the variable explicitly. We're also ignoring the
-		 * __builtin__ module.
-		 */
-
-		return null;
-	}
-
-	@Override
-	public void traverse(SimpleNode node) throws Exception {
-		if (!judgement.isFinished()) {
-			// Traverse by default so that we catch all assignments even
-			// if they are nested
-			node.traverse(this);
-		}
-	}
-
-	@Override
-	protected Object unhandled_node(SimpleNode node) throws Exception {
-		return null;
-	}
 }
