@@ -40,11 +40,11 @@ import uk.ac.ic.doc.gander.model.name_binding.Variable;
  * Find conservative approximation of the types bound to a given name in a
  * particular code block.
  */
-public final class VariableTypeSummariser {
+final class VariableTypeSummariser {
 
 	private final RedundancyEliminator<Type> types = new RedundancyEliminator<Type>();
 
-	public VariableTypeSummariser(Variable variable, SubgoalManager manager) {
+	VariableTypeSummariser(Variable variable, SubgoalManager manager) {
 
 		types.add(new BoundTypeVisitor(manager, variable).getJudgement());
 
@@ -63,7 +63,7 @@ public final class VariableTypeSummariser {
 
 	}
 
-	public Result<Type> recalculateSolution() {
+	Result<Type> solution() {
 		return types.result();
 	}
 
@@ -88,6 +88,10 @@ class BoundTypeVisitor extends BindingStatementVisitor {
 				throw new RuntimeException(e);
 			}
 		}
+	}
+
+	private boolean isMatch(String name) {
+		return name.equals(variable.name());
 	}
 
 	private void processParameters(CodeObject enclosingScope, String name,
@@ -131,7 +135,7 @@ class BoundTypeVisitor extends BindingStatementVisitor {
 
 		for (excepthandlerType handler : node.handlers) {
 			if (handler.name instanceof Name) {
-				if (((Name) handler.name).id.equals(variable.name())) {
+				if (isMatch(((Name) handler.name).id)) {
 
 					/*
 					 * If any of the above attempts to convert the declared type
@@ -194,12 +198,11 @@ class BoundTypeVisitor extends BindingStatementVisitor {
 	@Override
 	public Object visitImportFrom(ImportFrom node) throws Exception {
 		for (aliasType alias : node.names) {
-			if (alias.asname != null
-					&& ((NameTok) alias.asname).id.equals(variable.name())) {
+			if (alias.asname != null && isMatch(((NameTok) alias.asname).id)) {
 				newImportResolver().simulateImportFromAs(
 						((NameTok) node.module).id, ((NameTok) alias.name).id,
 						((NameTok) alias.asname).id);
-			} else if (((NameTok) alias.name).id.equals(variable.name())) {
+			} else if (isMatch(((NameTok) alias.name).id)) {
 				newImportResolver().simulateImportFrom(
 						((NameTok) node.module).id, ((NameTok) alias.name).id);
 			}
@@ -211,11 +214,10 @@ class BoundTypeVisitor extends BindingStatementVisitor {
 	@Override
 	public Object visitImport(Import node) throws Exception {
 		for (aliasType alias : node.names) {
-			if (alias.asname != null
-					&& ((NameTok) alias.asname).id.equals(variable.name())) {
+			if (alias.asname != null && isMatch(((NameTok) alias.asname).id)) {
 				newImportResolver().simulateImportAs(((NameTok) alias.name).id,
 						((NameTok) alias.asname).id);
-			} else if (((NameTok) alias.name).id.equals(variable.name())) {
+			} else if (isMatch(((NameTok) alias.name).id)) {
 				newImportResolver().simulateImport(((NameTok) alias.name).id);
 			}
 		}
@@ -245,7 +247,7 @@ class BoundTypeVisitor extends BindingStatementVisitor {
 				 * Ideally the only import that ever occurs here should be the
 				 * single import we asked to resolve, giving us a single type.
 				 */
-				if (scope.equals(scope) && name.equals(variable.name()))
+				if (scope.equals(scope) && isMatch(name))
 					judgement.add(new FiniteResult<Type>(Collections
 							.singleton(type)));
 			}
@@ -257,7 +259,7 @@ class BoundTypeVisitor extends BindingStatementVisitor {
 		if (judgement.isFinished())
 			return null;
 
-		if (((NameTok) node.name).id.equals(variable.name())) {
+		if (isMatch(((NameTok) node.name).id)) {
 			Function function = variable.codeBlock().getFunctions().get(
 					((NameTok) node.name).id);
 			// If we can see the FunctionDef here, it _must_ already be
@@ -286,8 +288,7 @@ class BoundTypeVisitor extends BindingStatementVisitor {
 		if (judgement.isFinished())
 			return null;
 
-		if (node.target instanceof Name
-				&& ((Name) node.target).id.equals(variable.name())) {
+		if (node.target instanceof Name && isMatch(((Name) node.target).id)) {
 			// TODO: Try to infer type of iterable
 
 			// Give up early because nothing beats Top
@@ -311,7 +312,7 @@ class BoundTypeVisitor extends BindingStatementVisitor {
 		if (judgement.isFinished())
 			return null;
 
-		if (((NameTok) node.name).id.equals(variable.name())) {
+		if (isMatch(((NameTok) node.name).id)) {
 			Class klass = variable.codeBlock().getClasses().get(
 					((NameTok) node.name).id);
 			// If we can see the ClassDef here, it _must_ already be
@@ -347,7 +348,7 @@ class BoundTypeVisitor extends BindingStatementVisitor {
 				return null;
 
 			if (lhsExpression instanceof Name
-					&& ((Name) lhsExpression).id.equals(variable.name())) {
+					&& isMatch(((Name) lhsExpression).id)) {
 				if (rhsType == null) {
 
 					ModelSite<exprType> rhs = new ModelSite<exprType>(
