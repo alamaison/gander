@@ -38,11 +38,10 @@ public final class ClassCO implements NamedCodeObject, NestedCodeObject {
 					"All classes appear inside another code object");
 		}
 		/*
-		if (parent.ast().equals(oldStyleFunctionNamespace.getAst())) {
-			throw new IllegalArgumentException(
-					"Code block cannot be its own parent");
-		}
-		*/
+		 * if (parent.ast().equals(oldStyleFunctionNamespace.getAst())) { throw
+		 * new IllegalArgumentException( "Code block cannot be its own parent");
+		 * }
+		 */
 
 		this.oldStyleFunctionNamespace = oldStyleFunctionNamespace;
 		this.parent = parent;
@@ -84,6 +83,10 @@ public final class ClassCO implements NamedCodeObject, NestedCodeObject {
 
 	public String declaredName() {
 		return ((NameTok) ast.name).id;
+	}
+
+	public String absoluteDescription() {
+		return parent().absoluteDescription() + "/" + declaredName();
 	}
 
 	public CodeObject parent() {
@@ -139,7 +142,7 @@ public final class ClassCO implements NamedCodeObject, NestedCodeObject {
 
 	@Override
 	public String toString() {
-		return "ClassCO[" + declaredName() + "]";
+		return "ClassCO[" + absoluteDescription() + "]";
 	}
 
 }

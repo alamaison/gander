@@ -94,6 +94,10 @@ public final class ModuleCO implements NamedCodeObject {
 		return oldStyleFunctionNamespace.getName();
 	}
 
+	public String absoluteDescription() {
+		return declaredName();
+	}
+
 	@Override
 	public int hashCode() {
 		final int prime = 31;
@@ -125,7 +129,7 @@ public final class ModuleCO implements NamedCodeObject {
 
 	@Override
 	public String toString() {
-		return "ModuleCO[" + declaredName() + "]";
+		return "ModuleCO[" + absoluteDescription() + "]";
 	}
 
 }

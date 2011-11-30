@@ -268,17 +268,8 @@ final class NamespaceNameFlowStepGoalSolver {
 						@Override
 						public Object visitAttribute(Attribute node)
 								throws Exception {
-							if (node.value
-									.equals(codeObjectReference.astNode())) {
-								String name = namespaceName.name();
-
-								if (((NameTok) node.attr).id.equals(name)) {
-									positions
-											.add(new ExpressionPosition<Attribute>(
-													new ModelSite<Attribute>(
-															node, codeObject)));
-								}
-							}
+							addPositionIfAttributeMatches(codeObjectReference, positions,
+									codeObject, node);
 							return null;
 						}
 
@@ -298,6 +289,18 @@ final class NamespaceNameFlowStepGoalSolver {
 				}
 			}
 		}.walk(codeObjectReference.codeObject());
+	}
+
+	private void addPositionIfAttributeMatches(
+			ModelSite<?> codeObjectReference, Set<FlowPosition> positions,
+			CodeObject enclosingCodeObject, Attribute attribute) {
+
+		if (attribute.value.equals(codeObjectReference.astNode())) {
+			
+			addPositionIfAttributeNameMatches(positions, enclosingCodeObject,
+					attribute, namespaceName.name());
+			
+		}
 	}
 
 	/**
@@ -509,13 +512,9 @@ final class NamespaceNameFlowStepGoalSolver {
 						@Override
 						public Object visitAttribute(Attribute node)
 								throws Exception {
-							if (((NameTok) node.attr).id.equals(attributeName)
-									&& node.value.equals(expression)) {
-								positions
-										.add(new ExpressionPosition<Attribute>(
-												new ModelSite<Attribute>(node,
-														codeObject)));
-							}
+
+							addPositionIfAttributeNameMatches(positions,
+									codeObject, node, attributeName);
 
 							return null;
 						}
@@ -538,5 +537,14 @@ final class NamespaceNameFlowStepGoalSolver {
 		}.walk(scope);
 
 		return positions;
+	}
+
+	private static void addPositionIfAttributeNameMatches(
+			Set<FlowPosition> positions, CodeObject enclosingCodeObject,
+			Attribute attribute, String name) {
+		if (((NameTok) attribute.attr).id.equals(name)) {
+			positions.add(new ExpressionPosition<Attribute>(
+					new ModelSite<Attribute>(attribute, enclosingCodeObject)));
+		}
 	}
 }

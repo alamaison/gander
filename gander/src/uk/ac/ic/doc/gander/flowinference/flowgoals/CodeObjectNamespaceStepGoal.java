@@ -8,6 +8,7 @@ import uk.ac.ic.doc.gander.flowinference.result.FiniteResult;
 import uk.ac.ic.doc.gander.flowinference.result.Result;
 import uk.ac.ic.doc.gander.model.codeobject.ClassCO;
 import uk.ac.ic.doc.gander.model.codeobject.CodeObject;
+import uk.ac.ic.doc.gander.model.codeobject.FunctionCO;
 
 /**
  * Goal solving the flow of namespaces from a code object.
@@ -38,10 +39,12 @@ final class CodeObjectNamespaceStepGoal implements FlowStepGoal {
 		 * they don't have expressions to represent them. They have to be
 		 * modelled specially.
 		 */
-		positions.add(new CodeObjectPosition(codeObject));
+		if (!(codeObject instanceof FunctionCO)) {
+			positions.add(new CodeObjectPosition(codeObject));
 
-		if (codeObject instanceof ClassCO) {
-			positions.add(new InstancePosition((ClassCO) codeObject));
+			if (codeObject instanceof ClassCO) {
+				positions.add(new InstancePosition((ClassCO) codeObject));
+			}
 		}
 
 		return new FiniteResult<FlowPosition>(positions);

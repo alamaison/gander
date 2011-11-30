@@ -106,7 +106,7 @@ public class ModelSite<T extends SimpleNode> {
 
 	@Override
 	public String toString() {
-		return "ModelSite [codeObject=" + codeObject + ", node=" + node + "]";
+		return "ModelSite [node=" + node + ", codeObject=" + codeObject + "]";
 	}
 
 }

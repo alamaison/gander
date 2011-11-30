@@ -67,4 +67,18 @@ public interface CodeObject {
 	 * when deciding which namespace they lexically bind in?
 	 */
 	boolean nestedVariablesCanBindHere();
+
+	/**
+	 * A string describing the code object in such a way that it can be located
+	 * in the source code.
+	 * 
+	 * The string does not need to be parseable or pretty but it should include
+	 * enough detail that it can be used to find the source code defining the
+	 * object. Even unnamed code objects should be able to if only by including
+	 * a number in the string.
+	 * 
+	 * Notably, the sections of the 'path' should <em>not</em> be delimited with
+	 * {@literal .} to avoid the temptation to read to much into its meaning.
+	 */
+	String absoluteDescription();
 }

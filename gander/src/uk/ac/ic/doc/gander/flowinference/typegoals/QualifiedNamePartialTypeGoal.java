@@ -6,10 +6,10 @@ import org.python.pydev.parser.jython.ast.Attribute;
 import org.python.pydev.parser.jython.ast.exprType;
 
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
-import uk.ac.ic.doc.gander.flowinference.flowgoals.CodeObjectPosition;
+import uk.ac.ic.doc.gander.flowinference.flowgoals.CodeObjectNamespacePosition;
 import uk.ac.ic.doc.gander.flowinference.flowgoals.FlowGoal;
-import uk.ac.ic.doc.gander.flowinference.result.Result;
 import uk.ac.ic.doc.gander.flowinference.result.RedundancyEliminator;
+import uk.ac.ic.doc.gander.flowinference.result.Result;
 import uk.ac.ic.doc.gander.flowinference.result.Result.Processor;
 import uk.ac.ic.doc.gander.flowinference.types.Type;
 import uk.ac.ic.doc.gander.model.ModelSite;
@@ -43,7 +43,7 @@ final class QualifiedNameDefinitionsPartialSolution implements
 		this.goalManager = goalManager;
 
 		Result<ModelSite<? extends exprType>> namespacePositions = goalManager
-				.registerSubgoal(new FlowGoal(new CodeObjectPosition(name
+				.registerSubgoal(new FlowGoal(new CodeObjectNamespacePosition(name
 						.namespace().codeObject())));
 		namespacePositions
 				.actOnResult(new Processor<ModelSite<? extends exprType>>() {

@@ -38,11 +38,10 @@ public final class FunctionCO implements NamedCodeObject, NestedCodeObject {
 					"All functions appear inside another code object");
 		}
 		/*
-		if (parent.ast().equals(oldStyleFunctionNamespace.getAst())) {
-			throw new IllegalArgumentException(
-					"Code block cannot be its own parent");
-		}
-		*/
+		 * if (parent.ast().equals(oldStyleFunctionNamespace.getAst())) { throw
+		 * new IllegalArgumentException( "Code block cannot be its own parent");
+		 * }
+		 */
 
 		this.oldStyleFunctionNamespace = oldStyleFunctionNamespace;
 		this.parent = parent;
@@ -95,10 +94,9 @@ public final class FunctionCO implements NamedCodeObject, NestedCodeObject {
 	/**
 	 * {@inheritDoc}
 	 * 
-	 * Variables appearing in nested classes and functions within a function 
-	 * can bind in this function's namespace if the weren't define in a 
-	 * namespace between this function and their nested location.  In other 
-	 * words, yes.
+	 * Variables appearing in nested classes and functions within a function can
+	 * bind in this function's namespace if the weren't define in a namespace
+	 * between this function and their nested location. In other words, yes.
 	 */
 	public boolean nestedVariablesCanBindHere() {
 		return true;
@@ -110,6 +108,10 @@ public final class FunctionCO implements NamedCodeObject, NestedCodeObject {
 
 	public String declaredName() {
 		return ((NameTok) ast.name).id;
+	}
+
+	public String absoluteDescription() {
+		return parent.absoluteDescription() + "/" + declaredName();
 	}
 
 	public CodeObject parent() {
@@ -147,7 +149,7 @@ public final class FunctionCO implements NamedCodeObject, NestedCodeObject {
 
 	@Override
 	public String toString() {
-		return "FunctionCO[" + declaredName() + "]";
+		return "FunctionCO[" + absoluteDescription() + "]";
 	}
 
 }
