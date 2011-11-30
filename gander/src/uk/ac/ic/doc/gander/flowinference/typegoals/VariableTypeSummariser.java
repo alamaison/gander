@@ -30,26 +30,21 @@ import uk.ac.ic.doc.gander.model.Class;
 import uk.ac.ic.doc.gander.model.Function;
 import uk.ac.ic.doc.gander.model.ModelSite;
 import uk.ac.ic.doc.gander.model.Namespace;
+import uk.ac.ic.doc.gander.model.codeblock.CodeBlock;
+import uk.ac.ic.doc.gander.model.codeobject.ClassCO;
+import uk.ac.ic.doc.gander.model.codeobject.CodeObject;
+import uk.ac.ic.doc.gander.model.codeobject.FunctionCO;
 import uk.ac.ic.doc.gander.model.name_binding.Variable;
 
 /**
  * Find conservative approximation of the types bound to a given name in a
  * particular code block.
  */
-public final class BoundTypeGoal implements TypeGoal {
-	private final Variable variable;
+public final class VariableTypeSummariser {
 
-	public BoundTypeGoal(Variable variable) {
-		this.variable = variable;
-	}
+	private final RedundancyEliminator<Type> types = new RedundancyEliminator<Type>();
 
-	public Result<Type> initialSolution() {
-		return FiniteResult.bottom();
-	}
-
-	public Result<Type> recalculateSolution(SubgoalManager manager) {
-
-		RedundancyEliminator<Type> types = new RedundancyEliminator<Type>();
+	public VariableTypeSummariser(Variable variable, SubgoalManager manager) {
 
 		types.add(new BoundTypeVisitor(manager, variable).getJudgement());
 
@@ -66,39 +61,12 @@ public final class BoundTypeGoal implements TypeGoal {
 					.name(), variable.model().getTopLevel())).getJudgement());
 		}
 
+	}
+
+	public Result<Type> recalculateSolution() {
 		return types.result();
 	}
 
-	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result
-				+ ((variable == null) ? 0 : variable.hashCode());
-		return result;
-	}
-
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (obj == null)
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
-		BoundTypeGoal other = (BoundTypeGoal) obj;
-		if (variable == null) {
-			if (other.variable != null)
-				return false;
-		} else if (!variable.equals(other.variable))
-			return false;
-		return true;
-	}
-
-	@Override
-	public String toString() {
-		return "BoundTypeGoal [variable=" + variable + "]";
-	}
 }
 
 class BoundTypeVisitor extends BindingStatementVisitor {
@@ -110,16 +78,44 @@ class BoundTypeVisitor extends BindingStatementVisitor {
 		this.goalManager = goalManager;
 		this.variable = variable;
 
-		Result<Type> parameterType = goalManager
-				.registerSubgoal(new ParameterTypeGoal(variable.codeObject(),
-						variable.name()));
-		judgement.add(parameterType);
+		processParameters(variable.codeObject(), variable.name(), goalManager);
+
 		if (!judgement.isFinished()) {
 
 			try {
 				variable.codeObject().codeBlock().accept(this);
 			} catch (Exception e) {
 				throw new RuntimeException(e);
+			}
+		}
+	}
+
+	private void processParameters(CodeObject enclosingScope, String name,
+			SubgoalManager goalManager) {
+
+		CodeBlock codeBlock = enclosingScope.codeBlock();
+		if (codeBlock.getNamedFormalParameters().contains(name)) {
+
+			/*
+			 * The first parameter of a function in a class (usually called
+			 * self) is always an instance of the class so we can trivially
+			 * infer its type
+			 */
+			if (enclosingScope instanceof FunctionCO) {
+				if (((FunctionCO) enclosingScope).parent() instanceof ClassCO) {
+					judgement.add(goalManager
+							.registerSubgoal(new MethodArgumentTypeGoal(
+									(FunctionCO) enclosingScope, name)));
+
+				} else {
+					judgement.add(goalManager
+							.registerSubgoal(new FunctionArgumentTypeGoal(
+									(FunctionCO) enclosingScope, name)));
+				}
+
+			} else {
+				assert false;
+				// TODO: work out if we need to handle other possibilities
 			}
 		}
 	}

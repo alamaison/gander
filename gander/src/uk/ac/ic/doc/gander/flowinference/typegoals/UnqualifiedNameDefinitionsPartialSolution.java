@@ -81,9 +81,8 @@ final class UnqualifiedNameDefinitionsPartialSolution implements
 			// Ok, we're sure that the name in this code object is talking about
 			// the same namespace location that we are interested in. So now
 			// we want to know what this code object binds to it
-			Result<Type> variableType = goalManager
-					.registerSubgoal(new BoundTypeGoal(localVariable));
-			inferredType.add(variableType);
+			VariableTypeSummariser df = new VariableTypeSummariser(localVariable, goalManager);
+			inferredType.add(df.recalculateSolution());
 		}
 
 		/*
