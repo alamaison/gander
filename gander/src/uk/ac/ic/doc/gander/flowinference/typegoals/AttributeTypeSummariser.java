@@ -41,7 +41,6 @@ final class AttributeTypeSummariser {
 						codeObject)));
 
 		namespaceReferences.actOnResult(new ReferenceProcessor());
-
 	}
 
 	Result<Type> type() {

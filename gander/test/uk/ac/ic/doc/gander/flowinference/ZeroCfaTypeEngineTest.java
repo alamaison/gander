@@ -179,8 +179,8 @@ public class ZeroCfaTypeEngineTest {
 	public void multipleLocalDefinitions() throws Throwable {
 		ScopedPrintNode node = findPrintNode("multiple_local_definitions",
 				"am_i_a_string");
-		Result<Type> type = engine.typeOf(node.getExpression(), node
-				.getScope());
+		Result<Type> type = engine
+				.typeOf(node.getExpression(), node.getScope());
 
 		Set<Type> expectedType = new HashSet<Type>();
 		expectedType.add(stringType);
@@ -205,8 +205,8 @@ public class ZeroCfaTypeEngineTest {
 	public void classAttributeOutside() throws Throwable {
 		ScopedPrintNode node = findPrintNode("class_attribute_outside",
 				"what_am_i");
-		Result<Type> type = engine.typeOf(node.getExpression(), node
-				.getScope());
+		Result<Type> type = engine
+				.typeOf(node.getExpression(), node.getScope());
 
 		assertEquals("Variable's type not inferred correctly",
 				typeJudgement(stringType), type);
@@ -219,8 +219,8 @@ public class ZeroCfaTypeEngineTest {
 	public void classAttributeInside() throws Throwable {
 		ScopedPrintNode node = findPrintNode("class_attribute_inside",
 				"what_am_i");
-		Result<Type> type = engine.typeOf(node.getExpression(), node
-				.getScope());
+		Result<Type> type = engine
+				.typeOf(node.getExpression(), node.getScope());
 
 		assertEquals("Variable's type not inferred correctly",
 				typeJudgement(stringType), type);
@@ -240,8 +240,8 @@ public class ZeroCfaTypeEngineTest {
 	public void classAttributeAssignedOutside() throws Throwable {
 		String testName = "class_attribute_assigned_outside";
 		ScopedPrintNode node = findPrintNode(testName, "what_am_i");
-		Result<Type> type = engine.typeOf(node.getExpression(), node
-				.getScope());
+		Result<Type> type = engine
+				.typeOf(node.getExpression(), node.getScope());
 
 		assertEquals("Attribute's type not inferred correctly "
 				+ "when accessed outside the scope of the namespace.",
@@ -271,8 +271,8 @@ public class ZeroCfaTypeEngineTest {
 	@Test
 	public void selfAssignment() throws Throwable {
 		ScopedPrintNode node = findPrintNode("self_assignment", "what_am_i");
-		Result<Type> type = engine.typeOf(node.getExpression(), node
-				.getScope());
+		Result<Type> type = engine
+				.typeOf(node.getExpression(), node.getScope());
 
 		assertEquals("Variable's type not inferred correctly",
 				typeJudgement(stringType), type);
@@ -287,8 +287,8 @@ public class ZeroCfaTypeEngineTest {
 	public void selfAssignmentIndirect() throws Throwable {
 		ScopedPrintNode node = findPrintNode("self_assignment_indirect",
 				"what_am_i");
-		Result<Type> type = engine.typeOf(node.getExpression(), node
-				.getScope());
+		Result<Type> type = engine
+				.typeOf(node.getExpression(), node.getScope());
 
 		assertEquals("Variable's type not inferred correctly",
 				typeJudgement(stringType), type);
@@ -300,8 +300,8 @@ public class ZeroCfaTypeEngineTest {
 	@Test
 	public void constructor() throws Throwable {
 		ScopedPrintNode node = findPrintNode("constructor", "what_is_a");
-		Result<Type> type = engine.typeOf(node.getExpression(), node
-				.getScope());
+		Result<Type> type = engine
+				.typeOf(node.getExpression(), node.getScope());
 
 		assertEquals("Variable's type not inferred correctly",
 				typeJudgement(new TObject(node.getGlobalNamespace()
@@ -323,8 +323,8 @@ public class ZeroCfaTypeEngineTest {
 	public void constructorVsInstance() throws Throwable {
 		ScopedPrintNode node = findPrintNode("constructor_vs_instance",
 				"what_is_a");
-		Result<Type> type = engine.typeOf(node.getExpression(), node
-				.getScope());
+		Result<Type> type = engine
+				.typeOf(node.getExpression(), node.getScope());
 
 		assertEquals("Variable's type not inferred correctly",
 				typeJudgement(new TObject(node.getGlobalNamespace()
@@ -345,8 +345,8 @@ public class ZeroCfaTypeEngineTest {
 	@Test
 	public void metaclass() throws Throwable {
 		ScopedPrintNode node = findPrintNode("metaclass", "am_i_a_class");
-		Result<Type> type = engine.typeOf(node.getExpression(), node
-				.getScope());
+		Result<Type> type = engine
+				.typeOf(node.getExpression(), node.getScope());
 
 		assertEquals("W not inferred as a metaclass", typeJudgement(new TClass(
 				node.getGlobalNamespace().getClasses().get("W"))), type);
@@ -380,8 +380,8 @@ public class ZeroCfaTypeEngineTest {
 	@Test
 	public void function() throws Throwable {
 		ScopedPrintNode node = findPrintNode("function", "what_am_i");
-		Result<Type> type = engine.typeOf(node.getExpression(), node
-				.getScope());
+		Result<Type> type = engine
+				.typeOf(node.getExpression(), node.getScope());
 		Set<Type> expectedType = typeJudgement(new TFunction(node
 				.getGlobalNamespace().getFunctions().get("f")));
 
@@ -395,8 +395,8 @@ public class ZeroCfaTypeEngineTest {
 	public void method() throws Throwable {
 		String testName = "method";
 		ScopedPrintNode node = findPrintNode(testName, "what_am_i_via_class");
-		Result<Type> type = engine.typeOf(node.getExpression(), node
-				.getScope());
+		Result<Type> type = engine
+				.typeOf(node.getExpression(), node.getScope());
 		Set<Type> expectedType = typeJudgement(new TFunction(node
 				.getGlobalNamespace().getClasses().get("A").getFunctions().get(
 						"method")));
@@ -421,8 +421,8 @@ public class ZeroCfaTypeEngineTest {
 	public void method2() throws Throwable {
 		String testName = "method2";
 		ScopedPrintNode node = findPrintNode(testName, "what_am_i");
-		Result<Type> type = engine.typeOf(node.getExpression(), node
-				.getScope());
+		Result<Type> type = engine
+				.typeOf(node.getExpression(), node.getScope());
 		Set<Type> expectedType = typeJudgement(new TFunction(node
 				.getGlobalNamespace().getClasses().get("A").getFunctions().get(
 						"g")));
@@ -438,8 +438,8 @@ public class ZeroCfaTypeEngineTest {
 	public void functionReturnNullaryMono() throws Throwable {
 		ScopedPrintNode node = findPrintNode("function_return_nullary_mono",
 				"what_am_i");
-		Result<Type> type = engine.typeOf(node.getExpression(), node
-				.getScope());
+		Result<Type> type = engine
+				.typeOf(node.getExpression(), node.getScope());
 		Set<Type> expectedType = typeJudgement(integerType);
 
 		assertEquals("Function return's type not inferred correctly",
@@ -457,8 +457,8 @@ public class ZeroCfaTypeEngineTest {
 	public void functionReturnNullaryPoly() throws Throwable {
 		ScopedPrintNode node = findPrintNode("function_return_nullary_poly",
 				"what_am_i");
-		Result<Type> type = engine.typeOf(node.getExpression(), node
-				.getScope());
+		Result<Type> type = engine
+				.typeOf(node.getExpression(), node.getScope());
 
 		Set<Type> expectedType = new HashSet<Type>();
 		expectedType.add(integerType);
@@ -477,8 +477,8 @@ public class ZeroCfaTypeEngineTest {
 	public void functionReturnNullaryChained() throws Throwable {
 		ScopedPrintNode node = findPrintNode("function_return_nullary_chained",
 				"what_am_i");
-		Result<Type> type = engine.typeOf(node.getExpression(), node
-				.getScope());
+		Result<Type> type = engine
+				.typeOf(node.getExpression(), node.getScope());
 
 		Set<Type> expectedType = new HashSet<Type>();
 		expectedType.add(stringType);
@@ -493,8 +493,8 @@ public class ZeroCfaTypeEngineTest {
 	@Test
 	public void functionReturn() throws Throwable {
 		ScopedPrintNode node = findPrintNode("function_return", "what_am_i");
-		Result<Type> type = engine.typeOf(node.getExpression(), node
-				.getScope());
+		Result<Type> type = engine
+				.typeOf(node.getExpression(), node.getScope());
 
 		assertEquals("Inferred type should be monomorphic", 1,
 				((FiniteResult<Type>) type).size());
@@ -506,8 +506,8 @@ public class ZeroCfaTypeEngineTest {
 	public void functionReturnMissing() throws Throwable {
 		ScopedPrintNode node = findPrintNode("function_return_missing",
 				"what_am_i");
-		Result<Type> type = engine.typeOf(node.getExpression(), node
-				.getScope());
+		Result<Type> type = engine
+				.typeOf(node.getExpression(), node.getScope());
 
 		assertEquals("Function return's type not inferred correctly", noneType,
 				(TObject) ((FiniteResult<Type>) type).iterator().next());
@@ -516,8 +516,8 @@ public class ZeroCfaTypeEngineTest {
 	@Test
 	public void methodReturn() throws Throwable {
 		ScopedPrintNode node = findPrintNode("method_return", "what_am_i");
-		Result<Type> type = engine.typeOf(node.getExpression(), node
-				.getScope());
+		Result<Type> type = engine
+				.typeOf(node.getExpression(), node.getScope());
 
 		assertEquals("Inferred type should be monomorphic",
 				typeJudgement(listType), type);
@@ -529,8 +529,8 @@ public class ZeroCfaTypeEngineTest {
 		expectedType.add(integerType);
 
 		ScopedPrintNode node = findPrintNode("global", tag);
-		Result<Type> type = engine.typeOf(node.getExpression(), node
-				.getScope());
+		Result<Type> type = engine
+				.typeOf(node.getExpression(), node.getScope());
 
 		assertEquals("Global's type not inferred correctly.", expectedType,
 				type);
@@ -549,8 +549,8 @@ public class ZeroCfaTypeEngineTest {
 				"global_defined_in_other_module_worker").getClasses()
 				.get("Bob")));
 
-		Result<Type> type = engine.typeOf(node.getExpression(), node
-				.getScope());
+		Result<Type> type = engine
+				.typeOf(node.getExpression(), node.getScope());
 
 		assertEquals("Global's type not inferred correctly.", expectedType,
 				type);
@@ -588,8 +588,8 @@ public class ZeroCfaTypeEngineTest {
 		Set<Type> expectedType = typeJudgement(integerType);
 
 		ScopedPrintNode node = findPrintNode(testName, "what_am_i");
-		Result<Type> type = engine.typeOf(node.getExpression(), node
-				.getScope());
+		Result<Type> type = engine
+				.typeOf(node.getExpression(), node.getScope());
 
 		assertEquals("Method parameter's type not inferred correctly",
 				expectedType, type);
@@ -604,8 +604,8 @@ public class ZeroCfaTypeEngineTest {
 		expectedType.add(listType);
 
 		ScopedPrintNode node = findPrintNode(testName, "what_am_i");
-		Result<Type> type = engine.typeOf(node.getExpression(), node
-				.getScope());
+		Result<Type> type = engine
+				.typeOf(node.getExpression(), node.getScope());
 
 		assertEquals("Method parameter's type not inferred correctly",
 				expectedType, type);
@@ -619,8 +619,8 @@ public class ZeroCfaTypeEngineTest {
 		expectedType.add(integerType);
 
 		ScopedPrintNode node = findPrintNode(testName, "what_am_i");
-		Result<Type> type = engine.typeOf(node.getExpression(), node
-				.getScope());
+		Result<Type> type = engine
+				.typeOf(node.getExpression(), node.getScope());
 
 		assertEquals("Method parameter's type not inferred correctly. This "
 				+ "probably means the analysis failed to "
@@ -632,8 +632,8 @@ public class ZeroCfaTypeEngineTest {
 	public void methodParameterSelf() throws Throwable {
 		ScopedPrintNode node = findPrintNode("method_parameter_self",
 				"what_am_i");
-		Result<Type> type = engine.typeOf(node.getExpression(), node
-				.getScope());
+		Result<Type> type = engine
+				.typeOf(node.getExpression(), node.getScope());
 		Set<Type> expectedType = typeJudgement(new TObject(node
 				.getGlobalNamespace().getClasses().get("A")));
 
@@ -645,8 +645,8 @@ public class ZeroCfaTypeEngineTest {
 	public void methodParameterSelfConstructor() throws Throwable {
 		ScopedPrintNode node = findPrintNode(
 				"method_parameter_self_constructor", "what_am_i");
-		Result<Type> type = engine.typeOf(node.getExpression(), node
-				.getScope());
+		Result<Type> type = engine
+				.typeOf(node.getExpression(), node.getScope());
 		Set<Type> expectedType = typeJudgement(new TObject(node
 				.getGlobalNamespace().getClasses().get("A")));
 
@@ -659,8 +659,8 @@ public class ZeroCfaTypeEngineTest {
 		ScopedPrintNode node = findPrintNode("function_parameter_mono",
 				"what_am_i");
 
-		Result<Type> type = engine.typeOf(node.getExpression(), node
-				.getScope());
+		Result<Type> type = engine
+				.typeOf(node.getExpression(), node.getScope());
 		Set<Type> expectedType = typeJudgement(stringType);
 
 		assertEquals("Function parameter's type not inferred correctly",
@@ -671,8 +671,8 @@ public class ZeroCfaTypeEngineTest {
 	public void functionParameterPoly() throws Throwable {
 		ScopedPrintNode node = findPrintNode("function_parameter_poly",
 				"what_am_i");
-		Result<Type> type = engine.typeOf(node.getExpression(), node
-				.getScope());
+		Result<Type> type = engine
+				.typeOf(node.getExpression(), node.getScope());
 
 		Set<Type> expectedType = new HashSet<Type>();
 		expectedType.add(stringType);
@@ -686,8 +686,8 @@ public class ZeroCfaTypeEngineTest {
 	public void functionParameterCalledWithDifferentName() throws Throwable {
 		String testName = "function_parameter_called_with_different_name";
 		ScopedPrintNode node = findPrintNode(testName, "what_am_i");
-		Result<Type> type = engine.typeOf(node.getExpression(), node
-				.getScope());
+		Result<Type> type = engine
+				.typeOf(node.getExpression(), node.getScope());
 
 		Set<Type> expectedType = new HashSet<Type>();
 		expectedType.add(stringType);
@@ -703,8 +703,8 @@ public class ZeroCfaTypeEngineTest {
 	public void functionParameterCalledFromOtherModule() throws Throwable {
 		String testName = "function_parameter_called_from_other_module";
 		ScopedPrintNode node = findPrintNode(testName, "what_am_i");
-		Result<Type> type = engine.typeOf(node.getExpression(), node
-				.getScope());
+		Result<Type> type = engine
+				.typeOf(node.getExpression(), node.getScope());
 
 		Set<Type> expectedType = new HashSet<Type>();
 		expectedType.add(stringType);
@@ -722,8 +722,8 @@ public class ZeroCfaTypeEngineTest {
 			throws Throwable {
 		String testName = "function_parameter_called_from_other_module_with_different_name";
 		ScopedPrintNode node = findPrintNode(testName, "what_am_i");
-		Result<Type> type = engine.typeOf(node.getExpression(), node
-				.getScope());
+		Result<Type> type = engine
+				.typeOf(node.getExpression(), node.getScope());
 
 		Set<Type> expectedType = new HashSet<Type>();
 		expectedType.add(stringType);
@@ -741,8 +741,8 @@ public class ZeroCfaTypeEngineTest {
 			throws Throwable {
 		String testName = "function_parameter_called_from_other_module_via_from";
 		ScopedPrintNode node = findPrintNode(testName, "what_am_i");
-		Result<Type> type = engine.typeOf(node.getExpression(), node
-				.getScope());
+		Result<Type> type = engine
+				.typeOf(node.getExpression(), node.getScope());
 
 		Set<Type> expectedType = new HashSet<Type>();
 		expectedType.add(stringType);
@@ -760,8 +760,8 @@ public class ZeroCfaTypeEngineTest {
 			throws Throwable {
 		String testName = "function_parameter_called_from_other_module_via_from_with_different_name";
 		ScopedPrintNode node = findPrintNode(testName, "what_am_i");
-		Result<Type> type = engine.typeOf(node.getExpression(), node
-				.getScope());
+		Result<Type> type = engine
+				.typeOf(node.getExpression(), node.getScope());
 
 		Set<Type> expectedType = new HashSet<Type>();
 		expectedType.add(stringType);
@@ -779,8 +779,8 @@ public class ZeroCfaTypeEngineTest {
 			throws Throwable {
 		String testName = "function_parameter_called_from_other_module_through_call";
 		ScopedPrintNode node = findPrintNode(testName, "what_am_i");
-		Result<Type> type = engine.typeOf(node.getExpression(), node
-				.getScope());
+		Result<Type> type = engine
+				.typeOf(node.getExpression(), node.getScope());
 
 		Set<Type> expectedType = new HashSet<Type>();
 		expectedType.add(stringType);
@@ -798,8 +798,8 @@ public class ZeroCfaTypeEngineTest {
 			throws Throwable {
 		String testName = "function_parameter_called_from_other_module_through_class";
 		ScopedPrintNode node = findPrintNode(testName, "what_am_i");
-		Result<Type> type = engine.typeOf(node.getExpression(), node
-				.getScope());
+		Result<Type> type = engine
+				.typeOf(node.getExpression(), node.getScope());
 
 		Set<Type> expectedType = new HashSet<Type>();
 		expectedType.add(stringType);
@@ -821,8 +821,8 @@ public class ZeroCfaTypeEngineTest {
 			throws Throwable {
 		String testName = "function_parameter_called_from_other_module_through_global";
 		ScopedPrintNode node = findPrintNode(testName, "what_am_i");
-		Result<Type> type = engine.typeOf(node.getExpression(), node
-				.getScope());
+		Result<Type> type = engine
+				.typeOf(node.getExpression(), node.getScope());
 
 		Set<Type> expectedType = new HashSet<Type>();
 		expectedType.add(stringType);
@@ -840,8 +840,8 @@ public class ZeroCfaTypeEngineTest {
 			throws Throwable {
 		String testName = "function_parameter_called_from_other_module_through_global_via_from";
 		ScopedPrintNode node = findPrintNode(testName, "what_am_i");
-		Result<Type> type = engine.typeOf(node.getExpression(), node
-				.getScope());
+		Result<Type> type = engine
+				.typeOf(node.getExpression(), node.getScope());
 
 		Set<Type> expectedType = new HashSet<Type>();
 		expectedType.add(stringType);
@@ -859,8 +859,8 @@ public class ZeroCfaTypeEngineTest {
 			throws Throwable {
 		String testName = "function_parameter_called_from_other_module_via_alias";
 		ScopedPrintNode node = findPrintNode(testName, "what_am_i");
-		Result<Type> type = engine.typeOf(node.getExpression(), node
-				.getScope());
+		Result<Type> type = engine
+				.typeOf(node.getExpression(), node.getScope());
 
 		Set<Type> expectedType = new HashSet<Type>();
 		expectedType.add(stringType);
@@ -876,8 +876,8 @@ public class ZeroCfaTypeEngineTest {
 	public void functionParameterCalledThroughCall() throws Throwable {
 		String testName = "function_parameter_called_through_call";
 		ScopedPrintNode node = findPrintNode(testName, "what_am_i");
-		Result<Type> type = engine.typeOf(node.getExpression(), node
-				.getScope());
+		Result<Type> type = engine
+				.typeOf(node.getExpression(), node.getScope());
 
 		Set<Type> expectedType = new HashSet<Type>();
 		expectedType.add(stringType);
@@ -895,8 +895,8 @@ public class ZeroCfaTypeEngineTest {
 	public void functionParameterCalledThroughList() throws Throwable {
 		String testName = "function_parameter_called_through_list";
 		ScopedPrintNode node = findPrintNode(testName, "what_am_i");
-		Result<Type> type = engine.typeOf(node.getExpression(), node
-				.getScope());
+		Result<Type> type = engine
+				.typeOf(node.getExpression(), node.getScope());
 
 		assertEquals("Function parameter's type not inferred "
 				+ "correctly. This probably means that the analysis didn't "
@@ -909,8 +909,8 @@ public class ZeroCfaTypeEngineTest {
 	public void functionParameterCalledThroughDict() throws Throwable {
 		String testName = "function_parameter_called_through_dict";
 		ScopedPrintNode node = findPrintNode(testName, "what_am_i");
-		Result<Type> type = engine.typeOf(node.getExpression(), node
-				.getScope());
+		Result<Type> type = engine
+				.typeOf(node.getExpression(), node.getScope());
 
 		assertEquals("Function parameter's type not inferred "
 				+ "correctly. This probably means that the analysis didn't "
@@ -923,8 +923,8 @@ public class ZeroCfaTypeEngineTest {
 	public void functionParameterCalledThroughObject1() throws Throwable {
 		String testName = "function_parameter_called_through_object1";
 		ScopedPrintNode node = findPrintNode(testName, "what_am_i");
-		Result<Type> type = engine.typeOf(node.getExpression(), node
-				.getScope());
+		Result<Type> type = engine
+				.typeOf(node.getExpression(), node.getScope());
 
 		Set<Type> expectedType = new HashSet<Type>();
 		expectedType.add(stringType);
@@ -940,8 +940,8 @@ public class ZeroCfaTypeEngineTest {
 	public void functionParameterCalledThroughObject2() throws Throwable {
 		String testName = "function_parameter_called_through_object2";
 		ScopedPrintNode node = findPrintNode(testName, "what_am_i");
-		Result<Type> type = engine.typeOf(node.getExpression(), node
-				.getScope());
+		Result<Type> type = engine
+				.typeOf(node.getExpression(), node.getScope());
 
 		Set<Type> expectedType = new HashSet<Type>();
 		expectedType.add(stringType);
@@ -957,8 +957,8 @@ public class ZeroCfaTypeEngineTest {
 	public void functionParameterCalledThroughClass() throws Throwable {
 		String testName = "function_parameter_called_through_class";
 		ScopedPrintNode node = findPrintNode(testName, "what_am_i");
-		Result<Type> type = engine.typeOf(node.getExpression(), node
-				.getScope());
+		Result<Type> type = engine
+				.typeOf(node.getExpression(), node.getScope());
 
 		Set<Type> expectedType = new HashSet<Type>();
 		expectedType.add(stringType);
@@ -976,8 +976,8 @@ public class ZeroCfaTypeEngineTest {
 	public void functionParameterCalledThroughClassInMethod() throws Throwable {
 		String testName = "function_parameter_called_through_class_in_method";
 		ScopedPrintNode node = findPrintNode(testName, "what_am_i");
-		Result<Type> type = engine.typeOf(node.getExpression(), node
-				.getScope());
+		Result<Type> type = engine
+				.typeOf(node.getExpression(), node.getScope());
 
 		Set<Type> expectedType = new HashSet<Type>();
 		expectedType.add(stringType);
@@ -995,8 +995,8 @@ public class ZeroCfaTypeEngineTest {
 	public void functionParameterCalledThroughGlobal() throws Throwable {
 		String testName = "function_parameter_called_through_global";
 		ScopedPrintNode node = findPrintNode(testName, "what_am_i");
-		Result<Type> type = engine.typeOf(node.getExpression(), node
-				.getScope());
+		Result<Type> type = engine
+				.typeOf(node.getExpression(), node.getScope());
 
 		Set<Type> expectedType = new HashSet<Type>();
 		expectedType.add(stringType);
@@ -1015,8 +1015,8 @@ public class ZeroCfaTypeEngineTest {
 		Set<Type> expectedType = typeJudgement(listType);
 
 		ScopedPrintNode node = findPrintNode(testName, "what_am_i_inside");
-		Result<Type> type = engine.typeOf(node.getExpression(), node
-				.getScope());
+		Result<Type> type = engine
+				.typeOf(node.getExpression(), node.getScope());
 
 		assertEquals("Attribute's type not inferred correctly", expectedType,
 				type);
@@ -1033,8 +1033,8 @@ public class ZeroCfaTypeEngineTest {
 		String testName = "object_attribute_poly";
 
 		ScopedPrintNode node = findPrintNode(testName, "what_am_i_inside");
-		Result<Type> type = engine.typeOf(node.getExpression(), node
-				.getScope());
+		Result<Type> type = engine
+				.typeOf(node.getExpression(), node.getScope());
 
 		Set<Type> expectedType = new HashSet<Type>();
 		expectedType.add(stringType);
@@ -1059,8 +1059,8 @@ public class ZeroCfaTypeEngineTest {
 		Set<Type> expectedType = typeJudgement(listType);
 
 		ScopedPrintNode node = findPrintNode(testName, "what_am_i_inside");
-		Result<Type> type = engine.typeOf(node.getExpression(), node
-				.getScope());
+		Result<Type> type = engine
+				.typeOf(node.getExpression(), node.getScope());
 
 		assertEquals("Attribute's type not inferred correctly. "
 				+ "This probably means it was distracted by the "
@@ -1086,8 +1086,8 @@ public class ZeroCfaTypeEngineTest {
 		Set<Type> expectedType = typeJudgement(listType);
 
 		ScopedPrintNode node = findPrintNode(testName, "what_am_i");
-		Result<Type> type = engine.typeOf(node.getExpression(), node
-				.getScope());
+		Result<Type> type = engine
+				.typeOf(node.getExpression(), node.getScope());
 
 		assertEquals("Attribute's type not inferred correctly. This "
 				+ "probably means forward flow analysis didn't follow"
@@ -1101,8 +1101,8 @@ public class ZeroCfaTypeEngineTest {
 
 		ScopedPrintNode node = findPrintNode(testName,
 				"i_am_really_the_instance_var");
-		Result<Type> type = engine.typeOf(node.getExpression(), node
-				.getScope());
+		Result<Type> type = engine
+				.typeOf(node.getExpression(), node.getScope());
 
 		Set<Type> expectedType = new HashSet<Type>();
 		expectedType.add(stringType);
@@ -1124,8 +1124,8 @@ public class ZeroCfaTypeEngineTest {
 
 		ScopedPrintNode node = findPrintNode(testName,
 				"i_am_really_the_instance_var");
-		Result<Type> type = engine.typeOf(node.getExpression(), node
-				.getScope());
+		Result<Type> type = engine
+				.typeOf(node.getExpression(), node.getScope());
 
 		Set<Type> expectedType = new HashSet<Type>();
 		expectedType.add(stringType);
@@ -1146,8 +1146,8 @@ public class ZeroCfaTypeEngineTest {
 		String testName = "import_module";
 
 		ScopedPrintNode node = findPrintNode(testName, "what_am_i");
-		Result<Type> type = engine.typeOf(node.getExpression(), node
-				.getScope());
+		Result<Type> type = engine
+				.typeOf(node.getExpression(), node.getScope());
 
 		Set<Type> expectedType = typeJudgement(new TModule(model
 				.lookup("import_module_aux")));
@@ -1161,8 +1161,8 @@ public class ZeroCfaTypeEngineTest {
 		String testName = "import_module_as";
 
 		ScopedPrintNode node = findPrintNode(testName, "what_am_i");
-		Result<Type> type = engine.typeOf(node.getExpression(), node
-				.getScope());
+		Result<Type> type = engine
+				.typeOf(node.getExpression(), node.getScope());
 
 		Set<Type> expectedType = typeJudgement(new TModule(model
 				.lookup("import_module_aux")));
@@ -1176,8 +1176,8 @@ public class ZeroCfaTypeEngineTest {
 		String testName = "import_function";
 
 		ScopedPrintNode node = findPrintNode(testName, "what_am_i");
-		Result<Type> type = engine.typeOf(node.getExpression(), node
-				.getScope());
+		Result<Type> type = engine
+				.typeOf(node.getExpression(), node.getScope());
 
 		Set<Type> expectedType = typeJudgement(new TFunction(model.lookup(
 				"import_function_aux").getFunctions().get("fun")));
@@ -1191,8 +1191,8 @@ public class ZeroCfaTypeEngineTest {
 		String testName = "import_function_as";
 
 		ScopedPrintNode node = findPrintNode(testName, "what_am_i");
-		Result<Type> type = engine.typeOf(node.getExpression(), node
-				.getScope());
+		Result<Type> type = engine
+				.typeOf(node.getExpression(), node.getScope());
 
 		Set<Type> expectedType = typeJudgement(new TFunction(model.lookup(
 				"import_function_aux").getFunctions().get("fun")));
@@ -1205,8 +1205,8 @@ public class ZeroCfaTypeEngineTest {
 	public void none() throws Throwable {
 		String testName = "none";
 		ScopedPrintNode node = findPrintNode(testName, "what_am_i");
-		Result<Type> type = engine.typeOf(node.getExpression(), node
-				.getScope());
+		Result<Type> type = engine
+				.typeOf(node.getExpression(), node.getScope());
 
 		Set<Type> expectedType = typeJudgement(noneType);
 
@@ -1222,8 +1222,8 @@ public class ZeroCfaTypeEngineTest {
 		String testName = "inherited_method";
 
 		ScopedPrintNode node = findPrintNode(testName, "what_am_i_parent");
-		Result<Type> type = engine.typeOf(node.getExpression(), node
-				.getScope());
+		Result<Type> type = engine
+				.typeOf(node.getExpression(), node.getScope());
 
 		Set<Type> expectedType = typeJudgement(new TFunction(node
 				.getGlobalNamespace().getClasses().get("B").getFunctions().get(
@@ -1241,12 +1241,51 @@ public class ZeroCfaTypeEngineTest {
 	}
 
 	@Test
+	public void inheritedMethodOverride() throws Throwable {
+		String testName = "inherited_method_override";
+
+		ScopedPrintNode node = findPrintNode(testName, "what_am_i_overridden");
+		Result<Type> type = engine
+				.typeOf(node.getExpression(), node.getScope());
+
+		Set<Type> a = typeJudgement(new TFunction(node.getGlobalNamespace()
+				.getClasses().get("A").getFunctions().get("m")));
+
+		Set<Type> b = typeJudgement(new TFunction(node.getGlobalNamespace()
+				.getClasses().get("B").getFunctions().get("m")));
+
+		assertEquals("Didn't infer inherited method type correctly. "
+				+ "Overriding the method shouldn't change the "
+				+ "inferred type of an instance of the superclass.", a, type);
+
+		node = findPrintNode(testName, "what_am_i");
+		type = engine.typeOf(node.getExpression(), node.getScope());
+
+		assertEquals("Didn't infer inherited method type correctly. "
+				+ "Probably saw the inherited method and forgot "
+				+ "that it is excluded because it is overridden.", b, type);
+
+		node = findPrintNode(testName, "what_am_i_parent");
+		type = engine.typeOf(node.getExpression(), node.getScope());
+
+		assertEquals("Didn't infer inherited method type correctly. "
+				+ "Probably forgot to look in the superclass.", b, type);
+
+		node = findPrintNode(testName, "what_am_i_grandparent");
+		type = engine.typeOf(node.getExpression(), node.getScope());
+
+		assertEquals("Didn't infer inherited method type correctly. "
+				+ "Probably forgot to look in the grandparent superclass.", b,
+				type);
+	}
+
+	@Test
 	public void listTypeEscape() throws Throwable {
 		String testName = "list_type_escape";
 
 		ScopedPrintNode node = findPrintNode(testName, "what_am_i");
-		Result<Type> type = engine.typeOf(node.getExpression(), node
-				.getScope());
+		Result<Type> type = engine
+				.typeOf(node.getExpression(), node.getScope());
 
 		assertEquals(
 				"We shouldn't be able to infer a type for items in a list.",
@@ -1258,8 +1297,8 @@ public class ZeroCfaTypeEngineTest {
 		String testName = "dict_type_escape";
 
 		ScopedPrintNode node = findPrintNode(testName, "what_am_i");
-		Result<Type> type = engine.typeOf(node.getExpression(), node
-				.getScope());
+		Result<Type> type = engine
+				.typeOf(node.getExpression(), node.getScope());
 
 		assertEquals("We shouldn't be able to infer a type for items in "
 				+ "a dictionary.", TopT.INSTANCE, type);

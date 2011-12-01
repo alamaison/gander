@@ -86,6 +86,17 @@ class BoundTypeVisitor implements BindingDetector.DetectionEvent {
 		class BodyProcessor extends LocalCodeBlockVisitor {
 
 			@Override
+			protected Object seenNestedClassDef(ClassDef node) throws Exception {
+				return node.accept(detector);
+			}
+
+			@Override
+			protected Object seenNestedFunctionDef(FunctionDef node)
+					throws Exception {
+				return node.accept(detector);
+			}
+
+			@Override
 			protected Object unhandled_node(SimpleNode node) throws Exception {
 				return node.accept(detector);
 			}

@@ -3,7 +3,6 @@ package uk.ac.ic.doc.gander.ast;
 import org.python.pydev.parser.jython.ast.ClassDef;
 import org.python.pydev.parser.jython.ast.FunctionDef;
 
-
 /**
  * Visitor that only visits statements that are logically part of the local code
  * block as defined by the Python spec (section 4).
@@ -15,19 +14,37 @@ import org.python.pydev.parser.jython.ast.FunctionDef;
  * 
  * Note, a subclass of this visitor won't even see the class/function
  * declarations in the current scope. A subclasses that needs this should
- * subclass {@link CodeBlockCreationVisitor} and override {@code visitClassDef}
- * or {@code visitFunctionDef} but not traverse their node bodies.
+ * override {@link seenNestedClassDef} and {@link seenNestedFunctionDef} but not
+ * traverse the node bodies.
  */
 public abstract class LocalCodeBlockVisitor extends CodeBlockCreationVisitor {
 
+	protected Object seenNestedClassDef(ClassDef node) throws Exception {
+		return null;
+	}
+
+	protected Object seenNestedFunctionDef(FunctionDef node) throws Exception {
+		return null;
+	}
+
+	// TODO: Add similar for Lambda and generator expressions
+
 	@Override
 	public final Object visitClassDef(ClassDef node) throws Exception {
-		return null;
+		return seenNestedClassDef(node);
+		/*
+		 * Note existence for name binding purposes but do not traverse into
+		 * foreign code block
+		 */
 	}
 
 	@Override
 	public final Object visitFunctionDef(FunctionDef node) throws Exception {
-		return null;
+		return seenNestedFunctionDef(node);
+		/*
+		 * Note existence for name binding purposes but do not traverse into
+		 * foreign code block
+		 */
 	}
 
 	@Override
@@ -37,4 +54,3 @@ public abstract class LocalCodeBlockVisitor extends CodeBlockCreationVisitor {
 	}
 
 }
-
