@@ -11,7 +11,9 @@ import org.python.pydev.parser.jython.ast.NameTok;
 import org.python.pydev.parser.jython.ast.aliasType;
 
 import uk.ac.ic.doc.gander.DottedName;
+import uk.ac.ic.doc.gander.hierarchy.SourceFile;
 import uk.ac.ic.doc.gander.importing.ImportSimulator;
+import uk.ac.ic.doc.gander.importing.DefaultImportSimulator;
 import uk.ac.ic.doc.gander.model.Module;
 import uk.ac.ic.doc.gander.model.MutableModel;
 import uk.ac.ic.doc.gander.model.Namespace;
@@ -31,7 +33,8 @@ class ImportAwareModulePopulator extends ModulePopulator {
 
 	@Override
 	public Object visitImport(Import node) throws Exception {
-		ImportSimulator simulator = new Importer(getScope(), model);
+		ImportSimulator simulator = new DefaultImportSimulator(getScope(),
+				new Importer(model));
 
 		for (aliasType alias : node.names) {
 			if (alias.asname == null) {
@@ -46,7 +49,8 @@ class ImportAwareModulePopulator extends ModulePopulator {
 
 	@Override
 	public Object visitImportFrom(ImportFrom node) throws Exception {
-		ImportSimulator simulator = new Importer(getScope(), model);
+		ImportSimulator simulator = new DefaultImportSimulator(getScope(),
+				new Importer(model));
 
 		for (aliasType alias : node.names) {
 			if (alias.asname == null) {
@@ -60,17 +64,15 @@ class ImportAwareModulePopulator extends ModulePopulator {
 		return null;
 	}
 
-	private static class Importer extends ImportSimulator {
+	private static class Importer implements DefaultImportSimulator.ImportEvents {
 
 		private MutableModel model;
 
-		public Importer(Namespace scope, MutableModel model) {
-			super(scope);
+		public Importer(MutableModel model) {
 			this.model = model;
 		}
 
-		@Override
-		protected void bindName(Namespace scope, Namespace loadedImportable,
+		public void bindName(Namespace scope, Namespace loadedImportable,
 				String as) {
 			// This is called by the simulator to instruct us to make whatever
 			// changes are necessary for a name to be considered imported into
@@ -92,7 +94,7 @@ class ImportAwareModulePopulator extends ModulePopulator {
 		 * @return {@link SourceFile} if loading succeeded, {@code null}
 		 *         otherwise.
 		 */
-		protected Module simulateLoad(List<String> importPath,
+		public Module simulateLoad(List<String> importPath,
 				Module relativeToPackage) {
 			List<String> name = new ArrayList<String>(DottedName
 					.toImportTokens(relativeToPackage.getFullName()));
@@ -109,8 +111,7 @@ class ImportAwareModulePopulator extends ModulePopulator {
 		 * @return {@link SourceFile} if loading succeeded, {@code null}
 		 *         otherwise.
 		 */
-		@Override
-		protected Module simulateLoad(List<String> importPath) {
+		public Module simulateLoad(List<String> importPath) {
 
 			Module loaded = null;
 			try {
@@ -128,13 +129,11 @@ class ImportAwareModulePopulator extends ModulePopulator {
 			return loaded;
 		}
 
-		@Override
-		protected void onUnresolvedImport(List<String> importPath,
+		public void onUnresolvedImport(List<String> importPath,
 				Module relativeToPackage, Namespace importReceiver, String as) {
 		}
 
-		@Override
-		protected void onUnresolvedImportFromItem(List<String> fromPath,
+		public void onUnresolvedImportFromItem(List<String> fromPath,
 				String itemName, Module relativeToPackage,
 				Namespace importReceiver, String as) {
 			// FIXME: This gets fired when 'from x import a' occurs inside a

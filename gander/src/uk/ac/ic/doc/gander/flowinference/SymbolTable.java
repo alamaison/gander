@@ -13,9 +13,12 @@ import org.python.pydev.parser.jython.ast.NameTok;
 import org.python.pydev.parser.jython.ast.VisitorBase;
 import org.python.pydev.parser.jython.ast.aliasType;
 
+import uk.ac.ic.doc.gander.flowinference.ImportTyper.ImportTypeEvent;
 import uk.ac.ic.doc.gander.flowinference.types.TClass;
 import uk.ac.ic.doc.gander.flowinference.types.TFunction;
 import uk.ac.ic.doc.gander.flowinference.types.Type;
+import uk.ac.ic.doc.gander.importing.ImportSimulator;
+import uk.ac.ic.doc.gander.importing.DefaultImportSimulator;
 import uk.ac.ic.doc.gander.model.Class;
 import uk.ac.ic.doc.gander.model.Function;
 import uk.ac.ic.doc.gander.model.Model;
@@ -155,12 +158,12 @@ public class SymbolTable {
 			// apart and each to the inferred types
 			for (aliasType alias : node.names) {
 				if (alias.asname != null) {
-					new SymbolTableImportResolver(model, currentScope)
-							.simulateImportAs(((NameTok) alias.name).id,
-									((NameTok) alias.asname).id);
+					simulator(currentScope).simulateImportAs(
+							((NameTok) alias.name).id,
+							((NameTok) alias.asname).id);
 				} else {
-					new SymbolTableImportResolver(model, currentScope)
-							.simulateImport(((NameTok) alias.name).id);
+					simulator(currentScope).simulateImport(
+							((NameTok) alias.name).id);
 				}
 			}
 		}
@@ -169,14 +172,14 @@ public class SymbolTable {
 
 			for (aliasType alias : node.names) {
 				if (alias.asname != null) {
-					new SymbolTableImportResolver(model, currentScope)
-							.simulateImportFromAs(((NameTok) node.module).id,
-									((NameTok) alias.name).id,
-									((NameTok) alias.asname).id);
+					simulator(currentScope).simulateImportFromAs(
+							((NameTok) node.module).id,
+							((NameTok) alias.name).id,
+							((NameTok) alias.asname).id);
 				} else {
-					new SymbolTableImportResolver(model, currentScope)
-							.simulateImportFrom(((NameTok) node.module).id,
-									((NameTok) alias.name).id);
+					simulator(currentScope).simulateImportFrom(
+							((NameTok) node.module).id,
+							((NameTok) alias.name).id);
 				}
 			}
 
@@ -184,17 +187,16 @@ public class SymbolTable {
 
 	}
 
-	private class SymbolTableImportResolver extends ImportTyper {
+	private ImportSimulator simulator(Namespace importReceiver) {
 
-		public SymbolTableImportResolver(Model model, Namespace importReceiver) {
-			super(importReceiver);
-		}
+		return new DefaultImportSimulator(importReceiver, new ImportTyper(
+				importReceiver.model(), new ImportTypeEvent() {
 
-		@Override
-		protected void put(Namespace scope, String name, Type type) {
-			SymbolTable.this.put(scope, name, type);
-		}
-
+					public void onImportTyped(Namespace scope, String name,
+							Type type) {
+						SymbolTable.this.put(scope, name, type);
+					}
+				}));
 	}
 
 	private void processScope(Namespace scope) {

@@ -2,6 +2,7 @@ package uk.ac.ic.doc.gander.importing;
 
 import java.util.List;
 
+import uk.ac.ic.doc.gander.importing.DefaultImportSimulator.ImportEvents;
 import uk.ac.ic.doc.gander.model.Model;
 import uk.ac.ic.doc.gander.model.Module;
 import uk.ac.ic.doc.gander.model.Namespace;
@@ -58,40 +59,33 @@ public final class WholeModelImportSimulation {
 	}
 
 	private ImportSimulator newImportSimulator(Namespace importReceiver) {
-		return new ImportSimulator(importReceiver) {
+		return new DefaultImportSimulator(importReceiver, new ImportEvents() {
 
-			@Override
-			protected Module simulateLoad(List<String> importPath,
+			public Module simulateLoad(List<String> importPath,
 					Module relativeToPackage) {
 				return relativeToPackage.lookup(importPath);
 			}
 
-			@Override
-			protected Module simulateLoad(List<String> importPath) {
+			public Module simulateLoad(List<String> importPath) {
 				return model.lookup(importPath);
 			}
 
-			@Override
-			protected void onUnresolvedImportFromItem(List<String> fromPath,
+			public void onUnresolvedImportFromItem(List<String> fromPath,
 					String itemName, Module relativeToPackage,
 					Namespace importReceiver, String as) {
 				// TODO Auto-generated method stub
-
 			}
 
-			@Override
-			protected void onUnresolvedImport(List<String> importPath,
+			public void onUnresolvedImport(List<String> importPath,
 					Module relativeToPackage, Namespace importReceiver,
 					String as) {
 				// TODO Auto-generated method stub
-
 			}
 
-			@Override
-			protected void bindName(Namespace importReceiver,
+			public void bindName(Namespace importReceiver,
 					Namespace loadedObject, String as) {
 				callback.bindingName(importReceiver, loadedObject, as);
 			}
-		};
+		});
 	}
 }

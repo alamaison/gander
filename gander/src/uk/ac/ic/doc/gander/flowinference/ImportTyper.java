@@ -9,27 +9,28 @@ import uk.ac.ic.doc.gander.flowinference.types.TFunction;
 import uk.ac.ic.doc.gander.flowinference.types.TModule;
 import uk.ac.ic.doc.gander.flowinference.types.TUnresolvedImport;
 import uk.ac.ic.doc.gander.flowinference.types.Type;
-import uk.ac.ic.doc.gander.importing.ImportSimulator;
 import uk.ac.ic.doc.gander.model.Class;
 import uk.ac.ic.doc.gander.model.Function;
 import uk.ac.ic.doc.gander.model.Model;
 import uk.ac.ic.doc.gander.model.Module;
 import uk.ac.ic.doc.gander.model.Namespace;
+import uk.ac.ic.doc.gander.importing.DefaultImportSimulator;
 
-public abstract class ImportTyper extends ImportSimulator {
+public final class ImportTyper implements DefaultImportSimulator.ImportEvents {
 
 	private final Model model;
+	private final ImportTypeEvent eventHandler;
 
-	protected abstract void put(Namespace scope, String name, Type type);
-
-	protected ImportTyper(Namespace importReceiver) {
-		super(importReceiver);
-
-		this.model = importReceiver.model();
+	public interface ImportTypeEvent {
+		void onImportTyped(Namespace scope, String name, Type type);
 	}
 
-	@Override
-	protected final void bindName(Namespace importReceiver, Namespace loaded,
+	public ImportTyper(Model model, ImportTypeEvent eventHandler) {
+		this.eventHandler = eventHandler;
+		this.model = model;
+	}
+
+	public final void bindName(Namespace importReceiver, Namespace loaded,
 			String as) {
 		assert loaded != null;
 		assert importReceiver != null;
@@ -46,11 +47,10 @@ public abstract class ImportTyper extends ImportSimulator {
 		// TODO: The target of the 'from foo import bar' can
 		// be a variable.
 
-		put(importReceiver, as, type);
+		eventHandler.onImportTyped(importReceiver, as, type);
 	}
 
-	@Override
-	protected final Module simulateLoad(List<String> importPath,
+	public final Module simulateLoad(List<String> importPath,
 			Module relativeToPackage) {
 		List<String> name = new ArrayList<String>(DottedName
 				.toImportTokens(relativeToPackage.getFullName()));
@@ -63,13 +63,11 @@ public abstract class ImportTyper extends ImportSimulator {
 		return simulateLoad(name);
 	}
 
-	@Override
-	protected Module simulateLoad(List<String> importPath) {
+	public Module simulateLoad(List<String> importPath) {
 		return model.lookup(importPath);
 	}
 
-	@Override
-	protected final void onUnresolvedImport(List<String> importPath,
+	public final void onUnresolvedImport(List<String> importPath,
 			Module relativeToPackage, Namespace importReceiver, String as) {
 		System.err.print("WARNING: unresolved import ");
 		if (importReceiver != null)
@@ -83,12 +81,11 @@ public abstract class ImportTyper extends ImportSimulator {
 		 * import. This loads the middle modules but doesn't bind them.
 		 */
 		if (importReceiver != null)
-			put(importReceiver, as, new TUnresolvedImport(importPath,
-					relativeToPackage));
+			eventHandler.onImportTyped(importReceiver, as,
+					new TUnresolvedImport(importPath, relativeToPackage));
 	}
 
-	@Override
-	protected final void onUnresolvedImportFromItem(List<String> fromPath,
+	public final void onUnresolvedImportFromItem(List<String> fromPath,
 			String itemName, Module relativeToPackage,
 			Namespace importReceiver, String as) {
 		System.err.print("WARNING: unresolved import ");
@@ -103,7 +100,8 @@ public abstract class ImportTyper extends ImportSimulator {
 		// package. It _could_ be but equally it could be a class, function
 		// or even a variable.
 		if (importReceiver != null)
-			put(importReceiver, as, new TUnresolvedImport(fromPath, itemName,
-					relativeToPackage));
+			eventHandler
+					.onImportTyped(importReceiver, as, new TUnresolvedImport(
+							fromPath, itemName, relativeToPackage));
 	}
 }

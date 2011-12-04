@@ -11,6 +11,7 @@ import org.python.pydev.parser.jython.ast.exprType;
 import uk.ac.ic.doc.gander.ast.BindingDetector;
 import uk.ac.ic.doc.gander.ast.LocalCodeBlockVisitor;
 import uk.ac.ic.doc.gander.flowinference.ImportTyper;
+import uk.ac.ic.doc.gander.flowinference.ImportTyper.ImportTypeEvent;
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
 import uk.ac.ic.doc.gander.flowinference.result.FiniteResult;
 import uk.ac.ic.doc.gander.flowinference.result.RedundancyEliminator;
@@ -18,6 +19,8 @@ import uk.ac.ic.doc.gander.flowinference.result.Result;
 import uk.ac.ic.doc.gander.flowinference.types.TClass;
 import uk.ac.ic.doc.gander.flowinference.types.TFunction;
 import uk.ac.ic.doc.gander.flowinference.types.Type;
+import uk.ac.ic.doc.gander.importing.ImportSimulator;
+import uk.ac.ic.doc.gander.importing.DefaultImportSimulator;
 import uk.ac.ic.doc.gander.model.Class;
 import uk.ac.ic.doc.gander.model.Function;
 import uk.ac.ic.doc.gander.model.ModelSite;
@@ -283,11 +286,10 @@ class BoundTypeVisitor implements BindingDetector.DetectionEvent {
 		return judgement.isFinished();
 	}
 
-	private ImportTyper newImportResolver() {
-		return new ImportTyper(variable.codeBlock()) {
+	private ImportSimulator newImportResolver() {
+		ImportTypeEvent handler = new ImportTypeEvent() {
 
-			@Override
-			protected void put(Namespace scope, String name, Type type) {
+			public void onImportTyped(Namespace scope, String name, Type type) {
 				if (scope == null)
 					throw new NullPointerException(
 							"Need a namespace to bind name in");
@@ -310,6 +312,7 @@ class BoundTypeVisitor implements BindingDetector.DetectionEvent {
 							.singleton(type)));
 			}
 		};
+		return new DefaultImportSimulator(variable.codeBlock(), new ImportTyper(
+				variable.model(), handler));
 	}
-
 }
