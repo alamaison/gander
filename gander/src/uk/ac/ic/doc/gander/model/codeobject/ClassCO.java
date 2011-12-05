@@ -111,7 +111,7 @@ public final class ClassCO implements NamedCodeObject, NestedCodeObject {
 		return false;
 	}
 
-	public Namespace oldStyleConflatedNamespace() {
+	public Class oldStyleConflatedNamespace() {
 		return oldStyleFunctionNamespace;
 	}
 

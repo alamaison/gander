@@ -17,13 +17,15 @@ import uk.ac.ic.doc.gander.flowinference.ImportTyper.ImportTypeEvent;
 import uk.ac.ic.doc.gander.flowinference.types.TClass;
 import uk.ac.ic.doc.gander.flowinference.types.TFunction;
 import uk.ac.ic.doc.gander.flowinference.types.Type;
-import uk.ac.ic.doc.gander.importing.ImportSimulator;
 import uk.ac.ic.doc.gander.importing.DefaultImportSimulator;
+import uk.ac.ic.doc.gander.importing.ImportSimulator;
 import uk.ac.ic.doc.gander.model.Class;
 import uk.ac.ic.doc.gander.model.Function;
 import uk.ac.ic.doc.gander.model.Model;
 import uk.ac.ic.doc.gander.model.Module;
 import uk.ac.ic.doc.gander.model.Namespace;
+import uk.ac.ic.doc.gander.model.codeobject.CodeObject;
+import uk.ac.ic.doc.gander.model.codeobject.ModuleCO;
 
 public class SymbolTable {
 
@@ -189,12 +191,14 @@ public class SymbolTable {
 
 	private ImportSimulator simulator(Namespace importReceiver) {
 
-		return new DefaultImportSimulator(importReceiver, new ImportTyper(
-				importReceiver.model(), new ImportTypeEvent() {
+		return new DefaultImportSimulator<Object, CodeObject, ModuleCO>(
+				importReceiver.codeObject(), new ImportTyper(importReceiver
+						.model(), new ImportTypeEvent() {
 
-					public void onImportTyped(Namespace scope, String name,
+					public void onImportTyped(CodeObject scope, String name,
 							Type type) {
-						SymbolTable.this.put(scope, name, type);
+						SymbolTable.this.put(
+								scope.oldStyleConflatedNamespace(), name, type);
 					}
 				}));
 	}

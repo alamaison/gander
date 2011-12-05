@@ -118,7 +118,7 @@ public final class FunctionCO implements NamedCodeObject, NestedCodeObject {
 		return parent;
 	}
 
-	public Namespace oldStyleConflatedNamespace() {
+	public Function oldStyleConflatedNamespace() {
 		return oldStyleFunctionNamespace;
 	}
 

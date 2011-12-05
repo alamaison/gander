@@ -2,19 +2,35 @@ package uk.ac.ic.doc.gander.flowinference.types;
 
 import uk.ac.ic.doc.gander.model.Module;
 import uk.ac.ic.doc.gander.model.Namespace;
+import uk.ac.ic.doc.gander.model.codeobject.ModuleCO;
 
-public class TModule implements TImportable, TNamespace {
-	private Module moduleInstance;
+public class TModule implements TImportable, TNamespace, TCodeObject {
 
-	public TModule(Module loaded) {
-		assert loaded != null;
-		moduleInstance = loaded;
+	private final ModuleCO moduleInstance;
+
+	public TModule(ModuleCO moduleInstance) {
+		if (moduleInstance == null) {
+			throw new NullPointerException("Code object required");
+		}
+
+		this.moduleInstance = moduleInstance;
 	}
 
-	public Module getModuleInstance() {
+	public ModuleCO codeObject() {
 		return moduleInstance;
 	}
 
+	@Deprecated
+	public TModule(Module loaded) {
+		this(loaded.codeObject());
+	}
+
+	@Deprecated
+	public Module getModuleInstance() {
+		return moduleInstance.oldStyleConflatedNamespace();
+	}
+
+	@Deprecated
 	public Namespace getNamespaceInstance() {
 		return getModuleInstance();
 	}

@@ -86,7 +86,7 @@ public final class ModuleCO implements NamedCodeObject {
 		return oldStyleFunctionNamespace.model();
 	}
 
-	public Namespace oldStyleConflatedNamespace() {
+	public Module oldStyleConflatedNamespace() {
 		return oldStyleFunctionNamespace;
 	}
 

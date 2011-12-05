@@ -10,21 +10,23 @@ import uk.ac.ic.doc.gander.flowinference.types.TModule;
 import uk.ac.ic.doc.gander.flowinference.types.TUnresolvedImport;
 import uk.ac.ic.doc.gander.flowinference.types.Type;
 import uk.ac.ic.doc.gander.importing.DefaultImportSimulator;
-import uk.ac.ic.doc.gander.model.Class;
-import uk.ac.ic.doc.gander.model.Function;
-import uk.ac.ic.doc.gander.model.Member;
 import uk.ac.ic.doc.gander.model.Model;
 import uk.ac.ic.doc.gander.model.Module;
 import uk.ac.ic.doc.gander.model.Namespace;
+import uk.ac.ic.doc.gander.model.codeobject.ClassCO;
+import uk.ac.ic.doc.gander.model.codeobject.CodeObject;
+import uk.ac.ic.doc.gander.model.codeobject.FunctionCO;
+import uk.ac.ic.doc.gander.model.codeobject.ModuleCO;
+import uk.ac.ic.doc.gander.model.codeobject.NestedCodeObject;
 
 public final class ImportTyper implements
-		DefaultImportSimulator.ImportEvents<Member, Namespace, Module> {
+		DefaultImportSimulator.ImportEvents<Object, CodeObject, ModuleCO> {
 
 	private final Model model;
 	private final ImportTypeEvent eventHandler;
 
 	public interface ImportTypeEvent {
-		void onImportTyped(Namespace scope, String name, Type type);
+		void onImportTyped(CodeObject location, String name, Type type);
 	}
 
 	public ImportTyper(Model model, ImportTypeEvent eventHandler) {
@@ -32,19 +34,19 @@ public final class ImportTyper implements
 		this.model = model;
 	}
 
-	public final void bindName(Member loaded, String as,
-			Namespace importLocation) {
+	public final void bindName(Object loaded, String as,
+			CodeObject importLocation) {
 		assert loaded != null;
 		assert importLocation != null;
 		assert !as.isEmpty();
 
 		Type type = null;
-		if (loaded instanceof Module)
-			type = new TModule((Module) loaded);
-		else if (loaded instanceof Class)
-			type = new TClass((Class) loaded);
-		else if (loaded instanceof Function)
-			type = new TFunction((Function) loaded);
+		if (loaded instanceof ModuleCO)
+			type = new TModule((ModuleCO) loaded);
+		else if (loaded instanceof ClassCO)
+			type = new TClass((ClassCO) loaded);
+		else if (loaded instanceof FunctionCO)
+			type = new TFunction((FunctionCO) loaded);
 
 		// TODO: The target of the 'from foo import bar' can
 		// be a variable.
@@ -52,10 +54,11 @@ public final class ImportTyper implements
 		eventHandler.onImportTyped(importLocation, as, type);
 	}
 
-	public final Module loadModule(List<String> importPath,
-			Module relativeToModule) {
+	public final ModuleCO loadModule(List<String> importPath,
+			ModuleCO relativeToModule) {
 		List<String> name = new ArrayList<String>(DottedName
-				.toImportTokens(relativeToModule.getFullName()));
+				.toImportTokens(relativeToModule.oldStyleConflatedNamespace()
+						.getFullName()));
 		name.addAll(importPath);
 
 		// The imported module/package will always exist in the model
@@ -65,15 +68,20 @@ public final class ImportTyper implements
 		return loadModule(name);
 	}
 
-	public Module loadModule(List<String> importPath) {
-		return model.lookup(importPath);
+	public ModuleCO loadModule(List<String> importPath) {
+		Module module = model.lookup(importPath);
+		if (module != null) {
+			return module.codeObject();
+		} else {
+			return null;
+		}
 	}
 
 	public final void onUnresolvedImport(List<String> importPath,
-			Module relativeTo, String as, Namespace codeBlock) {
+			ModuleCO relativeTo, String as, CodeObject codeBlock) {
 		System.err.print("WARNING: unresolved import ");
 		if (codeBlock != null)
-			System.err.print("in " + codeBlock.getFullName() + " ");
+			System.err.print("in " + codeBlock.absoluteDescription() + " ");
 
 		System.err.println("'import " + DottedName.toDottedName(importPath)
 				+ "'");
@@ -84,14 +92,15 @@ public final class ImportTyper implements
 		 */
 		if (codeBlock != null)
 			eventHandler.onImportTyped(codeBlock, as, new TUnresolvedImport(
-					importPath, relativeTo));
+					importPath, relativeTo.oldStyleConflatedNamespace()));
 	}
 
 	public final void onUnresolvedImportFromItem(List<String> fromPath,
-			Module relativeTo, String itemName, String as, Namespace codeBlock) {
+			ModuleCO relativeTo, String itemName, String as,
+			CodeObject codeBlock) {
 		System.err.print("WARNING: unresolved import ");
 		if (codeBlock != null)
-			System.err.print("in " + codeBlock.getFullName() + " ");
+			System.err.print("in " + codeBlock.absoluteDescription() + " ");
 
 		System.err.println("'from " + DottedName.toDottedName(fromPath)
 				+ " import " + itemName + "': '" + itemName + "' not found");
@@ -101,8 +110,9 @@ public final class ImportTyper implements
 		// package. It _could_ be but equally it could be a class, function
 		// or even a variable.
 		if (codeBlock != null)
-			eventHandler.onImportTyped(codeBlock, as, new TUnresolvedImport(
-					fromPath, itemName, relativeTo));
+			eventHandler.onImportTyped(codeBlock, as,
+					new TUnresolvedImport(fromPath, itemName, relativeTo
+							.oldStyleConflatedNamespace()));
 	}
 
 	public Module parentModule(Namespace importReceiver) {
@@ -113,12 +123,26 @@ public final class ImportTyper implements
 	}
 
 	public Namespace lookupNonModuleMember(String itemName,
-			Namespace codeObjectWhoseNamespaceWeAreLoadingFrom) {
+			CodeObject codeObjectWhoseNamespaceWeAreLoadingFrom) {
 		Namespace loaded = codeObjectWhoseNamespaceWeAreLoadingFrom
-				.getClasses().get(itemName);
+				.oldStyleConflatedNamespace().getClasses().get(itemName);
 		if (loaded == null)
-			loaded = codeObjectWhoseNamespaceWeAreLoadingFrom.getFunctions()
-					.get(itemName);
+			loaded = codeObjectWhoseNamespaceWeAreLoadingFrom
+					.oldStyleConflatedNamespace().getFunctions().get(itemName);
 		return loaded;
+	}
+
+	public ModuleCO parentModule(CodeObject importReceiver) {
+		if (importReceiver instanceof NestedCodeObject) {
+			return ((NestedCodeObject) importReceiver).enclosingModule();
+		} else {
+			Module parent = (Module) importReceiver
+					.oldStyleConflatedNamespace().getParentScope();
+			if (parent != null) {
+				return (ModuleCO) parent.codeObject();
+			} else {
+				return null;
+			}
+		}
 	}
 }

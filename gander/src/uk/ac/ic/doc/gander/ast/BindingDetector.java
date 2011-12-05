@@ -32,9 +32,13 @@ public final class BindingDetector extends BindingStatementVisitor {
 
 		void forLoop(exprType target, exprType iterable);
 
-		boolean moduleImport(String moduleName, String as);
+		boolean moduleImport(String moduleName);
 
-		boolean fromModuleImport(String moduleName, String itemName, String as);
+		boolean moduleImportAs(String moduleName, String as);
+
+		boolean fromModuleImport(String moduleName, String itemName);
+
+		boolean fromModuleImportAs(String moduleName, String itemName, String as);
 
 		boolean exception(exprType name, exprType type);
 	}
@@ -77,14 +81,17 @@ public final class BindingDetector extends BindingStatementVisitor {
 		for (aliasType alias : node.names) {
 
 			String moduleName = ((NameTok) alias.name).id;
-			String as;
-			if (alias.asname != null) {
-				as = ((NameTok) alias.asname).id;
+
+			if (alias.asname == null) {
+				if (eventHandler.moduleImport(moduleName)) {
+					break;
+				}
 			} else {
-				as = moduleName;
+				String as = ((NameTok) alias.asname).id;
+				if (eventHandler.moduleImportAs(moduleName, as)) {
+					break;
+				}
 			}
-			if (eventHandler.moduleImport(moduleName, as))
-				break;
 		}
 		return null;
 	}
@@ -93,16 +100,20 @@ public final class BindingDetector extends BindingStatementVisitor {
 	public Object visitImportFrom(ImportFrom node) throws Exception {
 
 		for (aliasType alias : node.names) {
+
 			String moduleName = ((NameTok) node.module).id;
 			String itemName = ((NameTok) alias.name).id;
-			String as;
-			if (alias.asname != null) {
-				as = ((NameTok) alias.asname).id;
+
+			if (alias.asname == null) {
+				if (eventHandler.fromModuleImport(moduleName, itemName)) {
+					break;
+				}
 			} else {
-				as = itemName;
+				String as = ((NameTok) alias.asname).id;
+				if (eventHandler.fromModuleImportAs(moduleName, itemName, as)) {
+					break;
+				}
 			}
-			if (eventHandler.fromModuleImport(moduleName, itemName, as))
-				break;
 		}
 
 		return null;

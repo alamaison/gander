@@ -2,20 +2,36 @@ package uk.ac.ic.doc.gander.flowinference.types;
 
 import uk.ac.ic.doc.gander.model.Function;
 import uk.ac.ic.doc.gander.model.Namespace;
+import uk.ac.ic.doc.gander.model.codeobject.CodeObject;
+import uk.ac.ic.doc.gander.model.codeobject.FunctionCO;
 
-public class TFunction implements TNamespace {
+public class TFunction implements TNamespace, TCodeObject {
 
-	private Function functionInstance;
+	private final FunctionCO functionInstance;
 
-	public TFunction(Function functionInstance) {
-		assert functionInstance != null;
+	public TFunction(FunctionCO functionInstance) {
+		if (functionInstance == null) {
+			throw new NullPointerException("Code object required");
+		}
+		
 		this.functionInstance = functionInstance;
 	}
 
-	public Function getFunctionInstance() {
+	public CodeObject codeObject() {
 		return functionInstance;
 	}
 
+	@Deprecated
+	public TFunction(Function functionInstance) {
+		this(functionInstance.codeObject());
+	}
+
+	@Deprecated
+	public Function getFunctionInstance() {
+		return functionInstance.oldStyleConflatedNamespace();
+	}
+
+	@Deprecated
 	public Namespace getNamespaceInstance() {
 		return getFunctionInstance();
 	}

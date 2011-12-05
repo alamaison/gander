@@ -10,8 +10,7 @@ import org.python.pydev.parser.jython.ast.exprType;
 
 import uk.ac.ic.doc.gander.ast.BindingDetector;
 import uk.ac.ic.doc.gander.ast.LocalCodeBlockVisitor;
-import uk.ac.ic.doc.gander.flowinference.ImportTyper;
-import uk.ac.ic.doc.gander.flowinference.ImportTyper.ImportTypeEvent;
+import uk.ac.ic.doc.gander.flowinference.ImportTypeMapper;
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
 import uk.ac.ic.doc.gander.flowinference.result.FiniteResult;
 import uk.ac.ic.doc.gander.flowinference.result.RedundancyEliminator;
@@ -19,12 +18,11 @@ import uk.ac.ic.doc.gander.flowinference.result.Result;
 import uk.ac.ic.doc.gander.flowinference.types.TClass;
 import uk.ac.ic.doc.gander.flowinference.types.TFunction;
 import uk.ac.ic.doc.gander.flowinference.types.Type;
-import uk.ac.ic.doc.gander.importing.ImportSimulator;
-import uk.ac.ic.doc.gander.importing.DefaultImportSimulator;
+import uk.ac.ic.doc.gander.importing.ImportInfo;
+import uk.ac.ic.doc.gander.importing.ImportInfoFactory;
 import uk.ac.ic.doc.gander.model.Class;
 import uk.ac.ic.doc.gander.model.Function;
 import uk.ac.ic.doc.gander.model.ModelSite;
-import uk.ac.ic.doc.gander.model.Namespace;
 import uk.ac.ic.doc.gander.model.codeblock.CodeBlock;
 import uk.ac.ic.doc.gander.model.codeobject.ClassCO;
 import uk.ac.ic.doc.gander.model.codeobject.CodeObject;
@@ -237,14 +235,45 @@ class BoundTypeVisitor implements BindingDetector.DetectionEvent {
 		}
 	}
 
-	public boolean moduleImport(String moduleName, String as) {
-		newImportResolver().simulateImportAs(moduleName, as);
+	public boolean moduleImport(String moduleName) {
+		ImportInfo info = ImportInfoFactory.newImport(moduleName);
+		if (isMatch(info.bindingName())) {
+			judgement.add(ImportTypeMapper.typeImport(variable.model(), info
+					.bindingObject()));
+		}
+
 		return judgement.isFinished();
 	}
 
-	public boolean fromModuleImport(String moduleName, String itemName,
+	public boolean moduleImportAs(String moduleName, String as) {
+		ImportInfo info = ImportInfoFactory.newImportAs(moduleName, as);
+		if (isMatch(info.bindingName())) {
+			judgement.add(ImportTypeMapper.typeImport(variable.model(), info
+					.bindingObject()));
+		}
+
+		return judgement.isFinished();
+	}
+
+	public boolean fromModuleImport(String moduleName, String itemName) {
+		ImportInfo info = ImportInfoFactory.newFromImport(moduleName, itemName);
+		if (isMatch(info.bindingName())) {
+			judgement.add(ImportTypeMapper.typeFromImport(variable.model(),
+					info.bindingObject()));
+		}
+
+		return judgement.isFinished();
+	}
+
+	public boolean fromModuleImportAs(String moduleName, String itemName,
 			String as) {
-		newImportResolver().simulateImportFromAs(moduleName, itemName, as);
+		ImportInfo info = ImportInfoFactory.newFromImportAs(moduleName,
+				itemName, as);
+		if (isMatch(info.bindingName())) {
+			judgement.add(ImportTypeMapper.typeFromImport(variable.model(),
+					info.bindingObject()));
+		}
+
 		return judgement.isFinished();
 	}
 
@@ -284,35 +313,5 @@ class BoundTypeVisitor implements BindingDetector.DetectionEvent {
 			// name of the exception object _not_ be a name?
 		}
 		return judgement.isFinished();
-	}
-
-	private ImportSimulator newImportResolver() {
-		ImportTypeEvent handler = new ImportTypeEvent() {
-
-			public void onImportTyped(Namespace scope, String name, Type type) {
-				if (scope == null)
-					throw new NullPointerException(
-							"Need a namespace to bind name in");
-				if (name == null)
-					throw new NullPointerException("Need a name to bind");
-				if (name.isEmpty())
-					throw new IllegalArgumentException(
-							"Name being bound must have at least one character");
-
-				/*
-				 * TODO: This way of doing it (following all the nested imports)
-				 * suits the a priori symbol table approach but not a
-				 * demand-driven approach.
-				 * 
-				 * Ideally the only import that ever occurs here should be the
-				 * single import we asked to resolve, giving us a single type.
-				 */
-				if (scope.equals(scope) && isMatch(name))
-					judgement.add(new FiniteResult<Type>(Collections
-							.singleton(type)));
-			}
-		};
-		return new DefaultImportSimulator(variable.codeBlock(), new ImportTyper(
-				variable.model(), handler));
 	}
 }
