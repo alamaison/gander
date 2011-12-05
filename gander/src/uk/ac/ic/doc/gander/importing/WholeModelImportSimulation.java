@@ -3,6 +3,7 @@ package uk.ac.ic.doc.gander.importing;
 import java.util.List;
 
 import uk.ac.ic.doc.gander.importing.DefaultImportSimulator.ImportEvents;
+import uk.ac.ic.doc.gander.model.Member;
 import uk.ac.ic.doc.gander.model.Model;
 import uk.ac.ic.doc.gander.model.Module;
 import uk.ac.ic.doc.gander.model.Namespace;
@@ -58,34 +59,51 @@ public final class WholeModelImportSimulation {
 		});
 	}
 
-	private ImportSimulator newImportSimulator(Namespace importReceiver) {
-		return new DefaultImportSimulator(importReceiver, new ImportEvents() {
+	private ImportSimulator newImportSimulator(Namespace importLocation) {
+		return new DefaultImportSimulator<Member, Namespace, Module>(
+				importLocation, new ImportEvents<Member, Namespace, Module>() {
 
-			public Module simulateLoad(List<String> importPath,
-					Module relativeToPackage) {
-				return relativeToPackage.lookup(importPath);
-			}
+					public Module loadModule(List<String> importPath,
+							Module relativeToModule) {
+						return relativeToModule.lookup(importPath);
+					}
 
-			public Module simulateLoad(List<String> importPath) {
-				return model.lookup(importPath);
-			}
+					public Module loadModule(List<String> importPath) {
+						return model.lookup(importPath);
+					}
 
-			public void onUnresolvedImportFromItem(List<String> fromPath,
-					String itemName, Module relativeToPackage,
-					Namespace importReceiver, String as) {
-				// TODO Auto-generated method stub
-			}
+					public void onUnresolvedImportFromItem(
+							List<String> fromPath, Module relativeTo,
+							String itemName, String as, Namespace codeBlock) {
+						// TODO Auto-generated method stub
+					}
 
-			public void onUnresolvedImport(List<String> importPath,
-					Module relativeToPackage, Namespace importReceiver,
-					String as) {
-				// TODO Auto-generated method stub
-			}
+					public void onUnresolvedImport(List<String> importPath,
+							Module relativeTo, String as, Namespace codeBlock) {
+						// TODO Auto-generated method stub
+					}
 
-			public void bindName(Namespace importReceiver,
-					Namespace loadedObject, String as) {
-				callback.bindingName(importReceiver, loadedObject, as);
-			}
-		});
+					public void bindName(Member loadedObject, String as,
+							Namespace importLocation) {
+						callback.bindingName(importLocation, loadedObject, as);
+					}
+
+					public Module parentModule(Namespace importLocation) {
+						if (importLocation instanceof Module)
+							return ((Module) importLocation).getParent();
+						else
+							return importLocation.getGlobalNamespace();
+					}
+
+					public Member lookupNonModuleMember(String itemName,
+							Namespace codeObjectWhoseNamespaceWeAreLoadingFrom) {
+						Namespace loaded = codeObjectWhoseNamespaceWeAreLoadingFrom
+								.getClasses().get(itemName);
+						if (loaded == null)
+							loaded = codeObjectWhoseNamespaceWeAreLoadingFrom
+									.getFunctions().get(itemName);
+						return loaded;
+					}
+				});
 	}
 }

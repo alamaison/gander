@@ -8,6 +8,7 @@ import uk.ac.ic.doc.gander.flowinference.result.FiniteResult;
 import uk.ac.ic.doc.gander.flowinference.result.Result;
 import uk.ac.ic.doc.gander.importing.ImportSimulationWatcher;
 import uk.ac.ic.doc.gander.importing.WholeModelImportSimulation;
+import uk.ac.ic.doc.gander.model.Member;
 import uk.ac.ic.doc.gander.model.Namespace;
 import uk.ac.ic.doc.gander.model.NamespaceName;
 import uk.ac.ic.doc.gander.model.codeobject.CodeObject;
@@ -153,7 +154,7 @@ final class CodeObjectStepGoal implements FlowStepGoal {
 				new ImportSimulationWatcher() {
 
 					public void bindingName(Namespace importReceiver,
-							Namespace loadedObject, String as) {
+							Member loadedObject, String as) {
 
 						/*
 						 * importReceiver may not actually be the import

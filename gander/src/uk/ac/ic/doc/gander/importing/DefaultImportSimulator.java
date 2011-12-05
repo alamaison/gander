@@ -5,9 +5,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import uk.ac.ic.doc.gander.DottedName;
-import uk.ac.ic.doc.gander.flowinference.types.TModule;
 import uk.ac.ic.doc.gander.model.Module;
-import uk.ac.ic.doc.gander.model.Namespace;
 
 /**
  * Simulates the Python import mechanism.
@@ -25,23 +23,49 @@ import uk.ac.ic.doc.gander.model.Namespace;
  * The second aspect is name binding. The whole point of importing is to bind a
  * name to a loaded module or other namespace. Subclasses are free to interpret
  * name binding however makes sense for their task or even ignore it completely.
+ * 
+ * @param <O>
+ *            the supertype of Java objects representing other Python objects
+ *            that can be imported
+ * 
+ * @param <C>
+ *            the type of Java objects representing Python code objects
+ *            (modules, functions, classes)
+ * @param <M>
+ *            the type of Java objects representing Python modules
  */
-public final class DefaultImportSimulator implements ImportSimulator {
+public final class DefaultImportSimulator<O, C extends O, M extends C>
+		implements ImportSimulator {
 
-	public interface ImportEvents {
+	/**
+	 * Callback through which the import simulation is coordinated.
+	 * 
+	 * @param <O>
+	 *            the supertype of Java objects representing other Python
+	 *            objects that can be imported
+	 * 
+	 * @param <C>
+	 *            the type of Java objects representing Python code objects
+	 *            (modules, functions, classes)
+	 * @param <M>
+	 *            the type of Java objects representing Python modules
+	 */
+	public interface ImportEvents<O, C, M> {
 
 		/**
-		 * Load a module or package relative to the given package.
+		 * Load a module or package relative to the given module.
 		 * 
 		 * If loading fails, return {@code null}.
 		 * 
 		 * @param importPath
-		 *            Path of importable. Relative to the given package.
-		 * @param relativeToPackage
-		 *            SourceFile to begin relative importing in.
-		 * @return {@link Module} if loading succeeded, {@code null} otherwise.
+		 *            path of module to load; relative to the given module
+		 * @param relativeToModule
+		 *            representation of module to load relative to
+		 * 
+		 * @return An object representing the loaded module or package if
+		 *         loading succeeded, {@code null} otherwise.
 		 */
-		Module simulateLoad(List<String> importPath, Module relativeToPackage);
+		M loadModule(List<String> importPath, M relativeToModule);
 
 		/**
 		 * Load a module or package relative to the top level.
@@ -49,37 +73,93 @@ public final class DefaultImportSimulator implements ImportSimulator {
 		 * If loading fails, return {@code null}.
 		 * 
 		 * @param importPath
-		 *            Absolute path of importable.
-		 * @return {@link Module} if loading succeeded, {@code null} otherwise.
+		 *            absolute path of module to load
+		 * 
+		 * @return An object representing the loaded module or package if
+		 *         loading succeeded, {@code null} otherwise.
 		 */
-		Module simulateLoad(List<String> importPath);
+		M loadModule(List<String> importPath);
 
-		void bindName(Namespace importReceiver, Namespace loaded, String as);
+		O lookupNonModuleMember(String itemName,
+				C codeObjectWhoseNamespaceWeAreLoadingFrom);
 
-		void onUnresolvedImport(List<String> importPath,
-				Module relativeToPackage, Namespace importReceiver, String as);
+		/**
+		 * The simulation is reporting that an object would be bound to a name
+		 * in a Python namespace.
+		 * 
+		 * Note this function is not passed the namespace that the name binds
+		 * in. This is left to the implementation to resolve. It will usually be
+		 * the namespace associated with the import location but, if the
+		 * location includes the global keyword, it may be the global keyword.
+		 * 
+		 * @param loadedObject
+		 *            the representation of the object being bound to a name
+		 * @param as
+		 *            the name the object is bound to
+		 * @param codeBlock
+		 *            the code object containing the import statement that
+		 *            caused this name binding
+		 */
+		void bindName(O loadedObject, String as, C codeBlock);
 
-		void onUnresolvedImportFromItem(List<String> fromPath, String itemName,
-				Module relativeToPackage, Namespace importReceiver, String as);
+		void onUnresolvedImport(List<String> importPath, M relativeTo,
+				String as, C codeBlock);
+
+		void onUnresolvedImportFromItem(List<String> fromPath, M relativeTo,
+				String itemName, String as, C codeBlock);
+
+		M parentModule(C importReceiver);
 	}
 
-	private final Namespace importReceiver;
-	private final ImportEvents eventHandler;
+	private final C importReceiver;
+	private final DefaultImportSimulatorCore<O, C, M> core;
+	private final M relativeTo;
 
 	/**
 	 * FIXME: importReceiver may not actually be the import receiver. It depends
 	 * on the binding scope of 'as' in importReceiver. It could be the global
 	 * scope.
 	 */
-	public DefaultImportSimulator(Namespace importReceiver, ImportEvents eventHandler) {
+	public DefaultImportSimulator(C importReceiver,
+			ImportEvents<O, C, M> eventHandler) {
 		if (importReceiver == null)
-			throw new NullPointerException("Must have namespace to import into");
+			throw new NullPointerException("Must specify where import occurs");
 		if (eventHandler == null)
 			throw new NullPointerException(
 					"Must have an event handler to react to import events");
 
+		this.core = new DefaultImportSimulatorCore<O, C, M>(eventHandler);
+
 		this.importReceiver = importReceiver;
-		this.eventHandler = eventHandler;
+		this.relativeTo = eventHandler.parentModule(importReceiver);
+		assert !importReceiver.equals(this.relativeTo);
+	}
+
+	/**
+	 * Import a module as in {@code import foo.bar.baz}.
+	 * 
+	 * Binds the module object representation named by the first token in the
+	 * dotted import path to a matching name in the namespace this object was
+	 * initialised with. The it binds the modules named by any subsequent tokens
+	 * to their matching names in each previously loaded module's namespace.
+	 * 
+	 * For example, when importing {@code x.y.z}, Python will import {@code z}
+	 * into {@code y} and {@code y} into {@code x}. Finally the module y is
+	 * bound to the name {@code x} in the binding namespace for {@code x}
+	 * relative to the given code block.
+	 */
+	public void simulateImport(String importName) {
+		List<String> tokens = new LinkedList<String>(DottedName
+				.toImportTokens(importName));
+
+		core.simulateImport(tokens, importReceiver, relativeTo);
+	}
+
+	public void simulateImportAs(String importName, String asName) {
+		List<String> tokens = new LinkedList<String>(DottedName
+				.toImportTokens(importName));
+
+		core.simulateImportAs(tokens, importReceiver, relativeTo, asName);
 	}
 
 	public void simulateImportFrom(String fromName, String itemName) {
@@ -91,62 +171,59 @@ public final class DefaultImportSimulator implements ImportSimulator {
 		List<String> tokens = new LinkedList<String>(DottedName
 				.toImportTokens(fromName));
 
-		Module parentPackage = findParentPackage(importReceiver);
-
-		simulateImportFromAs(tokens, itemName, parentPackage, importReceiver,
+		core.simulateImportFromAs(tokens, itemName, importReceiver, relativeTo,
 				asName);
 	}
+}
 
-	public void simulateImportAs(String importName, String asName) {
-		List<String> tokens = new LinkedList<String>(DottedName
-				.toImportTokens(importName));
+final class DefaultImportSimulatorCore<O, C extends O, M extends C> {
 
-		Module parentPackage = findParentPackage(importReceiver);
+	private final DefaultImportSimulator.ImportEvents<O, C, M> eventHandler;
 
-		simulateImportAs(tokens, parentPackage, importReceiver, asName);
-	}
+	/**
+	 * FIXME: importReceiver may not actually be the import receiver. It depends
+	 * on the binding scope of 'as' in importReceiver. It could be the global
+	 * scope.
+	 */
+	public DefaultImportSimulatorCore(
+			DefaultImportSimulator.ImportEvents<O, C, M> eventHandler) {
+		if (eventHandler == null)
+			throw new NullPointerException(
+					"Must have an event handler to react to import events");
 
-	public void simulateImport(String importName) {
-		List<String> tokens = new LinkedList<String>(DottedName
-				.toImportTokens(importName));
-
-		Module parentPackage = findParentPackage(importReceiver);
-		simulateImport(tokens, parentPackage, importReceiver);
+		this.eventHandler = eventHandler;
 	}
 
 	/**
 	 * Import a module as in {@code import foo.bar.baz}.
 	 * 
-	 * Binds the importable namespace named by the first token in the dotted
-	 * import path to that name in the local namespace (be that a package,
-	 * module, class or function) and binds the modules named by any subsequent
-	 * tokens to that name in the previously bound importable namespace.
+	 * Binds the module object representation named by the first token in the
+	 * dotted import path to a matching name in the namespace this object was
+	 * initialised with. The it binds the modules named by any subsequent tokens
+	 * to their matching names in each previously loaded module's namespace.
 	 * 
-	 * In other words, when importing {@code x.y.z}, Python will import {@code
-	 * z} into {@code y} and {@code y} into {@code x}. We simulate that as well
-	 * by adding a symbol {@code z} to {@code y}'s symbol table pointing to the
-	 * loaded {@link TModule} or {@link TPackage} {@code z} and likewise for
-	 * {@code y} in {@code x}.
+	 * For example, when importing {@code x.y.z}, Python will import {@code z}
+	 * into {@code y} and {@code y} into {@code x}. Finally the module y is
+	 * bound to the name {@code x} in the binding namespace for {@code x}
+	 * relative to the given code block.
 	 */
-	private void simulateImport(List<String> importPath,
-			Module relativeToPackage, Namespace importReceiver) {
-		simulateImportHelper(importPath, relativeToPackage, importReceiver);
+	void simulateImport(List<String> importPath, C importReceiver,
+			M containingModule) {
+		simulateImportHelper(importPath, containingModule, importReceiver);
 	}
 
-	private void simulateImportAs(List<String> importPath,
-			Module relativeToPackage, Namespace importReceiver, String as) {
-
-		Module loaded = simulateImportHelper(importPath, relativeToPackage,
-				null);
-		handleBind(importPath, relativeToPackage, importReceiver, as, loaded);
+	void simulateImportAs(List<String> importPath, C importReceiver,
+			M containingModule, String as) {
+		C loaded = simulateImportHelper(importPath, containingModule, null);
+		handleBind(importPath, containingModule, importReceiver, as, loaded);
 	}
 
-	private void simulateImportFromAs(List<String> fromPath, String itemName,
-			Module relativeToPackage, Namespace importReceiver, String asName) {
+	void simulateImportFromAs(List<String> fromPath, String itemName,
+			C importReceiver, M containingModule, String asName) {
 
-		Namespace namespaceToImportFrom = simulateImportHelper(fromPath,
-				relativeToPackage, null);
-		if (namespaceToImportFrom == null)
+		C codeObjectWhoseNamespaceWeAreLoadingFrom = simulateImportHelper(
+				fromPath, containingModule, null);
+		if (codeObjectWhoseNamespaceWeAreLoadingFrom == null)
 			// Reporting this failure is handled by simulateImportHelper
 			return;
 
@@ -155,97 +232,99 @@ public final class DefaultImportSimulator implements ImportSimulator {
 
 		// Resolve item name to an item inside the namespace. If the item is a
 		// module we have to load it, otherwise we can just investigate it
-		Namespace loaded = simulateTwoStepLoad(itemPath, relativeToPackage);
+		O loaded = simulateTwoStepModuleLoad(itemPath, containingModule);
 		if (loaded == null) {
-			loaded = namespaceToImportFrom.getClasses().get(itemName);
-			if (loaded == null) {
-				loaded = namespaceToImportFrom.getFunctions().get(itemName);
-
-				// TODO: The target of the 'from foo import bar' can
-				// be a variable.
-			}
+			loaded = eventHandler.lookupNonModuleMember(itemName,
+					codeObjectWhoseNamespaceWeAreLoadingFrom);
 		}
 
-		handleBindFrom(fromPath, itemName, relativeToPackage, importReceiver,
+		handleBindFrom(fromPath, itemName, containingModule, importReceiver,
 				asName, loaded);
 	}
 
-	private Module simulateImportHelper(List<String> importPath,
-			Module relativeToPackage, Namespace importReceiver) {
+	/**
+	 * Load each segment of import path, binding it to a name with respect to
+	 * previous segment.
+	 * 
+	 * @param importPath
+	 *            the import path being loaded
+	 * @param relativeTo
+	 *            the module that the import path is relative to
+	 * @param initialImportReceiver
+	 *            the object that the first segment is bound with respect to;
+	 *            optional; {@code import a.b.c} does not want this as {@code c}
+	 *            , rather than {@code a} gets bound with respect to that object
+	 * 
+	 * @return the object loaded by the <em>final</em> segment; this allows
+	 *         {@code import a.b.c as x} to bind {@code c} in the initial import
+	 *         receiver rather than {@code a} and the from-style imports look in
+	 *         it to find their item.
+	 */
+	private M simulateImportHelper(List<String> importPath, M relativeTo,
+			C initialImportReceiver) {
 
+		C importReceiver = initialImportReceiver;
 		List<String> processed = new LinkedList<String>();
-		Module loaded = null;
+		M loaded = null;
 		for (String token : importPath) {
 			processed.add(token);
-			loaded = simulateTwoStepLoad(processed, relativeToPackage);
-			if (loaded == null) {
-				eventHandler.onUnresolvedImport(importPath, relativeToPackage,
-						importReceiver, token);
-				break; // abort import
-			} else {
+			loaded = simulateTwoStepModuleLoad(processed, relativeTo);
+			if (loaded != null) {
 				if (importReceiver != null)
-					eventHandler.bindName(importReceiver, loaded, token);
-				importReceiver = loaded;
+					eventHandler.bindName(loaded, token, importReceiver);
+			} else {
+				eventHandler.onUnresolvedImport(importPath, relativeTo, token,
+						importReceiver);
+				break; // abort import
 			}
+			importReceiver = loaded;
 		}
 
 		return loaded;
 	}
 
 	/**
-	 * Try to load a module or package. As in Python, this attempts to load the
-	 * importable relative to the given package, {@code relativeToPackage}, and
-	 * if this fails attempts relative to the top-level package.
+	 * Try to load a module. As in Python, this attempts to load it relative to
+	 * the given package, {@code relativeTo}, and if this fails attempts
+	 * relative to the top-level package.
 	 * 
 	 * If neither of these succeeds it returns null to indicate import
 	 * resolution failed.
 	 * 
 	 * @param importPath
-	 *            Path of importable. Either relative or absolute.
-	 * @param relativeToPackage
-	 *            SourceFile to begin relative importing in.
-	 * @return {@link Module} if loading succeeded, {@code null} otherwise.
+	 *            the import path of the module; either relative or absolute
+	 * @param relativeTo
+	 *            the module that the first import attempt is relative to
+	 * @return an object representing the loaded module if loading succeeded;
+	 *         {@code null} otherwise
 	 */
-	private Module simulateTwoStepLoad(List<String> importPath,
-			Module relativeToPackage) {
-		Module loaded = null;
+	private M simulateTwoStepModuleLoad(List<String> importPath, M relativeTo) {
+		M loaded = null;
 
-		if (relativeToPackage != null)
-			loaded = eventHandler.simulateLoad(importPath, relativeToPackage);
+		if (relativeTo != null)
+			loaded = eventHandler.loadModule(importPath, relativeTo);
 
 		if (loaded == null)
-			loaded = eventHandler.simulateLoad(importPath);
+			loaded = eventHandler.loadModule(importPath);
 
 		return loaded;
 	}
 
-	private void handleBind(List<String> importPath, Module relativeToPackage,
-			Namespace importReceiver, String as, Module loaded) {
+	private void handleBind(List<String> importPath, M relativeTo,
+			C importReceiver, String as, C loaded) {
 		if (loaded != null)
-			eventHandler.bindName(importReceiver, loaded, as);
+			eventHandler.bindName(loaded, as, importReceiver);
 		else
-			eventHandler.onUnresolvedImport(importPath, relativeToPackage,
-					importReceiver, as);
+			eventHandler.onUnresolvedImport(importPath, relativeTo, as,
+					importReceiver);
 	}
 
 	private void handleBindFrom(List<String> fromPath, String itemName,
-			Module relativeToPackage, Namespace importReceiver, String as,
-			Namespace loaded) {
+			M relativeTo, C importReceiver, String as, O loaded) {
 		if (loaded != null)
-			eventHandler.bindName(importReceiver, loaded, as);
+			eventHandler.bindName(loaded, as, importReceiver);
 		else
-			eventHandler.onUnresolvedImportFromItem(fromPath, itemName,
-					relativeToPackage, importReceiver, as);
-	}
-
-	private Module findParentPackage(Namespace scope) {
-		Namespace parent = scope.getParentScope();
-		if (parent == null)
-			return null;
-
-		if (parent instanceof Module)
-			return (Module) parent;
-		else
-			return findParentPackage(parent.getParentScope());
+			eventHandler.onUnresolvedImportFromItem(fromPath, relativeTo,
+					itemName, as, importReceiver);
 	}
 }

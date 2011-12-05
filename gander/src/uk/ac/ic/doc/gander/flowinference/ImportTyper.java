@@ -9,14 +9,16 @@ import uk.ac.ic.doc.gander.flowinference.types.TFunction;
 import uk.ac.ic.doc.gander.flowinference.types.TModule;
 import uk.ac.ic.doc.gander.flowinference.types.TUnresolvedImport;
 import uk.ac.ic.doc.gander.flowinference.types.Type;
+import uk.ac.ic.doc.gander.importing.DefaultImportSimulator;
 import uk.ac.ic.doc.gander.model.Class;
 import uk.ac.ic.doc.gander.model.Function;
+import uk.ac.ic.doc.gander.model.Member;
 import uk.ac.ic.doc.gander.model.Model;
 import uk.ac.ic.doc.gander.model.Module;
 import uk.ac.ic.doc.gander.model.Namespace;
-import uk.ac.ic.doc.gander.importing.DefaultImportSimulator;
 
-public final class ImportTyper implements DefaultImportSimulator.ImportEvents {
+public final class ImportTyper implements
+		DefaultImportSimulator.ImportEvents<Member, Namespace, Module> {
 
 	private final Model model;
 	private final ImportTypeEvent eventHandler;
@@ -30,10 +32,10 @@ public final class ImportTyper implements DefaultImportSimulator.ImportEvents {
 		this.model = model;
 	}
 
-	public final void bindName(Namespace importReceiver, Namespace loaded,
-			String as) {
+	public final void bindName(Member loaded, String as,
+			Namespace importLocation) {
 		assert loaded != null;
-		assert importReceiver != null;
+		assert importLocation != null;
 		assert !as.isEmpty();
 
 		Type type = null;
@@ -47,31 +49,31 @@ public final class ImportTyper implements DefaultImportSimulator.ImportEvents {
 		// TODO: The target of the 'from foo import bar' can
 		// be a variable.
 
-		eventHandler.onImportTyped(importReceiver, as, type);
+		eventHandler.onImportTyped(importLocation, as, type);
 	}
 
-	public final Module simulateLoad(List<String> importPath,
-			Module relativeToPackage) {
+	public final Module loadModule(List<String> importPath,
+			Module relativeToModule) {
 		List<String> name = new ArrayList<String>(DottedName
-				.toImportTokens(relativeToPackage.getFullName()));
+				.toImportTokens(relativeToModule.getFullName()));
 		name.addAll(importPath);
 
 		// The imported module/package will always exist in the model
 		// already if it exists (on disk) at all as the model must have
 		// tried to import it already. Therefore we only do a lookup here
 		// rather than attempting a load.
-		return simulateLoad(name);
+		return loadModule(name);
 	}
 
-	public Module simulateLoad(List<String> importPath) {
+	public Module loadModule(List<String> importPath) {
 		return model.lookup(importPath);
 	}
 
 	public final void onUnresolvedImport(List<String> importPath,
-			Module relativeToPackage, Namespace importReceiver, String as) {
+			Module relativeTo, String as, Namespace codeBlock) {
 		System.err.print("WARNING: unresolved import ");
-		if (importReceiver != null)
-			System.err.print("in " + importReceiver.getFullName() + " ");
+		if (codeBlock != null)
+			System.err.print("in " + codeBlock.getFullName() + " ");
 
 		System.err.println("'import " + DottedName.toDottedName(importPath)
 				+ "'");
@@ -80,17 +82,16 @@ public final class ImportTyper implements DefaultImportSimulator.ImportEvents {
 		 * Can be null if the import is just the middle part of a multi-dotted
 		 * import. This loads the middle modules but doesn't bind them.
 		 */
-		if (importReceiver != null)
-			eventHandler.onImportTyped(importReceiver, as,
-					new TUnresolvedImport(importPath, relativeToPackage));
+		if (codeBlock != null)
+			eventHandler.onImportTyped(codeBlock, as, new TUnresolvedImport(
+					importPath, relativeTo));
 	}
 
 	public final void onUnresolvedImportFromItem(List<String> fromPath,
-			String itemName, Module relativeToPackage,
-			Namespace importReceiver, String as) {
+			Module relativeTo, String itemName, String as, Namespace codeBlock) {
 		System.err.print("WARNING: unresolved import ");
-		if (importReceiver != null)
-			System.err.print("in " + importReceiver.getFullName() + " ");
+		if (codeBlock != null)
+			System.err.print("in " + codeBlock.getFullName() + " ");
 
 		System.err.println("'from " + DottedName.toDottedName(fromPath)
 				+ " import " + itemName + "': '" + itemName + "' not found");
@@ -99,9 +100,25 @@ public final class ImportTyper implements DefaultImportSimulator.ImportEvents {
 		// don't actually know that the missing item is a module or a
 		// package. It _could_ be but equally it could be a class, function
 		// or even a variable.
-		if (importReceiver != null)
-			eventHandler
-					.onImportTyped(importReceiver, as, new TUnresolvedImport(
-							fromPath, itemName, relativeToPackage));
+		if (codeBlock != null)
+			eventHandler.onImportTyped(codeBlock, as, new TUnresolvedImport(
+					fromPath, itemName, relativeTo));
+	}
+
+	public Module parentModule(Namespace importReceiver) {
+		if (importReceiver instanceof Module)
+			return ((Module) importReceiver).getParent();
+		else
+			return importReceiver.getGlobalNamespace();
+	}
+
+	public Namespace lookupNonModuleMember(String itemName,
+			Namespace codeObjectWhoseNamespaceWeAreLoadingFrom) {
+		Namespace loaded = codeObjectWhoseNamespaceWeAreLoadingFrom
+				.getClasses().get(itemName);
+		if (loaded == null)
+			loaded = codeObjectWhoseNamespaceWeAreLoadingFrom.getFunctions()
+					.get(itemName);
+		return loaded;
 	}
 }

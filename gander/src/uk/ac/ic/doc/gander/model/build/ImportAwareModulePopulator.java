@@ -12,8 +12,9 @@ import org.python.pydev.parser.jython.ast.aliasType;
 
 import uk.ac.ic.doc.gander.DottedName;
 import uk.ac.ic.doc.gander.hierarchy.SourceFile;
-import uk.ac.ic.doc.gander.importing.ImportSimulator;
 import uk.ac.ic.doc.gander.importing.DefaultImportSimulator;
+import uk.ac.ic.doc.gander.importing.ImportSimulator;
+import uk.ac.ic.doc.gander.model.Member;
 import uk.ac.ic.doc.gander.model.Module;
 import uk.ac.ic.doc.gander.model.MutableModel;
 import uk.ac.ic.doc.gander.model.Namespace;
@@ -33,8 +34,8 @@ class ImportAwareModulePopulator extends ModulePopulator {
 
 	@Override
 	public Object visitImport(Import node) throws Exception {
-		ImportSimulator simulator = new DefaultImportSimulator(getScope(),
-				new Importer(model));
+		ImportSimulator simulator = new DefaultImportSimulator<Member, Namespace, Module>(
+				getScope(), new Importer(model));
 
 		for (aliasType alias : node.names) {
 			if (alias.asname == null) {
@@ -49,8 +50,8 @@ class ImportAwareModulePopulator extends ModulePopulator {
 
 	@Override
 	public Object visitImportFrom(ImportFrom node) throws Exception {
-		ImportSimulator simulator = new DefaultImportSimulator(getScope(),
-				new Importer(model));
+		ImportSimulator simulator = new DefaultImportSimulator<Member, Namespace, Module>(
+				getScope(), new Importer(model));
 
 		for (aliasType alias : node.names) {
 			if (alias.asname == null) {
@@ -64,7 +65,8 @@ class ImportAwareModulePopulator extends ModulePopulator {
 		return null;
 	}
 
-	private static class Importer implements DefaultImportSimulator.ImportEvents {
+	private static class Importer implements
+			DefaultImportSimulator.ImportEvents<Member, Namespace, Module> {
 
 		private MutableModel model;
 
@@ -72,8 +74,7 @@ class ImportAwareModulePopulator extends ModulePopulator {
 			this.model = model;
 		}
 
-		public void bindName(Namespace scope, Namespace loadedImportable,
-				String as) {
+		public void bindName(Member loadedObject, String as, Namespace scope) {
 			// This is called by the simulator to instruct us to make whatever
 			// changes are necessary for a name to be considered imported into
 			// the given scope. We do nothing here because we aren't interested
@@ -89,18 +90,18 @@ class ImportAwareModulePopulator extends ModulePopulator {
 		 * @param importPath
 		 *            Path to search for relative to root, {@code
 		 *            relativeToPackage}.
-		 * @param relativeToPackage
+		 * @param relativeToModule
 		 *            Root of search.
 		 * @return {@link SourceFile} if loading succeeded, {@code null}
 		 *         otherwise.
 		 */
-		public Module simulateLoad(List<String> importPath,
-				Module relativeToPackage) {
+		public Module loadModule(List<String> importPath,
+				Module relativeToModule) {
 			List<String> name = new ArrayList<String>(DottedName
-					.toImportTokens(relativeToPackage.getFullName()));
+					.toImportTokens(relativeToModule.getFullName()));
 			name.addAll(importPath);
 
-			return simulateLoad(name);
+			return loadModule(name);
 		}
 
 		/**
@@ -111,7 +112,7 @@ class ImportAwareModulePopulator extends ModulePopulator {
 		 * @return {@link SourceFile} if loading succeeded, {@code null}
 		 *         otherwise.
 		 */
-		public Module simulateLoad(List<String> importPath) {
+		public Module loadModule(List<String> importPath) {
 
 			Module loaded = null;
 			try {
@@ -130,12 +131,12 @@ class ImportAwareModulePopulator extends ModulePopulator {
 		}
 
 		public void onUnresolvedImport(List<String> importPath,
-				Module relativeToPackage, Namespace importReceiver, String as) {
+				Module relativeToPackage, String as, Namespace codeBlock) {
 		}
 
 		public void onUnresolvedImportFromItem(List<String> fromPath,
-				String itemName, Module relativeToPackage,
-				Namespace importReceiver, String as) {
+				Module relativeTo, String itemName, String as,
+				Namespace codeObject) {
 			// FIXME: This gets fired when 'from x import a' occurs inside a
 			// module that x is currently importing as x is not yet complete.
 			// That's fine, that's what's supposed to happen. However, it also
@@ -154,6 +155,24 @@ class ImportAwareModulePopulator extends ModulePopulator {
 			// encountered - they aren't affected by being part way through
 			// building their parent) but its worth bearing in mind for the
 			// future
+		}
+
+		public Module parentModule(Namespace importReceiver) {
+			if (importReceiver instanceof Module)
+				return ((Module) importReceiver).getParent();
+			else
+				return importReceiver.getGlobalNamespace();
+		}
+
+		public Namespace lookupNonModuleMember(String itemName,
+				Namespace codeObjectWhoseNamespaceWeAreLoadingFrom) {
+
+			Namespace loaded = codeObjectWhoseNamespaceWeAreLoadingFrom
+					.getClasses().get(itemName);
+			if (loaded == null)
+				loaded = codeObjectWhoseNamespaceWeAreLoadingFrom
+						.getFunctions().get(itemName);
+			return loaded;
 		}
 	}
 }

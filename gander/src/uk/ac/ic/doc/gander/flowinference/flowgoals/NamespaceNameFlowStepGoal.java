@@ -20,6 +20,7 @@ import uk.ac.ic.doc.gander.flowinference.result.Result.Processor;
 import uk.ac.ic.doc.gander.importing.ImportSimulationWatcher;
 import uk.ac.ic.doc.gander.importing.WholeModelImportSimulation;
 import uk.ac.ic.doc.gander.model.CodeObjectWalker;
+import uk.ac.ic.doc.gander.model.Member;
 import uk.ac.ic.doc.gander.model.ModelSite;
 import uk.ac.ic.doc.gander.model.Module;
 import uk.ac.ic.doc.gander.model.Namespace;
@@ -268,8 +269,8 @@ final class NamespaceNameFlowStepGoalSolver {
 						@Override
 						public Object visitAttribute(Attribute node)
 								throws Exception {
-							addPositionIfAttributeMatches(codeObjectReference, positions,
-									codeObject, node);
+							addPositionIfAttributeMatches(codeObjectReference,
+									positions, codeObject, node);
 							return null;
 						}
 
@@ -296,10 +297,10 @@ final class NamespaceNameFlowStepGoalSolver {
 			CodeObject enclosingCodeObject, Attribute attribute) {
 
 		if (attribute.value.equals(codeObjectReference.astNode())) {
-			
+
 			addPositionIfAttributeNameMatches(positions, enclosingCodeObject,
 					attribute, namespaceName.name());
-			
+
 		}
 	}
 
@@ -332,7 +333,7 @@ final class NamespaceNameFlowStepGoalSolver {
 			ImportSimulationWatcher worker = new ImportSimulationWatcher() {
 
 				public void bindingName(Namespace importReceiver,
-						Namespace loadedObject, String as) {
+						Member loadedObject, String as) {
 
 					/*
 					 * XXX: HACK: comparing the name by name of code object is
@@ -358,7 +359,7 @@ final class NamespaceNameFlowStepGoalSolver {
 
 						/* import codeobject */
 						importedReferences = referencesToKeyOfImportedCodeObject(
-								importReceiver, loadedObject, as);
+								importReceiver, as);
 					}
 
 				}
@@ -381,9 +382,8 @@ final class NamespaceNameFlowStepGoalSolver {
 	 * object where the attribute name is the name of the key being accessed.
 	 */
 	private Result<FlowPosition> referencesToKeyOfImportedCodeObject(
-			Namespace importReceiver, Namespace loadedObject, String as) {
+			Namespace importReceiver, String as) {
 		assert namespaceName.namespace() instanceof Module;
-		assert loadedObject.equals(namespaceName.namespace());
 
 		/*
 		 * importReceiver is the code object containing the import statement but
