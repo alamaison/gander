@@ -9,84 +9,84 @@ public final class ImportInfoTest {
 	@Test
 	public void importSingle() throws Throwable {
 		ImportInfo info = ImportInfoFactory.newImport("x");
-		assertEquals(info.bindingName(), "x");
-		assertEquals(info.bindingObject(), "x");
+		assertEquals("x", info.bindingName());
+		assertEquals("x", info.bindingObject());
 	}
 
 	@Test
 	public void importDouble() throws Throwable {
 		ImportInfo info = ImportInfoFactory.newImport("p.q");
-		assertEquals(info.bindingName(), "p");
-		assertEquals(info.bindingObject(), "p");
+		assertEquals("p", info.bindingName());
+		assertEquals("p", info.bindingObject());
 	}
 
 	@Test
 	public void importTriple() throws Throwable {
 		ImportInfo info = ImportInfoFactory.newImport("a.b.c");
-		assertEquals(info.bindingName(), "a");
-		assertEquals(info.bindingObject(), "a");
+		assertEquals("a", info.bindingName());
+		assertEquals("a", info.bindingObject());
 	}
 
 	@Test
 	public void importSingleAs() throws Throwable {
 		ImportInfo info = ImportInfoFactory.newImportAs("x", "y");
-		assertEquals(info.bindingName(), "y");
-		assertEquals(info.bindingObject(), "x");
+		assertEquals("y", info.bindingName());
+		assertEquals("x", info.bindingObject());
 	}
 
 	@Test
 	public void importDoubleAs() throws Throwable {
 		ImportInfo info = ImportInfoFactory.newImportAs("p.q", "r");
-		assertEquals(info.bindingName(), "r");
-		assertEquals(info.bindingObject(), "p.q");
+		assertEquals("r", info.bindingName());
+		assertEquals("p.q", info.bindingObject());
 	}
 
 	@Test
 	public void importTripleAs() throws Throwable {
 		ImportInfo info = ImportInfoFactory.newImportAs("a.b.c", "d");
-		assertEquals(info.bindingName(), "d");
-		assertEquals(info.bindingObject(), "a.b.c");
+		assertEquals("d", info.bindingName());
+		assertEquals("a.b.c", info.bindingObject());
 	}
 
 	@Test
 	public void fromImportSingle() throws Throwable {
 		ImportInfo info = ImportInfoFactory.newFromImport("x", "i");
-		assertEquals(info.bindingName(), "i");
-		assertEquals(info.bindingObject(), "x.i");
+		assertEquals("i", info.bindingName());
+		assertEquals("x.i", info.bindingObject());
 	}
 
 	@Test
 	public void fromImportDouble() throws Throwable {
 		ImportInfo info = ImportInfoFactory.newFromImport("p.q", "s");
-		assertEquals(info.bindingName(), "s");
-		assertEquals(info.bindingObject(), "p.q.s");
+		assertEquals("s", info.bindingName());
+		assertEquals("p.q.s", info.bindingObject());
 	}
 
 	@Test
 	public void fromImportTriple() throws Throwable {
 		ImportInfo info = ImportInfoFactory.newFromImport("a.b.c", "m");
-		assertEquals(info.bindingName(), "m");
-		assertEquals(info.bindingObject(), "a.b.c.m");
+		assertEquals("m", info.bindingName());
+		assertEquals("a.b.c.m", info.bindingObject());
 	}
 
 	@Test
 	public void fromImportSingleAs() throws Throwable {
 		ImportInfo info = ImportInfoFactory.newFromImportAs("x", "i", "j");
-		assertEquals(info.bindingName(), "j");
-		assertEquals(info.bindingObject(), "x.i");
+		assertEquals("j", info.bindingName());
+		assertEquals("x.i", info.bindingObject());
 	}
 
 	@Test
 	public void fromIimportDoubleAs() throws Throwable {
 		ImportInfo info = ImportInfoFactory.newFromImportAs("p.q", "s", "t");
-		assertEquals(info.bindingName(), "t");
-		assertEquals(info.bindingObject(), "p.q.s");
+		assertEquals("t", info.bindingName());
+		assertEquals("p.q.s", info.bindingObject());
 	}
 
 	@Test
 	public void fromImportTripleAs() throws Throwable {
 		ImportInfo info = ImportInfoFactory.newFromImportAs("a.b.c", "m", "n");
-		assertEquals(info.bindingName(), "n");
-		assertEquals(info.bindingObject(), "a.b.c.m");
+		assertEquals("n", info.bindingName());
+		assertEquals("a.b.c.m", info.bindingObject());
 	}
 }
