@@ -1,12 +1,10 @@
 package uk.ac.ic.doc.gander.importing;
 
-import java.util.List;
-
-import uk.ac.ic.doc.gander.importing.DefaultImportSimulator.ImportEvents;
-import uk.ac.ic.doc.gander.model.Member;
+import uk.ac.ic.doc.gander.importing.DefaultImportSimulator.Binder;
 import uk.ac.ic.doc.gander.model.Model;
-import uk.ac.ic.doc.gander.model.Module;
-import uk.ac.ic.doc.gander.model.Namespace;
+import uk.ac.ic.doc.gander.model.StandardModelLookupLoader;
+import uk.ac.ic.doc.gander.model.codeobject.CodeObject;
+import uk.ac.ic.doc.gander.model.codeobject.ModuleCO;
 
 /**
  * Simulation of Python's elaboration phase with respect to importing.
@@ -20,37 +18,37 @@ import uk.ac.ic.doc.gander.model.Namespace;
  */
 public final class WholeModelImportSimulation {
 
-	private final ImportSimulationWatcher callback;
+	private final Binder<CodeObject, CodeObject, ModuleCO> callback;
 	private final Model model;
 
 	public WholeModelImportSimulation(Model model,
-			ImportSimulationWatcher callback) {
+			Binder<CodeObject, CodeObject, ModuleCO> callback) {
 		this.model = model;
 		this.callback = callback;
 		walkModel();
 	}
 
-	void walkModel() {
+	private void walkModel() {
 
-		new WholeModelImportVisitation(model, new ImportHandler() {
+		new WholeModelImportVisitation(model, new ImportHandler<CodeObject>() {
 
-			public void onImport(Namespace importReceiver, String moduleName) {
+			public void onImport(CodeObject importReceiver, String moduleName) {
 				newImportSimulator(importReceiver).simulateImport(moduleName);
 			}
 
-			public void onImportAs(Namespace importReceiver, String moduleName,
-					String asName) {
+			public void onImportAs(CodeObject importReceiver,
+					String moduleName, String asName) {
 				newImportSimulator(importReceiver).simulateImportAs(moduleName,
 						asName);
 			}
 
-			public void onImportFrom(Namespace importReceiver,
+			public void onImportFrom(CodeObject importReceiver,
 					String moduleName, String itemName) {
 				newImportSimulator(importReceiver).simulateImportFrom(
 						moduleName, itemName);
 			}
 
-			public void onImportFromAs(Namespace importReceiver,
+			public void onImportFromAs(CodeObject importReceiver,
 					String moduleName, String itemName, String asName) {
 				newImportSimulator(importReceiver).simulateImportFromAs(
 						moduleName, itemName, asName);
@@ -59,51 +57,8 @@ public final class WholeModelImportSimulation {
 		});
 	}
 
-	private ImportSimulator newImportSimulator(Namespace importLocation) {
-		return new DefaultImportSimulator<Member, Namespace, Module>(
-				importLocation, new ImportEvents<Member, Namespace, Module>() {
-
-					public Module loadModule(List<String> importPath,
-							Module relativeToModule) {
-						return relativeToModule.lookup(importPath);
-					}
-
-					public Module loadModule(List<String> importPath) {
-						return model.lookup(importPath);
-					}
-
-					public void onUnresolvedImportFromItem(
-							List<String> fromPath, Module relativeTo,
-							String itemName, String as, Namespace codeBlock) {
-						// TODO Auto-generated method stub
-					}
-
-					public void onUnresolvedImport(List<String> importPath,
-							Module relativeTo, String as, Namespace codeBlock) {
-						// TODO Auto-generated method stub
-					}
-
-					public void bindName(Member loadedObject, String as,
-							Namespace importLocation) {
-						callback.bindingName(importLocation, loadedObject, as);
-					}
-
-					public Module parentModule(Namespace importLocation) {
-						if (importLocation instanceof Module)
-							return ((Module) importLocation).getParent();
-						else
-							return importLocation.getGlobalNamespace();
-					}
-
-					public Member lookupNonModuleMember(String itemName,
-							Namespace codeObjectWhoseNamespaceWeAreLoadingFrom) {
-						Namespace loaded = codeObjectWhoseNamespaceWeAreLoadingFrom
-								.getClasses().get(itemName);
-						if (loaded == null)
-							loaded = codeObjectWhoseNamespaceWeAreLoadingFrom
-									.getFunctions().get(itemName);
-						return loaded;
-					}
-				});
+	private ImportSimulator newImportSimulator(CodeObject importReceiver) {
+		return new DefaultImportSimulator<CodeObject, CodeObject, ModuleCO>(
+				importReceiver, callback, new StandardModelLookupLoader(model));
 	}
 }

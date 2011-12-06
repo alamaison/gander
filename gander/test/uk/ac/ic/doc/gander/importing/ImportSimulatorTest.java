@@ -12,72 +12,72 @@ import java.util.List;
 import org.junit.Test;
 
 import uk.ac.ic.doc.gander.DottedName;
-import uk.ac.ic.doc.gander.importing.DefaultImportSimulator.ImportEvents;
+import uk.ac.ic.doc.gander.importing.DefaultImportSimulator.Binder;
+import uk.ac.ic.doc.gander.importing.DefaultImportSimulator.Loader;
 
 public final class ImportSimulatorTest {
 
 	private List<TestEntry> bindings = new ArrayList<TestEntry>();
 
+	private Binder<String, String, String> bindingHandler = new Binder<String, String, String>() {
+
+		public void bindName(String loadedObject, String as, String codeBlock) {
+			bindings.add(new TestEntry(loadedObject, as, codeBlock));
+		}
+
+		public void onUnresolvedImport(List<String> importPath,
+				String relativeTo, String as, String codeBlock) {
+			fail();
+		}
+
+		public void onUnresolvedImportFromItem(List<String> fromPath,
+				String relativeTo, String itemName, String as, String codeBlock) {
+			fail();
+		}
+	};
+
+	private Loader<String, String, String> loader = new Loader<String, String, String>() {
+
+		public String loadModule(List<String> importPath,
+				String relativeToModule) {
+			assertTrue("Not passed a module to be relative to: "
+					+ relativeToModule, relativeToModule.matches("\\[\\S*\\]"));
+
+			String[] moduleName = relativeToModule.split("[\\[\\]]");
+
+			/*
+			 * i is a special import name segment for our tests which means it
+			 * isn't a module but is an item.
+			 */
+			if (importPath.get(importPath.size() - 1).equals("i")) {
+				return null;
+			}
+
+			String importName = DottedName.toDottedName(importPath);
+			if (moduleName.length > 0) {
+				return "[" + moduleName[0] + "." + importName + "]";
+			} else {
+				return "[" + importName + "]";
+			}
+		}
+
+		public String loadModule(List<String> importPath) {
+			return loadModule(importPath, "[]");
+		}
+
+		public String loadNonModuleMember(String itemName,
+				String codeObjectWhoseNamespaceWeAreLoadingFrom) {
+			return codeObjectWhoseNamespaceWeAreLoadingFrom + "@" + itemName;
+		}
+
+		public String parentModule(String importReceiver) {
+			return "[]"; // parent of code object [smurble] is []
+		}
+	};
+
 	ImportSimulator simulator() {
 		return new DefaultImportSimulator<String, String, String>("[smurble]",
-				new ImportEvents<String, String, String>() {
-
-					public void bindName(String loadedObject, String as,
-							String codeBlock) {
-						bindings
-								.add(new TestEntry(loadedObject, as, codeBlock));
-					}
-
-					public void onUnresolvedImport(List<String> importPath,
-							String relativeTo, String as, String codeBlock) {
-						fail();
-					}
-
-					public void onUnresolvedImportFromItem(
-							List<String> fromPath, String relativeTo,
-							String itemName, String as, String codeBlock) {
-						fail();
-					}
-
-					public String loadModule(List<String> importPath,
-							String relativeToModule) {
-						assertTrue("Not passed a module to be relative to: "
-								+ relativeToModule, relativeToModule
-								.matches("\\[\\S*\\]"));
-
-						String[] moduleName = relativeToModule
-								.split("[\\[\\]]");
-
-						/*
-						 * i is a special import name segment for our tests
-						 * which means it isn't a module but is an item.
-						 */
-						if (importPath.get(importPath.size() - 1).equals("i")) {
-							return null;
-						}
-
-						String importName = DottedName.toDottedName(importPath);
-						if (moduleName.length > 0) {
-							return "[" + moduleName[0] + "." + importName + "]";
-						} else {
-							return "[" + importName + "]";
-						}
-					}
-
-					public String loadModule(List<String> importPath) {
-						return loadModule(importPath, "[]");
-					}
-
-					public String lookupNonModuleMember(String itemName,
-							String codeObjectWhoseNamespaceWeAreLoadingFrom) {
-						return codeObjectWhoseNamespaceWeAreLoadingFrom + "@"
-								+ itemName;
-					}
-
-					public String parentModule(String importReceiver) {
-						return "[]"; // parent of code object [smurble] is []
-					}
-				});
+				bindingHandler, loader);
 	}
 
 	@Test

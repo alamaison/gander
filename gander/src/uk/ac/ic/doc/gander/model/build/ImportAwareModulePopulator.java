@@ -35,7 +35,7 @@ class ImportAwareModulePopulator extends ModulePopulator {
 	@Override
 	public Object visitImport(Import node) throws Exception {
 		ImportSimulator simulator = new DefaultImportSimulator<Member, Namespace, Module>(
-				getScope(), new Importer(model));
+				getScope(), new DoNothingBinder(), new Importer(model));
 
 		for (aliasType alias : node.names) {
 			if (alias.asname == null) {
@@ -51,7 +51,7 @@ class ImportAwareModulePopulator extends ModulePopulator {
 	@Override
 	public Object visitImportFrom(ImportFrom node) throws Exception {
 		ImportSimulator simulator = new DefaultImportSimulator<Member, Namespace, Module>(
-				getScope(), new Importer(model));
+				getScope(), new DoNothingBinder(), new Importer(model));
 
 		for (aliasType alias : node.names) {
 			if (alias.asname == null) {
@@ -66,21 +66,12 @@ class ImportAwareModulePopulator extends ModulePopulator {
 	}
 
 	private static class Importer implements
-			DefaultImportSimulator.ImportEvents<Member, Namespace, Module> {
+			DefaultImportSimulator.Loader<Member, Namespace, Module> {
 
 		private MutableModel model;
 
 		public Importer(MutableModel model) {
 			this.model = model;
-		}
-
-		public void bindName(Member loadedObject, String as, Namespace scope) {
-			// This is called by the simulator to instruct us to make whatever
-			// changes are necessary for a name to be considered imported into
-			// the given scope. We do nothing here because we aren't interested
-			// in modifying the contents of namespaces - we just want to load
-			// the necessary modules
-			// FIXME: This explanation is clear as mud
 		}
 
 		/**
@@ -130,6 +121,42 @@ class ImportAwareModulePopulator extends ModulePopulator {
 			return loaded;
 		}
 
+		public Module parentModule(Namespace importReceiver) {
+			if (importReceiver instanceof Module)
+				return ((Module) importReceiver).getParent();
+			else
+				return importReceiver.getGlobalNamespace();
+		}
+
+		public Namespace loadNonModuleMember(String itemName,
+				Namespace codeObjectWhoseNamespaceWeAreLoadingFrom) {
+
+			Namespace loaded = codeObjectWhoseNamespaceWeAreLoadingFrom
+					.getClasses().get(itemName);
+			if (loaded == null)
+				loaded = codeObjectWhoseNamespaceWeAreLoadingFrom
+						.getFunctions().get(itemName);
+			return loaded;
+		}
+	}
+
+	/**
+	 * No-op binding handler.
+	 * 
+	 * The methods of this class are called by the simulator to instruct us to
+	 * make whatever changes are necessary for a name to be considered imported
+	 * into the given scope. We do nothing here because we aren't interested in
+	 * modifying the contents of namespaces - we just want to load the necessary
+	 * modules.
+	 * 
+	 * FIXME: This explanation is clear as mud
+	 */
+	private static class DoNothingBinder implements
+			DefaultImportSimulator.Binder<Member, Namespace, Module> {
+
+		public void bindName(Member loadedObject, String as, Namespace scope) {
+		}
+
 		public void onUnresolvedImport(List<String> importPath,
 				Module relativeToPackage, String as, Namespace codeBlock) {
 		}
@@ -155,24 +182,6 @@ class ImportAwareModulePopulator extends ModulePopulator {
 			// encountered - they aren't affected by being part way through
 			// building their parent) but its worth bearing in mind for the
 			// future
-		}
-
-		public Module parentModule(Namespace importReceiver) {
-			if (importReceiver instanceof Module)
-				return ((Module) importReceiver).getParent();
-			else
-				return importReceiver.getGlobalNamespace();
-		}
-
-		public Namespace lookupNonModuleMember(String itemName,
-				Namespace codeObjectWhoseNamespaceWeAreLoadingFrom) {
-
-			Namespace loaded = codeObjectWhoseNamespaceWeAreLoadingFrom
-					.getClasses().get(itemName);
-			if (loaded == null)
-				loaded = codeObjectWhoseNamespaceWeAreLoadingFrom
-						.getFunctions().get(itemName);
-			return loaded;
 		}
 	}
 }

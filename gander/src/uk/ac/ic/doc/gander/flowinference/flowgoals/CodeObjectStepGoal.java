@@ -1,17 +1,18 @@
 package uk.ac.ic.doc.gander.flowinference.flowgoals;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
 import uk.ac.ic.doc.gander.flowinference.result.FiniteResult;
 import uk.ac.ic.doc.gander.flowinference.result.Result;
-import uk.ac.ic.doc.gander.importing.ImportSimulationWatcher;
+import uk.ac.ic.doc.gander.importing.DefaultImportSimulator;
 import uk.ac.ic.doc.gander.importing.WholeModelImportSimulation;
-import uk.ac.ic.doc.gander.model.Member;
-import uk.ac.ic.doc.gander.model.Namespace;
+import uk.ac.ic.doc.gander.model.Model;
 import uk.ac.ic.doc.gander.model.NamespaceName;
 import uk.ac.ic.doc.gander.model.codeobject.CodeObject;
+import uk.ac.ic.doc.gander.model.codeobject.ModuleCO;
 import uk.ac.ic.doc.gander.model.codeobject.NamedCodeObject;
 import uk.ac.ic.doc.gander.model.codeobject.NestedCodeObject;
 import uk.ac.ic.doc.gander.model.name_binding.Variable;
@@ -150,12 +151,12 @@ final class CodeObjectStepGoal implements FlowStepGoal {
 		 * it will be the namespace of the segment of the dotted name to the
 		 * left, for instance.
 		 */
-		new WholeModelImportSimulation(codeObject.model(),
-				new ImportSimulationWatcher() {
+		new WholeModelImportSimulation(
+				codeObject.model(),
+				new DefaultImportSimulator.Binder<CodeObject, CodeObject, ModuleCO>() {
 
-					public void bindingName(Namespace importReceiver,
-							Member loadedObject, String as) {
-
+					public void bindName(CodeObject loadedObject, String name,
+							CodeObject importReceiver) {
 						/*
 						 * importReceiver may not actually be the import
 						 * receiver. It depends on the binding scope of 'as' in
@@ -163,16 +164,39 @@ final class CodeObjectStepGoal implements FlowStepGoal {
 						 * resolve the name here.
 						 */
 
-						NamespaceName nameBinding = new Variable(as,
-								importReceiver.codeObject()).bindingLocation();
-						assert nameBinding.namespace().equals(importReceiver)
-								|| nameBinding.namespace().equals(
-										importReceiver.getGlobalNamespace());
+						NamespaceName nameBinding = new Variable(name,
+								importReceiver).bindingLocation();
+						assert nameBindsLocallyOrGlobally(importReceiver,
+								nameBinding);
 
 						if (loadedObject.equals(codeObject)) {
 							positions
 									.add(new NamespaceNamePosition(nameBinding));
 						}
+					}
+
+					public void onUnresolvedImport(List<String> importPath,
+							ModuleCO relativeTo, String as, CodeObject codeBlock) {
+						// TODO Auto-generated method stub
+
+					}
+
+					public void onUnresolvedImportFromItem(
+							List<String> fromPath, ModuleCO relativeTo,
+							String itemName, String as, CodeObject codeBlock) {
+						// TODO Auto-generated method stub
+
+					}
+
+					private boolean nameBindsLocallyOrGlobally(
+							CodeObject importReceiver, NamespaceName nameBinding) {
+						Model model = importReceiver.model();
+
+						return nameBinding.namespace().equals(
+								model.intrinsicNamespace(importReceiver))
+								|| nameBinding.namespace().equals(
+										model.intrinsicNamespace(importReceiver
+												.enclosingModule()));
 					}
 				});
 	}

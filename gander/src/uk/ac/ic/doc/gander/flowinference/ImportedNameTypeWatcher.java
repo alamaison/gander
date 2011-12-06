@@ -1,6 +1,5 @@
 package uk.ac.ic.doc.gander.flowinference;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import uk.ac.ic.doc.gander.DottedName;
@@ -10,31 +9,29 @@ import uk.ac.ic.doc.gander.flowinference.types.TModule;
 import uk.ac.ic.doc.gander.flowinference.types.TUnresolvedImport;
 import uk.ac.ic.doc.gander.flowinference.types.Type;
 import uk.ac.ic.doc.gander.importing.DefaultImportSimulator;
-import uk.ac.ic.doc.gander.model.Model;
-import uk.ac.ic.doc.gander.model.Module;
-import uk.ac.ic.doc.gander.model.Namespace;
 import uk.ac.ic.doc.gander.model.codeobject.ClassCO;
 import uk.ac.ic.doc.gander.model.codeobject.CodeObject;
 import uk.ac.ic.doc.gander.model.codeobject.FunctionCO;
 import uk.ac.ic.doc.gander.model.codeobject.ModuleCO;
-import uk.ac.ic.doc.gander.model.codeobject.NestedCodeObject;
 
-public final class ImportTyper implements
-		DefaultImportSimulator.ImportEvents<Object, CodeObject, ModuleCO> {
+/**
+ * Watches an import simulation for objects being bound to names and creates the
+ * correct {@link Type} for the object.
+ */
+final class ImportedNameTypeWatcher implements
+		DefaultImportSimulator.Binder<CodeObject, CodeObject, ModuleCO> {
 
-	private final Model model;
 	private final ImportTypeEvent eventHandler;
 
-	public interface ImportTypeEvent {
+	interface ImportTypeEvent {
 		void onImportTyped(CodeObject location, String name, Type type);
 	}
 
-	public ImportTyper(Model model, ImportTypeEvent eventHandler) {
+	ImportedNameTypeWatcher(ImportTypeEvent eventHandler) {
 		this.eventHandler = eventHandler;
-		this.model = model;
 	}
 
-	public final void bindName(Object loaded, String as,
+	public final void bindName(CodeObject loaded, String as,
 			CodeObject importLocation) {
 		assert loaded != null;
 		assert importLocation != null;
@@ -52,29 +49,6 @@ public final class ImportTyper implements
 		// be a variable.
 
 		eventHandler.onImportTyped(importLocation, as, type);
-	}
-
-	public final ModuleCO loadModule(List<String> importPath,
-			ModuleCO relativeToModule) {
-		List<String> name = new ArrayList<String>(DottedName
-				.toImportTokens(relativeToModule.oldStyleConflatedNamespace()
-						.getFullName()));
-		name.addAll(importPath);
-
-		// The imported module/package will always exist in the model
-		// already if it exists (on disk) at all as the model must have
-		// tried to import it already. Therefore we only do a lookup here
-		// rather than attempting a load.
-		return loadModule(name);
-	}
-
-	public ModuleCO loadModule(List<String> importPath) {
-		Module module = model.lookup(importPath);
-		if (module != null) {
-			return module.codeObject();
-		} else {
-			return null;
-		}
 	}
 
 	public final void onUnresolvedImport(List<String> importPath,
@@ -113,36 +87,5 @@ public final class ImportTyper implements
 			eventHandler.onImportTyped(codeBlock, as,
 					new TUnresolvedImport(fromPath, itemName, relativeTo
 							.oldStyleConflatedNamespace()));
-	}
-
-	public Module parentModule(Namespace importReceiver) {
-		if (importReceiver instanceof Module)
-			return ((Module) importReceiver).getParent();
-		else
-			return importReceiver.getGlobalNamespace();
-	}
-
-	public Namespace lookupNonModuleMember(String itemName,
-			CodeObject codeObjectWhoseNamespaceWeAreLoadingFrom) {
-		Namespace loaded = codeObjectWhoseNamespaceWeAreLoadingFrom
-				.oldStyleConflatedNamespace().getClasses().get(itemName);
-		if (loaded == null)
-			loaded = codeObjectWhoseNamespaceWeAreLoadingFrom
-					.oldStyleConflatedNamespace().getFunctions().get(itemName);
-		return loaded;
-	}
-
-	public ModuleCO parentModule(CodeObject importReceiver) {
-		if (importReceiver instanceof NestedCodeObject) {
-			return ((NestedCodeObject) importReceiver).enclosingModule();
-		} else {
-			Module parent = (Module) importReceiver
-					.oldStyleConflatedNamespace().getParentScope();
-			if (parent != null) {
-				return (ModuleCO) parent.codeObject();
-			} else {
-				return null;
-			}
-		}
 	}
 }

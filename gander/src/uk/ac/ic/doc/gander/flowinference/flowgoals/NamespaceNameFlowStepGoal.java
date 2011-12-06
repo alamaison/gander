@@ -2,6 +2,7 @@ package uk.ac.ic.doc.gander.flowinference.flowgoals;
 
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import org.python.pydev.parser.jython.SimpleNode;
@@ -17,15 +18,18 @@ import uk.ac.ic.doc.gander.flowinference.result.FiniteResult;
 import uk.ac.ic.doc.gander.flowinference.result.RedundancyEliminator;
 import uk.ac.ic.doc.gander.flowinference.result.Result;
 import uk.ac.ic.doc.gander.flowinference.result.Result.Processor;
-import uk.ac.ic.doc.gander.importing.ImportSimulationWatcher;
+import uk.ac.ic.doc.gander.importing.DefaultImportSimulator;
 import uk.ac.ic.doc.gander.importing.WholeModelImportSimulation;
+import uk.ac.ic.doc.gander.importing.DefaultImportSimulator.Binder;
 import uk.ac.ic.doc.gander.model.CodeObjectWalker;
-import uk.ac.ic.doc.gander.model.Member;
+import uk.ac.ic.doc.gander.model.Model;
 import uk.ac.ic.doc.gander.model.ModelSite;
 import uk.ac.ic.doc.gander.model.Module;
-import uk.ac.ic.doc.gander.model.Namespace;
 import uk.ac.ic.doc.gander.model.NamespaceName;
 import uk.ac.ic.doc.gander.model.codeobject.CodeObject;
+import uk.ac.ic.doc.gander.model.codeobject.ModuleCO;
+import uk.ac.ic.doc.gander.model.codeobject.NamedCodeObject;
+import uk.ac.ic.doc.gander.model.codeobject.NestedCodeObject;
 import uk.ac.ic.doc.gander.model.name_binding.Variable;
 
 /**
@@ -330,11 +334,10 @@ final class NamespaceNameFlowStepGoalSolver {
 			 * namespace instead.
 			 */
 
-			ImportSimulationWatcher worker = new ImportSimulationWatcher() {
+			Binder<CodeObject, CodeObject, ModuleCO> worker = new DefaultImportSimulator.Binder<CodeObject, CodeObject, ModuleCO>() {
 
-				public void bindingName(Namespace importReceiver,
-						Member loadedObject, String as) {
-
+				public void bindName(CodeObject loadedObject, String name,
+						CodeObject importReceiver) {
 					/*
 					 * XXX: HACK: comparing the name by name of code object is
 					 * BAD. What if the code object was aliased and that alias
@@ -346,21 +349,46 @@ final class NamespaceNameFlowStepGoalSolver {
 					 * thing was imported from somewhere else then imported
 					 * again? Should fix simulator so it tells us where the key
 					 * was actually imported from.
+					 * 
+					 * XXX: HACK: Cast to CodeObject.
 					 */
 
-					if (loadedObject.getParentScope().equals(
-							namespaceName.namespace())
-							&& loadedObject.getName().equals(
-									namespaceName.name())) {
-						/* from codeobject import key */
-						importedReferences = new FiniteResult<FlowPosition>(
-								referencesToImportedKey(importReceiver, as));
-					} else if (loadedObject.equals(namespaceName.namespace())) {
+					if (importReceiver.model().intrinsicNamespace(loadedObject)
+							.equals(namespaceName.namespace())) {
 
 						/* import codeobject */
 						importedReferences = referencesToKeyOfImportedCodeObject(
-								importReceiver, as);
+								importReceiver, name);
+
+					} else if (loadedObject instanceof NestedCodeObject) {
+						if (importReceiver.model().intrinsicNamespace(
+								((NestedCodeObject) loadedObject).parent())
+								.equals(namespaceName.namespace())) {
+							if (loadedObject instanceof NamedCodeObject) {
+								if (((NamedCodeObject) loadedObject)
+										.declaredName().equals(
+												namespaceName.name())) {
+									/* from codeobject import key */
+									importedReferences = new FiniteResult<FlowPosition>(
+											referencesToImportedKey(
+													importReceiver, name));
+								}
+							}
+						}
 					}
+
+				}
+
+				public void onUnresolvedImport(List<String> importPath,
+						ModuleCO relativeTo, String as, CodeObject codeBlock) {
+					// TODO Auto-generated method stub
+
+				}
+
+				public void onUnresolvedImportFromItem(List<String> fromPath,
+						ModuleCO relativeTo, String itemName, String as,
+						CodeObject codeBlock) {
+					// TODO Auto-generated method stub
 
 				}
 
@@ -382,7 +410,7 @@ final class NamespaceNameFlowStepGoalSolver {
 	 * object where the attribute name is the name of the key being accessed.
 	 */
 	private Result<FlowPosition> referencesToKeyOfImportedCodeObject(
-			Namespace importReceiver, String as) {
+			CodeObject importReceiver, String as) {
 		assert namespaceName.namespace() instanceof Module;
 
 		/*
@@ -392,10 +420,8 @@ final class NamespaceNameFlowStepGoalSolver {
 		 * scope so we resolve the name here.
 		 */
 		final NamespaceName importedCodeObjectAs = new Variable(as,
-				importReceiver.codeObject()).bindingLocation();
-		assert importedCodeObjectAs.namespace().equals(importReceiver)
-				|| importedCodeObjectAs.namespace().equals(
-						importReceiver.getGlobalNamespace());
+				importReceiver).bindingLocation();
+		assert nameBindsLocallyOrGlobally(importReceiver, importedCodeObjectAs);
 
 		if (!importedCodeObjectAs.equals(namespaceName)) {
 
@@ -460,7 +486,7 @@ final class NamespaceNameFlowStepGoalSolver {
 	 * analysis must flow all values arriving at the old key to the new key.
 	 */
 	protected Set<FlowPosition> referencesToImportedKey(
-			Namespace importReceiver, String as) {
+			CodeObject importReceiver, String as) {
 		assert namespaceName.namespace() instanceof Module;
 
 		/*
@@ -469,13 +495,23 @@ final class NamespaceNameFlowStepGoalSolver {
 		 * added to. It depends on the binding scope of 'as' in importReceiver.
 		 * It could be the global scope so we resolve the name here.
 		 */
-		Variable importAs = new Variable(as, importReceiver.codeObject());
-		assert importAs.bindingLocation().namespace().equals(importReceiver)
-				|| importAs.bindingLocation().namespace().equals(
-						importReceiver.getGlobalNamespace());
+		Variable importAs = new Variable(as, importReceiver);
+		assert nameBindsLocallyOrGlobally(importReceiver, importAs
+				.bindingLocation());
 
 		return Collections.<FlowPosition> singleton(new NamespaceNamePosition(
 				importAs.bindingLocation()));
+	}
+
+	private boolean nameBindsLocallyOrGlobally(CodeObject importReceiver,
+			NamespaceName nameBinding) {
+		Model model = importReceiver.model();
+
+		return nameBinding.namespace().equals(
+				model.intrinsicNamespace(importReceiver))
+				|| nameBinding.namespace().equals(
+						model.intrinsicNamespace(importReceiver
+								.enclosingModule()));
 	}
 
 	private Set<FlowPosition> accessesToNamespaceEntry(

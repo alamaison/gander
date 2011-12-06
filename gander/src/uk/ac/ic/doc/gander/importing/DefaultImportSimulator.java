@@ -38,7 +38,8 @@ public final class DefaultImportSimulator<O, C extends O, M extends C>
 		implements ImportSimulator {
 
 	/**
-	 * Callback through which the import simulation is coordinated.
+	 * Callback through which the import simulation reports object being bound
+	 * to names.
 	 * 
 	 * @param <O>
 	 *            the supertype of Java objects representing other Python
@@ -50,7 +51,51 @@ public final class DefaultImportSimulator<O, C extends O, M extends C>
 	 * @param <M>
 	 *            the type of Java objects representing Python modules
 	 */
-	public interface ImportEvents<O, C, M> {
+	public interface Binder<O, C, M> {
+
+		/**
+		 * The simulation is reporting that an object would be bound to a name
+		 * in a Python namespace.
+		 * 
+		 * Note this function is not passed the namespace that the name binds
+		 * in. This is left to the implementation to resolve. It will usually be
+		 * the namespace associated with the import location but, if the
+		 * location includes the global keyword, it may be the global keyword.
+		 * 
+		 * @param loadedObject
+		 *            the representation of the object being bound to a name
+		 * @param name
+		 *            the name the object is bound to
+		 * @param codeBlock
+		 *            the code object 'receiving' the effect of this binding;
+		 *            not necessarily the code object whose namespace the
+		 *            imported object is bound in as it may be a global name
+		 */
+		void bindName(O loadedObject, String name, C importReceiver);
+
+		void onUnresolvedImport(List<String> importPath, M relativeTo,
+				String as, C codeBlock);
+
+		void onUnresolvedImportFromItem(List<String> fromPath, M relativeTo,
+				String itemName, String as, C codeBlock);
+
+	}
+
+	/**
+	 * Callback through which a specific system model is presented to the import
+	 * simulation.
+	 * 
+	 * @param <O>
+	 *            the supertype of Java objects representing other Python
+	 *            objects that can be imported
+	 * 
+	 * @param <C>
+	 *            the type of Java objects representing Python code objects
+	 *            (modules, functions, classes)
+	 * @param <M>
+	 *            the type of Java objects representing Python modules
+	 */
+	public interface Loader<O, C, M> {
 
 		/**
 		 * Load a module or package relative to the given module.
@@ -80,35 +125,11 @@ public final class DefaultImportSimulator<O, C extends O, M extends C>
 		 */
 		M loadModule(List<String> importPath);
 
-		O lookupNonModuleMember(String itemName,
+		O loadNonModuleMember(String itemName,
 				C codeObjectWhoseNamespaceWeAreLoadingFrom);
 
-		/**
-		 * The simulation is reporting that an object would be bound to a name
-		 * in a Python namespace.
-		 * 
-		 * Note this function is not passed the namespace that the name binds
-		 * in. This is left to the implementation to resolve. It will usually be
-		 * the namespace associated with the import location but, if the
-		 * location includes the global keyword, it may be the global keyword.
-		 * 
-		 * @param loadedObject
-		 *            the representation of the object being bound to a name
-		 * @param as
-		 *            the name the object is bound to
-		 * @param codeBlock
-		 *            the code object containing the import statement that
-		 *            caused this name binding
-		 */
-		void bindName(O loadedObject, String as, C codeBlock);
-
-		void onUnresolvedImport(List<String> importPath, M relativeTo,
-				String as, C codeBlock);
-
-		void onUnresolvedImportFromItem(List<String> fromPath, M relativeTo,
-				String itemName, String as, C codeBlock);
-
 		M parentModule(C importReceiver);
+
 	}
 
 	private final C importReceiver;
@@ -116,22 +137,25 @@ public final class DefaultImportSimulator<O, C extends O, M extends C>
 	private final M relativeTo;
 
 	/**
-	 * FIXME: importReceiver may not actually be the import receiver. It depends
+	 * Note, importReceiver may not actually be the import receiver. It depends
 	 * on the binding scope of 'as' in importReceiver. It could be the global
 	 * scope.
 	 */
 	public DefaultImportSimulator(C importReceiver,
-			ImportEvents<O, C, M> eventHandler) {
+			Binder<O, C, M> eventHandler, Loader<O, C, M> loader) {
 		if (importReceiver == null)
 			throw new NullPointerException("Must specify where import occurs");
 		if (eventHandler == null)
 			throw new NullPointerException(
 					"Must have an event handler to react to import events");
+		if (loader == null)
+			throw new NullPointerException("Must have an object loader");
 
-		this.core = new DefaultImportSimulatorCore<O, C, M>(eventHandler);
+		this.core = new DefaultImportSimulatorCore<O, C, M>(eventHandler,
+				loader);
 
 		this.importReceiver = importReceiver;
-		this.relativeTo = eventHandler.parentModule(importReceiver);
+		this.relativeTo = loader.parentModule(importReceiver);
 		assert !importReceiver.equals(this.relativeTo);
 	}
 
@@ -178,7 +202,8 @@ public final class DefaultImportSimulator<O, C extends O, M extends C>
 
 final class DefaultImportSimulatorCore<O, C extends O, M extends C> {
 
-	private final DefaultImportSimulator.ImportEvents<O, C, M> eventHandler;
+	private final DefaultImportSimulator.Binder<O, C, M> eventHandler;
+	private final DefaultImportSimulator.Loader<O, C, M> loader;
 
 	/**
 	 * FIXME: importReceiver may not actually be the import receiver. It depends
@@ -186,12 +211,16 @@ final class DefaultImportSimulatorCore<O, C extends O, M extends C> {
 	 * scope.
 	 */
 	public DefaultImportSimulatorCore(
-			DefaultImportSimulator.ImportEvents<O, C, M> eventHandler) {
+			DefaultImportSimulator.Binder<O, C, M> eventHandler,
+			DefaultImportSimulator.Loader<O, C, M> loader) {
 		if (eventHandler == null)
 			throw new NullPointerException(
 					"Must have an event handler to react to import events");
+		if (loader == null)
+			throw new NullPointerException("Must have an object loader");
 
 		this.eventHandler = eventHandler;
+		this.loader = loader;
 	}
 
 	/**
@@ -207,22 +236,21 @@ final class DefaultImportSimulatorCore<O, C extends O, M extends C> {
 	 * bound to the name {@code x} in the binding namespace for {@code x}
 	 * relative to the given code block.
 	 */
-	void simulateImport(List<String> importPath, C importReceiver,
-			M containingModule) {
-		simulateImportHelper(importPath, containingModule, importReceiver);
+	void simulateImport(List<String> importPath, C importReceiver, M relativeTo) {
+		simulateImportHelper(importPath, relativeTo, importReceiver);
 	}
 
 	void simulateImportAs(List<String> importPath, C importReceiver,
-			M containingModule, String as) {
-		C loaded = simulateImportHelper(importPath, containingModule, null);
-		handleBind(importPath, containingModule, importReceiver, as, loaded);
+			M relativeTo, String as) {
+		C loaded = simulateImportHelper(importPath, relativeTo, null);
+		handleBind(importPath, relativeTo, importReceiver, as, loaded);
 	}
 
 	void simulateImportFromAs(List<String> fromPath, String itemName,
-			C importReceiver, M containingModule, String asName) {
+			C importReceiver, M relativeTo, String asName) {
 
 		C codeObjectWhoseNamespaceWeAreLoadingFrom = simulateImportHelper(
-				fromPath, containingModule, null);
+				fromPath, relativeTo, null);
 		if (codeObjectWhoseNamespaceWeAreLoadingFrom == null)
 			// Reporting this failure is handled by simulateImportHelper
 			return;
@@ -232,14 +260,14 @@ final class DefaultImportSimulatorCore<O, C extends O, M extends C> {
 
 		// Resolve item name to an item inside the namespace. If the item is a
 		// module we have to load it, otherwise we can just investigate it
-		O loaded = simulateTwoStepModuleLoad(itemPath, containingModule);
+		O loaded = simulateTwoStepModuleLoad(itemPath, relativeTo);
 		if (loaded == null) {
-			loaded = eventHandler.lookupNonModuleMember(itemName,
+			loaded = loader.loadNonModuleMember(itemName,
 					codeObjectWhoseNamespaceWeAreLoadingFrom);
 		}
 
-		handleBindFrom(fromPath, itemName, containingModule, importReceiver,
-				asName, loaded);
+		handleBindFrom(fromPath, itemName, relativeTo, importReceiver, asName,
+				loaded);
 	}
 
 	/**
@@ -302,10 +330,10 @@ final class DefaultImportSimulatorCore<O, C extends O, M extends C> {
 		M loaded = null;
 
 		if (relativeTo != null)
-			loaded = eventHandler.loadModule(importPath, relativeTo);
+			loaded = loader.loadModule(importPath, relativeTo);
 
 		if (loaded == null)
-			loaded = eventHandler.loadModule(importPath);
+			loaded = loader.loadModule(importPath);
 
 		return loaded;
 	}

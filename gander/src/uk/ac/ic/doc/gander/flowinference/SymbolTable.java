@@ -13,7 +13,7 @@ import org.python.pydev.parser.jython.ast.NameTok;
 import org.python.pydev.parser.jython.ast.VisitorBase;
 import org.python.pydev.parser.jython.ast.aliasType;
 
-import uk.ac.ic.doc.gander.flowinference.ImportTyper.ImportTypeEvent;
+import uk.ac.ic.doc.gander.flowinference.ImportedNameTypeWatcher.ImportTypeEvent;
 import uk.ac.ic.doc.gander.flowinference.types.TClass;
 import uk.ac.ic.doc.gander.flowinference.types.TFunction;
 import uk.ac.ic.doc.gander.flowinference.types.Type;
@@ -24,6 +24,7 @@ import uk.ac.ic.doc.gander.model.Function;
 import uk.ac.ic.doc.gander.model.Model;
 import uk.ac.ic.doc.gander.model.Module;
 import uk.ac.ic.doc.gander.model.Namespace;
+import uk.ac.ic.doc.gander.model.StandardModelLookupLoader;
 import uk.ac.ic.doc.gander.model.codeobject.CodeObject;
 import uk.ac.ic.doc.gander.model.codeobject.ModuleCO;
 
@@ -191,16 +192,17 @@ public class SymbolTable {
 
 	private ImportSimulator simulator(Namespace importReceiver) {
 
-		return new DefaultImportSimulator<Object, CodeObject, ModuleCO>(
-				importReceiver.codeObject(), new ImportTyper(importReceiver
-						.model(), new ImportTypeEvent() {
+		return new DefaultImportSimulator<CodeObject, CodeObject, ModuleCO>(
+				importReceiver.codeObject(), new ImportedNameTypeWatcher(
+						new ImportTypeEvent() {
 
-					public void onImportTyped(CodeObject scope, String name,
-							Type type) {
-						SymbolTable.this.put(
-								scope.oldStyleConflatedNamespace(), name, type);
-					}
-				}));
+							public void onImportTyped(CodeObject scope,
+									String name, Type type) {
+								SymbolTable.this.put(scope
+										.oldStyleConflatedNamespace(), name,
+										type);
+							}
+						}), new StandardModelLookupLoader(model));
 	}
 
 	private void processScope(Namespace scope) {

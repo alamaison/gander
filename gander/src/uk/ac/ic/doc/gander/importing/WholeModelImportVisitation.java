@@ -5,7 +5,6 @@ import org.python.pydev.parser.jython.SimpleNode;
 import uk.ac.ic.doc.gander.ast.LocalCodeBlockVisitor;
 import uk.ac.ic.doc.gander.model.CodeObjectWalker;
 import uk.ac.ic.doc.gander.model.Model;
-import uk.ac.ic.doc.gander.model.Namespace;
 import uk.ac.ic.doc.gander.model.codeobject.CodeObject;
 
 /**
@@ -13,10 +12,10 @@ import uk.ac.ic.doc.gander.model.codeobject.CodeObject;
  */
 public final class WholeModelImportVisitation {
 
-	private final ImportHandler callback;
+	private final ImportHandler<CodeObject> callback;
 	private final Model model;
 
-	public WholeModelImportVisitation(Model model, ImportHandler callback) {
+	public WholeModelImportVisitation(Model model, ImportHandler<CodeObject> callback) {
 		this.model = model;
 		this.callback = callback;
 		walkModel();
@@ -39,8 +38,7 @@ public final class WholeModelImportVisitation {
 						@Override
 						protected Object unhandled_node(SimpleNode node)
 								throws Exception {
-							return node.accept(newImportVisitor(model
-									.intrinsicNamespace(codeObject)));
+							return node.accept(newImportVisitor(codeObject));
 						}
 
 						@Override
@@ -64,7 +62,7 @@ public final class WholeModelImportVisitation {
 	 *            code object visitor is going to be invoked on.
 	 * @return new import visitor
 	 */
-	private ImportVisitor newImportVisitor(final Namespace codeObject) {
+	private ImportVisitor newImportVisitor(final CodeObject codeObject) {
 
 		return new ImportVisitor(new ImportVisitor.ImportHandler() {
 

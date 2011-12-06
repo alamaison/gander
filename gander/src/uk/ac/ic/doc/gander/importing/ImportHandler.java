@@ -1,11 +1,9 @@
 package uk.ac.ic.doc.gander.importing;
 
-import uk.ac.ic.doc.gander.model.Namespace;
-
 /**
  * Callback for simulations of Python import mechanism.
  */
-public interface ImportHandler {
+public interface ImportHandler<T> {
 
 	/**
 	 * Seen {@code import x.y.z} style import.
@@ -19,7 +17,7 @@ public interface ImportHandler {
 	 *            name of module relative to code block in which it appeared
 	 *            (really relative to that code block's containing module)
 	 */
-	void onImport(Namespace importReceiver, String moduleName);
+	void onImport(T importReceiver, String moduleName);
 
 	/**
 	 * 
@@ -38,7 +36,7 @@ public interface ImportHandler {
 	 *            the namespace of the code block in which this import statement
 	 *            appeared
 	 */
-	void onImportAs(Namespace importReceiver, String moduleName, String asName);
+	void onImportAs(T importReceiver, String moduleName, String asName);
 
 	/**
 	 * Seen {@code from x.y import i} style import.
@@ -56,7 +54,7 @@ public interface ImportHandler {
 	 *            the namespace of the code block in which this import statement
 	 *            appeared
 	 */
-	void onImportFrom(Namespace importReceiver, String moduleName,
+	void onImportFrom(T importReceiver, String moduleName,
 			String itemName);
 
 	/**
@@ -78,7 +76,7 @@ public interface ImportHandler {
 	 *            name to which the imported object is bound in the namespace of
 	 *            the code block in which this import statement appeared
 	 */
-	void onImportFromAs(Namespace importReceiver, String moduleName,
+	void onImportFromAs(T importReceiver, String moduleName,
 			String itemName, String asName);
 
 }
