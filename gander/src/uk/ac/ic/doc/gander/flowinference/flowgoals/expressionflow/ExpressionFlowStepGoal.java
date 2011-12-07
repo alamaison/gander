@@ -1,12 +1,12 @@
-package uk.ac.ic.doc.gander.flowinference.flowgoals;
+package uk.ac.ic.doc.gander.flowinference.flowgoals.expressionflow;
 
 import java.util.Set;
 
 import org.python.pydev.parser.jython.ast.exprType;
 
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
-import uk.ac.ic.doc.gander.flowinference.flowgoals.flowsituations.FlowSituation;
-import uk.ac.ic.doc.gander.flowinference.flowgoals.flowsituations.FlowSituationFinder;
+import uk.ac.ic.doc.gander.flowinference.flowgoals.FlowPosition;
+import uk.ac.ic.doc.gander.flowinference.flowgoals.FlowStepGoal;
 import uk.ac.ic.doc.gander.flowinference.result.FiniteResult;
 import uk.ac.ic.doc.gander.flowinference.result.Result;
 import uk.ac.ic.doc.gander.flowinference.result.RedundancyEliminator;

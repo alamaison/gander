@@ -1,4 +1,4 @@
-package uk.ac.ic.doc.gander.flowinference.flowgoals.flowsituations;
+package uk.ac.ic.doc.gander.flowinference.flowgoals.expressionflow;
 
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
 import uk.ac.ic.doc.gander.flowinference.flowgoals.FlowPosition;

@@ -1,4 +1,4 @@
-package uk.ac.ic.doc.gander.flowinference.flowgoals.flowsituations;
+package uk.ac.ic.doc.gander.flowinference.flowgoals.expressionflow;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -6,7 +6,6 @@ import java.util.Set;
 import org.python.pydev.parser.jython.ast.Call;
 
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
-import uk.ac.ic.doc.gander.flowinference.flowgoals.ExpressionPosition;
 import uk.ac.ic.doc.gander.flowinference.flowgoals.FlowPosition;
 import uk.ac.ic.doc.gander.flowinference.flowgoals.TopFp;
 import uk.ac.ic.doc.gander.flowinference.result.FiniteResult;

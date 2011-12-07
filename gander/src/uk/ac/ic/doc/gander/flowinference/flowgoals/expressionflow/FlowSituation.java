@@ -1,4 +1,4 @@
-package uk.ac.ic.doc.gander.flowinference.flowgoals.flowsituations;
+package uk.ac.ic.doc.gander.flowinference.flowgoals.expressionflow;
 
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
 import uk.ac.ic.doc.gander.flowinference.flowgoals.FlowPosition;
@@ -11,7 +11,7 @@ import uk.ac.ic.doc.gander.flowinference.result.Result;
  * Examples include being on the RHS of an assignment statement or being a
  * parameter to a function.
  */
-public interface FlowSituation {
+interface FlowSituation {
 
 	/**
 	 * Returns the flow positions that the expression can flow to in a single

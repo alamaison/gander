@@ -1,4 +1,4 @@
-package uk.ac.ic.doc.gander.flowinference.flowgoals.flowsituations;
+package uk.ac.ic.doc.gander.flowinference.flowgoals.expressionflow;
 
 import java.util.Collections;
 

@@ -1,4 +1,4 @@
-package uk.ac.ic.doc.gander.flowinference.flowgoals.flowsituations;
+package uk.ac.ic.doc.gander.flowinference.flowgoals.expressionflow;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -68,7 +68,7 @@ import org.python.pydev.parser.jython.ast.exprType;
 
 import uk.ac.ic.doc.gander.model.ModelSite;
 
-public final class FlowSituationFinder {
+final class FlowSituationFinder {
 
 	/**
 	 * Search expression's enclosing namespace, which must contain our
@@ -98,7 +98,7 @@ public final class FlowSituationFinder {
 			ModelSite<? extends exprType> expressionSite) throws Exception {
 
 		SituationFinder finder = new SituationFinder(expressionSite);
-		expressionSite.namespace().getAst().accept(finder);
+		expressionSite.codeObject().ast().accept(finder);
 		return finder.getSituations();
 	}
 }
