@@ -7,6 +7,7 @@ import org.python.pydev.parser.jython.ast.Attribute;
 import org.python.pydev.parser.jython.ast.NameTok;
 import org.python.pydev.parser.jython.ast.exprType;
 
+import uk.ac.ic.doc.gander.model.AttributeAccessFinder;
 import uk.ac.ic.doc.gander.model.ModelSite;
 
 /**

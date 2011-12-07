@@ -9,16 +9,16 @@ import uk.ac.ic.doc.gander.model.codeobject.CodeObject;
  * any other. Their 'value' can flow into any named reference in their enclosing
  * code block as well as anywhere they are explicitly imported.
  */
-public final class CodeObjectPosition implements FlowPosition {
+public final class CodeObjectCreationPosition implements FlowPosition {
 
 	private final CodeObject codeObject;
 
-	public CodeObjectPosition(CodeObject codeObject) {
+	public CodeObjectCreationPosition(CodeObject codeObject) {
 		this.codeObject = codeObject;
 	}
 
 	public FlowStepGoal nextStepGoal() {
-		return new CodeObjectStepGoal(codeObject);
+		return new CodeObjectCreationStepGoal(codeObject);
 	}
 
 	@Override
@@ -38,7 +38,7 @@ public final class CodeObjectPosition implements FlowPosition {
 			return false;
 		if (getClass() != obj.getClass())
 			return false;
-		CodeObjectPosition other = (CodeObjectPosition) obj;
+		CodeObjectCreationPosition other = (CodeObjectCreationPosition) obj;
 		if (codeObject == null) {
 			if (other.codeObject != null)
 				return false;
@@ -49,7 +49,7 @@ public final class CodeObjectPosition implements FlowPosition {
 
 	@Override
 	public String toString() {
-		return "CodeObjectPosition [codeObject=" + codeObject + "]";
+		return "CodeObjectCreationPosition [codeObject=" + codeObject + "]";
 	}
 
 }

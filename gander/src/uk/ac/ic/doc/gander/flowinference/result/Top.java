@@ -15,6 +15,10 @@ public abstract class Top<T> implements Result<T> {
 		action.processInfiniteResult();
 	}
 
+	public final <R> R transformResult(Result.Transformer<T, R> action) {
+		return action.transformInfiniteResult();
+	}
+
 	@Override
 	public abstract String toString();
 

@@ -14,6 +14,13 @@ public interface Result<D> {
 		void processInfiniteResult();
 	}
 
+	public interface Transformer<I, R> {
+
+		R transformFiniteResult(Set<I> result);
+
+		R transformInfiniteResult();
+	}
+
 	/**
 	 * Processing this result.
 	 * 
@@ -22,5 +29,16 @@ public interface Result<D> {
 	 *            result and the infinite case
 	 */
 	void actOnResult(Processor<D> action);
+
+	/**
+	 * Transform this result into a new result.
+	 * 
+	 * @param <R>
+	 *            the type of the new result
+	 * 
+	 * @param action
+	 *            the transformer that morphs the data into a new result
+	 */
+	<R> R transformResult(Transformer<D, R> action);
 
 }

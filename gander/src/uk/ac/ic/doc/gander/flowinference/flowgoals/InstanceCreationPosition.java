@@ -7,11 +7,11 @@ import uk.ac.ic.doc.gander.model.codeobject.ClassCO;
  * 
  * A class instance can flow to an class constructor call in a single step.
  */
-public final class InstancePosition implements FlowPosition {
+public final class InstanceCreationPosition implements FlowPosition {
 
 	private final ClassCO klass;
 
-	public InstancePosition(ClassCO klass) {
+	public InstanceCreationPosition(ClassCO klass) {
 		this.klass = klass;
 	}
 
@@ -35,7 +35,7 @@ public final class InstancePosition implements FlowPosition {
 			return false;
 		if (getClass() != obj.getClass())
 			return false;
-		InstancePosition other = (InstancePosition) obj;
+		InstanceCreationPosition other = (InstanceCreationPosition) obj;
 		if (klass == null) {
 			if (other.klass != null)
 				return false;
@@ -46,7 +46,7 @@ public final class InstancePosition implements FlowPosition {
 
 	@Override
 	public String toString() {
-		return "InstancePosition [klass=" + klass + "]";
+		return "InstanceCreationPosition [klass=" + klass + "]";
 	}
 
 }

@@ -9,7 +9,7 @@ import org.python.pydev.parser.jython.ast.exprType;
 
 import uk.ac.ic.doc.gander.ast.AstParentNodeFinder;
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
-import uk.ac.ic.doc.gander.flowinference.flowgoals.CodeObjectPosition;
+import uk.ac.ic.doc.gander.flowinference.flowgoals.CodeObjectCreationPosition;
 import uk.ac.ic.doc.gander.flowinference.flowgoals.FlowGoal;
 import uk.ac.ic.doc.gander.flowinference.result.FiniteResult;
 import uk.ac.ic.doc.gander.flowinference.result.Result;
@@ -77,7 +77,7 @@ final class FunctionSendersGoalSolver {
 			SubgoalManager goalManager) {
 
 		Result<ModelSite<? extends exprType>> positions = goalManager
-				.registerSubgoal(new FlowGoal(new CodeObjectPosition(callable)));
+				.registerSubgoal(new FlowGoal(new CodeObjectCreationPosition(callable)));
 
 		positions.actOnResult(new Processor<ModelSite<? extends exprType>>() {
 

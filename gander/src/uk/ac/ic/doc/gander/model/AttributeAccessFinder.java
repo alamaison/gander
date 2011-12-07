@@ -1,4 +1,4 @@
-package uk.ac.ic.doc.gander.flowinference.typegoals;
+package uk.ac.ic.doc.gander.model;
 
 import java.util.Set;
 
@@ -7,18 +7,17 @@ import org.python.pydev.parser.jython.ast.Attribute;
 import org.python.pydev.parser.jython.ast.exprType;
 
 import uk.ac.ic.doc.gander.ast.AstParentNodeFinder;
-import uk.ac.ic.doc.gander.model.ModelSite;
 
 /**
  * Given a set of expressions, find any attribute accesses on those expressions.
  */
-final class AttributeAccessFinder {
+public final class AttributeAccessFinder {
 
-	interface Event {
+	public interface Event {
 		boolean attributeAccess(ModelSite<Attribute> access);
 	}
 
-	AttributeAccessFinder(Set<ModelSite<? extends exprType>> objectPositions,
+	public AttributeAccessFinder(Set<ModelSite<? extends exprType>> objectPositions,
 			Event eventHandler) {
 		assert objectPositions != null;
 

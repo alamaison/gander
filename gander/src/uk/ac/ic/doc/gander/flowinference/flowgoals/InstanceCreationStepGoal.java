@@ -105,7 +105,7 @@ final class InstanceCreationStepGoalSolver {
 	InstanceCreationStepGoalSolver(ClassCO klass, SubgoalManager goalManager) {
 
 		Result<ModelSite<? extends exprType>> classReferences = goalManager
-				.registerSubgoal(new FlowGoal(new CodeObjectPosition(klass)));
+				.registerSubgoal(new FlowGoal(new CodeObjectCreationPosition(klass)));
 
 		classReferences.actOnResult(processor);
 	}

@@ -27,6 +27,10 @@ public final class FiniteResult<T> extends AbstractSet<T> implements Result<T> {
 		action.processFiniteResult(this);
 	}
 
+	public <R> R transformResult(Result.Transformer<T, R> action) {
+		return action.transformFiniteResult(this);
+	}
+
 	public Iterator<T> iterator() {
 		/*
 		 * This will be read-only because constituentResults is.

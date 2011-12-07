@@ -18,13 +18,16 @@ import uk.ac.ic.doc.gander.flowinference.result.FiniteResult;
 import uk.ac.ic.doc.gander.flowinference.result.RedundancyEliminator;
 import uk.ac.ic.doc.gander.flowinference.result.Result;
 import uk.ac.ic.doc.gander.flowinference.result.Result.Processor;
+import uk.ac.ic.doc.gander.flowinference.result.Result.Transformer;
 import uk.ac.ic.doc.gander.importing.DefaultImportSimulator;
 import uk.ac.ic.doc.gander.importing.WholeModelImportSimulation;
 import uk.ac.ic.doc.gander.importing.DefaultImportSimulator.Binder;
+import uk.ac.ic.doc.gander.model.AttributeAccessFinder;
 import uk.ac.ic.doc.gander.model.CodeObjectWalker;
 import uk.ac.ic.doc.gander.model.Model;
 import uk.ac.ic.doc.gander.model.ModelSite;
 import uk.ac.ic.doc.gander.model.Module;
+import uk.ac.ic.doc.gander.model.Namespace;
 import uk.ac.ic.doc.gander.model.NamespaceName;
 import uk.ac.ic.doc.gander.model.codeobject.CodeObject;
 import uk.ac.ic.doc.gander.model.codeobject.ModuleCO;
@@ -106,6 +109,34 @@ final class NamespaceNameFlowStepGoal implements FlowStepGoal {
 		return FiniteResult.bottom();
 	}
 
+	/**
+	 * A function object, class object or regular flows in a single step to:
+	 * <ul>
+	 * <li>the namespace of the code block in which it is defined as the name
+	 * with which it is declared</li>
+	 * <li>the namespace of any code block containing {@code from l import X}
+	 * with the name {@code X}</li>
+	 * </ul>
+	 * 
+	 * A module's flows is more complicated. A module {@code m} flows in a
+	 * single step to (assuming always that {@code m} resolves to the module in
+	 * question taking relative paths into account):
+	 * <ul>
+	 * <li>the namespace of any code block containing {@code import m} with the
+	 * name {@code m}</li>
+	 * <li>the namespace of any code block containing {@code import m as p} with
+	 * the name {@code p}</li>
+	 * <li>the namespace of any module that appears before {@code m} in a string
+	 * such as {@code import k.l.m}, in this case {@code l}, with the name
+	 * {@code m}</li>
+	 * <li>the namespace of any module that appears before {@code m} in a string
+	 * such as {@code import k.l.m as p}, in this case {@code l}, with the name
+	 * {@code m} and into the namespace of the code block containing the import
+	 * statement with the name {@code p}</li>
+	 * <li>the namespace of any code block containing {@code from l import m}
+	 * with the name {@code m}</li>
+	 * </ul>
+	 * */
 	public Result<FlowPosition> recalculateSolution(SubgoalManager goalManager) {
 		return new NamespaceNameFlowStepGoalSolver(goalManager, name)
 				.solution();
@@ -308,6 +339,15 @@ final class NamespaceNameFlowStepGoalSolver {
 		}
 	}
 
+	private static void addPositionIfAttributeNameMatches(
+			Set<FlowPosition> positions, CodeObject enclosingCodeObject,
+			Attribute attribute, String name) {
+		if (((NameTok) attribute.attr).id.equals(name)) {
+			positions.add(new ExpressionPosition<Attribute>(
+					new ModelSite<Attribute>(attribute, enclosingCodeObject)));
+		}
+	}
+
 	/**
 	 * Add positions for flow of the namespace key's value caused by importing
 	 * either the key itself or the code object of the namespace containing it.
@@ -349,16 +389,31 @@ final class NamespaceNameFlowStepGoalSolver {
 					 * thing was imported from somewhere else then imported
 					 * again? Should fix simulator so it tells us where the key
 					 * was actually imported from.
-					 * 
-					 * XXX: HACK: Cast to CodeObject.
 					 */
 
-					if (importReceiver.model().intrinsicNamespace(loadedObject)
-							.equals(namespaceName.namespace())) {
+					if (codeObjectAllowsAttributesToAccessNamespace(
+							loadedObject, namespaceName.namespace())) {
 
 						/* import codeobject */
-						importedReferences = referencesToKeyOfImportedCodeObject(
-								importReceiver, name);
+
+						assert loadedObject instanceof ModuleCO;
+						assert namespaceName.namespace() instanceof Module;
+
+						/*
+						 * importReceiver is the code object containing the
+						 * import statement but its namespace may not actually
+						 * be where the loaded object is bound to a name. It
+						 * depends on the binding scope of 'name' in
+						 * importReceiver. It could be the global scope so we
+						 * resolve the name here.
+						 */
+						final NamespaceName loadedCodeObjectBinding = new Variable(
+								name, importReceiver).bindingLocation();
+						assert nameBindsLocallyOrGlobally(importReceiver,
+								loadedCodeObjectBinding);
+
+						importedReferences = referencesToAttributeOfImportedCodeObject(
+								loadedCodeObjectBinding, name);
 
 					} else if (loadedObject instanceof NestedCodeObject) {
 						if (importReceiver.model().intrinsicNamespace(
@@ -377,6 +432,13 @@ final class NamespaceNameFlowStepGoalSolver {
 						}
 					}
 
+				}
+
+				private boolean codeObjectAllowsAttributesToAccessNamespace(
+						CodeObject loadedObject, Namespace namespace) {
+
+					return loadedObject.model()
+							.intrinsicNamespace(loadedObject).equals(namespace);
 				}
 
 				public void onUnresolvedImport(List<String> importPath,
@@ -409,21 +471,10 @@ final class NamespaceNameFlowStepGoalSolver {
 	 * and modules) this happens through attribute expressions on the code
 	 * object where the attribute name is the name of the key being accessed.
 	 */
-	private Result<FlowPosition> referencesToKeyOfImportedCodeObject(
-			CodeObject importReceiver, String as) {
-		assert namespaceName.namespace() instanceof Module;
+	private Result<FlowPosition> referencesToAttributeOfImportedCodeObject(
+			NamespaceName loadedModuleBinding, String name) {
 
-		/*
-		 * importReceiver is the code object containing the import statement but
-		 * its namespace may not actually be the import receiver. It depends on
-		 * the binding scope of 'as' in importReceiver. It could be the global
-		 * scope so we resolve the name here.
-		 */
-		final NamespaceName importedCodeObjectAs = new Variable(as,
-				importReceiver).bindingLocation();
-		assert nameBindsLocallyOrGlobally(importReceiver, importedCodeObjectAs);
-
-		if (!importedCodeObjectAs.equals(namespaceName)) {
+		if (!loadedModuleBinding.equals(namespaceName)) {
 
 			/*
 			 * The value of our namespace's code object may flow all over the
@@ -431,43 +482,51 @@ final class NamespaceNameFlowStepGoalSolver {
 			 * locations so we issue a new flow query to track our namespace
 			 * rather than its key.
 			 */
-			final class NamespaceAccessFlower {
 
-				Result<FlowPosition> namespaceAccesses;
+			Result<ModelSite<? extends exprType>> moduleReferences = goalManager
+					.registerSubgoal(new FlowGoal(new NamespaceNamePosition(
+							loadedModuleBinding)));
 
-				public NamespaceAccessFlower() {
+			Transformer<ModelSite<? extends exprType>, Result<FlowPosition>> accessPositioner = new Transformer<ModelSite<? extends exprType>, Result<FlowPosition>>() {
 
-					// Set<ModelSite<? extends exprType>> moduleReferences =
-					// goalManager
-					// .registerSubgoal(new FlowGoal(new CodeObjectPosition(
-					// namespaceKey.getNamespace(), namespaceKey)));
-
-					Result<ModelSite<? extends exprType>> moduleReferences = goalManager
-							.registerSubgoal(new FlowGoal(
-									new NamespaceNamePosition(
-											importedCodeObjectAs)));
-
-					moduleReferences
-							.actOnResult(new Processor<ModelSite<? extends exprType>>() {
-
-								public void processInfiniteResult() {
-									namespaceAccesses = TopFp.INSTANCE;
-								}
-
-								public void processFiniteResult(
-										Set<ModelSite<? extends exprType>> moduleReferences) {
-									namespaceAccesses = new FiniteResult<FlowPosition>(
-											accessesToNamespaceEntry(moduleReferences));
-								}
-							});
-
+				public Result<FlowPosition> transformFiniteResult(
+						Set<ModelSite<? extends exprType>> moduleReferences) {
+					return new FiniteResult<FlowPosition>(
+							findNameAccessesToCodeObjectNamespace(moduleReferences));
 				}
 
-			}
-			return new NamespaceAccessFlower().namespaceAccesses;
+				public Result<FlowPosition> transformInfiniteResult() {
+					return TopFp.INSTANCE;
+				}
+			};
+
+			return moduleReferences.transformResult(accessPositioner);
+
 		} else {
 			return FiniteResult.bottom();
 		}
+	}
+
+	/**
+	 * Search for any accesses the the given attribute name on the expressions
+	 * the code object has flowed to.
+	 */
+	private Set<FlowPosition> findNameAccessesToCodeObjectNamespace(
+			Set<ModelSite<? extends exprType>> moduleReferenceExpressions) {
+
+		final Set<FlowPosition> positions = new HashSet<FlowPosition>();
+
+		new AttributeAccessFinder(moduleReferenceExpressions,
+				new AttributeAccessFinder.Event() {
+
+					public boolean attributeAccess(
+							ModelSite<Attribute> attribute) {
+						positions.add(new ExpressionPosition<Attribute>(
+								attribute));
+						return false;
+					}
+				});
+		return positions;
 	}
 
 	/**
@@ -512,75 +571,5 @@ final class NamespaceNameFlowStepGoalSolver {
 				|| nameBinding.namespace().equals(
 						model.intrinsicNamespace(importReceiver
 								.enclosingModule()));
-	}
-
-	private Set<FlowPosition> accessesToNamespaceEntry(
-			Set<ModelSite<? extends exprType>> moduleReferenceExpressions) {
-
-		Set<FlowPosition> positions = new HashSet<FlowPosition>();
-
-		for (ModelSite<? extends exprType> moduleReference : moduleReferenceExpressions) {
-			positions.addAll(searchCodeObjectForAccessToNamespaceEntry(
-					moduleReference.codeObject(), namespaceName.name(),
-					moduleReference.astNode()));
-		}
-
-		return positions;
-	}
-
-	/**
-	 * Search for any accesses the the given attribute name on the given
-	 * namespace key.
-	 */
-	private Set<FlowPosition> searchCodeObjectForAccessToNamespaceEntry(
-			final CodeObject scope, final String attributeName,
-			final exprType expression) {
-
-		final Set<FlowPosition> positions = new HashSet<FlowPosition>();
-
-		new CodeObjectWalker() {
-
-			@Override
-			protected void visitCodeObject(final CodeObject codeObject) {
-				try {
-					codeObject.codeBlock().accept(new LocalCodeBlockVisitor() {
-
-						@Override
-						public Object visitAttribute(Attribute node)
-								throws Exception {
-
-							addPositionIfAttributeNameMatches(positions,
-									codeObject, node, attributeName);
-
-							return null;
-						}
-
-						@Override
-						protected Object unhandled_node(SimpleNode node)
-								throws Exception {
-							return null;
-						}
-
-						@Override
-						public void traverse(SimpleNode node) throws Exception {
-							node.traverse(this);
-						}
-					});
-				} catch (Exception e) {
-					throw new RuntimeException(e);
-				}
-			}
-		}.walk(scope);
-
-		return positions;
-	}
-
-	private static void addPositionIfAttributeNameMatches(
-			Set<FlowPosition> positions, CodeObject enclosingCodeObject,
-			Attribute attribute, String name) {
-		if (((NameTok) attribute.attr).id.equals(name)) {
-			positions.add(new ExpressionPosition<Attribute>(
-					new ModelSite<Attribute>(attribute, enclosingCodeObject)));
-		}
 	}
 }

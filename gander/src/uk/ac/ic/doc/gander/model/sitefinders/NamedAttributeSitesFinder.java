@@ -7,19 +7,19 @@ import java.util.Set;
 import org.python.pydev.parser.jython.ast.Attribute;
 import org.python.pydev.parser.jython.ast.NameTok;
 
-import uk.ac.ic.doc.gander.model.AttributeSitesWalker;
-import uk.ac.ic.doc.gander.model.Model;
+import uk.ac.ic.doc.gander.model.AttributeSearch;
 import uk.ac.ic.doc.gander.model.ModelSite;
-import uk.ac.ic.doc.gander.model.AttributeSitesWalker.EventHandler;
+import uk.ac.ic.doc.gander.model.AttributeSearch.EventHandler;
 import uk.ac.ic.doc.gander.model.codeobject.CodeObject;
 
-public final class AttributeSitesFinder {
+public final class NamedAttributeSitesFinder {
 
 	private final Set<ModelSite<Attribute>> sites = new HashSet<ModelSite<Attribute>>();
 
-	public AttributeSitesFinder(final Model model, final String attributeName) {
+	public NamedAttributeSitesFinder(final CodeObject codeObject,
+			final String attributeName) {
 
-		new AttributeSitesWalker(model, new EventHandler() {
+		new AttributeSearch(codeObject, new EventHandler() {
 
 			public void encounteredAttribute(Attribute attribute,
 					CodeObject codeObject) {
