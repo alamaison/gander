@@ -33,4 +33,43 @@ final class FromImportInfo implements ImportInfo {
 		this.bindingObject = bindingObject;
 	}
 
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result
+				+ ((bindingName == null) ? 0 : bindingName.hashCode());
+		result = prime * result
+				+ ((bindingObject == null) ? 0 : bindingObject.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		FromImportInfo other = (FromImportInfo) obj;
+		if (bindingName == null) {
+			if (other.bindingName != null)
+				return false;
+		} else if (!bindingName.equals(other.bindingName))
+			return false;
+		if (bindingObject == null) {
+			if (other.bindingObject != null)
+				return false;
+		} else if (!bindingObject.equals(other.bindingObject))
+			return false;
+		return true;
+	}
+
+	@Override
+	public String toString() {
+		return "FromImportInfo [from " + bindingName + " import"
+				+ bindingObject + "]";
+	}
+
 }
