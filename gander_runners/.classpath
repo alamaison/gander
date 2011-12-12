@@ -6,5 +6,6 @@
 	<classpathentry combineaccessrules="false" kind="src" path="/gander"/>
 	<classpathentry kind="lib" path="/homes/awl03/workspace/jfreechart-1.0.13/lib/jfreechart-1.0.13.jar" sourcepath="/jfreechart"/>
 	<classpathentry kind="lib" path="/homes/awl03/workspace/jfreechart-1.0.13/lib/jcommon-1.0.16.jar"/>
+	<classpathentry kind="lib" path="/homes/awl03/Desktop/sqlite-jdbc-3.7.2.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
