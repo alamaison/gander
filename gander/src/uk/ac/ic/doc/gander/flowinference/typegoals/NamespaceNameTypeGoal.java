@@ -10,7 +10,7 @@ import uk.ac.ic.doc.gander.flowinference.result.RedundancyEliminator;
 import uk.ac.ic.doc.gander.flowinference.result.Result;
 import uk.ac.ic.doc.gander.flowinference.result.Result.Processor;
 import uk.ac.ic.doc.gander.flowinference.types.TClass;
-import uk.ac.ic.doc.gander.flowinference.types.TNamespace;
+import uk.ac.ic.doc.gander.flowinference.types.TCodeObject;
 import uk.ac.ic.doc.gander.flowinference.types.Type;
 import uk.ac.ic.doc.gander.model.Class;
 import uk.ac.ic.doc.gander.model.ModelSite;
@@ -153,7 +153,7 @@ final class NamespaceNameTypeGoalSolver {
 	}
 
 	protected boolean isDeclaredType(Type type) {
-		return type instanceof TNamespace;
+		return type instanceof TCodeObject;
 	}
 
 	private final class MemberTyper implements Processor<Type> {

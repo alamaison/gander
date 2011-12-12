@@ -4,9 +4,9 @@ import java.util.List;
 
 import uk.ac.ic.doc.gander.DottedName;
 import uk.ac.ic.doc.gander.model.Module;
-import uk.ac.ic.doc.gander.model.Namespace;
+import uk.ac.ic.doc.gander.model.codeobject.CodeObject;
 
-public class TUnresolvedImport implements TImportable, TNamespace {
+public class TUnresolvedImport implements TImportable, TCodeObject {
 
 	private List<String> importPath;
 	private Module relativeToPackage;
@@ -28,7 +28,7 @@ public class TUnresolvedImport implements TImportable, TNamespace {
 		this.fromTarget = itemName;
 	}
 
-	public Namespace getNamespaceInstance() {
+	public CodeObject codeObject() {
 		return null;
 	}
 

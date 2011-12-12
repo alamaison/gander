@@ -1,11 +1,10 @@
 package uk.ac.ic.doc.gander.flowinference.types;
 
 import uk.ac.ic.doc.gander.model.Class;
-import uk.ac.ic.doc.gander.model.Namespace;
 import uk.ac.ic.doc.gander.model.codeobject.ClassCO;
 import uk.ac.ic.doc.gander.model.codeobject.CodeObject;
 
-public class TClass implements TNamespace, TCodeObject {
+public class TClass implements TCodeObject {
 
 	private final ClassCO classInstance;
 
@@ -31,12 +30,8 @@ public class TClass implements TNamespace, TCodeObject {
 		return classInstance.oldStyleConflatedNamespace();
 	}
 
-	public Namespace getNamespaceInstance() {
-		return getClassInstance();
-	}
-
 	public String getName() {
-		return getNamespaceInstance().getFullName();
+		return getClassInstance().getFullName();
 	}
 
 	@Override

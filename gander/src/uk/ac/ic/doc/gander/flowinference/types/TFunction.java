@@ -1,11 +1,10 @@
 package uk.ac.ic.doc.gander.flowinference.types;
 
 import uk.ac.ic.doc.gander.model.Function;
-import uk.ac.ic.doc.gander.model.Namespace;
 import uk.ac.ic.doc.gander.model.codeobject.CodeObject;
 import uk.ac.ic.doc.gander.model.codeobject.FunctionCO;
 
-public class TFunction implements TNamespace, TCodeObject {
+public class TFunction implements TCodeObject {
 
 	private final FunctionCO functionInstance;
 
@@ -13,7 +12,7 @@ public class TFunction implements TNamespace, TCodeObject {
 		if (functionInstance == null) {
 			throw new NullPointerException("Code object required");
 		}
-		
+
 		this.functionInstance = functionInstance;
 	}
 
@@ -31,13 +30,8 @@ public class TFunction implements TNamespace, TCodeObject {
 		return functionInstance.oldStyleConflatedNamespace();
 	}
 
-	@Deprecated
-	public Namespace getNamespaceInstance() {
-		return getFunctionInstance();
-	}
-
 	public String getName() {
-		return getNamespaceInstance().getFullName();
+		return getFunctionInstance().getFullName();
 	}
 
 	@Override

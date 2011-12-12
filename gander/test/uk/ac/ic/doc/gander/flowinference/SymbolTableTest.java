@@ -333,7 +333,7 @@ public class SymbolTableTest {
 
 		Module adopted = model.lookup("adopted_children");
 		assertEquals("Type resolved to a module but not to 'adopted_children'",
-				adopted, ((TModule) type).getNamespaceInstance());
+				adopted, ((TModule) type).getModuleInstance());
 	}
 
 	@Test

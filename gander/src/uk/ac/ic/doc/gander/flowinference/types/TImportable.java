@@ -1,4 +1,4 @@
 package uk.ac.ic.doc.gander.flowinference.types;
 
-public interface TImportable extends TNamespace {
+public interface TImportable extends TCodeObject {
 }

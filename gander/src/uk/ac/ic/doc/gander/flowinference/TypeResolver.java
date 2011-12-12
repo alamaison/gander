@@ -14,7 +14,7 @@ import org.python.pydev.parser.jython.ast.Str;
 import org.python.pydev.parser.jython.ast.VisitorBase;
 
 import uk.ac.ic.doc.gander.flowinference.types.TClass;
-import uk.ac.ic.doc.gander.flowinference.types.TNamespace;
+import uk.ac.ic.doc.gander.flowinference.types.TCodeObject;
 import uk.ac.ic.doc.gander.flowinference.types.Type;
 import uk.ac.ic.doc.gander.model.LexicalResolver;
 import uk.ac.ic.doc.gander.model.Model;
@@ -45,13 +45,13 @@ public class TypeResolver extends VisitorBase {
 
 	@Override
 	public Object visitName(Name node) throws Exception {
-		Type type = new SymbolTableTypeResolver(table).resolveToken(node.id, scopes
-				.peek().codeObject());
+		Type type = new SymbolTableTypeResolver(table).resolveToken(node.id,
+				scopes.peek().codeObject());
 		if (type == null) {
 			/* Token could not be resolved so look in the builtin namespace */
 			type = table.symbols(model.getTopLevel()).get(node.id);
 		}
-		
+
 		return type;
 	}
 
@@ -60,10 +60,15 @@ public class TypeResolver extends VisitorBase {
 
 		Type valueType = typeOf(node.value, scopes.peek());
 
-		if (valueType != null && valueType instanceof TNamespace) {
+		if (valueType != null && valueType instanceof TCodeObject) {
 			try {
-				Namespace scope = ((TNamespace) valueType)
-						.getNamespaceInstance();
+				Namespace scope;
+				if (((TCodeObject) valueType).codeObject() != null) {
+					scope = ((TCodeObject) valueType).codeObject()
+							.oldStyleConflatedNamespace();
+				} else {
+					scope = null;
+				}
 				return table.symbols(scope).get(((NameTok) node.attr).id);
 			} catch (UnresolvedImportError e) {
 			}
