@@ -15,6 +15,7 @@ import org.python.pydev.parser.jython.ast.VisitorBase;
 
 import uk.ac.ic.doc.gander.flowinference.types.TClass;
 import uk.ac.ic.doc.gander.flowinference.types.TCodeObject;
+import uk.ac.ic.doc.gander.flowinference.types.TUnresolvedImport;
 import uk.ac.ic.doc.gander.flowinference.types.Type;
 import uk.ac.ic.doc.gander.model.LexicalResolver;
 import uk.ac.ic.doc.gander.model.Model;
@@ -63,12 +64,13 @@ public class TypeResolver extends VisitorBase {
 		if (valueType != null && valueType instanceof TCodeObject) {
 			try {
 				Namespace scope;
-				if (((TCodeObject) valueType).codeObject() != null) {
+				if (valueType instanceof TUnresolvedImport) {
+					scope = null;
+				} else {
 					scope = ((TCodeObject) valueType).codeObject()
 							.oldStyleConflatedNamespace();
-				} else {
-					scope = null;
 				}
+
 				return table.symbols(scope).get(((NameTok) node.attr).id);
 			} catch (UnresolvedImportError e) {
 			}

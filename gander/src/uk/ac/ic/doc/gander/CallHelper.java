@@ -9,7 +9,9 @@ import org.python.pydev.parser.jython.ast.exprType;
 
 import uk.ac.ic.doc.gander.flowinference.TypeResolver;
 import uk.ac.ic.doc.gander.flowinference.types.TClass;
-import uk.ac.ic.doc.gander.flowinference.types.TImportable;
+import uk.ac.ic.doc.gander.flowinference.types.TModule;
+import uk.ac.ic.doc.gander.flowinference.types.TUnresolvedImport;
+import uk.ac.ic.doc.gander.flowinference.types.Type;
 import uk.ac.ic.doc.gander.model.Class;
 import uk.ac.ic.doc.gander.model.Function;
 import uk.ac.ic.doc.gander.model.Namespace;
@@ -28,7 +30,8 @@ public class CallHelper {
 
 		// skip calls to module functions - they look like method calls but
 		// we want to treat then differently
-		return !(typer.typeOf(indirectCallTarget(call), scope) instanceof TImportable);
+		Type callTarget = typer.typeOf(indirectCallTarget(call), scope);
+		return !(callTarget instanceof TModule || callTarget instanceof TUnresolvedImport);
 	}
 
 	public static boolean isMethodCallOnName(Call call, Namespace scope,

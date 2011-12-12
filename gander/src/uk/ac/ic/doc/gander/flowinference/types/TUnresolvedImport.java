@@ -6,7 +6,7 @@ import uk.ac.ic.doc.gander.DottedName;
 import uk.ac.ic.doc.gander.model.Module;
 import uk.ac.ic.doc.gander.model.codeobject.CodeObject;
 
-public class TUnresolvedImport implements TImportable, TCodeObject {
+public class TUnresolvedImport implements TCodeObject {
 
 	private List<String> importPath;
 	private Module relativeToPackage;

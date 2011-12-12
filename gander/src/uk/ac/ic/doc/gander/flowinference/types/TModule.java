@@ -3,7 +3,7 @@ package uk.ac.ic.doc.gander.flowinference.types;
 import uk.ac.ic.doc.gander.model.Module;
 import uk.ac.ic.doc.gander.model.codeobject.ModuleCO;
 
-public class TModule implements TImportable, TCodeObject {
+public class TModule implements TCodeObject {
 
 	private final ModuleCO moduleInstance;
 
