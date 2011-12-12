@@ -59,7 +59,10 @@ final class UnqualifiedNameDefinitionsPartialSolution implements
 		 * the search for bindings rather than having to search from the top
 		 * level of the model.
 		 */
-		addUnqualifiedBindingsBelowCodeObject(name.namespace().codeObject());
+		if (name.namespace().equals(
+				name.namespace().codeObject().unqualifiedNamespace())) {
+			addUnqualifiedBindingsBelowCodeObject(name.namespace().codeObject());
+		}
 	}
 
 	/**

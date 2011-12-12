@@ -15,12 +15,12 @@ import uk.ac.ic.doc.gander.model.codeblock.CodeBlock;
  */
 public final class ModuleCO implements NamedCodeObject {
 
-	private final Module oldStyleFunctionNamespace;
+	private final Module oldStyleModuleNamespace;
 
 	/**
 	 * Create new function code object representation.
 	 * 
-	 * @param oldStyleFunctionNamespace
+	 * @param oldStyleModuleNamespace
 	 *            the old-style namespace for the function; XXX: Eventually this
 	 *            should be replaced to just take the AST
 	 */
@@ -28,15 +28,15 @@ public final class ModuleCO implements NamedCodeObject {
 		if (oldStyleFunctionNamespace == null)
 			throw new NullPointerException();
 
-		this.oldStyleFunctionNamespace = oldStyleFunctionNamespace;
+		this.oldStyleModuleNamespace = oldStyleFunctionNamespace;
 	}
 
 	public org.python.pydev.parser.jython.ast.Module ast() {
-		return oldStyleFunctionNamespace.getAst();
+		return oldStyleModuleNamespace.getAst();
 	}
 
 	public CodeBlock codeBlock() {
-		return oldStyleFunctionNamespace.asCodeBlock();
+		return oldStyleModuleNamespace.asCodeBlock();
 	}
 
 	public ModuleCO enclosingModule() {
@@ -45,15 +45,15 @@ public final class ModuleCO implements NamedCodeObject {
 
 	public Set<CodeObject> nestedCodeObjects() {
 		Set<CodeObject> nestedCodeObjects = new HashSet<CodeObject>();
-		for (Namespace namespace : oldStyleFunctionNamespace.getModules()
+		for (Namespace namespace : oldStyleModuleNamespace.getModules()
 				.values()) {
 			nestedCodeObjects.add(namespace.codeObject());
 		}
-		for (Namespace namespace : oldStyleFunctionNamespace.getClasses()
+		for (Namespace namespace : oldStyleModuleNamespace.getClasses()
 				.values()) {
 			nestedCodeObjects.add(namespace.codeObject());
 		}
-		for (Namespace namespace : oldStyleFunctionNamespace.getFunctions()
+		for (Namespace namespace : oldStyleModuleNamespace.getFunctions()
 				.values()) {
 			nestedCodeObjects.add(namespace.codeObject());
 		}
@@ -82,16 +82,36 @@ public final class ModuleCO implements NamedCodeObject {
 		return true;
 	}
 
+	/**
+	 * {@inheritDoc}
+	 * 
+	 * Both qualified and unqualified references of a module access the same
+	 * namespace.
+	 */
+	public Namespace fullyQualifiedNamespace() {
+		return oldStyleModuleNamespace;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 * 
+	 * Both qualified and unqualified references of a module access the same
+	 * namespace.
+	 */
+	public Namespace unqualifiedNamespace() {
+		return oldStyleModuleNamespace;
+	}
+
 	public Model model() {
-		return oldStyleFunctionNamespace.model();
+		return oldStyleModuleNamespace.model();
 	}
 
 	public Module oldStyleConflatedNamespace() {
-		return oldStyleFunctionNamespace;
+		return oldStyleModuleNamespace;
 	}
 
 	public String declaredName() {
-		return oldStyleFunctionNamespace.getName();
+		return oldStyleModuleNamespace.getName();
 	}
 
 	public String absoluteDescription() {
@@ -104,8 +124,8 @@ public final class ModuleCO implements NamedCodeObject {
 		int result = 1;
 		result = prime
 				* result
-				+ ((oldStyleFunctionNamespace == null) ? 0
-						: oldStyleFunctionNamespace.hashCode());
+				+ ((oldStyleModuleNamespace == null) ? 0
+						: oldStyleModuleNamespace.hashCode());
 		return result;
 	}
 
@@ -118,11 +138,11 @@ public final class ModuleCO implements NamedCodeObject {
 		if (getClass() != obj.getClass())
 			return false;
 		ModuleCO other = (ModuleCO) obj;
-		if (oldStyleFunctionNamespace == null) {
-			if (other.oldStyleFunctionNamespace != null)
+		if (oldStyleModuleNamespace == null) {
+			if (other.oldStyleModuleNamespace != null)
 				return false;
-		} else if (!oldStyleFunctionNamespace
-				.equals(other.oldStyleFunctionNamespace))
+		} else if (!oldStyleModuleNamespace
+				.equals(other.oldStyleModuleNamespace))
 			return false;
 		return true;
 	}

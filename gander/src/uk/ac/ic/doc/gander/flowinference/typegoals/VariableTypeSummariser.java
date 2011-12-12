@@ -10,7 +10,6 @@ import org.python.pydev.parser.jython.ast.exprType;
 
 import uk.ac.ic.doc.gander.ast.BindingDetector;
 import uk.ac.ic.doc.gander.ast.LocalCodeBlockVisitor;
-import uk.ac.ic.doc.gander.flowinference.ImportTypeMapper;
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
 import uk.ac.ic.doc.gander.flowinference.result.FiniteResult;
 import uk.ac.ic.doc.gander.flowinference.result.RedundancyEliminator;
@@ -238,8 +237,8 @@ class BoundTypeVisitor implements BindingDetector.DetectionEvent {
 	public boolean moduleImport(String moduleName) {
 		ImportInfo info = ImportInfoFactory.newImport(moduleName);
 		if (isMatch(info.bindingName())) {
-			judgement.add(ImportTypeMapper.typeImport(variable.model(), info
-					.bindingObject()));
+			judgement.add(new ImportTypeMapper(goalManager).typeImport(variable
+					.model(), info.bindingObject()));
 		}
 
 		return judgement.isFinished();
@@ -248,8 +247,8 @@ class BoundTypeVisitor implements BindingDetector.DetectionEvent {
 	public boolean moduleImportAs(String moduleName, String as) {
 		ImportInfo info = ImportInfoFactory.newImportAs(moduleName, as);
 		if (isMatch(info.bindingName())) {
-			judgement.add(ImportTypeMapper.typeImport(variable.model(), info
-					.bindingObject()));
+			judgement.add(new ImportTypeMapper(goalManager).typeImport(variable
+					.model(), info.bindingObject()));
 		}
 
 		return judgement.isFinished();
@@ -258,8 +257,8 @@ class BoundTypeVisitor implements BindingDetector.DetectionEvent {
 	public boolean fromModuleImport(String moduleName, String itemName) {
 		ImportInfo info = ImportInfoFactory.newFromImport(moduleName, itemName);
 		if (isMatch(info.bindingName())) {
-			judgement.add(ImportTypeMapper.typeFromImport(variable.model(),
-					info.bindingObject()));
+			judgement.add(new ImportTypeMapper(goalManager).typeFromImport(
+					variable.model(), info.bindingObject()));
 		}
 
 		return judgement.isFinished();
@@ -270,8 +269,8 @@ class BoundTypeVisitor implements BindingDetector.DetectionEvent {
 		ImportInfo info = ImportInfoFactory.newFromImportAs(moduleName,
 				itemName, as);
 		if (isMatch(info.bindingName())) {
-			judgement.add(ImportTypeMapper.typeFromImport(variable.model(),
-					info.bindingObject()));
+			judgement.add(new ImportTypeMapper(goalManager).typeFromImport(
+					variable.model(), info.bindingObject()));
 		}
 
 		return judgement.isFinished();

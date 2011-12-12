@@ -27,6 +27,7 @@ import uk.ac.ic.doc.gander.flowinference.types.TObject;
 import uk.ac.ic.doc.gander.flowinference.types.Type;
 import uk.ac.ic.doc.gander.model.Class;
 import uk.ac.ic.doc.gander.model.MutableModel;
+import uk.ac.ic.doc.gander.model.codeobject.ClassCO;
 
 public class ZeroCfaTypeEngineTest {
 	private static final String TEST_FOLDER = "python_test_code/type_engine";
@@ -652,6 +653,51 @@ public class ZeroCfaTypeEngineTest {
 
 		assertEquals("Constructor parameter's type not inferred correctly",
 				expectedType, type);
+	}
+
+	@Test
+	public void methodParameterCalledExplicitly() throws Throwable {
+		ScopedPrintNode node = findPrintNode(
+				"method_parameter_called_explicitly", "what_am_i");
+		Result<Type> type = engine
+				.typeOf(node.getExpression(), node.getScope());
+		Set<Type> expectedType = typeJudgement(listType);
+
+		assertEquals("Method parameter type not inferred correctly. "
+				+ "This probably means it failed to realise that calling the "
+				+ "method on the class and explicitly passing an instance "
+				+ "has the same effect as calling the method on the "
+				+ "instance directly", expectedType, type);
+	}
+
+	@Test
+	public void constructorParameter() throws Throwable {
+		String testName = "constructor_parameter";
+		Set<Type> expectedType = typeJudgement(integerType);
+
+		ScopedPrintNode node = findPrintNode(testName, "what_am_i");
+		Result<Type> type = engine
+				.typeOf(node.getExpression(), node.getScope());
+
+		assertEquals("Constructor parameter's type not inferred correctly. "
+				+ "This probably means it didn't treat the "
+				+ "constructor properly and just tried looking for "
+				+ "explicit calls to __init__.", expectedType, type);
+	}
+
+	@Test
+	public void constructorParameterExplicit() throws Throwable {
+		String testName = "constructor_parameter_explicit";
+		Set<Type> expectedType = typeJudgement(integerType);
+
+		ScopedPrintNode node = findPrintNode(testName, "what_am_i");
+		Result<Type> type = engine
+				.typeOf(node.getExpression(), node.getScope());
+
+		assertEquals("Constructor parameter's type not inferred correctly "
+				+ "when called explictly. Maybe is only treated the "
+				+ "constructor specially and forgot to for "
+				+ "explicit calls to __init__.", expectedType, type);
 	}
 
 	@Test

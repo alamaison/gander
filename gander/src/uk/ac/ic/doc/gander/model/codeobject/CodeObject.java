@@ -57,6 +57,23 @@ public interface CodeObject {
 	CodeObject lexicallyNextCodeObject();
 
 	/**
+	 * Returns that namespace that is use when this object is accessed via a
+	 * fully qualified reference (i.e. via an attribute).
+	 * 
+	 * This can be different from the namespace used by variables in the code
+	 * block's scope. For instance, variables in a function definition are not
+	 * accessible outside the function code object.
+	 */
+	public Namespace fullyQualifiedNamespace();
+
+	/**
+	 * Returns that namespace that is use when this object is accessed via an
+	 * unqualified reference (i.e. directly via a variable in the code object's
+	 * scope).
+	 */
+	public Namespace unqualifiedNamespace();
+
+	/**
 	 * Temporary hack to get at the namespace.
 	 */
 	@Deprecated

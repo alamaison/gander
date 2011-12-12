@@ -395,11 +395,6 @@ final class NamespaceNameFlowStepGoalSolver {
 					if (codeObjectAllowsAttributesToAccessNamespace(
 							loadedObject, namespaceName.namespace())) {
 
-						/* import codeobject */
-
-						assert loadedObject instanceof ModuleCO;
-						assert namespaceName.namespace() instanceof Module;
-
 						/*
 						 * importReceiver is the code object containing the
 						 * import statement but its namespace may not actually

@@ -80,10 +80,20 @@ final class MethodArgumentTypeGoal implements TypeGoal {
 
 final class MethodArgumentTypeGoalSolver {
 
-	private final class MethodArgumentTyper implements
+	private final class CallArgumentTyper implements
 			DatumProcessor<ModelSite<Call>, Type> {
 
 		public Result<Type> process(ModelSite<Call> callSite) {
+
+			/*
+			 * Which argument is passed to the parameter depends on whether this
+			 * callsite calls the method implicitly on an object instance or
+			 * explictly on a class, passing the object instance as the first
+			 * argument.
+			 */
+			// goalManager.registerSubgoal(new ExpressionTypeGoal(new
+			// ModelSite<exprType>(callSite.astNode().func,
+			// callSite.codeObject()));
 			exprType[] args = callSite.astNode().args;
 			if (argumentIndex <= args.length) {
 				ModelSite<exprType> argument = new ModelSite<exprType>(callSite
@@ -92,6 +102,8 @@ final class MethodArgumentTypeGoalSolver {
 				return goalManager.registerSubgoal(new ExpressionTypeGoal(
 						argument));
 			} else {
+				System.err.println("WARNING: unable to make sense of arg #"
+						+ argumentIndex + " passed to " + callSite);
 				// TODO: probably using the default argument
 				return FiniteResult.bottom();
 			}
@@ -124,12 +136,19 @@ final class MethodArgumentTypeGoalSolver {
 					.singleton(new TObject((Class) ((ClassCO) method.parent())
 							.oldStyleConflatedNamespace())));
 		} else {
+			Result<ModelSite<Call>> callSites;
+			if (method.declaredName().equals("__init__")) {
+				callSites = goalManager
+						.registerSubgoal(new FunctionSendersGoal(
+								(ClassCO) method.parent()));
+			} else {
+				callSites = goalManager
+						.registerSubgoal(new FunctionSendersGoal(method));
 
-			Result<ModelSite<Call>> callSites = goalManager
-					.registerSubgoal(new FunctionSendersGoal(method));
+			}
 
 			Concentrator<ModelSite<Call>, Type> processor = Concentrator
-					.newInstance(new MethodArgumentTyper(), TopT.INSTANCE);
+					.newInstance(new CallArgumentTyper(), TopT.INSTANCE);
 			callSites.actOnResult(processor);
 
 			solution = processor.result();

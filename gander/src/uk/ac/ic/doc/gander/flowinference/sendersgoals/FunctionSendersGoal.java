@@ -15,15 +15,15 @@ import uk.ac.ic.doc.gander.flowinference.result.FiniteResult;
 import uk.ac.ic.doc.gander.flowinference.result.Result;
 import uk.ac.ic.doc.gander.flowinference.result.Result.Processor;
 import uk.ac.ic.doc.gander.model.ModelSite;
-import uk.ac.ic.doc.gander.model.codeobject.FunctionCO;
+import uk.ac.ic.doc.gander.model.codeobject.CallableCodeObject;
 
 /**
  * Find any callsites that could call the given function.
  */
 public class FunctionSendersGoal implements SendersGoal {
-	private final FunctionCO callable;
+	private final CallableCodeObject callable;
 
-	public FunctionSendersGoal(FunctionCO callable) {
+	public FunctionSendersGoal(CallableCodeObject callable) {
 		this.callable = callable;
 	}
 
@@ -73,7 +73,7 @@ final class FunctionSendersGoalSolver {
 
 	private Result<ModelSite<Call>> callSites;
 
-	public FunctionSendersGoalSolver(FunctionCO callable,
+	public FunctionSendersGoalSolver(CallableCodeObject callable,
 			SubgoalManager goalManager) {
 
 		Result<ModelSite<? extends exprType>> positions = goalManager

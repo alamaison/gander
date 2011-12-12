@@ -1,13 +1,19 @@
 package uk.ac.ic.doc.gander.model.codeobject;
 
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
+import org.python.pydev.parser.jython.SimpleNode;
 import org.python.pydev.parser.jython.ast.FunctionDef;
 import org.python.pydev.parser.jython.ast.NameTok;
 
+import uk.ac.ic.doc.gander.cfg.Cfg;
+import uk.ac.ic.doc.gander.model.Class;
 import uk.ac.ic.doc.gander.model.Function;
+import uk.ac.ic.doc.gander.model.Member;
 import uk.ac.ic.doc.gander.model.Model;
+import uk.ac.ic.doc.gander.model.Module;
 import uk.ac.ic.doc.gander.model.Namespace;
 import uk.ac.ic.doc.gander.model.codeblock.CodeBlock;
 
@@ -16,7 +22,8 @@ import uk.ac.ic.doc.gander.model.codeblock.CodeBlock;
  * 
  * Currently just an adapter around the hopelessly conflated {@link Namespace}.
  */
-public final class FunctionCO implements NamedCodeObject, NestedCodeObject {
+public final class FunctionCO implements NamedCodeObject, NestedCodeObject,
+		CallableCodeObject {
 
 	private final FunctionDef ast;
 	private final Function oldStyleFunctionNamespace;
@@ -25,9 +32,10 @@ public final class FunctionCO implements NamedCodeObject, NestedCodeObject {
 	/**
 	 * Create new function code object representation.
 	 * 
+	 * XXX: Eventually this should be replaced to just take the AST
+	 * 
 	 * @param oldStyleFunctionNamespace
-	 *            the old-style namespace for the function; XXX: Eventually this
-	 *            should be replaced to just take the AST
+	 *            the old-style namespace for the function
 	 */
 	public FunctionCO(Function oldStyleFunctionNamespace, CodeObject parent) {
 		if (oldStyleFunctionNamespace == null) {
@@ -102,6 +110,26 @@ public final class FunctionCO implements NamedCodeObject, NestedCodeObject {
 		return true;
 	}
 
+	/**
+	 * {@inheritDoc}
+	 * 
+	 * Qualified references on a function object access a separate namespace
+	 * from the function body.
+	 */
+	public Namespace fullyQualifiedNamespace() {
+		return new DummyNamespace();
+	}
+
+	/**
+	 * {@inheritDoc}
+	 * 
+	 * Unqualified references (variables) in a function body are separate from
+	 * the references on the function object.
+	 */
+	public Namespace unqualifiedNamespace() {
+		return oldStyleFunctionNamespace;
+	}
+
 	public Model model() {
 		return oldStyleFunctionNamespace.model();
 	}
@@ -152,4 +180,77 @@ public final class FunctionCO implements NamedCodeObject, NestedCodeObject {
 		return "FunctionCO[" + absoluteDescription() + "]";
 	}
 
+}
+
+final class DummyNamespace implements Namespace {
+
+	private static final String ERROR = "External function namespaces are currently non-functional";
+
+	public Namespace getParentScope() {
+		throw new UnsupportedOperationException(ERROR);
+	}
+
+	public String getName() {
+		throw new UnsupportedOperationException(ERROR);
+	}
+
+	public SimpleNode getAst() {
+		throw new UnsupportedOperationException(ERROR);
+	}
+
+	public Model model() {
+		throw new UnsupportedOperationException(ERROR);
+	}
+
+	public Member lookupMember(String memberName) {
+		throw new UnsupportedOperationException(ERROR);
+	}
+
+	public boolean isSystem() {
+		throw new UnsupportedOperationException(ERROR);
+	}
+
+	public Map<String, Module> getModules() {
+		throw new UnsupportedOperationException(ERROR);
+	}
+
+	public Module getGlobalNamespace() {
+		throw new UnsupportedOperationException(ERROR);
+	}
+
+	public Map<String, Function> getFunctions() {
+		throw new UnsupportedOperationException(ERROR);
+	}
+
+	public String getFullName() {
+		throw new UnsupportedOperationException(ERROR);
+	}
+
+	public Map<String, Class> getClasses() {
+		throw new UnsupportedOperationException(ERROR);
+	}
+
+	public Cfg getCfg() {
+		throw new UnsupportedOperationException(ERROR);
+	}
+
+	public CodeObject codeObject() {
+		throw new UnsupportedOperationException(ERROR);
+	}
+
+	public CodeBlock asCodeBlock() {
+		throw new UnsupportedOperationException(ERROR);
+	}
+
+	public void addModule(Module module) {
+		throw new UnsupportedOperationException(ERROR);
+	}
+
+	public void addFunction(Function function) {
+		throw new UnsupportedOperationException(ERROR);
+	}
+
+	public void addClass(Class klass) {
+		throw new UnsupportedOperationException(ERROR);
+	}
 }

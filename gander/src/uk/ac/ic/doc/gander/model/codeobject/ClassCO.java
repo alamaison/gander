@@ -16,21 +16,22 @@ import uk.ac.ic.doc.gander.model.codeblock.CodeBlock;
  * 
  * Currently just an adapter around the hopelessly conflated {@link Namespace}.
  */
-public final class ClassCO implements NamedCodeObject, NestedCodeObject {
+public final class ClassCO implements NamedCodeObject, NestedCodeObject,
+		CallableCodeObject {
 
 	private final ClassDef ast;
-	private final Class oldStyleFunctionNamespace;
+	private final Class oldStyleClassNamespace;
 	private final CodeObject parent;
 
 	/**
 	 * Create new function code object representation.
 	 * 
-	 * @param oldStyleFunctionNamespace
+	 * @param oldStyleClassNamespace
 	 *            the old-style namespace for the function; XXX: Eventually this
 	 *            should be replaced to just take the AST
 	 */
-	public ClassCO(Class oldStyleFunctionNamespace, CodeObject parent) {
-		if (oldStyleFunctionNamespace == null) {
+	public ClassCO(Class oldStyleClassNamespace, CodeObject parent) {
+		if (oldStyleClassNamespace == null) {
 			throw new NullPointerException();
 		}
 		if (parent == null) {
@@ -38,14 +39,13 @@ public final class ClassCO implements NamedCodeObject, NestedCodeObject {
 					"All classes appear inside another code object");
 		}
 		/*
-		 * if (parent.ast().equals(oldStyleFunctionNamespace.getAst())) { throw
-		 * new IllegalArgumentException( "Code block cannot be its own parent");
-		 * }
+		 * if (parent.ast().equals(oldStyleClassNamespace.getAst())) { throw new
+		 * IllegalArgumentException( "Code block cannot be its own parent"); }
 		 */
 
-		this.oldStyleFunctionNamespace = oldStyleFunctionNamespace;
+		this.oldStyleClassNamespace = oldStyleClassNamespace;
 		this.parent = parent;
-		this.ast = oldStyleFunctionNamespace.getAst();
+		this.ast = oldStyleClassNamespace.getAst();
 	}
 
 	public ClassDef ast() {
@@ -53,7 +53,7 @@ public final class ClassCO implements NamedCodeObject, NestedCodeObject {
 	}
 
 	public CodeBlock codeBlock() {
-		return oldStyleFunctionNamespace.asCodeBlock();
+		return oldStyleClassNamespace.asCodeBlock();
 	}
 
 	public ModuleCO enclosingModule() {
@@ -62,15 +62,13 @@ public final class ClassCO implements NamedCodeObject, NestedCodeObject {
 
 	public Set<CodeObject> nestedCodeObjects() {
 		Set<CodeObject> nestedCodeObjects = new HashSet<CodeObject>();
-		for (Namespace namespace : oldStyleFunctionNamespace.getModules()
-				.values()) {
+		for (Namespace namespace : oldStyleClassNamespace.getModules().values()) {
 			nestedCodeObjects.add(namespace.codeObject());
 		}
-		for (Namespace namespace : oldStyleFunctionNamespace.getClasses()
-				.values()) {
+		for (Namespace namespace : oldStyleClassNamespace.getClasses().values()) {
 			nestedCodeObjects.add(namespace.codeObject());
 		}
-		for (Namespace namespace : oldStyleFunctionNamespace.getFunctions()
+		for (Namespace namespace : oldStyleClassNamespace.getFunctions()
 				.values()) {
 			nestedCodeObjects.add(namespace.codeObject());
 		}
@@ -78,7 +76,7 @@ public final class ClassCO implements NamedCodeObject, NestedCodeObject {
 	}
 
 	public Model model() {
-		return oldStyleFunctionNamespace.model();
+		return oldStyleClassNamespace.model();
 	}
 
 	public String declaredName() {
@@ -111,8 +109,28 @@ public final class ClassCO implements NamedCodeObject, NestedCodeObject {
 		return false;
 	}
 
+	/**
+	 * {@inheritDoc}
+	 * 
+	 * Both qualified and unqualified references of a class access the same
+	 * namespace.
+	 */
+	public Namespace fullyQualifiedNamespace() {
+		return oldStyleClassNamespace;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 * 
+	 * Both qualified and unqualified references of a class access the same
+	 * namespace.
+	 */
+	public Namespace unqualifiedNamespace() {
+		return oldStyleClassNamespace;
+	}
+
 	public Class oldStyleConflatedNamespace() {
-		return oldStyleFunctionNamespace;
+		return oldStyleClassNamespace;
 	}
 
 	@Override

@@ -1,6 +1,7 @@
 package uk.ac.ic.doc.gander.flowinference.typegoals;
 
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
+import uk.ac.ic.doc.gander.flowinference.result.FiniteResult;
 import uk.ac.ic.doc.gander.flowinference.result.Result;
 import uk.ac.ic.doc.gander.flowinference.types.Type;
 import uk.ac.ic.doc.gander.model.NamespaceName;
@@ -29,8 +30,17 @@ final class QualifiedNameDefinitionsPartialSolution implements
 		assert goalManager != null;
 		assert name != null;
 
-		inferredType = new AttributeTypeSummariser(name.namespace()
-				.codeObject(), name.name(), goalManager).type();
+		if (name.namespace().equals(
+				name.namespace().codeObject().fullyQualifiedNamespace())) {
+			/*
+			 * FIXME: The AttributeTypeSummariser may end up using other
+			 * namespaces that differ in their external accessibility
+			 */
+			inferredType = new AttributeTypeSummariser(name.namespace()
+					.codeObject(), name.name(), goalManager).type();
+		} else {
+			inferredType = FiniteResult.bottom();
+		}
 	}
 
 }
