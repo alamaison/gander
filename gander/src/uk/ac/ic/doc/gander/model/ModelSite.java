@@ -41,7 +41,7 @@ public class ModelSite<T extends SimpleNode> {
 		 * constructor and the constructor would call asCodeBlock leading to an
 		 * infinite loop.
 		 */
-		assert codeBlockContainsNode(codeObject.codeBlock(), node);
+		//assert codeBlockContainsNode(codeObject.codeBlock(), node);
 		return node;
 	}
 

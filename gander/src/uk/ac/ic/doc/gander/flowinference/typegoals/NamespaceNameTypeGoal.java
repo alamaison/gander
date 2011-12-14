@@ -9,18 +9,17 @@ import uk.ac.ic.doc.gander.flowinference.result.FiniteResult;
 import uk.ac.ic.doc.gander.flowinference.result.RedundancyEliminator;
 import uk.ac.ic.doc.gander.flowinference.result.Result;
 import uk.ac.ic.doc.gander.flowinference.result.Result.Processor;
-import uk.ac.ic.doc.gander.flowinference.types.TClass;
 import uk.ac.ic.doc.gander.flowinference.types.TCodeObject;
 import uk.ac.ic.doc.gander.flowinference.types.Type;
 import uk.ac.ic.doc.gander.model.Class;
 import uk.ac.ic.doc.gander.model.ModelSite;
 import uk.ac.ic.doc.gander.model.NamespaceName;
 
-final class NamespaceNameTypeGoal implements TypeGoal {
+public final class NamespaceNameTypeGoal implements TypeGoal {
 
 	private NamespaceName name;
 
-	NamespaceNameTypeGoal(NamespaceName name) {
+	public NamespaceNameTypeGoal(NamespaceName name) {
 		if (name == null)
 			throw new NullPointerException(
 					"Can't find an name's type if we don't have a name");
@@ -89,7 +88,7 @@ final class NamespaceNameTypeGoalSolver {
 
 		addTypesFromNamespace();
 		if (name.namespace() instanceof Class) {
-			addTypesFromInheritanceChain((Class) name.namespace(), name.name());
+			addTypesFromInheritanceChain((Class) name.namespace());
 		}
 	}
 
@@ -104,7 +103,7 @@ final class NamespaceNameTypeGoalSolver {
 				goalManager, name).partialSolution());
 	}
 
-	private void addTypesFromInheritanceChain(Class klass, String name) {
+	private void addTypesFromInheritanceChain(Class klass) {
 
 		for (exprType supertype : klass.inheritsFrom()) {
 
@@ -167,15 +166,8 @@ final class NamespaceNameTypeGoalSolver {
 				if (completeType.isFinished())
 					break;
 
-				if (supertypeType instanceof TClass) {
-					Class superclass = ((TClass) supertypeType)
-							.getClassInstance();
-
-					Result<Type> inheritedType = goalManager
-							.registerSubgoal(new NamespaceNameTypeGoal(
-									new NamespaceName(name.name(), superclass)));
-					completeType.add(inheritedType);
-				}
+				completeType.add(supertypeType.memberType(name.name(),
+						goalManager));
 			}
 		}
 	}

@@ -42,12 +42,4 @@ public interface CodeBlock {
 	 * (parameters can't occur twice with the same name - or can they).
 	 */
 	List<String> getNamedFormalParameters();
-
-	/**
-	 * Return the parameters, if any, of the code block.
-	 * 
-	 * Order is significant for deciding the types of the parameters so they are
-	 * returned as a list in order.
-	 */
-	List<ModelSite<exprType>> getFormalParameters();
 }

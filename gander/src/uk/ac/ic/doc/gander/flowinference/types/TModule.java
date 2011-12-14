@@ -1,22 +1,26 @@
 package uk.ac.ic.doc.gander.flowinference.types;
 
+import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
+import uk.ac.ic.doc.gander.flowinference.result.Result;
+import uk.ac.ic.doc.gander.flowinference.typegoals.NamespaceNameTypeGoal;
 import uk.ac.ic.doc.gander.model.Module;
+import uk.ac.ic.doc.gander.model.NamespaceName;
 import uk.ac.ic.doc.gander.model.codeobject.ModuleCO;
 
 public class TModule implements TCodeObject {
 
-	private final ModuleCO moduleInstance;
+	private final ModuleCO moduleObject;
 
 	public TModule(ModuleCO moduleInstance) {
 		if (moduleInstance == null) {
 			throw new NullPointerException("Code object required");
 		}
 
-		this.moduleInstance = moduleInstance;
+		this.moduleObject = moduleInstance;
 	}
 
 	public ModuleCO codeObject() {
-		return moduleInstance;
+		return moduleObject;
 	}
 
 	@Deprecated
@@ -26,11 +30,24 @@ public class TModule implements TCodeObject {
 
 	@Deprecated
 	public Module getModuleInstance() {
-		return moduleInstance.oldStyleConflatedNamespace();
+		return moduleObject.oldStyleConflatedNamespace();
 	}
 
 	public String getName() {
 		return getModuleInstance().getFullName();
+	}
+
+	/**
+	 * {@inheritDoc}
+	 * 
+	 * Members on a module are returned directly from the module object's
+	 * namespace.
+	 */
+	public Result<Type> memberType(String memberName, SubgoalManager goalManager) {
+
+		NamespaceName member = new NamespaceName(memberName, moduleObject
+				.fullyQualifiedNamespace());
+		return goalManager.registerSubgoal(new NamespaceNameTypeGoal(member));
 	}
 
 	@Override
@@ -38,7 +55,7 @@ public class TModule implements TCodeObject {
 		final int prime = 31;
 		int result = 1;
 		result = prime * result
-				+ ((moduleInstance == null) ? 0 : moduleInstance.hashCode());
+				+ ((moduleObject == null) ? 0 : moduleObject.hashCode());
 		return result;
 	}
 
@@ -51,10 +68,10 @@ public class TModule implements TCodeObject {
 		if (getClass() != obj.getClass())
 			return false;
 		TModule other = (TModule) obj;
-		if (moduleInstance == null) {
-			if (other.moduleInstance != null)
+		if (moduleObject == null) {
+			if (other.moduleObject != null)
 				return false;
-		} else if (!moduleInstance.equals(other.moduleInstance))
+		} else if (!moduleObject.equals(other.moduleObject))
 			return false;
 		return true;
 	}

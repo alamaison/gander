@@ -2,6 +2,7 @@ package uk.ac.ic.doc.gander.flowinference.typegoals;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 import org.python.pydev.parser.jython.ast.Call;
 import org.python.pydev.parser.jython.ast.exprType;
@@ -9,12 +10,14 @@ import org.python.pydev.parser.jython.ast.exprType;
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
 import uk.ac.ic.doc.gander.flowinference.result.Concentrator;
 import uk.ac.ic.doc.gander.flowinference.result.FiniteResult;
+import uk.ac.ic.doc.gander.flowinference.result.RedundancyEliminator;
 import uk.ac.ic.doc.gander.flowinference.result.Result;
 import uk.ac.ic.doc.gander.flowinference.result.Concentrator.DatumProcessor;
+import uk.ac.ic.doc.gander.flowinference.result.Result.Transformer;
 import uk.ac.ic.doc.gander.flowinference.sendersgoals.FunctionSendersGoal;
+import uk.ac.ic.doc.gander.flowinference.types.TCallable;
 import uk.ac.ic.doc.gander.flowinference.types.TObject;
 import uk.ac.ic.doc.gander.flowinference.types.Type;
-import uk.ac.ic.doc.gander.model.Class;
 import uk.ac.ic.doc.gander.model.ModelSite;
 import uk.ac.ic.doc.gander.model.codeobject.ClassCO;
 import uk.ac.ic.doc.gander.model.codeobject.FunctionCO;
@@ -83,7 +86,7 @@ final class MethodArgumentTypeGoalSolver {
 	private final class CallArgumentTyper implements
 			DatumProcessor<ModelSite<Call>, Type> {
 
-		public Result<Type> process(ModelSite<Call> callSite) {
+		public Result<Type> process(final ModelSite<Call> callSite) {
 
 			/*
 			 * Which argument is passed to the parameter depends on whether this
@@ -91,31 +94,62 @@ final class MethodArgumentTypeGoalSolver {
 			 * explictly on a class, passing the object instance as the first
 			 * argument.
 			 */
-			// goalManager.registerSubgoal(new ExpressionTypeGoal(new
-			// ModelSite<exprType>(callSite.astNode().func,
-			// callSite.codeObject()));
-			exprType[] args = callSite.astNode().args;
-			if (argumentIndex <= args.length) {
-				ModelSite<exprType> argument = new ModelSite<exprType>(callSite
-						.astNode().args[argumentIndex - 1], callSite
-						.codeObject());
-				return goalManager.registerSubgoal(new ExpressionTypeGoal(
-						argument));
-			} else {
-				System.err.println("WARNING: unable to make sense of arg #"
-						+ argumentIndex + " passed to " + callSite);
-				// TODO: probably using the default argument
-				return FiniteResult.bottom();
-			}
+			Result<Type> callableType = goalManager
+					.registerSubgoal(new ExpressionTypeGoal(
+							new ModelSite<exprType>(callSite.astNode().func,
+									callSite.codeObject())));
+			return callableType
+					.transformResult(new Transformer<Type, Result<Type>>() {
+
+						public Result<Type> transformInfiniteResult() {
+							/*
+							 * No idea how we are being called so don't know
+							 * what our parameter is
+							 */
+							return TopT.INSTANCE;
+							/*
+							 * TODO: could take the union of the types of all
+							 * the arguments passed at the callsite as it is
+							 * only which of them that gets passed that we don't
+							 * know
+							 */
+						}
+
+						public Result<Type> transformFiniteResult(
+								Set<Type> result) {
+							RedundancyEliminator<Type> type = new RedundancyEliminator<Type>();
+
+							for (Type callSiteType : result) {
+
+								if (callSiteType instanceof TCallable) {
+									int argumentOffset = ((TCallable) callSiteType)
+											.passedArgumentOffset();
+
+									type.add(new ArgumentTyper(callSite,
+											argumentIndex - argumentOffset,
+											method, goalManager).type());
+
+								} else {
+									System.err
+											.println("WTF: call site isn't callable: "
+													+ callSiteType);
+								}
+							}
+
+							return type.result();
+						}
+					});
 		}
 	};
 
 	private final SubgoalManager goalManager;
 	private final Result<Type> solution;
 	private final int argumentIndex;
+	private final FunctionCO method;
 
 	MethodArgumentTypeGoalSolver(FunctionCO method, String name,
 			SubgoalManager goalManager) {
+		this.method = method;
 		assert method.parent() instanceof ClassCO;
 
 		this.goalManager = goalManager;
@@ -133,23 +167,21 @@ final class MethodArgumentTypeGoalSolver {
 		 */
 		if (this.argumentIndex == 0) {
 			solution = new FiniteResult<Type>(Collections
-					.singleton(new TObject((Class) ((ClassCO) method.parent())
-							.oldStyleConflatedNamespace())));
+					.singleton(new TObject((ClassCO) method.parent())));
 		} else {
-			Result<ModelSite<Call>> callSites;
+			RedundancyEliminator<ModelSite<Call>> callSites = new RedundancyEliminator<ModelSite<Call>>();
 			if (method.declaredName().equals("__init__")) {
-				callSites = goalManager
+				callSites.add(goalManager
 						.registerSubgoal(new FunctionSendersGoal(
-								(ClassCO) method.parent()));
-			} else {
-				callSites = goalManager
-						.registerSubgoal(new FunctionSendersGoal(method));
-
+								(ClassCO) method.parent())));
 			}
+
+			callSites.add(goalManager.registerSubgoal(new FunctionSendersGoal(
+					method)));
 
 			Concentrator<ModelSite<Call>, Type> processor = Concentrator
 					.newInstance(new CallArgumentTyper(), TopT.INSTANCE);
-			callSites.actOnResult(processor);
+			callSites.result().actOnResult(processor);
 
 			solution = processor.result();
 		}

@@ -133,6 +133,10 @@ public final class ClassCO implements NamedCodeObject, NestedCodeObject,
 		return oldStyleClassNamespace;
 	}
 
+	public FormalParameters formalParameters() {
+		return FormalParameters.EMPTY_PARAMETERS;
+	}
+
 	@Override
 	public int hashCode() {
 		final int prime = 31;

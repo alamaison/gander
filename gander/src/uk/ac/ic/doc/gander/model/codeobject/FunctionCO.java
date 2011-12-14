@@ -7,12 +7,14 @@ import java.util.Set;
 import org.python.pydev.parser.jython.SimpleNode;
 import org.python.pydev.parser.jython.ast.FunctionDef;
 import org.python.pydev.parser.jython.ast.NameTok;
+import org.python.pydev.parser.jython.ast.argumentsType;
 
 import uk.ac.ic.doc.gander.cfg.Cfg;
 import uk.ac.ic.doc.gander.model.Class;
 import uk.ac.ic.doc.gander.model.Function;
 import uk.ac.ic.doc.gander.model.Member;
 import uk.ac.ic.doc.gander.model.Model;
+import uk.ac.ic.doc.gander.model.ModelSite;
 import uk.ac.ic.doc.gander.model.Module;
 import uk.ac.ic.doc.gander.model.Namespace;
 import uk.ac.ic.doc.gander.model.codeblock.CodeBlock;
@@ -148,6 +150,11 @@ public final class FunctionCO implements NamedCodeObject, NestedCodeObject,
 
 	public Function oldStyleConflatedNamespace() {
 		return oldStyleFunctionNamespace;
+	}
+
+	public FormalParameters formalParameters() {
+		return new FormalParameters(new ModelSite<argumentsType>(ast().args,
+				this));
 	}
 
 	@Override

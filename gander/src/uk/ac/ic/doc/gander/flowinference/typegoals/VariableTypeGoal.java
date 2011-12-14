@@ -13,7 +13,7 @@ import uk.ac.ic.doc.gander.model.name_binding.Variable;
  * token as a simple string rather than an identifier at a particular location,
  * stack frame, or allocated object.
  */
-final class VariableTypeGoal implements TypeGoal {
+public final class VariableTypeGoal implements TypeGoal {
 
 	private final Variable variable;
 

@@ -3,6 +3,9 @@ package uk.ac.ic.doc.gander.flowinference.types;
 import java.util.List;
 
 import uk.ac.ic.doc.gander.DottedName;
+import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
+import uk.ac.ic.doc.gander.flowinference.result.Result;
+import uk.ac.ic.doc.gander.flowinference.typegoals.TopT;
 import uk.ac.ic.doc.gander.model.Module;
 import uk.ac.ic.doc.gander.model.codeobject.CodeObject;
 
@@ -57,4 +60,63 @@ public class TUnresolvedImport implements TCodeObject {
 					+ fromTarget;
 		}
 	}
+
+	/**
+	 * {@inheritDoc}
+	 * 
+	 * Members on an unresolved import cannot be accurately typed so we
+	 * approximate it conservatively as Top.
+	 */
+	public Result<Type> memberType(String memberName, SubgoalManager goalManager) {
+		return TopT.INSTANCE;
+	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result
+				+ ((fromTarget == null) ? 0 : fromTarget.hashCode());
+		result = prime * result
+				+ ((importPath == null) ? 0 : importPath.hashCode());
+		result = prime
+				* result
+				+ ((relativeToPackage == null) ? 0 : relativeToPackage
+						.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		TUnresolvedImport other = (TUnresolvedImport) obj;
+		if (fromTarget == null) {
+			if (other.fromTarget != null)
+				return false;
+		} else if (!fromTarget.equals(other.fromTarget))
+			return false;
+		if (importPath == null) {
+			if (other.importPath != null)
+				return false;
+		} else if (!importPath.equals(other.importPath))
+			return false;
+		if (relativeToPackage == null) {
+			if (other.relativeToPackage != null)
+				return false;
+		} else if (!relativeToPackage.equals(other.relativeToPackage))
+			return false;
+		return true;
+	}
+
+	@Override
+	public String toString() {
+		return "TUnresolvedImport [fromTarget=" + fromTarget + ", importPath="
+				+ importPath + ", relativeToPackage=" + relativeToPackage + "]";
+	}
+
 }

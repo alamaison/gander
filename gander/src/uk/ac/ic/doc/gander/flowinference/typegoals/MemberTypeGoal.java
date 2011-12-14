@@ -3,12 +3,7 @@ package uk.ac.ic.doc.gander.flowinference.typegoals;
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
 import uk.ac.ic.doc.gander.flowinference.result.FiniteResult;
 import uk.ac.ic.doc.gander.flowinference.result.Result;
-import uk.ac.ic.doc.gander.flowinference.types.TCodeObject;
-import uk.ac.ic.doc.gander.flowinference.types.TObject;
-import uk.ac.ic.doc.gander.flowinference.types.TUnresolvedImport;
 import uk.ac.ic.doc.gander.flowinference.types.Type;
-import uk.ac.ic.doc.gander.model.NamespaceName;
-import uk.ac.ic.doc.gander.model.codeobject.CodeObject;
 
 /**
  * Infer the type of a named member of another type.
@@ -35,26 +30,7 @@ final class MemberTypeGoal implements TypeGoal {
 
 	public Result<Type> recalculateSolution(SubgoalManager goalManager) {
 
-		CodeObject codeObject = null;
-		if (type instanceof TUnresolvedImport) {
-			/*
-			 * The attribute references the contents of a module but the module
-			 * couldn't be loaded.
-			 */
-			return TopT.INSTANCE;
-		}
-
-		if (type instanceof TCodeObject) {
-			codeObject = ((TCodeObject) type).codeObject();
-		} else if (type instanceof TObject) {
-			codeObject = ((TObject) type).getClassInstance().codeObject();
-		}
-
-		assert codeObject != null;
-
-		NamespaceName member = new NamespaceName(memberName, codeObject
-				.fullyQualifiedNamespace());
-		return goalManager.registerSubgoal(new NamespaceNameTypeGoal(member));
+		return type.memberType(memberName, goalManager);
 	}
 
 	@Override

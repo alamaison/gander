@@ -88,8 +88,8 @@ final class CallResultSituationSolver {
 		Result<Type> types = goalManager
 				.registerSubgoal(new ExpressionTypeGoal(expression));
 
-		Concentrator<Type, FlowPosition> action = Concentrator
-				.newInstance(new ConstructorValueFlower(), TopFp.INSTANCE);
+		Concentrator<Type, FlowPosition> action = Concentrator.newInstance(
+				new ConstructorValueFlower(), TopFp.INSTANCE);
 		types.actOnResult(action);
 		solution = action.result();
 	}
@@ -103,7 +103,8 @@ final class CallResultSituationSolver {
  * Flows the value produced by contructor calls to the positions of the {@code
  * self} parameter in each method.
  */
-final class ConstructorValueFlower implements DatumProcessor<Type, FlowPosition> {
+final class ConstructorValueFlower implements
+		DatumProcessor<Type, FlowPosition> {
 
 	public Result<FlowPosition> process(Type datum) {
 
@@ -125,8 +126,8 @@ final class ConstructorValueFlower implements DatumProcessor<Type, FlowPosition>
 		Collection<Function> methods = classObject.getFunctions().values();
 
 		for (Function method : methods) {
-			List<ModelSite<exprType>> parameters = method.asCodeBlock()
-					.getFormalParameters();
+			List<ModelSite<exprType>> parameters = method.codeObject()
+					.formalParameters().parameters();
 
 			if (parameters.size() > 0) {
 				ModelSite<exprType> selfParameter = parameters.get(0);

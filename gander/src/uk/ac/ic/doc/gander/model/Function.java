@@ -1,15 +1,12 @@
 package uk.ac.ic.doc.gander.model;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import org.python.pydev.parser.jython.ast.FunctionDef;
 import org.python.pydev.parser.jython.ast.NameTok;
 import org.python.pydev.parser.jython.ast.VisitorIF;
-import org.python.pydev.parser.jython.ast.exprType;
 import org.python.pydev.parser.jython.ast.stmtType;
 
 import uk.ac.ic.doc.gander.cfg.Cfg;
@@ -134,12 +131,8 @@ public final class Function implements Namespace {
 				}
 			};
 
-			List<ModelSite<exprType>> argumentSites = new ArrayList<ModelSite<exprType>>();
-			for (exprType argument : function.args.args) {
-				argumentSites.add(new ModelSite<exprType>(argument,
-						Function.this.codeObject()));
-			}
-			codeBlock = new DefaultCodeBlock(argumentSites, acceptor);
+			codeBlock = new DefaultCodeBlock(codeObject.formalParameters()
+					.parameters(), acceptor);
 		}
 
 		return codeBlock;

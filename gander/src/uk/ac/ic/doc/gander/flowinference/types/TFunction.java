@@ -1,23 +1,26 @@
 package uk.ac.ic.doc.gander.flowinference.types;
 
+import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
+import uk.ac.ic.doc.gander.flowinference.result.Result;
+import uk.ac.ic.doc.gander.flowinference.typegoals.NamespaceNameTypeGoal;
 import uk.ac.ic.doc.gander.model.Function;
-import uk.ac.ic.doc.gander.model.codeobject.CodeObject;
+import uk.ac.ic.doc.gander.model.NamespaceName;
 import uk.ac.ic.doc.gander.model.codeobject.FunctionCO;
 
-public class TFunction implements TCodeObject {
+public class TFunction implements TCodeObject, TCallable {
 
-	private final FunctionCO functionInstance;
+	private final FunctionCO functionObject;
 
 	public TFunction(FunctionCO functionInstance) {
 		if (functionInstance == null) {
 			throw new NullPointerException("Code object required");
 		}
 
-		this.functionInstance = functionInstance;
+		this.functionObject = functionInstance;
 	}
 
-	public CodeObject codeObject() {
-		return functionInstance;
+	public FunctionCO codeObject() {
+		return functionObject;
 	}
 
 	@Deprecated
@@ -27,20 +30,41 @@ public class TFunction implements TCodeObject {
 
 	@Deprecated
 	public Function getFunctionInstance() {
-		return functionInstance.oldStyleConflatedNamespace();
+		return functionObject.oldStyleConflatedNamespace();
 	}
 
 	public String getName() {
 		return getFunctionInstance().getFullName();
 	}
 
+	public Result<Type> returnType(SubgoalManager goalManager) {
+		return new FunctionReturnTypeSolver(goalManager, functionObject)
+				.solution();
+	}
+
+	public int passedArgumentOffset() {
+		return 0;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 * 
+	 * Members on a function are returned directly from the function object's
+	 * namespace.
+	 */
+	public Result<Type> memberType(String memberName, SubgoalManager goalManager) {
+
+		NamespaceName member = new NamespaceName(memberName, functionObject
+				.fullyQualifiedNamespace());
+		return goalManager.registerSubgoal(new NamespaceNameTypeGoal(member));
+	}
+
 	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime
-				* result
-				+ ((functionInstance == null) ? 0 : functionInstance.hashCode());
+		result = prime * result
+				+ ((functionObject == null) ? 0 : functionObject.hashCode());
 		return result;
 	}
 
@@ -53,10 +77,10 @@ public class TFunction implements TCodeObject {
 		if (!(obj instanceof TFunction))
 			return false;
 		TFunction other = (TFunction) obj;
-		if (functionInstance == null) {
-			if (other.functionInstance != null)
+		if (functionObject == null) {
+			if (other.functionObject != null)
 				return false;
-		} else if (!functionInstance.equals(other.functionInstance))
+		} else if (!functionObject.equals(other.functionObject))
 			return false;
 		return true;
 	}

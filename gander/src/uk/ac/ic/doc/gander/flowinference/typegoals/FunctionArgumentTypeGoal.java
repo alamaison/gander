@@ -14,6 +14,7 @@ import uk.ac.ic.doc.gander.flowinference.result.Concentrator.DatumProcessor;
 import uk.ac.ic.doc.gander.flowinference.sendersgoals.FunctionSendersGoal;
 import uk.ac.ic.doc.gander.flowinference.types.Type;
 import uk.ac.ic.doc.gander.model.ModelSite;
+import uk.ac.ic.doc.gander.model.codeobject.CallableCodeObject;
 import uk.ac.ic.doc.gander.model.codeobject.FunctionCO;
 
 public class FunctionArgumentTypeGoal implements TypeGoal {
@@ -76,53 +77,82 @@ public class FunctionArgumentTypeGoal implements TypeGoal {
 
 }
 
-final class FunctionArgumentTypeGoalSolver {
+final class ArgumentTyper {
+	private final ModelSite<Call> callSite;
+	private final int argumentIndex;
+	private final SubgoalManager goalManager;
+	private final CallableCodeObject function;
 
-	private final class ArgumentTyper implements
-			DatumProcessor<ModelSite<Call>, Type> {
+	private final Result<Type> type;
 
-		public Result<Type> process(ModelSite<Call> callSite) {
-			if (argumentIndex < callSite.astNode().args.length) {
-				ModelSite<exprType> argument = new ModelSite<exprType>(callSite
-						.astNode().args[argumentIndex], callSite.codeObject());
+	ArgumentTyper(ModelSite<Call> callSite, int argumentIndex,
+			CallableCodeObject function, SubgoalManager goalManager) {
 
-				return goalManager.registerSubgoal(new ExpressionTypeGoal(
-						argument));
-			} else {
-				/*
-				 * Few argument were passed to the function than are declared in
-				 * its signature. It's probably expecting default arguments.
-				 */
-				if (argumentIndex < function.ast().args.defaults.length) {
-					exprType defaultVal = function.ast().args.defaults[argumentIndex];
-					if (defaultVal != null) {
+		this.callSite = callSite;
+		this.argumentIndex = argumentIndex;
+		this.function = function;
+		this.goalManager = goalManager;
 
-						ModelSite<exprType> defaultArgument = new ModelSite<exprType>(
-								defaultVal, function.parent());
-						/*
-						 * XXX: Are we sure default arguments are evaluated in
-						 * the context of the function's parent?
-						 */
-						return goalManager
-								.registerSubgoal(new ExpressionTypeGoal(
-										defaultArgument));
-					} else {
-						/* No default. The program is probably wrong. */
-						return TopT.INSTANCE;
-					}
+		type = typeIt();
+	}
+
+	Result<Type> type() {
+		return type;
+	}
+
+	private Result<Type> typeIt() {
+
+		if (argumentIndex < callSite.astNode().args.length) {
+			ModelSite<exprType> argument = new ModelSite<exprType>(callSite
+					.astNode().args[argumentIndex], callSite.codeObject());
+
+			return goalManager
+					.registerSubgoal(new ExpressionTypeGoal(argument));
+		} else {
+			/*
+			 * Few argument were passed to the function than are declared in its
+			 * signature. It's probably expecting default arguments.
+			 */
+			if (argumentIndex < function.formalParameters().parameters()
+					.size()) {
+				ModelSite<exprType> defaultValue = function.formalParameters()
+						.defaults().get(argumentIndex);
+				if (defaultValue != null) {
+					return goalManager.registerSubgoal(new ExpressionTypeGoal(
+							defaultValue));
 				} else {
-					/*
-					 * No idea what's going on here. The defaults array seems to
-					 * be smaller than the argument array
-					 */
-					assert false;
+					/* No default. The program is probably wrong. */
 					return TopT.INSTANCE;
 				}
+			} else {
+				/*
+				 * No idea what's going on here. The defaults array seems to be
+				 * smaller than the argument array
+				 */
+				assert false;
+				return TopT.INSTANCE;
 			}
 		}
 	}
+}
 
-	private final int argumentIndex;
+final class FunctionArgumentTypeGoalSolver {
+
+	private final class ArgumentTypeConcentrator implements
+			DatumProcessor<ModelSite<Call>, Type> {
+		
+		private final int argumentIndex;
+
+		public ArgumentTypeConcentrator(int argumentIndex) {
+			this.argumentIndex = argumentIndex;
+		}
+
+		public Result<Type> process(ModelSite<Call> callSite) {
+			return new ArgumentTyper(callSite, argumentIndex, function,
+					goalManager).type();
+		}
+	}
+
 	private final FunctionCO function;
 	private final SubgoalManager goalManager;
 	private final Result<Type> solution;
@@ -131,13 +161,13 @@ final class FunctionArgumentTypeGoalSolver {
 			SubgoalManager goalManager) {
 		this.function = function;
 		this.goalManager = goalManager;
-		this.argumentIndex = findArgumentIndexInFunction(function, argument);
 
 		Result<ModelSite<Call>> callSites = goalManager
 				.registerSubgoal(new FunctionSendersGoal(function));
 
+		int argumentIndex = findArgumentIndexInFunction(function, argument);
 		Concentrator<ModelSite<Call>, Type> processor = Concentrator
-				.newInstance(new ArgumentTyper(), TopT.INSTANCE);
+				.newInstance(new ArgumentTypeConcentrator(argumentIndex), TopT.INSTANCE);
 		callSites.actOnResult(processor);
 		solution = processor.result();
 	}
@@ -148,8 +178,8 @@ final class FunctionArgumentTypeGoalSolver {
 
 	private static int findArgumentIndexInFunction(FunctionCO function,
 			String argument) {
-		List<ModelSite<exprType>> args = function.codeBlock()
-				.getFormalParameters();
+		List<ModelSite<exprType>> args = function.formalParameters()
+				.parameters();
 
 		for (int i = 0; i < args.size(); ++i) {
 			exprType arg = args.get(i).astNode();

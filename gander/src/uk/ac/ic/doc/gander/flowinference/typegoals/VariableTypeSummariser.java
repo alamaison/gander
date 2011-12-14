@@ -22,7 +22,7 @@ import uk.ac.ic.doc.gander.importing.ImportInfoFactory;
 import uk.ac.ic.doc.gander.model.Class;
 import uk.ac.ic.doc.gander.model.Function;
 import uk.ac.ic.doc.gander.model.ModelSite;
-import uk.ac.ic.doc.gander.model.codeblock.CodeBlock;
+import uk.ac.ic.doc.gander.model.codeobject.CallableCodeObject;
 import uk.ac.ic.doc.gander.model.codeobject.ClassCO;
 import uk.ac.ic.doc.gander.model.codeobject.CodeObject;
 import uk.ac.ic.doc.gander.model.codeobject.FunctionCO;
@@ -122,32 +122,22 @@ class BoundTypeVisitor implements BindingDetector.DetectionEvent {
 		}
 	}
 
-	private void processParameters(CodeObject enclosingScope, String name,
+	private void processParameters(CodeObject codeObject, String name,
 			SubgoalManager goalManager) {
 
-		CodeBlock codeBlock = enclosingScope.codeBlock();
-		if (codeBlock.getNamedFormalParameters().contains(name)) {
+		if (codeObject instanceof CallableCodeObject
+				&& ((CallableCodeObject) codeObject).formalParameters()
+						.parameterNames().contains(name)) {
 
-			/*
-			 * The first parameter of a function in a class (usually called
-			 * self) is always an instance of the class so we can trivially
-			 * infer its type
-			 */
-			if (enclosingScope instanceof FunctionCO) {
-				if (((FunctionCO) enclosingScope).parent() instanceof ClassCO) {
-					judgement.add(goalManager
-							.registerSubgoal(new MethodArgumentTypeGoal(
-									(FunctionCO) enclosingScope, name)));
-
-				} else {
-					judgement.add(goalManager
-							.registerSubgoal(new FunctionArgumentTypeGoal(
-									(FunctionCO) enclosingScope, name)));
-				}
+			if (((CallableCodeObject) codeObject).parent() instanceof ClassCO) {
+				judgement.add(goalManager
+						.registerSubgoal(new MethodArgumentTypeGoal(
+								(FunctionCO) codeObject, name)));
 
 			} else {
-				assert false;
-				// TODO: work out if we need to handle other possibilities
+				judgement.add(goalManager
+						.registerSubgoal(new FunctionArgumentTypeGoal(
+								(FunctionCO) codeObject, name)));
 			}
 		}
 	}

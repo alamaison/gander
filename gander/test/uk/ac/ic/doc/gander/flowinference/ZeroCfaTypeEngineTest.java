@@ -20,6 +20,7 @@ import uk.ac.ic.doc.gander.TaggedNodeAndScopeFinder;
 import uk.ac.ic.doc.gander.flowinference.result.FiniteResult;
 import uk.ac.ic.doc.gander.flowinference.result.Result;
 import uk.ac.ic.doc.gander.flowinference.typegoals.TopT;
+import uk.ac.ic.doc.gander.flowinference.types.TBoundMethod;
 import uk.ac.ic.doc.gander.flowinference.types.TClass;
 import uk.ac.ic.doc.gander.flowinference.types.TFunction;
 import uk.ac.ic.doc.gander.flowinference.types.TModule;
@@ -27,7 +28,7 @@ import uk.ac.ic.doc.gander.flowinference.types.TObject;
 import uk.ac.ic.doc.gander.flowinference.types.Type;
 import uk.ac.ic.doc.gander.model.Class;
 import uk.ac.ic.doc.gander.model.MutableModel;
-import uk.ac.ic.doc.gander.model.codeobject.ClassCO;
+import uk.ac.ic.doc.gander.model.codeobject.FunctionCO;
 
 public class ZeroCfaTypeEngineTest {
 	private static final String TEST_FOLDER = "python_test_code/type_engine";
@@ -398,12 +399,17 @@ public class ZeroCfaTypeEngineTest {
 		ScopedPrintNode node = findPrintNode(testName, "what_am_i_via_class");
 		Result<Type> type = engine
 				.typeOf(node.getExpression(), node.getScope());
-		Set<Type> expectedType = typeJudgement(new TFunction(node
-				.getGlobalNamespace().getClasses().get("A").getFunctions().get(
-						"method")));
 
-		assertEquals("Method not resolved correctly via class", expectedType,
-				type);
+		Class klass = node.getGlobalNamespace().getClasses().get("A");
+		FunctionCO unboundMethod = klass.getFunctions().get("method")
+				.codeObject();
+		Set<Type> expectedBoundType = typeJudgement(new TBoundMethod(
+				unboundMethod, klass.codeObject()));
+		Set<Type> expectedUnboundType = typeJudgement(new TFunction(
+				unboundMethod));
+
+		assertEquals("Method not resolved correctly via class",
+				expectedUnboundType, type);
 
 		// TODO: ideally we should distinguish bound and unbound methods.
 		// In other words, these two cases should not have the same
@@ -412,7 +418,7 @@ public class ZeroCfaTypeEngineTest {
 		type = engine.typeOf(node.getExpression(), node.getScope());
 
 		assertEquals("Method not resolved correctly via instance",
-				expectedType, type);
+				expectedBoundType, type);
 	}
 
 	/**
@@ -424,9 +430,11 @@ public class ZeroCfaTypeEngineTest {
 		ScopedPrintNode node = findPrintNode(testName, "what_am_i");
 		Result<Type> type = engine
 				.typeOf(node.getExpression(), node.getScope());
-		Set<Type> expectedType = typeJudgement(new TFunction(node
-				.getGlobalNamespace().getClasses().get("A").getFunctions().get(
-						"g")));
+
+		Class klass = node.getGlobalNamespace().getClasses().get("A");
+		FunctionCO unboundMethod = klass.getFunctions().get("g").codeObject();
+		Set<Type> expectedType = typeJudgement(new TBoundMethod(unboundMethod,
+				klass.codeObject()));
 
 		assertEquals("Method not resolved correctly", expectedType, type);
 	}
@@ -695,8 +703,8 @@ public class ZeroCfaTypeEngineTest {
 				.typeOf(node.getExpression(), node.getScope());
 
 		assertEquals("Constructor parameter's type not inferred correctly "
-				+ "when called explictly. Maybe is only treated the "
-				+ "constructor specially and forgot to for "
+				+ "when called explictly. Maybe it only treated the "
+				+ "constructor specially and forgot to look for "
 				+ "explicit calls to __init__.", expectedType, type);
 	}
 
@@ -1271,15 +1279,24 @@ public class ZeroCfaTypeEngineTest {
 		Result<Type> type = engine
 				.typeOf(node.getExpression(), node.getScope());
 
-		Set<Type> expectedType = typeJudgement(new TFunction(node
-				.getGlobalNamespace().getClasses().get("B").getFunctions().get(
-						"m")));
+		Class superclass = node.getGlobalNamespace().getClasses().get("B");
+		FunctionCO unboundMethod = superclass.getFunctions().get("m")
+				.codeObject();
+
+		Class klass = node.getGlobalNamespace().getClasses().get("C");
+		Set<Type> expectedType = typeJudgement(new TBoundMethod(unboundMethod,
+				klass.codeObject()));
+
 		assertEquals("Didn't infer inherited method type correctly. "
 				+ "Probably forgot to look in the superclass.", expectedType,
 				type);
 
 		node = findPrintNode(testName, "what_am_i_grandparent");
 		type = engine.typeOf(node.getExpression(), node.getScope());
+
+		klass = node.getGlobalNamespace().getClasses().get("D");
+		expectedType = typeJudgement(new TBoundMethod(unboundMethod, klass
+				.codeObject()));
 
 		assertEquals("Didn't infer inherited method type correctly. "
 				+ "Probably forgot to look in the grandparent superclass.",
@@ -1294,34 +1311,44 @@ public class ZeroCfaTypeEngineTest {
 		Result<Type> type = engine
 				.typeOf(node.getExpression(), node.getScope());
 
-		Set<Type> a = typeJudgement(new TFunction(node.getGlobalNamespace()
-				.getClasses().get("A").getFunctions().get("m")));
+		Class klassA = node.getGlobalNamespace().getClasses().get("A");
+		FunctionCO unboundMethodA = klassA.getFunctions().get("m").codeObject();
+		Set<Type> am = typeJudgement(new TBoundMethod(unboundMethodA, klassA
+				.codeObject()));
 
-		Set<Type> b = typeJudgement(new TFunction(node.getGlobalNamespace()
-				.getClasses().get("B").getFunctions().get("m")));
+		Class klassB = node.getGlobalNamespace().getClasses().get("B");
+		FunctionCO unboundMethodB = klassB.getFunctions().get("m").codeObject();
+		Set<Type> bm = typeJudgement(new TBoundMethod(unboundMethodB, klassB
+				.codeObject()));
 
 		assertEquals("Didn't infer inherited method type correctly. "
 				+ "Overriding the method shouldn't change the "
-				+ "inferred type of an instance of the superclass.", a, type);
+				+ "inferred type of an instance of the superclass.", am, type);
 
 		node = findPrintNode(testName, "what_am_i");
 		type = engine.typeOf(node.getExpression(), node.getScope());
 
 		assertEquals("Didn't infer inherited method type correctly. "
 				+ "Probably saw the inherited method and forgot "
-				+ "that it is excluded because it is overridden.", b, type);
+				+ "that it is excluded because it is overridden.", bm, type);
 
 		node = findPrintNode(testName, "what_am_i_parent");
+		Class klassC = node.getGlobalNamespace().getClasses().get("C");
+		Set<Type> cm = typeJudgement(new TBoundMethod(unboundMethodB, klassC
+				.codeObject()));
 		type = engine.typeOf(node.getExpression(), node.getScope());
 
 		assertEquals("Didn't infer inherited method type correctly. "
-				+ "Probably forgot to look in the superclass.", b, type);
+				+ "Probably forgot to look in the superclass.", cm, type);
 
 		node = findPrintNode(testName, "what_am_i_grandparent");
+		Class klassD = node.getGlobalNamespace().getClasses().get("D");
+		Set<Type> dm = typeJudgement(new TBoundMethod(unboundMethodB, klassD
+				.codeObject()));
 		type = engine.typeOf(node.getExpression(), node.getScope());
 
 		assertEquals("Didn't infer inherited method type correctly. "
-				+ "Probably forgot to look in the grandparent superclass.", b,
+				+ "Probably forgot to look in the grandparent superclass.", dm,
 				type);
 	}
 
