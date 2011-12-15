@@ -16,17 +16,15 @@ import uk.ac.ic.doc.gander.flowinference.sendersgoals.FunctionSendersGoal;
 import uk.ac.ic.doc.gander.flowinference.types.TCallable;
 import uk.ac.ic.doc.gander.flowinference.types.Type;
 import uk.ac.ic.doc.gander.model.ModelSite;
-import uk.ac.ic.doc.gander.model.codeobject.ClassCO;
-import uk.ac.ic.doc.gander.model.codeobject.FunctionCO;
+import uk.ac.ic.doc.gander.model.codeobject.CallableCodeObject;
 
-final class MethodParameterTypeGoal implements TypeGoal {
+final class CallableParameterTypeGoal implements TypeGoal {
 
-	private final FunctionCO method;
+	private final CallableCodeObject callable;
 	private final String name;
 
-	MethodParameterTypeGoal(FunctionCO method, String name) {
-		assert method.parent() instanceof ClassCO;
-		this.method = method;
+	CallableParameterTypeGoal(CallableCodeObject method, String name) {
+		this.callable = method;
 		this.name = name;
 	}
 
@@ -35,7 +33,7 @@ final class MethodParameterTypeGoal implements TypeGoal {
 	}
 
 	public Result<Type> recalculateSolution(SubgoalManager goalManager) {
-		return new MethodParameterTypeGoalSolver(method, name, goalManager)
+		return new CallableParameterTypeGoalSolver(callable, name, goalManager)
 				.solution();
 	}
 
@@ -43,7 +41,8 @@ final class MethodParameterTypeGoal implements TypeGoal {
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + ((method == null) ? 0 : method.hashCode());
+		result = prime * result
+				+ ((callable == null) ? 0 : callable.hashCode());
 		result = prime * result + ((name == null) ? 0 : name.hashCode());
 		return result;
 	}
@@ -56,11 +55,11 @@ final class MethodParameterTypeGoal implements TypeGoal {
 			return false;
 		if (getClass() != obj.getClass())
 			return false;
-		MethodParameterTypeGoal other = (MethodParameterTypeGoal) obj;
-		if (method == null) {
-			if (other.method != null)
+		CallableParameterTypeGoal other = (CallableParameterTypeGoal) obj;
+		if (callable == null) {
+			if (other.callable != null)
 				return false;
-		} else if (!method.equals(other.method))
+		} else if (!callable.equals(other.callable))
 			return false;
 		if (name == null) {
 			if (other.name != null)
@@ -72,13 +71,13 @@ final class MethodParameterTypeGoal implements TypeGoal {
 
 	@Override
 	public String toString() {
-		return "MethodParameterTypeGoal [method=" + method + ", parameterName="
-				+ name + "]";
+		return "CallableParameterTypeGoal [callable=" + callable
+				+ ", parameterName=" + name + "]";
 	}
 
 }
 
-final class MethodParameterTypeGoalSolver {
+final class CallableParameterTypeGoalSolver {
 
 	private final class CallArgumentTyper implements
 			DatumProcessor<ModelSite<Call>, Type> {
@@ -87,7 +86,7 @@ final class MethodParameterTypeGoalSolver {
 
 			/*
 			 * Which argument is passed to the parameter depends on whether this
-			 * callsite calls the method implicitly on an object instance or
+			 * callsite calls the callable implicitly on an object instance or
 			 * explictly on a class, passing the object instance as the first
 			 * argument.
 			 */
@@ -142,25 +141,18 @@ final class MethodParameterTypeGoalSolver {
 	private final Result<Type> solution;
 	private final String parameterName;
 
-	MethodParameterTypeGoalSolver(FunctionCO method, String parameterName,
-			SubgoalManager goalManager) {
-		assert method.parent() instanceof ClassCO;
+	CallableParameterTypeGoalSolver(CallableCodeObject callable,
+			String parameterName, SubgoalManager goalManager) {
 
 		this.parameterName = parameterName;
 		this.goalManager = goalManager;
 
-		RedundancyEliminator<ModelSite<Call>> callSites = new RedundancyEliminator<ModelSite<Call>>();
-		if (method.declaredName().equals("__init__")) {
-			callSites.add(goalManager.registerSubgoal(new FunctionSendersGoal(
-					(ClassCO) method.parent())));
-		}
-
-		callSites.add(goalManager.registerSubgoal(new FunctionSendersGoal(
-				method)));
+		Result<ModelSite<Call>> callSites = goalManager
+				.registerSubgoal(new FunctionSendersGoal(callable));
 
 		Concentrator<ModelSite<Call>, Type> processor = Concentrator
 				.newInstance(new CallArgumentTyper(), TopT.INSTANCE);
-		callSites.result().actOnResult(processor);
+		callSites.actOnResult(processor);
 
 		solution = processor.result();
 	}

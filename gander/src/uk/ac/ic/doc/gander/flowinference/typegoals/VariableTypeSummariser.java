@@ -23,9 +23,7 @@ import uk.ac.ic.doc.gander.model.Class;
 import uk.ac.ic.doc.gander.model.Function;
 import uk.ac.ic.doc.gander.model.ModelSite;
 import uk.ac.ic.doc.gander.model.codeobject.CallableCodeObject;
-import uk.ac.ic.doc.gander.model.codeobject.ClassCO;
 import uk.ac.ic.doc.gander.model.codeobject.CodeObject;
-import uk.ac.ic.doc.gander.model.codeobject.FunctionCO;
 import uk.ac.ic.doc.gander.model.name_binding.Variable;
 
 /**
@@ -129,16 +127,9 @@ class BoundTypeVisitor implements BindingDetector.DetectionEvent {
 				&& ((CallableCodeObject) codeObject).formalParameters()
 						.parameterNames().contains(name)) {
 
-			if (((CallableCodeObject) codeObject).parent() instanceof ClassCO) {
-				judgement.add(goalManager
-						.registerSubgoal(new MethodParameterTypeGoal(
-								(FunctionCO) codeObject, name)));
-
-			} else {
-				judgement.add(goalManager
-						.registerSubgoal(new FunctionParameterTypeGoal(
-								(FunctionCO) codeObject, name)));
-			}
+			judgement.add(goalManager
+					.registerSubgoal(new CallableParameterTypeGoal(
+							(CallableCodeObject) codeObject, name)));
 		}
 	}
 
