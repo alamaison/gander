@@ -16,8 +16,7 @@ import uk.ac.ic.doc.gander.model.codeblock.CodeBlock;
  * 
  * Currently just an adapter around the hopelessly conflated {@link Namespace}.
  */
-public final class ClassCO implements NamedCodeObject, NestedCodeObject,
-		CallableCodeObject {
+public final class ClassCO implements NamedCodeObject, NestedCodeObject {
 
 	private final ClassDef ast;
 	private final Class oldStyleClassNamespace;
@@ -131,10 +130,6 @@ public final class ClassCO implements NamedCodeObject, NestedCodeObject,
 
 	public Class oldStyleConflatedNamespace() {
 		return oldStyleClassNamespace;
-	}
-
-	public FormalParameters formalParameters() {
-		return FormalParameters.EMPTY_PARAMETERS;
 	}
 
 	@Override
