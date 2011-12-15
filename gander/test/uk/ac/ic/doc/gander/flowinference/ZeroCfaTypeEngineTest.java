@@ -621,6 +621,19 @@ public class ZeroCfaTypeEngineTest {
 	}
 
 	@Test
+	public void methodParameterDefault() throws Throwable {
+		String testName = "method_parameter_default";
+		Set<Type> expectedType = typeJudgement(stringType);
+
+		ScopedPrintNode node = findPrintNode(testName, "what_am_i");
+		Result<Type> type = engine
+				.typeOf(node.getExpression(), node.getScope());
+
+		assertEquals("Method's default parameter type not inferred correctly",
+				expectedType, type);
+	}
+
+	@Test
 	public void methodParameterBound() throws Throwable {
 		String testName = "method_parameter_bound";
 		Set<Type> expectedType = new HashSet<Type>();
@@ -768,6 +781,19 @@ public class ZeroCfaTypeEngineTest {
 		Set<Type> expectedType = new HashSet<Type>();
 		expectedType.add(stringType);
 		expectedType.add(integerType);
+
+		assertEquals("Function parameter's type not inferred correctly",
+				expectedType, type);
+	}
+
+	@Test
+	public void functionParameterDefault() throws Throwable {
+		ScopedPrintNode node = findPrintNode("function_parameter_default",
+				"what_am_i");
+
+		Result<Type> type = engine
+				.typeOf(node.getExpression(), node.getScope());
+		Set<Type> expectedType = typeJudgement(stringType);
 
 		assertEquals("Function parameter's type not inferred correctly",
 				expectedType, type);

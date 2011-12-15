@@ -29,18 +29,27 @@ public final class FormalParameters {
 	}
 
 	public NamedParameter namedParameter(String parameterName) {
-		List<ModelSite<exprType>> parameters = parameters();
-		
+
 		for (int i = 0; i < parameters.size(); ++i) {
 			ModelSite<exprType> p = parameters.get(i);
 
 			if (p.astNode() instanceof Name
 					&& ((Name) p.astNode()).id.equals(parameterName)) {
 
-				return new NamedParameter(i, parameterName, defaults().get(i));
+				int firstDefaultOffset = parameters.size() - defaults.size();
+				assert firstDefaultOffset >= 0;
+
+				ModelSite<exprType> defaultValue;
+				if (i >= firstDefaultOffset) {
+					defaultValue = defaults.get(i - firstDefaultOffset);
+				} else {
+					defaultValue = null;
+				}
+
+				return new NamedParameter(i, parameterName, defaultValue);
 			}
 		}
-		
+
 		return null;
 	}
 
