@@ -7,3 +7,4 @@ class A:
 A().m(42)
 a = A()
 a.m("Hello")
+a.n()

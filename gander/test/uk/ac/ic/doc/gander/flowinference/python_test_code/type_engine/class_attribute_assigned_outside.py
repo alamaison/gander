@@ -19,3 +19,5 @@ A.i = "Hello"
 A.j = [] # makes sure we're paying attention to attribute name
 
 print A.i # what_am_i
+
+A().f()

@@ -4,7 +4,10 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.python.pydev.parser.jython.SimpleNode;
+import org.python.pydev.parser.jython.ast.ClassDef;
+import org.python.pydev.parser.jython.ast.FunctionDef;
 import org.python.pydev.parser.jython.ast.Name;
+import org.python.pydev.parser.jython.ast.exprType;
 
 import uk.ac.ic.doc.gander.ast.LocalCodeBlockVisitor;
 import uk.ac.ic.doc.gander.model.CodeObjectWalker;
@@ -73,6 +76,24 @@ public final class NameScopeFinder {
 			final CodeObject codeObject) {
 		try {
 			codeObject.codeBlock().accept(new LocalCodeBlockVisitor() {
+
+				@Override
+				protected Object seenNestedClassDef(ClassDef node)
+						throws Exception {
+					// The list of classes the subclass inherits from is part of
+					// the enclosing code block, not the subclass code block
+					for (exprType base : node.bases) {
+						base.accept(this);
+					}
+					return null;
+				}
+
+				@Override
+				protected Object seenNestedFunctionDef(FunctionDef node)
+						throws Exception {
+					// XXX: Do we need to handle anything special here?
+					return null;
+				}
 
 				@Override
 				public Object visitName(Name node) throws Exception {

@@ -1,5 +1,6 @@
 package uk.ac.ic.doc.gander.flowinference.flowgoals;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -7,6 +8,7 @@ import java.util.Set;
 
 import org.python.pydev.parser.jython.SimpleNode;
 import org.python.pydev.parser.jython.ast.Attribute;
+import org.python.pydev.parser.jython.ast.ClassDef;
 import org.python.pydev.parser.jython.ast.Name;
 import org.python.pydev.parser.jython.ast.NameTok;
 import org.python.pydev.parser.jython.ast.exprType;
@@ -30,6 +32,8 @@ import uk.ac.ic.doc.gander.model.ModelSite;
 import uk.ac.ic.doc.gander.model.Module;
 import uk.ac.ic.doc.gander.model.Namespace;
 import uk.ac.ic.doc.gander.model.NamespaceName;
+import uk.ac.ic.doc.gander.model.ParentSiteFinder;
+import uk.ac.ic.doc.gander.model.codeobject.ClassCO;
 import uk.ac.ic.doc.gander.model.codeobject.CodeObject;
 import uk.ac.ic.doc.gander.model.codeobject.ModuleCO;
 import uk.ac.ic.doc.gander.model.codeobject.NamedCodeObject;
@@ -117,6 +121,8 @@ final class NamespaceNameFlowStepGoal implements FlowStepGoal {
 	 * with which it is declared</li>
 	 * <li>the namespace of any code block containing {@code from l import X}
 	 * with the name {@code X}</li>
+	 * <li>the namespace of any class inheriting from this namespace's code
+	 * object unless that class defines a class or function of the same name</li>
 	 * </ul>
 	 * 
 	 * A module's flows is more complicated. A module {@code m} flows in a
@@ -191,6 +197,10 @@ final class NamespaceNameFlowStepGoalSolver {
 			return;
 
 		positions.add(new ExplicitNameReferenceFlower().positions());
+		if (positions.isFinished())
+			return;
+
+		positions.add(new InheritedNameReferenceFlower().positions());
 		if (positions.isFinished())
 			return;
 
@@ -289,6 +299,80 @@ final class NamespaceNameFlowStepGoalSolver {
 			return positions;
 		}
 
+	}
+
+	final class InheritedNameReferenceFlower implements
+			Processor<ModelSite<? extends exprType>> {
+
+		private Result<FlowPosition> positions;
+
+		InheritedNameReferenceFlower() {
+
+			/*
+			 * The first task is to find where our namespace can flow to.
+			 * 
+			 * This is done using CodeObjectNamespacePosition because namespaces
+			 * don't follow the code object slavishly. For example, a class's
+			 * namespace flows to the class body as well as its instances
+			 * methods.
+			 * 
+			 * XXX: these will always be attribute references so why don't we
+			 * get the attributes instead of the expression on the LHS?
+			 */
+			Result<ModelSite<? extends exprType>> namespaceReferences = goalManager
+					.registerSubgoal(new FlowGoal(
+							new CodeObjectNamespacePosition(namespaceName
+									.namespace().codeObject())));
+
+			namespaceReferences.actOnResult(this);
+		}
+
+		public Result<FlowPosition> positions() {
+			return positions;
+		}
+
+		public void processFiniteResult(
+				Set<ModelSite<? extends exprType>> result) {
+
+			Set<FlowPosition> inheritedPositions = new HashSet<FlowPosition>();
+
+			for (ModelSite<? extends exprType> namespaceReference : result) {
+
+				ModelSite<SimpleNode> parent = ParentSiteFinder
+						.findParent(namespaceReference);
+				if (parent.astNode() instanceof ClassDef) {
+					ClassDef classDef = (ClassDef) parent.astNode();
+
+					if (Arrays.asList(classDef.bases).contains(
+							namespaceReference.astNode())) {
+						/* Established that this is a subclass */
+
+						// XXX: HACK: Nasty way to get subclass's code object
+						ClassCO subclass = parent.codeObject()
+								.unqualifiedNamespace().getClasses().get(
+										((NameTok) classDef.name).id)
+								.codeObject();
+						if (subclass.oldStyleConflatedNamespace().lookupMember(
+								namespaceName.name()) == null) {
+							inheritedPositions
+									.add(new NamespaceNamePosition(
+											new NamespaceName(
+													namespaceName.name(),
+													subclass
+															.oldStyleConflatedNamespace())));
+						}
+					}
+
+				}
+
+			}
+
+			positions = new FiniteResult<FlowPosition>(inheritedPositions);
+		}
+
+		public void processInfiniteResult() {
+			positions = TopFp.INSTANCE;
+		}
 	}
 
 	private void addExpressionIfAttributeLHSIsOurs(

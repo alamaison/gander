@@ -131,12 +131,12 @@ class BoundTypeVisitor implements BindingDetector.DetectionEvent {
 
 			if (((CallableCodeObject) codeObject).parent() instanceof ClassCO) {
 				judgement.add(goalManager
-						.registerSubgoal(new MethodArgumentTypeGoal(
+						.registerSubgoal(new MethodParameterTypeGoal(
 								(FunctionCO) codeObject, name)));
 
 			} else {
 				judgement.add(goalManager
-						.registerSubgoal(new FunctionArgumentTypeGoal(
+						.registerSubgoal(new FunctionParameterTypeGoal(
 								(FunctionCO) codeObject, name)));
 			}
 		}

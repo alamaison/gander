@@ -404,7 +404,7 @@ public class ZeroCfaTypeEngineTest {
 		FunctionCO unboundMethod = klass.getFunctions().get("method")
 				.codeObject();
 		Set<Type> expectedBoundType = typeJudgement(new TBoundMethod(
-				unboundMethod, klass.codeObject()));
+				unboundMethod, new TObject(klass.codeObject())));
 		Set<Type> expectedUnboundType = typeJudgement(new TFunction(
 				unboundMethod));
 
@@ -434,7 +434,7 @@ public class ZeroCfaTypeEngineTest {
 		Class klass = node.getGlobalNamespace().getClasses().get("A");
 		FunctionCO unboundMethod = klass.getFunctions().get("g").codeObject();
 		Set<Type> expectedType = typeJudgement(new TBoundMethod(unboundMethod,
-				klass.codeObject()));
+				new TObject(klass.codeObject())));
 
 		assertEquals("Method not resolved correctly", expectedType, type);
 	}
@@ -661,6 +661,43 @@ public class ZeroCfaTypeEngineTest {
 
 		assertEquals("Constructor parameter's type not inferred correctly",
 				expectedType, type);
+	}
+
+	@Test
+	public void methodParameterInherited() throws Throwable {
+		ScopedPrintNode node = findPrintNode("method_parameter_inherited",
+				"what_am_i");
+		Result<Type> type = engine
+				.typeOf(node.getExpression(), node.getScope());
+
+		Set<Type> expectedType = new HashSet<Type>();
+		expectedType.add(new TObject(node.getGlobalNamespace().getClasses()
+				.get("A")));
+		expectedType.add(new TObject(node.getGlobalNamespace().getClasses()
+				.get("B")));
+
+		assertEquals("'self' parameter type not inferred correctly. "
+				+ "This probably means it failed to realise that 'm' is "
+				+ "called from a subclass instance so self also has the "
+				+ "subclass type.", expectedType, type);
+	}
+
+	@Test
+	public void methodParameterInheritedAbstract() throws Throwable {
+		ScopedPrintNode node = findPrintNode(
+				"method_parameter_inherited_abstract", "what_am_i");
+		Result<Type> type = engine
+				.typeOf(node.getExpression(), node.getScope());
+
+		Set<Type> expectedType = new HashSet<Type>();
+		expectedType.add(new TObject(node.getGlobalNamespace().getClasses()
+				.get("Concrete")));
+
+		assertEquals("'self' parameter type not inferred correctly. "
+				+ "This probably means it failed to realise that the super "
+				+ "class is never instantiated and 'm' is only "
+				+ "called from a subclass instance so self only has the "
+				+ "subclass type.", expectedType, type);
 	}
 
 	@Test
@@ -1285,7 +1322,7 @@ public class ZeroCfaTypeEngineTest {
 
 		Class klass = node.getGlobalNamespace().getClasses().get("C");
 		Set<Type> expectedType = typeJudgement(new TBoundMethod(unboundMethod,
-				klass.codeObject()));
+				new TObject(klass.codeObject())));
 
 		assertEquals("Didn't infer inherited method type correctly. "
 				+ "Probably forgot to look in the superclass.", expectedType,
@@ -1295,8 +1332,8 @@ public class ZeroCfaTypeEngineTest {
 		type = engine.typeOf(node.getExpression(), node.getScope());
 
 		klass = node.getGlobalNamespace().getClasses().get("D");
-		expectedType = typeJudgement(new TBoundMethod(unboundMethod, klass
-				.codeObject()));
+		expectedType = typeJudgement(new TBoundMethod(unboundMethod,
+				new TObject(klass.codeObject())));
 
 		assertEquals("Didn't infer inherited method type correctly. "
 				+ "Probably forgot to look in the grandparent superclass.",
@@ -1313,13 +1350,13 @@ public class ZeroCfaTypeEngineTest {
 
 		Class klassA = node.getGlobalNamespace().getClasses().get("A");
 		FunctionCO unboundMethodA = klassA.getFunctions().get("m").codeObject();
-		Set<Type> am = typeJudgement(new TBoundMethod(unboundMethodA, klassA
-				.codeObject()));
+		Set<Type> am = typeJudgement(new TBoundMethod(unboundMethodA,
+				new TObject(klassA.codeObject())));
 
 		Class klassB = node.getGlobalNamespace().getClasses().get("B");
 		FunctionCO unboundMethodB = klassB.getFunctions().get("m").codeObject();
-		Set<Type> bm = typeJudgement(new TBoundMethod(unboundMethodB, klassB
-				.codeObject()));
+		Set<Type> bm = typeJudgement(new TBoundMethod(unboundMethodB,
+				new TObject(klassB.codeObject())));
 
 		assertEquals("Didn't infer inherited method type correctly. "
 				+ "Overriding the method shouldn't change the "
@@ -1334,8 +1371,8 @@ public class ZeroCfaTypeEngineTest {
 
 		node = findPrintNode(testName, "what_am_i_parent");
 		Class klassC = node.getGlobalNamespace().getClasses().get("C");
-		Set<Type> cm = typeJudgement(new TBoundMethod(unboundMethodB, klassC
-				.codeObject()));
+		Set<Type> cm = typeJudgement(new TBoundMethod(unboundMethodB,
+				new TObject(klassC.codeObject())));
 		type = engine.typeOf(node.getExpression(), node.getScope());
 
 		assertEquals("Didn't infer inherited method type correctly. "
@@ -1343,8 +1380,8 @@ public class ZeroCfaTypeEngineTest {
 
 		node = findPrintNode(testName, "what_am_i_grandparent");
 		Class klassD = node.getGlobalNamespace().getClasses().get("D");
-		Set<Type> dm = typeJudgement(new TBoundMethod(unboundMethodB, klassD
-				.codeObject()));
+		Set<Type> dm = typeJudgement(new TBoundMethod(unboundMethodB,
+				new TObject(klassD.codeObject())));
 		type = engine.typeOf(node.getExpression(), node.getScope());
 
 		assertEquals("Didn't infer inherited method type correctly. "

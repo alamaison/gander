@@ -1,12 +1,19 @@
 package uk.ac.ic.doc.gander.flowinference.types;
 
 import java.util.Collections;
+import java.util.Set;
+
+import org.python.pydev.parser.jython.ast.Call;
 
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
 import uk.ac.ic.doc.gander.flowinference.result.FiniteResult;
+import uk.ac.ic.doc.gander.flowinference.result.RedundancyEliminator;
 import uk.ac.ic.doc.gander.flowinference.result.Result;
+import uk.ac.ic.doc.gander.flowinference.result.Result.Transformer;
 import uk.ac.ic.doc.gander.flowinference.typegoals.NamespaceNameTypeGoal;
+import uk.ac.ic.doc.gander.flowinference.typegoals.TopT;
 import uk.ac.ic.doc.gander.model.Class;
+import uk.ac.ic.doc.gander.model.ModelSite;
 import uk.ac.ic.doc.gander.model.NamespaceName;
 import uk.ac.ic.doc.gander.model.codeobject.ClassCO;
 
@@ -64,6 +71,46 @@ public class TClass implements TCodeObject, TCallable {
 		NamespaceName member = new NamespaceName(memberName, classObject
 				.fullyQualifiedNamespace());
 		return goalManager.registerSubgoal(new NamespaceNameTypeGoal(member));
+	}
+
+	public Result<Type> typeOfArgumentAtNamedParameter(
+			final String parameterName, final ModelSite<Call> callSite,
+			final SubgoalManager goalManager) {
+
+		Result<Type> initMethodTypes = memberType("__init__", goalManager);
+		return initMethodTypes
+				.transformResult(new Transformer<Type, Result<Type>>() {
+
+					public Result<Type> transformFiniteResult(Set<Type> result) {
+						RedundancyEliminator<Type> parameterType = new RedundancyEliminator<Type>();
+
+						for (Type initType : result) {
+							if (initType instanceof TFunction) {
+								TBoundMethod init = new TBoundMethod(
+										((TFunction) initType).codeObject(),
+										new TObject(classObject));
+								parameterType.add(init
+										.typeOfArgumentAtNamedParameter(
+												parameterName, callSite,
+												goalManager));
+							} else {
+								// XXX: init might not be a function?!
+								parameterType.add(TopT.INSTANCE);
+							}
+						}
+
+						return parameterType.result();
+					}
+
+					public Result<Type> transformInfiniteResult() {
+						/*
+						 * Can't work out what __init__ implementations could be
+						 * called so we certainly can't work out the type of the
+						 * self parameter
+						 */
+						return TopT.INSTANCE;
+					}
+				});
 	}
 
 	@Override

@@ -77,14 +77,14 @@ public class TObject implements Type {
 		public Result<Type> transformInfiniteResult() {
 			return TopT.INSTANCE;
 		}
+	}
 
-		private Type bindType(Type unboundType) {
-			if (unboundType instanceof TFunction) {
-				return new TBoundMethod(((TFunction) unboundType).codeObject(),
-						classObject);
-			} else {
-				return unboundType;
-			}
+	private Type bindType(Type unboundType) {
+		if (unboundType instanceof TFunction) {
+			return new TBoundMethod(((TFunction) unboundType).codeObject(),
+					this);
+		} else {
+			return unboundType;
 		}
 	}
 
