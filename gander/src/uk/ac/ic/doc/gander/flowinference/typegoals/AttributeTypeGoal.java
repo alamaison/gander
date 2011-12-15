@@ -36,8 +36,8 @@ final class AttributeTypeGoal implements TypeGoal {
 				new DatumProcessor<Type, Type>() {
 
 					public Result<Type> process(Type targetType) {
-						return goalManager.registerSubgoal(new MemberTypeGoal(
-								targetType, attributeName));
+						return targetType
+								.memberType(attributeName, goalManager);
 					}
 				}, TopT.INSTANCE);
 		targetTypes.actOnResult(processor);
