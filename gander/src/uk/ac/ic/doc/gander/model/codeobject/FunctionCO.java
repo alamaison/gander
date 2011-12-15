@@ -119,7 +119,7 @@ public final class FunctionCO implements NamedCodeObject, NestedCodeObject,
 	 * from the function body.
 	 */
 	public Namespace fullyQualifiedNamespace() {
-		return new DummyNamespace();
+		return new DummyNamespace(this);
 	}
 
 	/**
@@ -190,6 +190,12 @@ public final class FunctionCO implements NamedCodeObject, NestedCodeObject,
 }
 
 final class DummyNamespace implements Namespace {
+	
+	private final CodeObject codeObject;
+	
+	DummyNamespace(CodeObject codeObject) {
+		this.codeObject = codeObject;
+	}
 
 	private static final String ERROR = "External function namespaces are currently non-functional";
 
@@ -242,7 +248,7 @@ final class DummyNamespace implements Namespace {
 	}
 
 	public CodeObject codeObject() {
-		throw new UnsupportedOperationException(ERROR);
+		return codeObject;
 	}
 
 	public CodeBlock asCodeBlock() {
