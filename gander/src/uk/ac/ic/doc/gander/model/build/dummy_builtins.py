@@ -9,20 +9,29 @@ import types
 def abs(o):
     pass #return o.__abs__()
 
-def all():
-    pass
+def all(iterable):
+    for element in iterable:
+        if not element:
+            return False
+    return True
 
-def any():
-    pass
+def any(iterable):
+    for element in iterable:
+        if element:
+            return True
+    return False
 
 def apply():
     pass
 
-def bin():
-    pass
+def bin(x):
+    return ""
 
-def bool():
-    pass
+def bool(x=False):
+    if x:
+        return True
+    else:
+        return False
 
 def buffer():
     pass
@@ -33,10 +42,10 @@ def bytearray():
 def bytes():
     pass
 
-def callable():
-    pass
+def callable(object):
+    return True
 
-def chr():
+def chr(i):
     pass
 
 def classmethod():
@@ -126,11 +135,11 @@ class int(type):
 def intern():
     pass
 
-def isinstance():
-    pass
+def isinstance(object, classinfo):
+    return True
 
-def issubclass():
-    pass
+def issubclass(klass, classinfo):
+    return True
 
 def iter():
     pass
