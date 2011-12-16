@@ -13,6 +13,7 @@ import org.python.pydev.parser.jython.ast.Name;
 import org.python.pydev.parser.jython.ast.NameTok;
 import org.python.pydev.parser.jython.ast.exprType;
 
+import uk.ac.ic.doc.gander.DottedName;
 import uk.ac.ic.doc.gander.ast.LocalCodeBlockVisitor;
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
 import uk.ac.ic.doc.gander.flowinference.flowgoals.expressionflow.ExpressionPosition;
@@ -204,7 +205,7 @@ final class NamespaceNameFlowStepGoalSolver {
 		if (positions.isFinished())
 			return;
 
-		positions.add(new ImportedKeyReferenceFlower().importedReferences);
+		positions.add(new ImportedKeyReferenceFlower().positions());
 		if (positions.isFinished())
 			return;
 	}
@@ -435,7 +436,12 @@ final class NamespaceNameFlowStepGoalSolver {
 
 	/**
 	 * Add positions for flow of the namespace key's value caused by importing
-	 * either the key itself or the code object of the namespace containing it.
+	 * either the key itself or a code object allowing access to the namespace
+	 * containing it.
+	 * 
+	 * Our namespace's key could be imported anywhere in the system so we have
+	 * to walk the entire thing searching any code block for import statements
+	 * that result in our key's value being bound to a new key.
 	 */
 	final class ImportedKeyReferenceFlower {
 
@@ -443,101 +449,141 @@ final class NamespaceNameFlowStepGoalSolver {
 		 * Can never be Top because we believe there is no such thing as an
 		 * import we can't follow.
 		 */
-		Result<FlowPosition> importedReferences = FiniteResult.bottom();
+		private final RedundancyEliminator<FlowPosition> importedReferences = new RedundancyEliminator<FlowPosition>();
+
+		private final Binder<CodeObject, CodeObject, ModuleCO> worker = new DefaultImportSimulator.Binder<CodeObject, CodeObject, ModuleCO>() {
+
+			public void bindName(CodeObject object, String variableName,
+					CodeObject importReceiver) {
+				/*
+				 * The binding occurs as though it were being bound to a
+				 * variable in a particular code object, the {@code
+				 * importReceiver}. Like with all variables, this may not be the
+				 * code object whose unqualified namespace the variable binds in
+				 * so the binding namespace must be resolved.
+				 */
+				handleBind(object, new Variable(variableName, importReceiver));
+			}
+
+			public void onUnresolvedImport(List<String> importPath,
+					ModuleCO relativeTo, String as, CodeObject codeBlock) {
+				warnUnresolvedImport("import "
+						+ DottedName.toDottedName(importPath) + " as " + as);
+			}
+
+			public void onUnresolvedImportFromItem(List<String> fromPath,
+					ModuleCO relativeTo, String itemName, String as,
+					CodeObject codeBlock) {
+				warnUnresolvedImport("from "
+						+ DottedName.toDottedName(fromPath) + " import "
+						+ itemName + " as " + as);
+			}
+
+			private void warnUnresolvedImport(String importDescription) {
+				/*
+				 * We pretend that unresolved imports don't matter because they
+				 * would swamp our results with Top. All flow results would
+				 * return Top if even a single import were unresolved.
+				 */
+				System.err.println("CORRECTNESS WARNING: Unable to "
+						+ "resolve import which means we may have lost track "
+						+ "of some data flow: " + importDescription);
+			}
+
+		};
 
 		ImportedKeyReferenceFlower() {
-
-			/*
-			 * Our namespace's key could be imported anywhere in the system so
-			 * we have to walk the entire thing searching any code block for
-			 * import statements that result in our key's value bound to a new
-			 * key.
-			 * 
-			 * That somewhere is not necessarily the namespace of the code
-			 * object containing the import statement. If the name it is bound
-			 * to is declared global then it is bound to a key in the global
-			 * namespace instead.
-			 */
-
-			Binder<CodeObject, CodeObject, ModuleCO> worker = new DefaultImportSimulator.Binder<CodeObject, CodeObject, ModuleCO>() {
-
-				public void bindName(CodeObject loadedObject, String name,
-						CodeObject importReceiver) {
-					/*
-					 * XXX: HACK: comparing the name by name of code object is
-					 * BAD. What if the code object was aliased and that alias
-					 * was imported? Should fix simulator so it tells us the
-					 * actual key that was imported from the other namespace.
-					 * 
-					 * XXX: HACK: using the loadedObject's parent to check if
-					 * the object came from our namespace is BAD. What if the
-					 * thing was imported from somewhere else then imported
-					 * again? Should fix simulator so it tells us where the key
-					 * was actually imported from.
-					 */
-
-					if (codeObjectAllowsAttributesToAccessNamespace(
-							loadedObject, namespaceName.namespace())) {
-
-						/*
-						 * importReceiver is the code object containing the
-						 * import statement but its namespace may not actually
-						 * be where the loaded object is bound to a name. It
-						 * depends on the binding scope of 'name' in
-						 * importReceiver. It could be the global scope so we
-						 * resolve the name here.
-						 */
-						final NamespaceName loadedCodeObjectBinding = new Variable(
-								name, importReceiver).bindingLocation();
-						assert nameBindsLocallyOrGlobally(importReceiver,
-								loadedCodeObjectBinding);
-
-						importedReferences = referencesToAttributeOfImportedCodeObject(
-								loadedCodeObjectBinding, name);
-
-					} else if (loadedObject instanceof NestedCodeObject) {
-						if (importReceiver.model().intrinsicNamespace(
-								((NestedCodeObject) loadedObject).parent())
-								.equals(namespaceName.namespace())) {
-							if (loadedObject instanceof NamedCodeObject) {
-								if (((NamedCodeObject) loadedObject)
-										.declaredName().equals(
-												namespaceName.name())) {
-									/* from codeobject import key */
-									importedReferences = new FiniteResult<FlowPosition>(
-											referencesToImportedKey(
-													importReceiver, name));
-								}
-							}
-						}
-					}
-
-				}
-
-				private boolean codeObjectAllowsAttributesToAccessNamespace(
-						CodeObject loadedObject, Namespace namespace) {
-
-					return loadedObject.model()
-							.intrinsicNamespace(loadedObject).equals(namespace);
-				}
-
-				public void onUnresolvedImport(List<String> importPath,
-						ModuleCO relativeTo, String as, CodeObject codeBlock) {
-					// TODO Auto-generated method stub
-
-				}
-
-				public void onUnresolvedImportFromItem(List<String> fromPath,
-						ModuleCO relativeTo, String itemName, String as,
-						CodeObject codeBlock) {
-					// TODO Auto-generated method stub
-
-				}
-
-			};
 			new WholeModelImportSimulation(namespaceName.namespace().model(),
 					worker);
+		}
 
+		Result<FlowPosition> positions() {
+			return importedReferences.result();
+		}
+
+		/**
+		 * Handle an import that may cause our namespace name to flow elsewhere.
+		 * 
+		 * When this method is called, an import has caused an object to be
+		 * bound to a variable somewhere. There are two ways that this can flow
+		 * our namespace name onwards. Firstly, the imported object my be an
+		 * alias of our namespace name so it flows to the variable the object is
+		 * bound to. Secondly, the imported object may give access to our
+		 * namespace name through member access. In this situation, our
+		 * namespace name flows to all expressions where the imported object is
+		 * the subject of an attribute access.
+		 * 
+		 * @param object
+		 *            the object being bound by an import
+		 * @param objectBinding
+		 *            variableName the variable it is being bound to
+		 * @param importReceiver
+		 *            the object with respect to which the binding namespace is
+		 *            resolved
+		 */
+		private void handleBind(CodeObject object, Variable objectBinding) {
+			assert variableBindsLocallyOrGlobally(objectBinding);
+
+			if (importedObjectAliasOurName(object)) {
+
+				/*
+				 * The imported object directly aliases the namespace name we
+				 * care about.
+				 */
+				/* import key */
+				/* from module import key */
+				importedReferences.add(variableFlowPositions(objectBinding));
+
+			} else if (codeObjectAllowsAttributesToAccessNamespace(object,
+					namespaceName.namespace())) {
+
+				/*
+				 * The imported object potentially allows access to the
+				 * namespace name we care about by way of an attribute access.
+				 */
+				/*
+				 * import module
+				 * 
+				 * module.key
+				 */
+				/*
+				 * from module import object
+				 * 
+				 * object.key
+				 */
+				importedReferences
+						.add(referencesToAttributeOfImportedCodeObject(objectBinding));
+			}
+		}
+
+		private boolean importedObjectAliasOurName(CodeObject object) {
+
+			/*
+			 * XXX: HACK: comparing the name by name of code object is BAD. What
+			 * if the code object was aliased and that alias was imported?
+			 * Should fix simulator so it tells us the actual key that was
+			 * imported from the other namespace.
+			 * 
+			 * XXX: HACK: using the loadedObject's parent to check if the object
+			 * came from our namespace is BAD. What if the thing was imported
+			 * from somewhere else then imported again? Should fix simulator so
+			 * it tells us where the key was actually imported from.
+			 */
+
+			return object instanceof NestedCodeObject
+					&& object.model().intrinsicNamespace(
+							((NestedCodeObject) object).parent()).equals(
+							namespaceName.namespace())
+					&& object instanceof NamedCodeObject
+					&& ((NamedCodeObject) object).declaredName().equals(
+							namespaceName.name());
+		}
+
+		private boolean codeObjectAllowsAttributesToAccessNamespace(
+				CodeObject loadedObject, Namespace namespace) {
+
+			return loadedObject.model().intrinsicNamespace(loadedObject)
+					.equals(namespace);
 		}
 	}
 
@@ -552,46 +598,39 @@ final class NamespaceNameFlowStepGoalSolver {
 	 * object where the attribute name is the name of the key being accessed.
 	 */
 	private Result<FlowPosition> referencesToAttributeOfImportedCodeObject(
-			NamespaceName loadedModuleBinding, String name) {
+			Variable objectBinding) {
 
-		if (!loadedModuleBinding.equals(namespaceName)) {
+		/*
+		 * The value of our namespace's code object may flow all over the place
+		 * and be subject to attribute access at any of these locations so we
+		 * issue a new flow query to track our namespace rather than its key.
+		 */
 
-			/*
-			 * The value of our namespace's code object may flow all over the
-			 * place and be subject to attribute access at any of these
-			 * locations so we issue a new flow query to track our namespace
-			 * rather than its key.
-			 */
+		Result<ModelSite<? extends exprType>> moduleReferences = goalManager
+				.registerSubgoal(new FlowGoal(new NamespaceNamePosition(
+						objectBinding.bindingLocation())));
 
-			Result<ModelSite<? extends exprType>> moduleReferences = goalManager
-					.registerSubgoal(new FlowGoal(new NamespaceNamePosition(
-							loadedModuleBinding)));
+		Transformer<ModelSite<? extends exprType>, Result<FlowPosition>> accessPositioner = new Transformer<ModelSite<? extends exprType>, Result<FlowPosition>>() {
 
-			Transformer<ModelSite<? extends exprType>, Result<FlowPosition>> accessPositioner = new Transformer<ModelSite<? extends exprType>, Result<FlowPosition>>() {
+			public Result<FlowPosition> transformFiniteResult(
+					Set<ModelSite<? extends exprType>> moduleReferences) {
+				return new FiniteResult<FlowPosition>(
+						findAccessesToCodeObjectNamespaceName(moduleReferences));
+			}
 
-				public Result<FlowPosition> transformFiniteResult(
-						Set<ModelSite<? extends exprType>> moduleReferences) {
-					return new FiniteResult<FlowPosition>(
-							findNameAccessesToCodeObjectNamespace(moduleReferences));
-				}
+			public Result<FlowPosition> transformInfiniteResult() {
+				return TopFp.INSTANCE;
+			}
+		};
 
-				public Result<FlowPosition> transformInfiniteResult() {
-					return TopFp.INSTANCE;
-				}
-			};
-
-			return moduleReferences.transformResult(accessPositioner);
-
-		} else {
-			return FiniteResult.bottom();
-		}
+		return moduleReferences.transformResult(accessPositioner);
 	}
 
 	/**
 	 * Search for any accesses the the given attribute name on the expressions
 	 * the code object has flowed to.
 	 */
-	private Set<FlowPosition> findNameAccessesToCodeObjectNamespace(
+	private Set<FlowPosition> findAccessesToCodeObjectNamespaceName(
 			Set<ModelSite<? extends exprType>> moduleReferenceExpressions) {
 
 		final Set<FlowPosition> positions = new HashSet<FlowPosition>();
@@ -601,8 +640,11 @@ final class NamespaceNameFlowStepGoalSolver {
 
 					public boolean attributeAccess(
 							ModelSite<Attribute> attribute) {
-						positions.add(new ExpressionPosition<Attribute>(
-								attribute));
+						if (((NameTok) attribute.astNode().attr).id
+								.equals(namespaceName.name())) {
+							positions.add(new ExpressionPosition<Attribute>(
+									attribute));
+						}
 						return false;
 					}
 				});
@@ -624,8 +666,7 @@ final class NamespaceNameFlowStepGoalSolver {
 	 * determine exactly what value the old key has when the import occurs, the
 	 * analysis must flow all values arriving at the old key to the new key.
 	 */
-	protected Set<FlowPosition> referencesToImportedKey(
-			CodeObject importReceiver, String as) {
+	private Result<FlowPosition> variableFlowPositions(Variable importAs) {
 		assert namespaceName.namespace() instanceof Module;
 
 		/*
@@ -634,12 +675,15 @@ final class NamespaceNameFlowStepGoalSolver {
 		 * added to. It depends on the binding scope of 'as' in importReceiver.
 		 * It could be the global scope so we resolve the name here.
 		 */
-		Variable importAs = new Variable(as, importReceiver);
-		assert nameBindsLocallyOrGlobally(importReceiver, importAs
-				.bindingLocation());
 
-		return Collections.<FlowPosition> singleton(new NamespaceNamePosition(
-				importAs.bindingLocation()));
+		return new FiniteResult<FlowPosition>(
+				Collections.singleton(new NamespaceNamePosition(importAs
+						.bindingLocation())));
+	}
+
+	public boolean variableBindsLocallyOrGlobally(Variable variable) {
+		return nameBindsLocallyOrGlobally(variable.codeObject(), variable
+				.bindingLocation());
 	}
 
 	private boolean nameBindsLocallyOrGlobally(CodeObject importReceiver,

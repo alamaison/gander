@@ -9,3 +9,8 @@ def f(x):
 	print x # what_am_i
 
 f("Hello")
+
+# The aux module calls this function too which tests that the analysis check
+# what attribute the RHS actually referrs to
+def distraction(x):
+	print x
