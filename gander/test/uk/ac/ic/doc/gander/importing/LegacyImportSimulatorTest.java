@@ -12,42 +12,26 @@ import java.util.List;
 import org.junit.Test;
 
 import uk.ac.ic.doc.gander.DottedName;
-import uk.ac.ic.doc.gander.importing.DefaultImportSimulator.Binder;
-import uk.ac.ic.doc.gander.importing.DefaultImportSimulator.Loader;
+import uk.ac.ic.doc.gander.importing.LegacyImportSimulator.Binder;
+import uk.ac.ic.doc.gander.importing.LegacyImportSimulator.Loader;
 
-public final class ImportSimulatorTest {
+public final class LegacyImportSimulatorTest {
 
 	private List<TestEntry> bindings = new ArrayList<TestEntry>();
 
 	private Binder<String, String, String> bindingHandler = new Binder<String, String, String>() {
 
-		public void bindModuleToLocalName(String loadedModule, String name,
-				String importReceiver) {
-			bindings.add(new TestEntry(loadedModule, name, importReceiver));
-		}
-
-		public void bindModuleToName(String loadedModule, String name,
-				String receivingModule) {
-			bindings.add(new TestEntry(loadedModule, name, receivingModule));
-		}
-
-		public void bindObjectToLocalName(String importedObject, String name,
-				String importReceiver) {
-			bindings.add(new TestEntry(importedObject, name, importReceiver));
-		}
-
-		public void bindObjectToName(String importedObject, String name,
-				String receivingModule) {
-			bindings.add(new TestEntry(importedObject, name, receivingModule));
-		}
-
-		public void onUnresolvedLocalImport(List<String> importPath,
-				String relativeTo, String as, String importReceiver) {
-			fail();
+		public void bindName(String loadedObject, String as, String codeBlock) {
+			bindings.add(new TestEntry(loadedObject, as, codeBlock));
 		}
 
 		public void onUnresolvedImport(List<String> importPath,
 				String relativeTo, String as, String codeBlock) {
+			fail();
+		}
+
+		public void onUnresolvedImportFromItem(List<String> fromPath,
+				String relativeTo, String itemName, String as, String codeBlock) {
 			fail();
 		}
 	};
@@ -85,89 +69,93 @@ public final class ImportSimulatorTest {
 				String codeObjectWhoseNamespaceWeAreLoadingFrom) {
 			return codeObjectWhoseNamespaceWeAreLoadingFrom + "@" + itemName;
 		}
+
+		public String parentModule(String importReceiver) {
+			return "[]"; // parent of code object [smurble] is []
+		}
 	};
 
-	DefaultImportSimulator<String, String, String> simulator() {
-		return new DefaultImportSimulator<String, String, String>(
+	LegacyImportSimulator<String, String, String> simulator() {
+		return new LegacyImportSimulator<String, String, String>("[smurble]",
 				bindingHandler, loader);
 	}
 
 	@Test
 	public void importSingle() throws Throwable {
-		simulator().simulateImport("x", "[smurble]", "[]");
+		simulator().simulateImport("x");
 		assertBindings(entry("[x]", "x", "[smurble]"));
 	}
 
 	@Test
 	public void importDouble() throws Throwable {
-		simulator().simulateImport("p.q", "[smurble]", "[]");
+		simulator().simulateImport("p.q");
 		assertBindings(entry("[p]", "p", "[smurble]"), entry("[p.q]", "q",
 				"[p]"));
 	}
 
 	@Test
 	public void importTriple() throws Throwable {
-		simulator().simulateImport("a.b.c", "[smurble]", "[]");
+		simulator().simulateImport("a.b.c");
 		assertBindings(entry("[a]", "a", "[smurble]"), entry("[a.b]", "b",
 				"[a]"), entry("[a.b.c]", "c", "[a.b]"));
 	}
 
 	@Test
 	public void importSingleAs() throws Throwable {
-		simulator().simulateImportAs("x", "y", "[smurble]", "[]");
+		simulator().simulateImportAs("x", "y");
 		assertBindings(entry("[x]", "y", "[smurble]"));
 	}
 
 	@Test
 	public void importDoubleAs() throws Throwable {
-		simulator().simulateImportAs("p.q", "r", "[smurble]", "[]");
+		simulator().simulateImportAs("p.q", "r");
 		assertBindings(entry("[p.q]", "r", "[smurble]"), entry("[p.q]", "q",
 				"[p]"));
 	}
 
 	@Test
 	public void importTripleAs() throws Throwable {
-		simulator().simulateImportAs("a.b.c", "d", "[smurble]", "[]");
+		simulator().simulateImportAs("a.b.c", "d");
 		assertBindings(entry("[a.b.c]", "d", "[smurble]"), entry("[a.b]", "b",
 				"[a]"), entry("[a.b.c]", "c", "[a.b]"));
 	}
 
 	@Test
 	public void fromImportSingle() throws Throwable {
-		simulator().simulateImportFrom("x", "i", "[smurble]", "[]");
+		simulator().simulateImportFrom("x", "i");
 		assertBindings(entry("[x]@i", "i", "[smurble]"));
 	}
 
 	@Test
 	public void fromImportDouble() throws Throwable {
-		simulator().simulateImportFrom("p.q", "i", "[smurble]", "[]");
+		simulator().simulateImportFrom("p.q", "i");
 		assertBindings(entry("[p.q]@i", "i", "[smurble]"), entry("[p.q]", "q",
 				"[p]"));
 	}
 
 	@Test
 	public void fromImportTriple() throws Throwable {
-		simulator().simulateImportFrom("a.b.c", "i", "[smurble]", "[]");
+		simulator().simulateImportFrom("a.b.c", "i");
 		assertBindings(entry("[a.b.c]@i", "i", "[smurble]"), entry("[a.b.c]",
 				"c", "[a.b]"), entry("[a.b]", "b", "[a]"));
 	}
 
 	@Test
 	public void fromImportSingleAs() throws Throwable {
-		simulator().simulateImportFromAs("x", "i", "j", "[smurble]", "[]");
+		simulator().simulateImportFromAs("x", "i", "j");
 		assertBindings(entry("[x]@i", "j", "[smurble]"));
 	}
 
 	@Test
-	public void fromImportDoubleAs() throws Throwable {
-		simulator().simulateImportFromAs("p.q", "i", "t", "[smurble]", "[]");
+	public void fromIimportDoubleAs() throws Throwable {
+		simulator().simulateImportFromAs("p.q", "i", "t");
 		assertBindings(entry("[p.q]@i", "t", "[smurble]"), entry("[p.q]", "q",
 				"[p]"));
 	}
 
 	@Test
 	public void fromImportTripleAs() throws Throwable {
-		simulator().simulateImportFromAs("a.b.c", "i", "n", "[smurble]", "[]");
+		simulator().simulateImportFromAs("a.b.c", "i", "n");
 		assertBindings(entry("[a.b.c]@i", "n", "[smurble]"), entry("[a.b.c]",
 				"c", "[a.b]"), entry("[a.b]", "b", "[a]"));
 	}

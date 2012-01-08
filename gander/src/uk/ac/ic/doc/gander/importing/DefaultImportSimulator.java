@@ -1,11 +1,11 @@
 package uk.ac.ic.doc.gander.importing;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
 import uk.ac.ic.doc.gander.DottedName;
-import uk.ac.ic.doc.gander.model.Module;
 
 /**
  * Simulates the Python import mechanism.
@@ -13,41 +13,44 @@ import uk.ac.ic.doc.gander.model.Module;
  * This includes such complications as importing parent packages whenever a
  * child module or package is imported. Actually loading modules and packages,
  * and binding them to names isn't handled by this class. Instead it is left to
- * subclasses.
+ * the loader and binder instances passed in the constructor.
  * 
- * Subclasses must decide how to react to two different aspects of the Python
- * import mechanism. First, modules and packages are loaded. Subclasses are
- * given a path relative to a previously loaded package but they are free to
- * implement the loading operation however they choose. All that is required is
- * that they return a {@link Module} if the load succeeded or null if it fails.
- * The second aspect is name binding. The whole point of importing is to bind a
- * name to a loaded module or other namespace. Subclasses are free to interpret
- * name binding however makes sense for their task or even ignore it completely.
+ * The simulation is customised by implementing the loaded and binder to react
+ * to two different aspects of the Python import mechanism. First, modules and
+ * packages are loaded. The loader is given a path relative to a previously
+ * loaded package but it is free to implement the loading operation however it
+ * chooses. All that is required is that it returns a module representation if
+ * the load succeeded or {@code null} if it fails. The second aspect is name
+ * binding. The whole point of importing is to bind a name to a loaded module or
+ * other namespace. The binder is free to interpret name binding however makes
+ * sense for its task or even ignore it completely.
  * 
  * @param <O>
- *            the supertype of Java objects representing other Python objects
- *            that can be imported
+ *            the type of Java objects representing general Python objects that
+ *            can be imported (including modules and other code objects)
  * 
  * @param <C>
- *            the type of Java objects representing Python code objects
- *            (modules, functions, classes)
+ *            the type of Java objects representing Python code objects that
+ *            could house an import statement in their code block (modules,
+ *            functions, classes)
  * @param <M>
  *            the type of Java objects representing Python modules
  */
-public final class DefaultImportSimulator<O, C extends O, M extends C>
-		implements ImportSimulator {
+public final class DefaultImportSimulator<O, C, M> {
 
 	/**
 	 * Callback through which the import simulation reports object being bound
 	 * to names.
 	 * 
 	 * @param <O>
-	 *            the supertype of Java objects representing other Python
-	 *            objects that can be imported
+	 *            the type of Java objects representing general Python objects
+	 *            that can be imported (including modules and other code
+	 *            objects)
 	 * 
 	 * @param <C>
-	 *            the type of Java objects representing Python code objects
-	 *            (modules, functions, classes)
+	 *            the type of Java objects representing Python code objects that
+	 *            could house an import statement in their code block (modules,
+	 *            functions, classes)
 	 * @param <M>
 	 *            the type of Java objects representing Python modules
 	 */
@@ -66,19 +69,25 @@ public final class DefaultImportSimulator<O, C extends O, M extends C>
 		 *            the representation of the object being bound to a name
 		 * @param name
 		 *            the name the object is bound to
-		 * @param codeBlock
+		 * @param importReceiver
 		 *            the code object 'receiving' the effect of this binding;
 		 *            not necessarily the code object whose namespace the
 		 *            imported object is bound in as it may be a global name
 		 */
-		void bindName(O loadedObject, String name, C importReceiver);
+		void bindModuleToLocalName(M loadedModule, String name, C importReceiver);
+
+		void bindObjectToLocalName(O importedObject, String name,
+				C importReceiver);
+
+		void bindModuleToName(M loadedModule, String name, M receivingModule);
+
+		void bindObjectToName(O importedObject, String name, M receivingModule);
 
 		void onUnresolvedImport(List<String> importPath, M relativeTo,
-				String as, C codeBlock);
+				String as, M importReceiver);
 
-		void onUnresolvedImportFromItem(List<String> fromPath, M relativeTo,
-				String itemName, String as, C codeBlock);
-
+		void onUnresolvedLocalImport(List<String> importPath, M relativeTo,
+				String as, C importReceiver);
 	}
 
 	/**
@@ -125,26 +134,13 @@ public final class DefaultImportSimulator<O, C extends O, M extends C>
 		 */
 		M loadModule(List<String> importPath);
 
-		O loadNonModuleMember(String itemName,
-				C codeObjectWhoseNamespaceWeAreLoadingFrom);
-
-		M parentModule(C importReceiver);
-
+		O loadNonModuleMember(String itemName, M sourceModule);
 	}
 
-	private final C importReceiver;
 	private final DefaultImportSimulatorCore<O, C, M> core;
-	private final M relativeTo;
 
-	/**
-	 * Note, importReceiver may not actually be the import receiver. It depends
-	 * on the binding scope of 'as' in importReceiver. It could be the global
-	 * scope.
-	 */
-	public DefaultImportSimulator(C importReceiver,
-			Binder<O, C, M> eventHandler, Loader<O, C, M> loader) {
-		if (importReceiver == null)
-			throw new NullPointerException("Must specify where import occurs");
+	public DefaultImportSimulator(Binder<O, C, M> eventHandler,
+			Loader<O, C, M> loader) {
 		if (eventHandler == null)
 			throw new NullPointerException(
 					"Must have an event handler to react to import events");
@@ -153,10 +149,6 @@ public final class DefaultImportSimulator<O, C extends O, M extends C>
 
 		this.core = new DefaultImportSimulatorCore<O, C, M>(eventHandler,
 				loader);
-
-		this.importReceiver = importReceiver;
-		this.relativeTo = loader.parentModule(importReceiver);
-		assert !importReceiver.equals(this.relativeTo);
 	}
 
 	/**
@@ -172,26 +164,37 @@ public final class DefaultImportSimulator<O, C extends O, M extends C>
 	 * bound to the name {@code x} in the binding namespace for {@code x}
 	 * relative to the given code block.
 	 */
-	public void simulateImport(String importName) {
+	public void simulateImport(String importName, C importReceiver, M relativeTo) {
+		assert !importReceiver.equals(relativeTo);
+
 		List<String> tokens = new LinkedList<String>(DottedName
 				.toImportTokens(importName));
 
 		core.simulateImport(tokens, importReceiver, relativeTo);
 	}
 
-	public void simulateImportAs(String importName, String asName) {
+	public void simulateImportAs(String importName, String asName,
+			C importReceiver, M relativeTo) {
+		assert !importReceiver.equals(relativeTo);
+
 		List<String> tokens = new LinkedList<String>(DottedName
 				.toImportTokens(importName));
 
 		core.simulateImportAs(tokens, importReceiver, relativeTo, asName);
 	}
 
-	public void simulateImportFrom(String fromName, String itemName) {
-		simulateImportFromAs(fromName, itemName, itemName);
+	public void simulateImportFrom(String fromName, String itemName,
+			C importReceiver, M relativeTo) {
+		assert !importReceiver.equals(relativeTo);
+
+		simulateImportFromAs(fromName, itemName, itemName, importReceiver,
+				relativeTo);
 	}
 
 	public void simulateImportFromAs(String fromName, String itemName,
-			String asName) {
+			String asName, C importReceiver, M relativeTo) {
+		assert !importReceiver.equals(relativeTo);
+
 		List<String> tokens = new LinkedList<String>(DottedName
 				.toImportTokens(fromName));
 
@@ -200,16 +203,94 @@ public final class DefaultImportSimulator<O, C extends O, M extends C>
 	}
 }
 
-final class DefaultImportSimulatorCore<O, C extends O, M extends C> {
+final class DefaultImportSimulatorCore<O, C, M> {
+
+	public static final class ImportBinding<O> {
+		private final O importedObject;
+		private final String boundToName;
+
+		public O importedObject() {
+			return importedObject;
+		}
+
+		public String importedAs() {
+			return boundToName;
+		}
+
+		private ImportBinding(O importedObject, String boundToName) {
+			this.importedObject = importedObject;
+			this.boundToName = boundToName;
+		}
+	}
 
 	private final DefaultImportSimulator.Binder<O, C, M> eventHandler;
 	private final DefaultImportSimulator.Loader<O, C, M> loader;
 
-	/**
-	 * FIXME: importReceiver may not actually be the import receiver. It depends
-	 * on the binding scope of 'as' in importReceiver. It could be the global
-	 * scope.
-	 */
+	private final class XXXErrorWrapper implements
+			DefaultImportSimulator.Binder<O, C, M> {
+
+		private final DefaultImportSimulator.Binder<O, C, M> inner;
+
+		public XXXErrorWrapper(
+				DefaultImportSimulator.Binder<O, C, M> eventHandler) {
+			this.inner = eventHandler;
+		}
+
+		public void bindModuleToLocalName(M loadedModule, String name,
+				C importReceiver) {
+			if (loadedModule != null) {
+				inner.bindModuleToLocalName(loadedModule, name, importReceiver);
+			} else {
+				onUnresolvedLocalImport(Collections.<String> emptyList(), null,
+						name, importReceiver);
+			}
+		}
+
+		public void bindModuleToName(M loadedModule, String name,
+				M receivingModule) {
+			if (loadedModule != null) {
+				inner.bindModuleToName(loadedModule, name, receivingModule);
+			} else {
+				onUnresolvedImport(Collections.<String> emptyList(), null,
+						name, receivingModule);
+			}
+		}
+
+		public void bindObjectToLocalName(O importedObject, String name,
+				C importReceiver) {
+			if (importedObject != null) {
+				inner.bindObjectToLocalName(importedObject, name,
+						importReceiver);
+			} else {
+				onUnresolvedLocalImport(Collections.<String> emptyList(), null,
+						name, importReceiver);
+			}
+		}
+
+		public void bindObjectToName(O importedObject, String name,
+				M receivingModule) {
+			if (importedObject != null) {
+				inner.bindObjectToName(importedObject, name, receivingModule);
+			} else {
+				onUnresolvedImport(Collections.<String> emptyList(), null,
+						name, receivingModule);
+			}
+		}
+
+		public void onUnresolvedLocalImport(List<String> importPath,
+				M relativeTo, String as, C importReceiver) {
+			inner.onUnresolvedLocalImport(importPath, relativeTo, as,
+					importReceiver);
+		}
+
+		public void onUnresolvedImport(List<String> importPath, M relativeTo,
+				String as, M receivingModule) {
+			inner.onUnresolvedImport(importPath, relativeTo, as,
+					receivingModule);
+		}
+
+	}
+
 	public DefaultImportSimulatorCore(
 			DefaultImportSimulator.Binder<O, C, M> eventHandler,
 			DefaultImportSimulator.Loader<O, C, M> loader) {
@@ -219,8 +300,83 @@ final class DefaultImportSimulatorCore<O, C extends O, M extends C> {
 		if (loader == null)
 			throw new NullPointerException("Must have an object loader");
 
-		this.eventHandler = eventHandler;
+		this.eventHandler = new XXXErrorWrapper(eventHandler);
 		this.loader = loader;
+	}
+
+	private static interface BindingScheme<O, M> {
+		void bindSolitaryToken(O object, String name);
+
+		void bindFirstToken(O object, String name);
+
+		void bindIntermediateToken(O object, String name,
+				M previouslyLoadedModule);
+
+		void bindFinalToken(O object, String name, M previouslyLoadedModule);
+	}
+
+	private final class ImportScheme implements BindingScheme<M, M> {
+
+		private final C outerImportReceiver;
+
+		ImportScheme(C outerImportReceiver) {
+			assert outerImportReceiver != null;
+			this.outerImportReceiver = outerImportReceiver;
+		}
+
+		public void bindSolitaryToken(M module, String name) {
+			bindFirstToken(module, name);
+		}
+
+		public void bindFirstToken(M module, String name) {
+			eventHandler.bindModuleToLocalName(module, name,
+					outerImportReceiver);
+		}
+
+		public void bindFinalToken(M module, String name,
+				M previouslyLoadedModule) {
+			eventHandler.bindModuleToName(module, name, previouslyLoadedModule);
+		}
+
+		public void bindIntermediateToken(M module, String name,
+				M previouslyLoadedModule) {
+			eventHandler.bindModuleToName(module, name, previouslyLoadedModule);
+		}
+
+	}
+
+	private final class ImportAsScheme implements BindingScheme<M, M> {
+
+		private final C outerImportReceiver;
+		private final String asName;
+
+		ImportAsScheme(C outerImportReceiver, String asName) {
+			assert outerImportReceiver != null;
+			assert !asName.isEmpty();
+			this.outerImportReceiver = outerImportReceiver;
+			this.asName = asName;
+		}
+
+		public void bindSolitaryToken(M module, String name) {
+			eventHandler.bindModuleToLocalName(module, asName,
+					outerImportReceiver);
+		}
+
+		public void bindFirstToken(M module, String name) {
+		}
+
+		public void bindIntermediateToken(M module, String name,
+				M previouslyLoadedModule) {
+			eventHandler.bindModuleToName(module, name, previouslyLoadedModule);
+		}
+
+		public void bindFinalToken(M module, String name,
+				M previouslyLoadedModule) {
+			eventHandler.bindModuleToName(module, name, previouslyLoadedModule);
+			eventHandler.bindModuleToLocalName(module, asName,
+					outerImportReceiver);
+		}
+
 	}
 
 	/**
@@ -236,38 +392,70 @@ final class DefaultImportSimulatorCore<O, C extends O, M extends C> {
 	 * bound to the name {@code x} in the binding namespace for {@code x}
 	 * relative to the given code block.
 	 */
-	void simulateImport(List<String> importPath, C importReceiver, M relativeTo) {
-		simulateImportHelper(importPath, relativeTo, importReceiver);
+	void simulateImport(List<String> importPath, C outerImportReceiver,
+			M relativeTo) {
+		simulateImportHelper(importPath, relativeTo, new ImportScheme(
+				outerImportReceiver));
 	}
 
-	void simulateImportAs(List<String> importPath, C importReceiver,
+	void simulateImportAs(List<String> importPath, C outerImportReceiver,
 			M relativeTo, String as) {
-		C loaded = simulateImportHelper(importPath, relativeTo, null);
-		handleBind(importPath, relativeTo, importReceiver, as, loaded);
+		simulateImportHelper(importPath, relativeTo, new ImportAsScheme(
+				outerImportReceiver, as));
+	}
+
+	private final class FromImportAsScheme implements BindingScheme<M, M> {
+
+		private final C outerImportReceiver;
+		private final String asName;
+
+		FromImportAsScheme(C outerImportReceiver, String asName) {
+			assert outerImportReceiver != null;
+			assert !asName.isEmpty();
+			this.outerImportReceiver = outerImportReceiver;
+			this.asName = asName;
+		}
+
+		public void bindSolitaryToken(M module, String name) {
+			bindFirstToken(module, name);
+		}
+
+		public void bindFirstToken(M object, String name) {
+		}
+
+		public void bindIntermediateToken(M object, String name,
+				M previouslyLoadedModule) {
+			eventHandler.bindModuleToName(object, name, previouslyLoadedModule);
+		}
+
+		public void bindFinalToken(M module, String name,
+				M previouslyLoadedModule) {
+			/*
+			 * Resolve item name to an item relative the loaded module. If the
+			 * item is a module it will have been loaded and passed to us here.
+			 * Otherwise we try and find an item answering to that name.
+			 */
+			if (module == null) {
+				O object = loader.loadNonModuleMember(name,
+						previouslyLoadedModule);
+				eventHandler.bindObjectToLocalName(object, asName,
+						outerImportReceiver);
+			} else {
+				eventHandler.bindModuleToLocalName(module, asName,
+						outerImportReceiver);
+			}
+		}
+
 	}
 
 	void simulateImportFromAs(List<String> fromPath, String itemName,
-			C importReceiver, M relativeTo, String asName) {
-
-		C codeObjectWhoseNamespaceWeAreLoadingFrom = simulateImportHelper(
-				fromPath, relativeTo, null);
-		if (codeObjectWhoseNamespaceWeAreLoadingFrom == null)
-			// Reporting this failure is handled by simulateImportHelper
-			return;
+			C outerImportReceiver, M relativeTo, String asName) {
 
 		List<String> itemPath = new ArrayList<String>(fromPath);
 		itemPath.add(itemName);
 
-		// Resolve item name to an item inside the namespace. If the item is a
-		// module we have to load it, otherwise we can just investigate it
-		O loaded = simulateTwoStepModuleLoad(itemPath, relativeTo);
-		if (loaded == null) {
-			loaded = loader.loadNonModuleMember(itemName,
-					codeObjectWhoseNamespaceWeAreLoadingFrom);
-		}
-
-		handleBindFrom(fromPath, itemName, relativeTo, importReceiver, asName,
-				loaded);
+		simulateImportHelper(itemPath, relativeTo, new FromImportAsScheme(
+				outerImportReceiver, asName));
 	}
 
 	/**
@@ -288,27 +476,41 @@ final class DefaultImportSimulatorCore<O, C extends O, M extends C> {
 	 *         receiver rather than {@code a} and the from-style imports look in
 	 *         it to find their item.
 	 */
-	private M simulateImportHelper(List<String> importPath, M relativeTo,
-			C initialImportReceiver) {
+	private void simulateImportHelper(List<String> importPath, M relativeTo,
+			BindingScheme<M, M> binder) {
 
-		C importReceiver = initialImportReceiver;
+		M previouslyLoadedModule = null;
 		List<String> processed = new LinkedList<String>();
-		M loaded = null;
-		for (String token : importPath) {
+
+		for (int i = 0; i < importPath.size(); ++i) {
+			String token = importPath.get(i);
+
 			processed.add(token);
-			loaded = simulateTwoStepModuleLoad(processed, relativeTo);
-			if (loaded != null) {
-				if (importReceiver != null)
-					eventHandler.bindName(loaded, token, importReceiver);
+			M module = simulateTwoStepModuleLoad(processed, relativeTo);
+
+			if (i == 0) {
+				assert previouslyLoadedModule == null;
+				if (importPath.size() == 1) {
+					binder.bindSolitaryToken(module, token);
+				} else {
+					binder.bindFirstToken(module, token);
+				}
+			} else if (i < importPath.size() - 1) {
+				assert previouslyLoadedModule != null;
+				binder.bindIntermediateToken(module, token,
+						previouslyLoadedModule);
 			} else {
-				eventHandler.onUnresolvedImport(importPath, relativeTo, token,
-						importReceiver);
+				assert i == importPath.size() - 1;
+				assert previouslyLoadedModule != null;
+				binder.bindFinalToken(module, token, previouslyLoadedModule);
+			}
+
+			if (module == null) {
 				break; // abort import
 			}
-			importReceiver = loaded;
-		}
 
-		return loaded;
+			previouslyLoadedModule = module;
+		}
 	}
 
 	/**
@@ -336,23 +538,5 @@ final class DefaultImportSimulatorCore<O, C extends O, M extends C> {
 			loaded = loader.loadModule(importPath);
 
 		return loaded;
-	}
-
-	private void handleBind(List<String> importPath, M relativeTo,
-			C importReceiver, String as, C loaded) {
-		if (loaded != null)
-			eventHandler.bindName(loaded, as, importReceiver);
-		else
-			eventHandler.onUnresolvedImport(importPath, relativeTo, as,
-					importReceiver);
-	}
-
-	private void handleBindFrom(List<String> fromPath, String itemName,
-			M relativeTo, C importReceiver, String as, O loaded) {
-		if (loaded != null)
-			eventHandler.bindName(loaded, as, importReceiver);
-		else
-			eventHandler.onUnresolvedImportFromItem(fromPath, relativeTo,
-					itemName, as, importReceiver);
 	}
 }

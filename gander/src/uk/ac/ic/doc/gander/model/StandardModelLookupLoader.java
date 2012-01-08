@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import uk.ac.ic.doc.gander.DottedName;
-import uk.ac.ic.doc.gander.importing.DefaultImportSimulator.Loader;
+import uk.ac.ic.doc.gander.importing.LegacyImportSimulator.Loader;
 import uk.ac.ic.doc.gander.model.codeobject.CodeObject;
 import uk.ac.ic.doc.gander.model.codeobject.ModuleCO;
 import uk.ac.ic.doc.gander.model.codeobject.NestedCodeObject;

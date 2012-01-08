@@ -23,9 +23,9 @@ import uk.ac.ic.doc.gander.flowinference.result.RedundancyEliminator;
 import uk.ac.ic.doc.gander.flowinference.result.Result;
 import uk.ac.ic.doc.gander.flowinference.result.Result.Processor;
 import uk.ac.ic.doc.gander.flowinference.result.Result.Transformer;
-import uk.ac.ic.doc.gander.importing.DefaultImportSimulator;
+import uk.ac.ic.doc.gander.importing.LegacyImportSimulator;
 import uk.ac.ic.doc.gander.importing.WholeModelImportSimulation;
-import uk.ac.ic.doc.gander.importing.DefaultImportSimulator.Binder;
+import uk.ac.ic.doc.gander.importing.LegacyImportSimulator.Binder;
 import uk.ac.ic.doc.gander.model.AttributeAccessFinder;
 import uk.ac.ic.doc.gander.model.CodeObjectWalker;
 import uk.ac.ic.doc.gander.model.Model;
@@ -451,7 +451,7 @@ final class NamespaceNameFlowStepGoalSolver {
 		 */
 		private final RedundancyEliminator<FlowPosition> importedReferences = new RedundancyEliminator<FlowPosition>();
 
-		private final Binder<CodeObject, CodeObject, ModuleCO> worker = new DefaultImportSimulator.Binder<CodeObject, CodeObject, ModuleCO>() {
+		private final Binder<CodeObject, CodeObject, ModuleCO> worker = new LegacyImportSimulator.Binder<CodeObject, CodeObject, ModuleCO>() {
 
 			public void bindName(CodeObject object, String variableName,
 					CodeObject importReceiver) {
@@ -493,6 +493,7 @@ final class NamespaceNameFlowStepGoalSolver {
 		};
 
 		ImportedKeyReferenceFlower() {
+			
 			new WholeModelImportSimulation(namespaceName.namespace().model(),
 					worker);
 		}
@@ -524,7 +525,7 @@ final class NamespaceNameFlowStepGoalSolver {
 		private void handleBind(CodeObject object, Variable objectBinding) {
 			assert variableBindsLocallyOrGlobally(objectBinding);
 
-			if (importedObjectAliasOurName(object)) {
+			if (importedObjectAliasesOurName(object)) {
 
 				/*
 				 * The imported object directly aliases the namespace name we
@@ -556,7 +557,7 @@ final class NamespaceNameFlowStepGoalSolver {
 			}
 		}
 
-		private boolean importedObjectAliasOurName(CodeObject object) {
+		private boolean importedObjectAliasesOurName(CodeObject object) {
 
 			/*
 			 * XXX: HACK: comparing the name by name of code object is BAD. What

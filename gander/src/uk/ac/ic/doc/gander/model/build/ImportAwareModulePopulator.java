@@ -12,8 +12,7 @@ import org.python.pydev.parser.jython.ast.aliasType;
 
 import uk.ac.ic.doc.gander.DottedName;
 import uk.ac.ic.doc.gander.hierarchy.SourceFile;
-import uk.ac.ic.doc.gander.importing.DefaultImportSimulator;
-import uk.ac.ic.doc.gander.importing.ImportSimulator;
+import uk.ac.ic.doc.gander.importing.LegacyImportSimulator;
 import uk.ac.ic.doc.gander.model.Member;
 import uk.ac.ic.doc.gander.model.Module;
 import uk.ac.ic.doc.gander.model.MutableModel;
@@ -34,7 +33,7 @@ class ImportAwareModulePopulator extends ModulePopulator {
 
 	@Override
 	public Object visitImport(Import node) throws Exception {
-		ImportSimulator simulator = new DefaultImportSimulator<Member, Namespace, Module>(
+		LegacyImportSimulator<Member, Namespace, Module> simulator = new LegacyImportSimulator<Member, Namespace, Module>(
 				getScope(), new DoNothingBinder(), new Importer(model));
 
 		for (aliasType alias : node.names) {
@@ -50,7 +49,7 @@ class ImportAwareModulePopulator extends ModulePopulator {
 
 	@Override
 	public Object visitImportFrom(ImportFrom node) throws Exception {
-		ImportSimulator simulator = new DefaultImportSimulator<Member, Namespace, Module>(
+		LegacyImportSimulator<Member, Namespace, Module> simulator = new LegacyImportSimulator<Member, Namespace, Module>(
 				getScope(), new DoNothingBinder(), new Importer(model));
 
 		for (aliasType alias : node.names) {
@@ -66,7 +65,7 @@ class ImportAwareModulePopulator extends ModulePopulator {
 	}
 
 	private static class Importer implements
-			DefaultImportSimulator.Loader<Member, Namespace, Module> {
+			LegacyImportSimulator.Loader<Member, Namespace, Module> {
 
 		private MutableModel model;
 
@@ -152,7 +151,7 @@ class ImportAwareModulePopulator extends ModulePopulator {
 	 * FIXME: This explanation is clear as mud
 	 */
 	private static class DoNothingBinder implements
-			DefaultImportSimulator.Binder<Member, Namespace, Module> {
+			LegacyImportSimulator.Binder<Member, Namespace, Module> {
 
 		public void bindName(Member loadedObject, String as, Namespace scope) {
 		}

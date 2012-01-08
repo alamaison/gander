@@ -8,7 +8,7 @@ import uk.ac.ic.doc.gander.flowinference.types.TFunction;
 import uk.ac.ic.doc.gander.flowinference.types.TModule;
 import uk.ac.ic.doc.gander.flowinference.types.TUnresolvedImport;
 import uk.ac.ic.doc.gander.flowinference.types.Type;
-import uk.ac.ic.doc.gander.importing.DefaultImportSimulator;
+import uk.ac.ic.doc.gander.importing.LegacyImportSimulator;
 import uk.ac.ic.doc.gander.model.codeobject.ClassCO;
 import uk.ac.ic.doc.gander.model.codeobject.CodeObject;
 import uk.ac.ic.doc.gander.model.codeobject.FunctionCO;
@@ -19,7 +19,7 @@ import uk.ac.ic.doc.gander.model.codeobject.ModuleCO;
  * correct {@link Type} for the object.
  */
 final class ImportedNameTypeWatcher implements
-		DefaultImportSimulator.Binder<CodeObject, CodeObject, ModuleCO> {
+		LegacyImportSimulator.Binder<CodeObject, CodeObject, ModuleCO> {
 
 	private final ImportTypeEvent eventHandler;
 
@@ -65,8 +65,16 @@ final class ImportedNameTypeWatcher implements
 		 * import. This loads the middle modules but doesn't bind them.
 		 */
 		if (codeBlock != null)
+
+			// XXX: This isn't really correct. Unlike the other two cases, we
+			// don't actually know that the missing item is a module or a
+			// package. It _could_ be but equally it could be a class, function
+			// or even a variable.
+
+			// eventHandler.onImportTyped(codeBlock, as, new TUnresolvedImport(
+			// importPath, relativeTo.oldStyleConflatedNamespace()));
 			eventHandler.onImportTyped(codeBlock, as, new TUnresolvedImport(
-					importPath, relativeTo.oldStyleConflatedNamespace()));
+					importPath, null));
 	}
 
 	public final void onUnresolvedImportFromItem(List<String> fromPath,

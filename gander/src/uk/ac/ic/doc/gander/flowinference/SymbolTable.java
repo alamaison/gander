@@ -17,8 +17,7 @@ import uk.ac.ic.doc.gander.flowinference.ImportedNameTypeWatcher.ImportTypeEvent
 import uk.ac.ic.doc.gander.flowinference.types.TClass;
 import uk.ac.ic.doc.gander.flowinference.types.TFunction;
 import uk.ac.ic.doc.gander.flowinference.types.Type;
-import uk.ac.ic.doc.gander.importing.DefaultImportSimulator;
-import uk.ac.ic.doc.gander.importing.ImportSimulator;
+import uk.ac.ic.doc.gander.importing.LegacyImportSimulator;
 import uk.ac.ic.doc.gander.model.Class;
 import uk.ac.ic.doc.gander.model.Function;
 import uk.ac.ic.doc.gander.model.Model;
@@ -190,9 +189,9 @@ public class SymbolTable {
 
 	}
 
-	private ImportSimulator simulator(Namespace importReceiver) {
+	private LegacyImportSimulator<CodeObject, CodeObject, ModuleCO> simulator(Namespace importReceiver) {
 
-		return new DefaultImportSimulator<CodeObject, CodeObject, ModuleCO>(
+		return new LegacyImportSimulator<CodeObject, CodeObject, ModuleCO>(
 				importReceiver.codeObject(), new ImportedNameTypeWatcher(
 						new ImportTypeEvent() {
 
