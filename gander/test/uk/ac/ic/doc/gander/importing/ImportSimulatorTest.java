@@ -12,8 +12,8 @@ import java.util.List;
 import org.junit.Test;
 
 import uk.ac.ic.doc.gander.DottedName;
-import uk.ac.ic.doc.gander.importing.DefaultImportSimulator.Binder;
-import uk.ac.ic.doc.gander.importing.DefaultImportSimulator.Loader;
+import uk.ac.ic.doc.gander.importing.ImportSimulator.Binder;
+import uk.ac.ic.doc.gander.importing.ImportSimulator.Loader;
 
 public final class ImportSimulatorTest {
 
@@ -87,9 +87,9 @@ public final class ImportSimulatorTest {
 		}
 	};
 
-	DefaultImportSimulator<String, String, String> simulator() {
-		return new DefaultImportSimulator<String, String, String>(
-				bindingHandler, loader);
+	ImportSimulator<String, String, String> simulator() {
+		return new ImportSimulator<String, String, String>(bindingHandler,
+				loader);
 	}
 
 	@Test

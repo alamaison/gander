@@ -36,7 +36,7 @@ import uk.ac.ic.doc.gander.DottedName;
  * @param <M>
  *            the type of Java objects representing Python modules
  */
-public final class DefaultImportSimulator<O, C, M> {
+public final class ImportSimulator<O, C, M> {
 
 	/**
 	 * Callback through which the import simulation reports object being bound
@@ -137,9 +137,9 @@ public final class DefaultImportSimulator<O, C, M> {
 		O loadNonModuleMember(String itemName, M sourceModule);
 	}
 
-	private final DefaultImportSimulatorCore<O, C, M> core;
+	private final ImportSimulatorCore<O, C, M> core;
 
-	public DefaultImportSimulator(Binder<O, C, M> eventHandler,
+	public ImportSimulator(Binder<O, C, M> eventHandler,
 			Loader<O, C, M> loader) {
 		if (eventHandler == null)
 			throw new NullPointerException(
@@ -147,7 +147,7 @@ public final class DefaultImportSimulator<O, C, M> {
 		if (loader == null)
 			throw new NullPointerException("Must have an object loader");
 
-		this.core = new DefaultImportSimulatorCore<O, C, M>(eventHandler,
+		this.core = new ImportSimulatorCore<O, C, M>(eventHandler,
 				loader);
 	}
 
@@ -203,7 +203,7 @@ public final class DefaultImportSimulator<O, C, M> {
 	}
 }
 
-final class DefaultImportSimulatorCore<O, C, M> {
+final class ImportSimulatorCore<O, C, M> {
 
 	public static final class ImportBinding<O> {
 		private final O importedObject;
@@ -223,16 +223,16 @@ final class DefaultImportSimulatorCore<O, C, M> {
 		}
 	}
 
-	private final DefaultImportSimulator.Binder<O, C, M> eventHandler;
-	private final DefaultImportSimulator.Loader<O, C, M> loader;
+	private final ImportSimulator.Binder<O, C, M> eventHandler;
+	private final ImportSimulator.Loader<O, C, M> loader;
 
 	private final class XXXErrorWrapper implements
-			DefaultImportSimulator.Binder<O, C, M> {
+			ImportSimulator.Binder<O, C, M> {
 
-		private final DefaultImportSimulator.Binder<O, C, M> inner;
+		private final ImportSimulator.Binder<O, C, M> inner;
 
 		public XXXErrorWrapper(
-				DefaultImportSimulator.Binder<O, C, M> eventHandler) {
+				ImportSimulator.Binder<O, C, M> eventHandler) {
 			this.inner = eventHandler;
 		}
 
@@ -291,9 +291,9 @@ final class DefaultImportSimulatorCore<O, C, M> {
 
 	}
 
-	public DefaultImportSimulatorCore(
-			DefaultImportSimulator.Binder<O, C, M> eventHandler,
-			DefaultImportSimulator.Loader<O, C, M> loader) {
+	public ImportSimulatorCore(
+			ImportSimulator.Binder<O, C, M> eventHandler,
+			ImportSimulator.Loader<O, C, M> loader) {
 		if (eventHandler == null)
 			throw new NullPointerException(
 					"Must have an event handler to react to import events");

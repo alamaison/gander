@@ -129,7 +129,7 @@ public final class LegacyImportSimulator<O, C extends O, M extends C> {
 	}
 
 	private final C importReceiver;
-	private final DefaultImportSimulator<O, C, M> inner;
+	private final ImportSimulator<O, C, M> inner;
 	private final M relativeTo;
 
 	/**
@@ -147,9 +147,8 @@ public final class LegacyImportSimulator<O, C extends O, M extends C> {
 		if (loader == null)
 			throw new NullPointerException("Must have an object innerLoader");
 
-		this.inner = new DefaultImportSimulator<O, C, M>(
-				new LegacyBinderAdaptor(eventHandler), new LegacyLoaderAdaptor(
-						loader));
+		this.inner = new ImportSimulator<O, C, M>(new LegacyBinderAdaptor(
+				eventHandler), new LegacyLoaderAdaptor(loader));
 
 		this.importReceiver = importReceiver;
 		this.relativeTo = loader.parentModule(importReceiver);
@@ -191,7 +190,7 @@ public final class LegacyImportSimulator<O, C extends O, M extends C> {
 	}
 
 	private final class LegacyBinderAdaptor implements
-			DefaultImportSimulator.Binder<O, C, M> {
+			ImportSimulator.Binder<O, C, M> {
 
 		private Binder<O, C, M> innerEventHandler;
 
@@ -240,7 +239,7 @@ public final class LegacyImportSimulator<O, C extends O, M extends C> {
 	}
 
 	private final class LegacyLoaderAdaptor implements
-			DefaultImportSimulator.Loader<O, C, M> {
+			ImportSimulator.Loader<O, C, M> {
 
 		private final Loader<O, C, M> innerLoader;
 
