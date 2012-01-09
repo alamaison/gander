@@ -310,7 +310,7 @@ final class ImportSimulatorCore<O, C, M> {
 	 *         it to find their item.
 	 */
 	private void simulateImportHelper(List<String> importPath, M relativeTo,
-			BindingScheme<M, M> binder) {
+			ModuleBindingScheme<M> binder) {
 
 		M previouslyLoadedModule = null;
 		List<String> processed = new LinkedList<String>();

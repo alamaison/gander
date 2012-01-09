@@ -27,7 +27,7 @@ final class StandardImportAsInfo implements ImportInfo {
 		return ImportPath.fromDottedName(moduleImportName);
 	}
 
-	public <O, C, M> BindingScheme<M, M> newBindingScheme(C outerImportReceiver,
+	public <O, C, M> ModuleBindingScheme<M> newBindingScheme(C outerImportReceiver,
 			Binder<O, C, M> bindingHandler, Loader<O, C, M> loader) {
 		return new ImportAsScheme<O, C, M>(outerImportReceiver, alias,
 				bindingHandler);

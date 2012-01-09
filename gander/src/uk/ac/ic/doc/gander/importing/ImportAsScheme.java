@@ -1,6 +1,6 @@
 package uk.ac.ic.doc.gander.importing;
 
-final class ImportAsScheme<O, C, M> implements BindingScheme<M, M> {
+final class ImportAsScheme<O, C, M> implements ModuleBindingScheme<M> {
 
 	private final C outerImportReceiver;
 	private final String asName;

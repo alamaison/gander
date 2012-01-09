@@ -49,7 +49,7 @@ public interface ImportInfo {
 	 */
 	ImportPath objectPath();
 
-	<O, C, M> BindingScheme<M, M> newBindingScheme(
+	<O, C, M> ModuleBindingScheme<M> newBindingScheme(
 			C outerImportReceiver,
 			ImportSimulator.Binder<O, C, M> bindingHandler,
 			ImportSimulator.Loader<O, C, M> loader);

@@ -26,7 +26,7 @@ final class FromImportInfo implements ImportInfo {
 		return ImportPath.fromDottedName(moduleImportName + "." + itemName);
 	}
 
-	public <O, C, M> BindingScheme<M, M> newBindingScheme(C outerImportReceiver,
+	public <O, C, M> ModuleBindingScheme<M> newBindingScheme(C outerImportReceiver,
 			Binder<O, C, M> bindingHandler, Loader<O, C, M> loader) {
 		return new FromImportAsScheme<O, C, M>(outerImportReceiver, itemName,
 				bindingHandler, loader);

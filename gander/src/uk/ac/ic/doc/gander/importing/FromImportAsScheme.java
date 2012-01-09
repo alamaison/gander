@@ -2,7 +2,7 @@ package uk.ac.ic.doc.gander.importing;
 
 import uk.ac.ic.doc.gander.importing.ImportSimulator.Loader;
 
-final class FromImportAsScheme<O, C, M> implements BindingScheme<M, M> {
+final class FromImportAsScheme<O, C, M> implements ModuleBindingScheme<M> {
 
 	private final C outerImportReceiver;
 	private final String asName;
