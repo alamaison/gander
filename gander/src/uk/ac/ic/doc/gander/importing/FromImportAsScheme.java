@@ -10,13 +10,6 @@ final class FromImportAsScheme<O, C, M> implements ModuleBindingScheme<M> {
 	private final ImportSimulator.Binder<O, C, M> bindingHandler;
 	private final Loader<O, C, M> loader;
 
-	public FromImportAsScheme(M relativeTo, C outerImportReceiver,
-			String asName, Binder<O, C, M> bindingHandler,
-			Loader<O, C, M> loader, ImportInfo importSpec) {
-		this(new Import<C, M>(importSpec, relativeTo, outerImportReceiver),
-				asName, bindingHandler, loader);
-	}
-
 	public FromImportAsScheme(Import<C, M> importInstance, String asName,
 			Binder<O, C, M> bindingHandler, Loader<O, C, M> loader) {
 		assert importInstance != null;
