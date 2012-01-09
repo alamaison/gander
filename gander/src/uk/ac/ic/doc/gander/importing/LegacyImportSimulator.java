@@ -170,14 +170,12 @@ public final class LegacyImportSimulator<O, C extends O, M extends C> {
 	 */
 	public void simulateImport(String importName) {
 
-		inner.simulateImport(ImportInfoFactory.newImport(importName),
-				importReceiver, relativeTo);
+		inner.simulateImport(new Import<C, M>(ImportInfoFactory.newImport(importName), relativeTo, importReceiver));
 	}
 
 	public void simulateImportAs(String importName, String asName) {
 
-		inner.simulateImport(ImportInfoFactory.newImportAs(importName, asName),
-				importReceiver, relativeTo);
+		inner.simulateImport(new Import<C, M>(ImportInfoFactory.newImportAs(importName, asName), relativeTo, importReceiver));
 	}
 
 	public void simulateImportFrom(String fromName, String itemName) {
@@ -187,8 +185,8 @@ public final class LegacyImportSimulator<O, C extends O, M extends C> {
 	public void simulateImportFromAs(String fromName, String itemName,
 			String asName) {
 
-		inner.simulateImport(ImportInfoFactory.newFromImportAs(fromName,
-				itemName, asName), importReceiver, relativeTo);
+		inner.simulateImport(new Import<C, M>(ImportInfoFactory.newFromImportAs(fromName,
+		itemName, asName), relativeTo, importReceiver));
 	}
 
 	private final class LegacyBinderAdaptor implements
@@ -225,18 +223,12 @@ public final class LegacyImportSimulator<O, C extends O, M extends C> {
 			bindName(importedObject, name, receivingModule);
 		}
 
-		public void onUnresolvedLocalImport(ImportInfo importSpec,
-				M relativeTo, String as, C importReceiver) {
-			assert importReceiver != null;
-			innerEventHandler.onUnresolvedImport(importSpec.objectPath(), relativeTo, as,
-					importReceiver);
-		}
+		public void onUnresolvedImport(Import<C, M> importInstance, String name) {
+			assert importInstance.container() != null;
 
-		public void onUnresolvedImport(ImportInfo importSpec, M relativeTo,
-				String as, M importReceiver) {
-			assert importReceiver != null;
-			innerEventHandler.onUnresolvedImport(importSpec.objectPath(), relativeTo, as,
-					importReceiver);
+			innerEventHandler.onUnresolvedImport(importInstance.specification()
+					.objectPath(), importInstance.relativeTo(), name,
+					importInstance.container());
 		}
 	}
 

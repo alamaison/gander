@@ -28,11 +28,10 @@ final class FromImportAsInfo implements ImportInfo {
 		return ImportPath.fromDottedName(moduleImportName + "." + itemName);
 	}
 
-	public <O, C, M> ModuleBindingScheme<M> newBindingScheme(M relativeTo,
-			C outerImportReceiver, Binder<O, C, M> bindingHandler,
+	public <O, C, M> ModuleBindingScheme<M> newBindingScheme(Import<C, M> importInstance, Binder<O, C, M> bindingHandler,
 			Loader<O, C, M> loader) {
-		return new FromImportAsScheme<O, C, M>(relativeTo, outerImportReceiver, alias,
-				bindingHandler, loader, this);
+		return new FromImportAsScheme<O, C, M>(importInstance, alias,
+				bindingHandler, loader);
 	}
 
 	private FromImportAsInfo(String moduleImportName, String itemName,

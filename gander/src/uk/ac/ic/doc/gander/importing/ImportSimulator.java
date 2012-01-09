@@ -79,11 +79,7 @@ public final class ImportSimulator<O, C, M> {
 
 		void bindObjectToName(O importedObject, String name, M receivingModule);
 
-		void onUnresolvedImport(ImportInfo importSpec, M relativeTo, String as,
-				M importReceiver);
-
-		void onUnresolvedLocalImport(ImportInfo importSpec, M relativeTo,
-				String as, C importReceiver);
+		void onUnresolvedImport(Import<C, M> importInstance, String name);
 	}
 
 	/**
@@ -133,84 +129,10 @@ public final class ImportSimulator<O, C, M> {
 		O loadNonModuleMember(String itemName, M sourceModule);
 	}
 
-	private final ImportSimulatorCore<O, C, M> core;
-
-	public ImportSimulator(Binder<O, C, M> eventHandler, Loader<O, C, M> loader) {
-		if (eventHandler == null)
-			throw new NullPointerException(
-					"Must have an event handler to react to import events");
-		if (loader == null)
-			throw new NullPointerException("Must have an object loader");
-
-		this.core = new ImportSimulatorCore<O, C, M>(eventHandler, loader);
-	}
-
-	/**
-	 * Import a module as in {@code import foo.bar.baz}.
-	 * 
-	 * Binds the module object representation named by the first token in the
-	 * dotted import path to a matching name in the namespace this object was
-	 * initialised with. The it binds the modules named by any subsequent tokens
-	 * to their matching names in each previously loaded module's namespace.
-	 * 
-	 * For example, when importing {@code x.y.z}, Python will import {@code z}
-	 * into {@code y} and {@code y} into {@code x}. Finally the module y is
-	 * bound to the name {@code x} in the binding namespace for {@code x}
-	 * relative to the given code block.
-	 * 
-	 * @param importSpec
-	 *            the particular kind of import being simulated
-	 * @param importReceiver
-	 *            a representation of the code object whose code block contains
-	 *            the import statement
-	 * @param relativeTo
-	 *            representation of the module that the import statement
-	 *            operates relative to; may be {@code null} as that could be a
-	 *            valid representation of the module object in some model of the
-	 *            system
-	 */
-	public void simulateImport(ImportInfo importSpec, C importReceiver,
-			M relativeTo) {
-		if (importSpec == null)
-			throw new NullPointerException("No import given to simulate");
-		if (importReceiver == null)
-			throw new NullPointerException(
-					"Imports must have a receiver; the code object "
-							+ "whose code block they appear in");
-		if (importReceiver.equals(relativeTo))
-			throw new IllegalArgumentException(
-					"An import is never relative to the module "
-							+ "in which it appears");
-
-		core.simulateImport(importSpec, relativeTo, importReceiver);
-	}
-}
-
-final class ImportSimulatorCore<O, C, M> {
-
-	public static final class ImportBinding<O> {
-		private final O importedObject;
-		private final String boundToName;
-
-		public O importedObject() {
-			return importedObject;
-		}
-
-		public String importedAs() {
-			return boundToName;
-		}
-
-		private ImportBinding(O importedObject, String boundToName) {
-			this.importedObject = importedObject;
-			this.boundToName = boundToName;
-		}
-	}
-
 	private final ImportSimulator.Binder<O, C, M> eventHandler;
 	private final ImportSimulator.Loader<O, C, M> loader;
 
-	public ImportSimulatorCore(ImportSimulator.Binder<O, C, M> eventHandler,
-			ImportSimulator.Loader<O, C, M> loader) {
+	public ImportSimulator(Binder<O, C, M> eventHandler, Loader<O, C, M> loader) {
 		if (eventHandler == null)
 			throw new NullPointerException(
 					"Must have an event handler to react to import events");
@@ -221,34 +143,19 @@ final class ImportSimulatorCore<O, C, M> {
 		this.loader = loader;
 	}
 
-	void simulateImport(ImportInfo importSpec, M relativeTo,
-			C outerImportReceiver) {
-		simulateImportHelper(importSpec, relativeTo, outerImportReceiver);
-	}
-
 	/**
-	 * Load each segment of import path, binding it to a name with respect to
+	 * Runs simulation for a given import instance.
+	 * 
+	 * Loads each segment of import path, binding it to a name with respect to
 	 * previous segment.
 	 * 
-	 * @param importSpec
+	 * @param importInstance
 	 *            the kind of import being simulated
-	 * @param relativeTo
-	 *            the module that the import path is relative to
-	 * @param initialImportReceiver
-	 *            the object that the first segment is bound with respect to;
-	 *            optional; {@code import a.b.c} does not want this as {@code c}
-	 *            , rather than {@code a} gets bound with respect to that object
-	 * 
-	 * @return the object loaded by the <em>final</em> segment; this allows
-	 *         {@code import a.b.c as x} to bind {@code c} in the initial import
-	 *         receiver rather than {@code a} and the from-style imports look in
-	 *         it to find their item.
 	 */
-	private void simulateImportHelper(ImportInfo importSpec, M relativeTo,
-			C outerImportReceiver) {
-		List<String> importPath = importSpec.objectPath();
-		ModuleBindingScheme<M> binder = importSpec.newBindingScheme(relativeTo,
-				outerImportReceiver, eventHandler, loader);
+	void simulateImport(Import<C, M> importInstance) {
+		List<String> importPath = importInstance.specification().objectPath();
+		ModuleBindingScheme<M> binder = importInstance.specification()
+				.newBindingScheme(importInstance, eventHandler, loader);
 
 		M previouslyLoadedModule = null;
 		List<String> processed = new LinkedList<String>();
@@ -257,7 +164,8 @@ final class ImportSimulatorCore<O, C, M> {
 			String token = importPath.get(i);
 
 			processed.add(token);
-			M module = simulateTwoStepModuleLoad(processed, relativeTo);
+			M module = simulateTwoStepModuleLoad(processed, importInstance
+					.relativeTo());
 
 			if (i == 0) {
 				assert previouslyLoadedModule == null;

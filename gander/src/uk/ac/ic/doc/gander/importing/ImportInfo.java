@@ -50,8 +50,7 @@ public interface ImportInfo {
 	ImportPath objectPath();
 
 	<O, C, M> ModuleBindingScheme<M> newBindingScheme(
-			M relativeTo,
-			C outerImportReceiver,
+			Import<C, M> importInstance,
 			ImportSimulator.Binder<O, C, M> bindingHandler,
 			ImportSimulator.Loader<O, C, M> loader);
 }

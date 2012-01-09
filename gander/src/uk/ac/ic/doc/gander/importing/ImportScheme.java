@@ -2,21 +2,15 @@ package uk.ac.ic.doc.gander.importing;
 
 final class ImportScheme<O, C, M> implements ModuleBindingScheme<M> {
 
-	private final C outerImportReceiver;
 	private final ImportSimulator.Binder<O, C, M> bindingHandler;
-	private final ImportInfo importInfo;
-	private final M relativeTo;
+	private final Import<C, M> importInstance;
 
-	ImportScheme(M relativeTo, C outerImportReceiver,
-			ImportSimulator.Binder<O, C, M> bindingHandler,
-			ImportInfo importInfo) {
-		assert outerImportReceiver != null;
+	ImportScheme(Import<C, M> importInstance,
+			ImportSimulator.Binder<O, C, M> bindingHandler) {
+		assert importInstance != null;
 		assert bindingHandler != null;
-		assert importInfo != null;
-		this.relativeTo = relativeTo;
-		this.outerImportReceiver = outerImportReceiver;
+		this.importInstance = importInstance;
 		this.bindingHandler = bindingHandler;
-		this.importInfo = importInfo;
 	}
 
 	public void bindSolitaryToken(M module, String name) {
@@ -26,10 +20,9 @@ final class ImportScheme<O, C, M> implements ModuleBindingScheme<M> {
 	public void bindFirstToken(M module, String name) {
 		if (module != null) {
 			bindingHandler.bindModuleToLocalName(module, name,
-					outerImportReceiver);
+					importInstance.container());
 		} else {
-			bindingHandler.onUnresolvedLocalImport(importInfo, relativeTo,
-					name, outerImportReceiver);
+			bindingHandler.onUnresolvedImport(importInstance, name);
 		}
 	}
 
@@ -38,8 +31,7 @@ final class ImportScheme<O, C, M> implements ModuleBindingScheme<M> {
 			bindingHandler.bindModuleToName(module, name,
 					previouslyLoadedModule);
 		} else {
-			bindingHandler.onUnresolvedImport(importInfo, relativeTo, name,
-					previouslyLoadedModule);
+			bindingHandler.onUnresolvedImport(importInstance, name);
 		}
 	}
 
@@ -49,8 +41,7 @@ final class ImportScheme<O, C, M> implements ModuleBindingScheme<M> {
 			bindingHandler.bindModuleToName(module, name,
 					previouslyLoadedModule);
 		} else {
-			bindingHandler.onUnresolvedImport(importInfo, relativeTo, name,
-					previouslyLoadedModule);
+			bindingHandler.onUnresolvedImport(importInstance, name);
 		}
 	}
 

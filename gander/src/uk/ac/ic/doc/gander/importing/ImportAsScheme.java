@@ -2,32 +2,27 @@ package uk.ac.ic.doc.gander.importing;
 
 final class ImportAsScheme<O, C, M> implements ModuleBindingScheme<M> {
 
-	private final M relativeTo;
-	private final C outerImportReceiver;
 	private final String asName;
 	private final ImportSimulator.Binder<O, C, M> bindingHandler;
-	private final ImportInfo importSpec;
+	private final Import<C, M> importInstance;
 
-	ImportAsScheme(M relativeTo, C outerImportReceiver, String asName,
-			ImportSimulator.Binder<O, C, M> bindingHandler,
-			ImportInfo importSpec) {
-		assert outerImportReceiver != null;
+	ImportAsScheme(Import<C, M> importInstance, String asName,
+			ImportSimulator.Binder<O, C, M> bindingHandler) {
+		assert importInstance != null;
 		assert !asName.isEmpty();
 		assert bindingHandler != null;
-		this.relativeTo = relativeTo;
-		this.outerImportReceiver = outerImportReceiver;
+
+		this.importInstance = importInstance;
 		this.asName = asName;
 		this.bindingHandler = bindingHandler;
-		this.importSpec = importSpec;
 	}
 
 	public void bindSolitaryToken(M module, String name) {
 		if (module != null) {
-			bindingHandler.bindModuleToLocalName(module, asName,
-					outerImportReceiver);
+			bindingHandler.bindModuleToLocalName(module, asName, importInstance
+					.container());
 		} else {
-			bindingHandler.onUnresolvedLocalImport(importSpec, relativeTo,
-					name, outerImportReceiver);
+			bindingHandler.onUnresolvedImport(importInstance, name);
 		}
 	}
 
@@ -40,8 +35,7 @@ final class ImportAsScheme<O, C, M> implements ModuleBindingScheme<M> {
 			bindingHandler.bindModuleToName(module, name,
 					previouslyLoadedModule);
 		} else {
-			bindingHandler.onUnresolvedImport(importSpec, relativeTo, name,
-					previouslyLoadedModule);
+			bindingHandler.onUnresolvedImport(importInstance, name);
 		}
 	}
 
@@ -49,11 +43,10 @@ final class ImportAsScheme<O, C, M> implements ModuleBindingScheme<M> {
 		if (module != null) {
 			bindingHandler.bindModuleToName(module, name,
 					previouslyLoadedModule);
-			bindingHandler.bindModuleToLocalName(module, asName,
-					outerImportReceiver);
+			bindingHandler.bindModuleToLocalName(module, asName, importInstance
+					.container());
 		} else {
-			bindingHandler.onUnresolvedLocalImport(importSpec, relativeTo,
-					name, outerImportReceiver);
+			bindingHandler.onUnresolvedImport(importInstance, name);
 		}
 	}
 
