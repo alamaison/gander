@@ -1,6 +1,5 @@
 package uk.ac.ic.doc.gander.importing;
 
-import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -80,10 +79,10 @@ public final class ImportSimulator<O, C, M> {
 
 		void bindObjectToName(O importedObject, String name, M receivingModule);
 
-		void onUnresolvedImport(List<String> importPath, M relativeTo,
-				String as, M importReceiver);
+		void onUnresolvedImport(ImportInfo importSpec, M relativeTo, String as,
+				M importReceiver);
 
-		void onUnresolvedLocalImport(List<String> importPath, M relativeTo,
+		void onUnresolvedLocalImport(ImportInfo importSpec, M relativeTo,
 				String as, C importReceiver);
 	}
 
@@ -210,70 +209,6 @@ final class ImportSimulatorCore<O, C, M> {
 	private final ImportSimulator.Binder<O, C, M> eventHandler;
 	private final ImportSimulator.Loader<O, C, M> loader;
 
-	private final class XXXErrorWrapper implements
-			ImportSimulator.Binder<O, C, M> {
-
-		private final ImportSimulator.Binder<O, C, M> inner;
-
-		public XXXErrorWrapper(ImportSimulator.Binder<O, C, M> eventHandler) {
-			this.inner = eventHandler;
-		}
-
-		public void bindModuleToLocalName(M loadedModule, String name,
-				C importReceiver) {
-			if (loadedModule != null) {
-				inner.bindModuleToLocalName(loadedModule, name, importReceiver);
-			} else {
-				onUnresolvedLocalImport(Collections.<String> emptyList(), null,
-						name, importReceiver);
-			}
-		}
-
-		public void bindModuleToName(M loadedModule, String name,
-				M receivingModule) {
-			if (loadedModule != null) {
-				inner.bindModuleToName(loadedModule, name, receivingModule);
-			} else {
-				onUnresolvedImport(Collections.<String> emptyList(), null,
-						name, receivingModule);
-			}
-		}
-
-		public void bindObjectToLocalName(O importedObject, String name,
-				C importReceiver) {
-			if (importedObject != null) {
-				inner.bindObjectToLocalName(importedObject, name,
-						importReceiver);
-			} else {
-				onUnresolvedLocalImport(Collections.<String> emptyList(), null,
-						name, importReceiver);
-			}
-		}
-
-		public void bindObjectToName(O importedObject, String name,
-				M receivingModule) {
-			if (importedObject != null) {
-				inner.bindObjectToName(importedObject, name, receivingModule);
-			} else {
-				onUnresolvedImport(Collections.<String> emptyList(), null,
-						name, receivingModule);
-			}
-		}
-
-		public void onUnresolvedLocalImport(List<String> importPath,
-				M relativeTo, String as, C importReceiver) {
-			inner.onUnresolvedLocalImport(importPath, relativeTo, as,
-					importReceiver);
-		}
-
-		public void onUnresolvedImport(List<String> importPath, M relativeTo,
-				String as, M receivingModule) {
-			inner.onUnresolvedImport(importPath, relativeTo, as,
-					receivingModule);
-		}
-
-	}
-
 	public ImportSimulatorCore(ImportSimulator.Binder<O, C, M> eventHandler,
 			ImportSimulator.Loader<O, C, M> loader) {
 		if (eventHandler == null)
@@ -282,7 +217,7 @@ final class ImportSimulatorCore<O, C, M> {
 		if (loader == null)
 			throw new NullPointerException("Must have an object loader");
 
-		this.eventHandler = new XXXErrorWrapper(eventHandler);
+		this.eventHandler = eventHandler;
 		this.loader = loader;
 	}
 
@@ -295,8 +230,8 @@ final class ImportSimulatorCore<O, C, M> {
 	 * Load each segment of import path, binding it to a name with respect to
 	 * previous segment.
 	 * 
-	 * @param importPath
-	 *            the import path being loaded
+	 * @param importSpec
+	 *            the kind of import being simulated
 	 * @param relativeTo
 	 *            the module that the import path is relative to
 	 * @param initialImportReceiver
@@ -309,8 +244,11 @@ final class ImportSimulatorCore<O, C, M> {
 	 *         receiver rather than {@code a} and the from-style imports look in
 	 *         it to find their item.
 	 */
-	private void simulateImportHelper(List<String> importPath, M relativeTo,
-			ModuleBindingScheme<M> binder) {
+	private void simulateImportHelper(ImportInfo importSpec, M relativeTo,
+			C outerImportReceiver) {
+		List<String> importPath = importSpec.objectPath();
+		ModuleBindingScheme<M> binder = importSpec.newBindingScheme(relativeTo,
+				outerImportReceiver, eventHandler, loader);
 
 		M previouslyLoadedModule = null;
 		List<String> processed = new LinkedList<String>();
@@ -344,12 +282,6 @@ final class ImportSimulatorCore<O, C, M> {
 
 			previouslyLoadedModule = module;
 		}
-	}
-
-	private void simulateImportHelper(ImportInfo importSpec, M relativeTo,
-			C outerImportReceiver) {
-		simulateImportHelper(importSpec.objectPath(), relativeTo, importSpec
-				.newBindingScheme(outerImportReceiver, eventHandler, loader));
 	}
 
 	/**

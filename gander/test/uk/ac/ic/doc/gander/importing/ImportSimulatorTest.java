@@ -41,13 +41,13 @@ public final class ImportSimulatorTest {
 			bindings.add(new TestEntry(importedObject, name, receivingModule));
 		}
 
-		public void onUnresolvedLocalImport(List<String> importPath,
+		public void onUnresolvedImport(ImportInfo importSpec,
 				String relativeTo, String as, String importReceiver) {
 			fail();
 		}
 
-		public void onUnresolvedImport(List<String> importPath,
-				String relativeTo, String as, String codeBlock) {
+		public void onUnresolvedLocalImport(ImportInfo importSpec,
+				String relativeTo, String as, String importReceiver) {
 			fail();
 		}
 	};

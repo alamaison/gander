@@ -23,9 +23,9 @@ final class StandardImportInfo implements ImportInfo {
 		return ImportPath.fromDottedName(moduleImportName);
 	}
 
-	public <O, C, M> ModuleBindingScheme<M> newBindingScheme(C outerImportReceiver,
+	public <O, C, M> ModuleBindingScheme<M> newBindingScheme(M relativeTo, C outerImportReceiver,
 			Binder<O, C, M> bindingHandler, Loader<O, C, M> loader) {
-		return new ImportScheme<O, C, M>(outerImportReceiver, bindingHandler);
+		return new ImportScheme<O, C, M>(relativeTo, outerImportReceiver, bindingHandler, this);
 	}
 
 	private StandardImportInfo(String moduleImportName) {

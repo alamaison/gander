@@ -170,14 +170,14 @@ public final class LegacyImportSimulator<O, C extends O, M extends C> {
 	 */
 	public void simulateImport(String importName) {
 
-		inner.simulateImport(ImportInfoFactory.newImport(importName), importReceiver,
-		relativeTo);
+		inner.simulateImport(ImportInfoFactory.newImport(importName),
+				importReceiver, relativeTo);
 	}
 
 	public void simulateImportAs(String importName, String asName) {
 
 		inner.simulateImport(ImportInfoFactory.newImportAs(importName, asName),
-		importReceiver, relativeTo);
+				importReceiver, relativeTo);
 	}
 
 	public void simulateImportFrom(String fromName, String itemName) {
@@ -187,8 +187,8 @@ public final class LegacyImportSimulator<O, C extends O, M extends C> {
 	public void simulateImportFromAs(String fromName, String itemName,
 			String asName) {
 
-		inner.simulateImport(ImportInfoFactory.newFromImportAs(fromName, itemName,
-		asName), importReceiver, relativeTo);
+		inner.simulateImport(ImportInfoFactory.newFromImportAs(fromName,
+				itemName, asName), importReceiver, relativeTo);
 	}
 
 	private final class LegacyBinderAdaptor implements
@@ -225,17 +225,17 @@ public final class LegacyImportSimulator<O, C extends O, M extends C> {
 			bindName(importedObject, name, receivingModule);
 		}
 
-		public void onUnresolvedLocalImport(List<String> importPath,
+		public void onUnresolvedLocalImport(ImportInfo importSpec,
 				M relativeTo, String as, C importReceiver) {
 			assert importReceiver != null;
-			innerEventHandler.onUnresolvedImport(importPath, relativeTo, as,
+			innerEventHandler.onUnresolvedImport(importSpec.objectPath(), relativeTo, as,
 					importReceiver);
 		}
 
-		public void onUnresolvedImport(List<String> importPath, M relativeTo,
+		public void onUnresolvedImport(ImportInfo importSpec, M relativeTo,
 				String as, M importReceiver) {
 			assert importReceiver != null;
-			innerEventHandler.onUnresolvedImport(importPath, relativeTo, as,
+			innerEventHandler.onUnresolvedImport(importSpec.objectPath(), relativeTo, as,
 					importReceiver);
 		}
 	}
