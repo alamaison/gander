@@ -7,7 +7,7 @@ public final class ImportInfoFactory {
 	}
 
 	public static ImportInfo newImportAs(String moduleImportName, String alias) {
-		return StandardImportInfo.newInstance(moduleImportName, alias);
+		return StandardImportAsInfo.newInstance(moduleImportName, alias);
 	}
 
 	public static ImportInfo newFromImport(String moduleImportName,
@@ -17,7 +17,7 @@ public final class ImportInfoFactory {
 
 	public static ImportInfo newFromImportAs(String moduleImportName,
 			String itemName, String alias) {
-		return FromImportInfo.newInstance(moduleImportName, itemName, alias);
+		return FromImportAsInfo.newInstance(moduleImportName, itemName, alias);
 	}
 
 	private ImportInfoFactory() {

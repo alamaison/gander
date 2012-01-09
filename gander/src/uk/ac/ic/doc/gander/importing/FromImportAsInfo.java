@@ -3,23 +3,25 @@ package uk.ac.ic.doc.gander.importing;
 import uk.ac.ic.doc.gander.importing.ImportSimulator.Binder;
 import uk.ac.ic.doc.gander.importing.ImportSimulator.Loader;
 
-final class FromImportInfo implements ImportInfo {
+final class FromImportAsInfo implements ImportInfo {
 
-	static FromImportInfo newInstance(String moduleImportName, String itemName) {
-		return new FromImportInfo(moduleImportName, itemName);
+	static FromImportAsInfo newInstance(String moduleImportName,
+			String itemName, String alias) {
+		return new FromImportAsInfo(moduleImportName, itemName, alias);
 	}
 
 	private final String moduleImportName;
 	private final String itemName;
+	private final String alias;
 
 	public String bindingName() {
-		return LocallyBoundImportNameResolver.resolveFromImport(
-				moduleImportName, itemName);
+		return LocallyBoundImportNameResolver.resolveFromImportAs(
+				moduleImportName, itemName, alias);
 	}
 
 	public String bindingObject() {
-		return LocallyBoundImportObjectResolver.resolveFromImport(
-				moduleImportName, itemName);
+		return LocallyBoundImportObjectResolver.resolveFromImportAs(
+				moduleImportName, itemName, alias);
 	}
 
 	public ImportPath objectPath() {
@@ -28,19 +30,22 @@ final class FromImportInfo implements ImportInfo {
 
 	public <O, C, M> BindingScheme<M, M> newBindingScheme(C outerImportReceiver,
 			Binder<O, C, M> bindingHandler, Loader<O, C, M> loader) {
-		return new FromImportAsScheme<O, C, M>(outerImportReceiver, itemName,
+		return new FromImportAsScheme<O, C, M>(outerImportReceiver, alias,
 				bindingHandler, loader);
 	}
 
-	private FromImportInfo(String moduleImportName, String itemName) {
+	private FromImportAsInfo(String moduleImportName, String itemName,
+			String alias) {
 		this.moduleImportName = moduleImportName;
 		this.itemName = itemName;
+		this.alias = alias;
 	}
 
 	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
+		result = prime * result + ((alias == null) ? 0 : alias.hashCode());
 		result = prime * result
 				+ ((itemName == null) ? 0 : itemName.hashCode());
 		result = prime
@@ -57,7 +62,12 @@ final class FromImportInfo implements ImportInfo {
 			return false;
 		if (getClass() != obj.getClass())
 			return false;
-		FromImportInfo other = (FromImportInfo) obj;
+		FromImportAsInfo other = (FromImportAsInfo) obj;
+		if (alias == null) {
+			if (other.alias != null)
+				return false;
+		} else if (!alias.equals(other.alias))
+			return false;
 		if (itemName == null) {
 			if (other.itemName != null)
 				return false;
@@ -73,7 +83,8 @@ final class FromImportInfo implements ImportInfo {
 
 	@Override
 	public String toString() {
-		return "from " + moduleImportName + " import " + itemName;
+		return "from " + moduleImportName + " import " + itemName + " as "
+				+ alias;
 	}
 
 }

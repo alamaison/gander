@@ -170,12 +170,14 @@ public final class LegacyImportSimulator<O, C extends O, M extends C> {
 	 */
 	public void simulateImport(String importName) {
 
-		inner.simulateImport(importName, importReceiver, relativeTo);
+		inner.simulateImport(ImportInfoFactory.newImport(importName), importReceiver,
+		relativeTo);
 	}
 
 	public void simulateImportAs(String importName, String asName) {
 
-		inner.simulateImportAs(importName, asName, importReceiver, relativeTo);
+		inner.simulateImport(ImportInfoFactory.newImportAs(importName, asName),
+		importReceiver, relativeTo);
 	}
 
 	public void simulateImportFrom(String fromName, String itemName) {
@@ -185,8 +187,8 @@ public final class LegacyImportSimulator<O, C extends O, M extends C> {
 	public void simulateImportFromAs(String fromName, String itemName,
 			String asName) {
 
-		inner.simulateImportFromAs(fromName, itemName, asName, importReceiver,
-				relativeTo);
+		inner.simulateImport(ImportInfoFactory.newFromImportAs(fromName, itemName,
+		asName), importReceiver, relativeTo);
 	}
 
 	private final class LegacyBinderAdaptor implements

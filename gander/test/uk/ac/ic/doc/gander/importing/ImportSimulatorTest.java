@@ -94,80 +94,96 @@ public final class ImportSimulatorTest {
 
 	@Test
 	public void importSingle() throws Throwable {
-		simulator().simulateImport("x", "[smurble]", "[]");
+		simulator().simulateImport(StandardImportInfo.newInstance("x"),
+				"[smurble]", "[]");
 		assertBindings(entry("[x]", "x", "[smurble]"));
 	}
 
 	@Test
 	public void importDouble() throws Throwable {
-		simulator().simulateImport("p.q", "[smurble]", "[]");
+		simulator().simulateImport(StandardImportInfo.newInstance("p.q"),
+				"[smurble]", "[]");
 		assertBindings(entry("[p]", "p", "[smurble]"), entry("[p.q]", "q",
 				"[p]"));
 	}
 
 	@Test
 	public void importTriple() throws Throwable {
-		simulator().simulateImport("a.b.c", "[smurble]", "[]");
+		simulator().simulateImport(StandardImportInfo.newInstance("a.b.c"),
+				"[smurble]", "[]");
 		assertBindings(entry("[a]", "a", "[smurble]"), entry("[a.b]", "b",
 				"[a]"), entry("[a.b.c]", "c", "[a.b]"));
 	}
 
 	@Test
 	public void importSingleAs() throws Throwable {
-		simulator().simulateImportAs("x", "y", "[smurble]", "[]");
+		simulator().simulateImport(StandardImportAsInfo.newInstance("x", "y"),
+				"[smurble]", "[]");
 		assertBindings(entry("[x]", "y", "[smurble]"));
 	}
 
 	@Test
 	public void importDoubleAs() throws Throwable {
-		simulator().simulateImportAs("p.q", "r", "[smurble]", "[]");
+		simulator()
+				.simulateImport(StandardImportAsInfo.newInstance("p.q", "r"),
+						"[smurble]", "[]");
 		assertBindings(entry("[p.q]", "r", "[smurble]"), entry("[p.q]", "q",
 				"[p]"));
 	}
 
 	@Test
 	public void importTripleAs() throws Throwable {
-		simulator().simulateImportAs("a.b.c", "d", "[smurble]", "[]");
+		simulator().simulateImport(
+				StandardImportAsInfo.newInstance("a.b.c", "d"), "[smurble]",
+				"[]");
 		assertBindings(entry("[a.b.c]", "d", "[smurble]"), entry("[a.b]", "b",
 				"[a]"), entry("[a.b.c]", "c", "[a.b]"));
 	}
 
 	@Test
 	public void fromImportSingle() throws Throwable {
-		simulator().simulateImportFrom("x", "i", "[smurble]", "[]");
+		simulator().simulateImport(FromImportInfo.newInstance("x", "i"),
+				"[smurble]", "[]");
 		assertBindings(entry("[x]@i", "i", "[smurble]"));
 	}
 
 	@Test
 	public void fromImportDouble() throws Throwable {
-		simulator().simulateImportFrom("p.q", "i", "[smurble]", "[]");
+		simulator().simulateImport(FromImportInfo.newInstance("p.q", "i"),
+				"[smurble]", "[]");
 		assertBindings(entry("[p.q]@i", "i", "[smurble]"), entry("[p.q]", "q",
 				"[p]"));
 	}
 
 	@Test
 	public void fromImportTriple() throws Throwable {
-		simulator().simulateImportFrom("a.b.c", "i", "[smurble]", "[]");
+		simulator().simulateImport(FromImportInfo.newInstance("a.b.c", "i"),
+				"[smurble]", "[]");
 		assertBindings(entry("[a.b.c]@i", "i", "[smurble]"), entry("[a.b.c]",
 				"c", "[a.b]"), entry("[a.b]", "b", "[a]"));
 	}
 
 	@Test
 	public void fromImportSingleAs() throws Throwable {
-		simulator().simulateImportFromAs("x", "i", "j", "[smurble]", "[]");
+		simulator().simulateImport(FromImportAsInfo.newInstance("x", "i", "j"),
+				"[smurble]", "[]");
 		assertBindings(entry("[x]@i", "j", "[smurble]"));
 	}
 
 	@Test
 	public void fromImportDoubleAs() throws Throwable {
-		simulator().simulateImportFromAs("p.q", "i", "t", "[smurble]", "[]");
+		simulator().simulateImport(
+				FromImportAsInfo.newInstance("p.q", "i", "t"), "[smurble]",
+				"[]");
 		assertBindings(entry("[p.q]@i", "t", "[smurble]"), entry("[p.q]", "q",
 				"[p]"));
 	}
 
 	@Test
 	public void fromImportTripleAs() throws Throwable {
-		simulator().simulateImportFromAs("a.b.c", "i", "n", "[smurble]", "[]");
+		simulator().simulateImport(
+				FromImportAsInfo.newInstance("a.b.c", "i", "n"), "[smurble]",
+				"[]");
 		assertBindings(entry("[a.b.c]@i", "n", "[smurble]"), entry("[a.b.c]",
 				"c", "[a.b]"), entry("[a.b]", "b", "[a]"));
 	}
