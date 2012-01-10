@@ -6,19 +6,16 @@ import uk.ac.ic.doc.gander.importing.ImportSimulator.Loader;
 final class FromImportAsScheme<O, C, M> implements ModuleBindingScheme<M> {
 
 	private final Import<C, M> importInstance;
-	private final String asName;
 	private final ImportSimulator.Binder<O, C, M> bindingHandler;
 	private final Loader<O, C, M> loader;
 
-	public FromImportAsScheme(Import<C, M> importInstance, String asName,
+	public FromImportAsScheme(Import<C, M> importInstance,
 			Binder<O, C, M> bindingHandler, Loader<O, C, M> loader) {
 		assert importInstance != null;
-		assert !asName.isEmpty();
 		assert bindingHandler != null;
 		assert loader != null;
 
 		this.importInstance = importInstance;
-		this.asName = asName;
 		this.bindingHandler = bindingHandler;
 		this.loader = loader;
 	}
@@ -49,15 +46,16 @@ final class FromImportAsScheme<O, C, M> implements ModuleBindingScheme<M> {
 			O object = loader.loadNonModuleMember(name, previouslyLoadedModule);
 
 			if (object != null) {
-				bindingHandler.bindObjectToLocalName(object, asName,
-						importInstance.container());
+				bindingHandler.bindObjectToLocalName(object, importInstance
+						.specification().bindingName(), importInstance
+						.container());
 			} else {
 				// TODO: distinguish the object case
 				bindingHandler.onUnresolvedImport(importInstance, name);
 			}
 		} else {
-			bindingHandler.bindModuleToLocalName(module, asName, importInstance
-					.container());
+			bindingHandler.bindModuleToLocalName(module, importInstance
+					.specification().bindingName(), importInstance.container());
 		}
 	}
 }

@@ -1,5 +1,8 @@
 package uk.ac.ic.doc.gander.importing;
 
+import uk.ac.ic.doc.gander.importing.ImportSimulator.Binder;
+import uk.ac.ic.doc.gander.importing.ImportSimulator.Loader;
+
 /**
  * Representation of an {@code import module as x} statement at a particular
  * location.
@@ -58,6 +61,11 @@ final class StandardImportAs<C, M> implements Import<C, M> {
 
 	public C container() {
 		return container;
+	}
+
+	public <O> ModuleBindingScheme<M> newBindingScheme(
+			Binder<O, C, M> bindingHandler, Loader<O, C, M> loader) {
+		return new StandardImportAsScheme<O, C, M>(this, bindingHandler);
 	}
 
 	@Override

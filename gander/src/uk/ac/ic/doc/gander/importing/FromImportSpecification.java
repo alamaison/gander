@@ -1,8 +1,5 @@
 package uk.ac.ic.doc.gander.importing;
 
-import uk.ac.ic.doc.gander.importing.ImportSimulator.Binder;
-import uk.ac.ic.doc.gander.importing.ImportSimulator.Loader;
-
 final class FromImportSpecification implements ImportSpecification {
 
 	/**
@@ -34,13 +31,6 @@ final class FromImportSpecification implements ImportSpecification {
 
 	public ImportPath objectPath() {
 		return ImportPath.fromDottedName(moduleImportName + "." + itemName);
-	}
-
-	public <O, C, M> ModuleBindingScheme<M> newBindingScheme(
-			Import<C, M> importInstance, Binder<O, C, M> bindingHandler,
-			Loader<O, C, M> loader) {
-		return new FromImportAsScheme<O, C, M>(importInstance, itemName,
-				bindingHandler, loader);
 	}
 
 	/**

@@ -36,13 +36,6 @@ final class StandardImportAsSpecification implements ImportSpecification {
 		return ImportPath.fromDottedName(moduleImportName);
 	}
 
-	public <O, C, M> ModuleBindingScheme<M> newBindingScheme(
-			Import<C, M> importInstance, Binder<O, C, M> bindingHandler,
-			Loader<O, C, M> loader) {
-		return new StandardImportAsScheme<O, C, M>(importInstance, alias,
-				bindingHandler);
-	}
-
 	/**
 	 * Creates new standard (non-from) import with alias.
 	 * 

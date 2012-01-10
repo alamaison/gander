@@ -48,9 +48,4 @@ public interface ImportSpecification {
 	 * </ul>
 	 */
 	ImportPath objectPath();
-
-	<O, C, M> ModuleBindingScheme<M> newBindingScheme(
-			Import<C, M> importInstance,
-			ImportSimulator.Binder<O, C, M> bindingHandler,
-			ImportSimulator.Loader<O, C, M> loader);
 }

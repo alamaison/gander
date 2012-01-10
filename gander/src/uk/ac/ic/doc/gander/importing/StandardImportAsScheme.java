@@ -1,26 +1,25 @@
 package uk.ac.ic.doc.gander.importing;
 
+import uk.ac.ic.doc.gander.importing.ImportSimulator.Binder;
+
 final class StandardImportAsScheme<O, C, M> implements ModuleBindingScheme<M> {
 
-	private final String asName;
-	private final ImportSimulator.Binder<O, C, M> bindingHandler;
 	private final Import<C, M> importInstance;
+	private final ImportSimulator.Binder<O, C, M> bindingHandler;
 
-	StandardImportAsScheme(Import<C, M> importInstance, String asName,
-			ImportSimulator.Binder<O, C, M> bindingHandler) {
+	StandardImportAsScheme(StandardImportAs<C, M> importInstance,
+			Binder<O, C, M> bindingHandler) {
 		assert importInstance != null;
-		assert !asName.isEmpty();
 		assert bindingHandler != null;
 
 		this.importInstance = importInstance;
-		this.asName = asName;
 		this.bindingHandler = bindingHandler;
 	}
 
 	public void bindSolitaryToken(M module, String name) {
 		if (module != null) {
-			bindingHandler.bindModuleToLocalName(module, asName, importInstance
-					.container());
+			bindingHandler.bindModuleToLocalName(module, importInstance
+					.specification().bindingName(), importInstance.container());
 		} else {
 			bindingHandler.onUnresolvedImport(importInstance, name);
 		}
@@ -43,8 +42,8 @@ final class StandardImportAsScheme<O, C, M> implements ModuleBindingScheme<M> {
 		if (module != null) {
 			bindingHandler.bindModuleToName(module, name,
 					previouslyLoadedModule);
-			bindingHandler.bindModuleToLocalName(module, asName, importInstance
-					.container());
+			bindingHandler.bindModuleToLocalName(module, importInstance
+					.specification().bindingName(), importInstance.container());
 		} else {
 			bindingHandler.onUnresolvedImport(importInstance, name);
 		}

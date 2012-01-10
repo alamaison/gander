@@ -1,5 +1,8 @@
 package uk.ac.ic.doc.gander.importing;
 
+import uk.ac.ic.doc.gander.importing.ImportSimulator.Binder;
+import uk.ac.ic.doc.gander.importing.ImportSimulator.Loader;
+
 /**
  * Representation of a {@code from module import item as alias} statement at a
  * particular location.
@@ -30,7 +33,8 @@ final class FromImportAs<C, M> implements Import<C, M> {
 	 *            a representation of the code object whose code block contains
 	 *            the import statement
 	 */
-	FromImportAs(FromImportAsSpecification specification, M relativeTo, C container) {
+	FromImportAs(FromImportAsSpecification specification, M relativeTo,
+			C container) {
 		if (specification == null)
 			throw new NullPointerException("Import specification not optional");
 		if (container == null)
@@ -57,6 +61,11 @@ final class FromImportAs<C, M> implements Import<C, M> {
 
 	public C container() {
 		return container;
+	}
+
+	public <O> ModuleBindingScheme<M> newBindingScheme(
+			Binder<O, C, M> bindingHandler, Loader<O, C, M> loader) {
+		return new FromImportAsScheme<O, C, M>(this, bindingHandler, loader);
 	}
 
 	@Override

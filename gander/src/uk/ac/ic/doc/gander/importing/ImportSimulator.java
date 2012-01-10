@@ -154,8 +154,8 @@ public final class ImportSimulator<O, C, M> {
 	 */
 	void simulateImport(Import<C, M> importInstance) {
 		List<String> importPath = importInstance.specification().objectPath();
-		ModuleBindingScheme<M> binder = importInstance.specification()
-				.newBindingScheme(importInstance, eventHandler, loader);
+		ModuleBindingScheme<M> binder = importInstance.newBindingScheme(
+				eventHandler, loader);
 
 		M previouslyLoadedModule = null;
 		List<String> processed = new LinkedList<String>();

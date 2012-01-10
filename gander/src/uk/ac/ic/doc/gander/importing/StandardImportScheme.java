@@ -1,14 +1,17 @@
 package uk.ac.ic.doc.gander.importing;
 
+import uk.ac.ic.doc.gander.importing.ImportSimulator.Binder;
+
 final class StandardImportScheme<O, C, M> implements ModuleBindingScheme<M> {
 
 	private final ImportSimulator.Binder<O, C, M> bindingHandler;
 	private final Import<C, M> importInstance;
 
 	StandardImportScheme(Import<C, M> importInstance,
-			ImportSimulator.Binder<O, C, M> bindingHandler) {
+			Binder<O, C, M> bindingHandler) {
 		assert importInstance != null;
 		assert bindingHandler != null;
+		
 		this.importInstance = importInstance;
 		this.bindingHandler = bindingHandler;
 	}
@@ -19,8 +22,8 @@ final class StandardImportScheme<O, C, M> implements ModuleBindingScheme<M> {
 
 	public void bindFirstToken(M module, String name) {
 		if (module != null) {
-			bindingHandler.bindModuleToLocalName(module, name,
-					importInstance.container());
+			bindingHandler.bindModuleToLocalName(module, name, importInstance
+					.container());
 		} else {
 			bindingHandler.onUnresolvedImport(importInstance, name);
 		}

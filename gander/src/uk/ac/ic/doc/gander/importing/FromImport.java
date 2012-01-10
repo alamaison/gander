@@ -1,5 +1,8 @@
 package uk.ac.ic.doc.gander.importing;
 
+import uk.ac.ic.doc.gander.importing.ImportSimulator.Binder;
+import uk.ac.ic.doc.gander.importing.ImportSimulator.Loader;
+
 /**
  * Representation of a {@code from module import item} statement at a particular
  * location.
@@ -57,6 +60,12 @@ final class FromImport<C, M> implements Import<C, M> {
 
 	public C container() {
 		return container;
+	}
+
+	public <O> ModuleBindingScheme<M> newBindingScheme(
+			Binder<O, C, M> bindingHandler, Loader<O, C, M> loader) {
+		// The non-aliased from-import shares the from-import-as binding scheme
+		return new FromImportAsScheme<O, C, M>(this, bindingHandler, loader);
 	}
 
 	@Override
