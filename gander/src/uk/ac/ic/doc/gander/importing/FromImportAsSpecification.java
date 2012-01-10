@@ -63,7 +63,7 @@ final class FromImportAsSpecification implements ImportSpecification {
 			throw new NullPointerException("Alias is not optional");
 		if (alias.isEmpty())
 			throw new IllegalArgumentException("Alias name cannot be empty");
-			
+
 		this.moduleImportName = moduleImportName;
 		this.itemName = itemName;
 		this.alias = alias;

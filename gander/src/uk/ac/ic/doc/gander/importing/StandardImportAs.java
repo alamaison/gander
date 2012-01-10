@@ -63,9 +63,9 @@ final class StandardImportAs<C, M> implements Import<C, M> {
 		return container;
 	}
 
-	public <O> ModuleBindingScheme<M> newBindingScheme(
+	public <O> BindingScheme<M> newBindingScheme(
 			Binder<O, C, M> bindingHandler, Loader<O, C, M> loader) {
-		return new StandardImportAsScheme<O, C, M>(this, bindingHandler);
+		return new StandardImportAsBindingScheme<O, C, M>(this, bindingHandler);
 	}
 
 	@Override

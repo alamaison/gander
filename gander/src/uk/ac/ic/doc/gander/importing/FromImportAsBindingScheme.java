@@ -3,13 +3,13 @@ package uk.ac.ic.doc.gander.importing;
 import uk.ac.ic.doc.gander.importing.ImportSimulator.Binder;
 import uk.ac.ic.doc.gander.importing.ImportSimulator.Loader;
 
-final class FromImportAsScheme<O, C, M> implements ModuleBindingScheme<M> {
+final class FromImportAsBindingScheme<O, C, M> implements BindingScheme<M> {
 
 	private final Import<C, M> importInstance;
 	private final ImportSimulator.Binder<O, C, M> bindingHandler;
 	private final Loader<O, C, M> loader;
 
-	public FromImportAsScheme(Import<C, M> importInstance,
+	public FromImportAsBindingScheme(Import<C, M> importInstance,
 			Binder<O, C, M> bindingHandler, Loader<O, C, M> loader) {
 		assert importInstance != null;
 		assert bindingHandler != null;

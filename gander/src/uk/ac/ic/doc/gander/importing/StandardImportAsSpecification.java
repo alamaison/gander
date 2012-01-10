@@ -1,8 +1,5 @@
 package uk.ac.ic.doc.gander.importing;
 
-import uk.ac.ic.doc.gander.importing.ImportSimulator.Binder;
-import uk.ac.ic.doc.gander.importing.ImportSimulator.Loader;
-
 final class StandardImportAsSpecification implements ImportSpecification {
 
 	private final String moduleImportName;
@@ -54,7 +51,7 @@ final class StandardImportAsSpecification implements ImportSpecification {
 			throw new NullPointerException("Alias is not optional");
 		if (alias.isEmpty())
 			throw new IllegalArgumentException("Alias name cannot be empty");
-			
+
 		this.moduleImportName = moduleImportName;
 		this.alias = alias;
 	}

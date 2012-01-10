@@ -33,7 +33,8 @@ final class StandardImport<C, M> implements Import<C, M> {
 	 *            a representation of the code object whose code block contains
 	 *            the import statement
 	 */
-	StandardImport(StandardImportSpecification specification, M relativeTo, C container) {
+	StandardImport(StandardImportSpecification specification, M relativeTo,
+			C container) {
 		if (specification == null)
 			throw new NullPointerException("Import specification not optional");
 		if (container == null)
@@ -61,10 +62,10 @@ final class StandardImport<C, M> implements Import<C, M> {
 	public C container() {
 		return container;
 	}
-	
-	public <O> ModuleBindingScheme<M> newBindingScheme(Binder<O, C, M> bindingHandler,
-			Loader<O, C, M> loader) {
-		return new StandardImportScheme<O, C, M>(this, bindingHandler);
+
+	public <O> BindingScheme<M> newBindingScheme(
+			Binder<O, C, M> bindingHandler, Loader<O, C, M> loader) {
+		return new StandardImportBindingScheme<O, C, M>(this, bindingHandler);
 	}
 
 	@Override

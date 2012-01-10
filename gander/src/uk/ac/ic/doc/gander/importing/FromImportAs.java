@@ -63,9 +63,10 @@ final class FromImportAs<C, M> implements Import<C, M> {
 		return container;
 	}
 
-	public <O> ModuleBindingScheme<M> newBindingScheme(
+	public <O> BindingScheme<M> newBindingScheme(
 			Binder<O, C, M> bindingHandler, Loader<O, C, M> loader) {
-		return new FromImportAsScheme<O, C, M>(this, bindingHandler, loader);
+		return new FromImportAsBindingScheme<O, C, M>(this, bindingHandler,
+				loader);
 	}
 
 	@Override

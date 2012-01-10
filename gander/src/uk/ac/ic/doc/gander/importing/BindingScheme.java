@@ -1,6 +1,6 @@
 package uk.ac.ic.doc.gander.importing;
 
-interface ModuleBindingScheme<M> {
+interface BindingScheme<M> {
 	void bindSolitaryToken(M module, String name);
 
 	void bindFirstToken(M module, String name);

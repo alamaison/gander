@@ -17,7 +17,7 @@ interface Import<C, M> {
 
 	C container();
 
-	<O> ModuleBindingScheme<M> newBindingScheme(
+	<O> BindingScheme<M> newBindingScheme(
 			ImportSimulator.Binder<O, C, M> bindingHandler,
 			ImportSimulator.Loader<O, C, M> loader);
 }
