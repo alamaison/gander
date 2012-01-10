@@ -7,13 +7,16 @@ import uk.ac.ic.doc.gander.importing.ImportSimulator.Loader;
  * Representation of a {@code from module import item as alias} statement at a
  * particular location.
  * 
+ * @param <O>
+ *            the type of Java objects representing general Python objects that
+ *            can be imported (including modules and other code objects)
  * @param <C>
  *            type of object representing the code object in which the import
  *            appears
  * @param <M>
  *            type of object representing modules in the runtime model
  */
-final class FromImportAs<C, M> implements Import<C, M> {
+final class FromImportAs<O, C, M> implements Import<O, C, M> {
 
 	private final ImportSpecification specification;
 	private final M relativeTo;
@@ -63,8 +66,8 @@ final class FromImportAs<C, M> implements Import<C, M> {
 		return container;
 	}
 
-	public <O> BindingScheme<M> newBindingScheme(
-			Binder<O, C, M> bindingHandler, Loader<O, M> loader) {
+	public BindingScheme<M> newBindingScheme(Binder<O, C, M> bindingHandler,
+			Loader<O, M> loader) {
 		return new FromImportAsBindingScheme<O, C, M>(this, bindingHandler,
 				loader);
 	}
@@ -90,7 +93,7 @@ final class FromImportAs<C, M> implements Import<C, M> {
 			return false;
 		if (getClass() != obj.getClass())
 			return false;
-		FromImportAs<?, ?> other = (FromImportAs<?, ?>) obj;
+		FromImportAs<?, ?, ?> other = (FromImportAs<?, ?, ?>) obj;
 		if (container == null) {
 			if (other.container != null)
 				return false;

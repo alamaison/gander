@@ -5,9 +5,9 @@ import uk.ac.ic.doc.gander.importing.ImportSimulator.Binder;
 final class StandardImportBindingScheme<O, C, M> implements BindingScheme<M> {
 
 	private final ImportSimulator.Binder<O, C, M> bindingHandler;
-	private final Import<C, M> importInstance;
+	private final Import<O, C, M> importInstance;
 
-	StandardImportBindingScheme(Import<C, M> importInstance,
+	StandardImportBindingScheme(Import<O, C, M> importInstance,
 			Binder<O, C, M> bindingHandler) {
 		assert importInstance != null;
 		assert bindingHandler != null;

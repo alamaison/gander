@@ -4,10 +4,10 @@ import uk.ac.ic.doc.gander.importing.ImportSimulator.Binder;
 
 final class StandardImportAsBindingScheme<O, C, M> implements BindingScheme<M> {
 
-	private final Import<C, M> importInstance;
+	private final Import<O, C, M> importInstance;
 	private final ImportSimulator.Binder<O, C, M> bindingHandler;
 
-	StandardImportAsBindingScheme(StandardImportAs<C, M> importInstance,
+	StandardImportAsBindingScheme(StandardImportAs<O, C, M> importInstance,
 			Binder<O, C, M> bindingHandler) {
 		assert importInstance != null;
 		assert bindingHandler != null;

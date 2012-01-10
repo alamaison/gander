@@ -5,11 +5,11 @@ import uk.ac.ic.doc.gander.importing.ImportSimulator.Loader;
 
 final class FromImportAsBindingScheme<O, C, M> implements BindingScheme<M> {
 
-	private final Import<C, M> importInstance;
+	private final Import<O, C, M> importInstance;
 	private final ImportSimulator.Binder<O, C, M> bindingHandler;
 	private final Loader<O, M> loader;
 
-	public FromImportAsBindingScheme(Import<C, M> importInstance,
+	public FromImportAsBindingScheme(Import<O, C, M> importInstance,
 			Binder<O, C, M> bindingHandler, Loader<O, M> loader) {
 		assert importInstance != null;
 		assert bindingHandler != null;

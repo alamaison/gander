@@ -65,21 +65,20 @@ public final class ImportSimulator<O, C, M> {
 		 *            the representation of the object being bound to a name
 		 * @param name
 		 *            the name the object is bound to
-		 * @param importReceiver
+		 * @param container
 		 *            the code object 'receiving' the effect of this binding;
 		 *            not necessarily the code object whose namespace the
 		 *            imported object is bound in as it may be a global name
 		 */
-		void bindModuleToLocalName(M loadedModule, String name, C importReceiver);
+		void bindModuleToLocalName(M loadedModule, String name, C container);
 
-		void bindObjectToLocalName(O importedObject, String name,
-				C importReceiver);
+		void bindObjectToLocalName(O importedObject, String name, C container);
 
 		void bindModuleToName(M loadedModule, String name, M receivingModule);
 
 		void bindObjectToName(O importedObject, String name, M receivingModule);
 
-		void onUnresolvedImport(Import<C, M> importInstance, String name);
+		void onUnresolvedImport(Import<O, C, M> importInstance, String name);
 	}
 
 	/**
@@ -148,7 +147,7 @@ public final class ImportSimulator<O, C, M> {
 	 * @param importInstance
 	 *            the kind of import being simulated
 	 */
-	public void simulateImport(Import<C, M> importInstance) {
+	public void simulateImport(Import<O, C, M> importInstance) {
 		List<String> importPath = importInstance.specification().objectPath();
 		BindingScheme<M> binder = importInstance.newBindingScheme(eventHandler,
 				loader);
