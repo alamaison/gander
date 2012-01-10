@@ -17,8 +17,8 @@ import uk.ac.ic.doc.gander.flowinference.result.Result;
 import uk.ac.ic.doc.gander.flowinference.types.TClass;
 import uk.ac.ic.doc.gander.flowinference.types.TFunction;
 import uk.ac.ic.doc.gander.flowinference.types.Type;
-import uk.ac.ic.doc.gander.importing.ImportInfo;
-import uk.ac.ic.doc.gander.importing.ImportInfoFactory;
+import uk.ac.ic.doc.gander.importing.ImportSpecification;
+import uk.ac.ic.doc.gander.importing.ImportSpecificationFactory;
 import uk.ac.ic.doc.gander.model.Class;
 import uk.ac.ic.doc.gander.model.Function;
 import uk.ac.ic.doc.gander.model.ModelSite;
@@ -216,7 +216,8 @@ class BoundTypeVisitor implements BindingDetector.DetectionEvent {
 	}
 
 	public boolean moduleImport(String moduleName) {
-		ImportInfo info = ImportInfoFactory.newImport(moduleName);
+		ImportSpecification info = ImportSpecificationFactory
+				.newImport(moduleName);
 		if (isMatch(info.bindingName())) {
 			judgement.add(new ImportTypeMapper(goalManager).typeImport(variable
 					.model(), info.bindingObject()));
@@ -226,7 +227,8 @@ class BoundTypeVisitor implements BindingDetector.DetectionEvent {
 	}
 
 	public boolean moduleImportAs(String moduleName, String as) {
-		ImportInfo info = ImportInfoFactory.newImportAs(moduleName, as);
+		ImportSpecification info = ImportSpecificationFactory.newImportAs(
+				moduleName, as);
 		if (isMatch(info.bindingName())) {
 			judgement.add(new ImportTypeMapper(goalManager).typeImport(variable
 					.model(), info.bindingObject()));
@@ -236,7 +238,8 @@ class BoundTypeVisitor implements BindingDetector.DetectionEvent {
 	}
 
 	public boolean fromModuleImport(String moduleName, String itemName) {
-		ImportInfo info = ImportInfoFactory.newFromImport(moduleName, itemName);
+		ImportSpecification info = ImportSpecificationFactory.newFromImport(
+				moduleName, itemName);
 		if (isMatch(info.bindingName())) {
 			judgement.add(new ImportTypeMapper(goalManager).typeFromImport(
 					variable.model(), info.bindingObject()));
@@ -247,8 +250,8 @@ class BoundTypeVisitor implements BindingDetector.DetectionEvent {
 
 	public boolean fromModuleImportAs(String moduleName, String itemName,
 			String as) {
-		ImportInfo info = ImportInfoFactory.newFromImportAs(moduleName,
-				itemName, as);
+		ImportSpecification info = ImportSpecificationFactory.newFromImportAs(
+				moduleName, itemName, as);
 		if (isMatch(info.bindingName())) {
 			judgement.add(new ImportTypeMapper(goalManager).typeFromImport(
 					variable.model(), info.bindingObject()));

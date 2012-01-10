@@ -3,12 +3,18 @@ package uk.ac.ic.doc.gander.importing;
 import uk.ac.ic.doc.gander.importing.ImportSimulator.Binder;
 import uk.ac.ic.doc.gander.importing.ImportSimulator.Loader;
 
-final class StandardImportInfo implements ImportInfo {
+final class StandardImportSpecification implements ImportSpecification {
 
 	private final String moduleImportName;
 
-	static StandardImportInfo newInstance(String moduleImportName) {
-		return new StandardImportInfo(moduleImportName);
+	/**
+	 * Creates new standard (non-from) import.
+	 * 
+	 * @param moduleImportName
+	 *            the relative path of the module being imported
+	 */
+	static StandardImportSpecification newInstance(String moduleImportName) {
+		return new StandardImportSpecification(moduleImportName);
 	}
 
 	public String bindingName() {
@@ -23,12 +29,24 @@ final class StandardImportInfo implements ImportInfo {
 		return ImportPath.fromDottedName(moduleImportName);
 	}
 
-	public <O, C, M> ModuleBindingScheme<M> newBindingScheme(Import<C,M> importInstance,
-			Binder<O, C, M> bindingHandler, Loader<O, C, M> loader) {
-		return new ImportScheme<O, C, M>(importInstance, bindingHandler);
+	public <O, C, M> ModuleBindingScheme<M> newBindingScheme(
+			Import<C, M> importInstance, Binder<O, C, M> bindingHandler,
+			Loader<O, C, M> loader) {
+		return new StandardImportScheme<O, C, M>(importInstance, bindingHandler);
 	}
 
-	private StandardImportInfo(String moduleImportName) {
+	/**
+	 * Creates new standard (non-from) import.
+	 * 
+	 * @param moduleImportName
+	 *            the relative path of the module being imported
+	 */
+	private StandardImportSpecification(String moduleImportName) {
+		if (moduleImportName == null)
+			throw new NullPointerException("Module path is not optional");
+		if (moduleImportName.isEmpty())
+			throw new IllegalArgumentException("Module path cannot be empty");
+
 		this.moduleImportName = moduleImportName;
 	}
 
@@ -50,7 +68,7 @@ final class StandardImportInfo implements ImportInfo {
 			return false;
 		if (getClass() != obj.getClass())
 			return false;
-		StandardImportInfo other = (StandardImportInfo) obj;
+		StandardImportSpecification other = (StandardImportSpecification) obj;
 		if (moduleImportName == null) {
 			if (other.moduleImportName != null)
 				return false;

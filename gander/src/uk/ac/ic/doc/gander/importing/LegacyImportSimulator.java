@@ -170,23 +170,28 @@ public final class LegacyImportSimulator<O, C extends O, M extends C> {
 	 */
 	public void simulateImport(String importName) {
 
-		inner.simulateImport(new Import<C, M>(ImportInfoFactory.newImport(importName), relativeTo, importReceiver));
+		inner.simulateImport(new StandardImport<C, M>(StandardImportSpecification
+				.newInstance(importName), relativeTo, importReceiver));
 	}
 
 	public void simulateImportAs(String importName, String asName) {
 
-		inner.simulateImport(new Import<C, M>(ImportInfoFactory.newImportAs(importName, asName), relativeTo, importReceiver));
+		inner.simulateImport(new StandardImportAs<C, M>(StandardImportAsSpecification
+				.newInstance(importName, asName), relativeTo, importReceiver));
 	}
 
 	public void simulateImportFrom(String fromName, String itemName) {
-		simulateImportFromAs(fromName, itemName, itemName);
+
+		inner.simulateImport(new FromImport<C, M>(FromImportSpecification.newInstance(
+				fromName, itemName), relativeTo, importReceiver));
 	}
 
 	public void simulateImportFromAs(String fromName, String itemName,
 			String asName) {
 
-		inner.simulateImport(new Import<C, M>(ImportInfoFactory.newFromImportAs(fromName,
-		itemName, asName), relativeTo, importReceiver));
+		inner.simulateImport(new FromImportAs<C, M>(FromImportAsSpecification
+				.newInstance(fromName, itemName, asName), relativeTo,
+				importReceiver));
 	}
 
 	private final class LegacyBinderAdaptor implements
@@ -223,7 +228,8 @@ public final class LegacyImportSimulator<O, C extends O, M extends C> {
 			bindName(importedObject, name, receivingModule);
 		}
 
-		public void onUnresolvedImport(Import<C, M> importInstance, String name) {
+		public void onUnresolvedImport(Import<C, M> importInstance,
+				String name) {
 			assert importInstance.container() != null;
 
 			innerEventHandler.onUnresolvedImport(importInstance.specification()

@@ -3,11 +3,23 @@ package uk.ac.ic.doc.gander.importing;
 import uk.ac.ic.doc.gander.importing.ImportSimulator.Binder;
 import uk.ac.ic.doc.gander.importing.ImportSimulator.Loader;
 
-final class FromImportAsInfo implements ImportInfo {
+final class FromImportAsSpecification implements ImportSpecification {
 
-	static FromImportAsInfo newInstance(String moduleImportName,
+	/**
+	 * Creates new from-style import with alias.
+	 * 
+	 * @param moduleImportName
+	 *            the relative path of the module whose namespace item is being
+	 *            imported
+	 * @param itemName
+	 *            the name of the item being imported
+	 * @param alias
+	 *            the name that imported item is bound to with respect to the
+	 *            container
+	 */
+	static FromImportAsSpecification newInstance(String moduleImportName,
 			String itemName, String alias) {
-		return new FromImportAsInfo(moduleImportName, itemName, alias);
+		return new FromImportAsSpecification(moduleImportName, itemName, alias);
 	}
 
 	private final String moduleImportName;
@@ -28,14 +40,40 @@ final class FromImportAsInfo implements ImportInfo {
 		return ImportPath.fromDottedName(moduleImportName + "." + itemName);
 	}
 
-	public <O, C, M> ModuleBindingScheme<M> newBindingScheme(Import<C, M> importInstance, Binder<O, C, M> bindingHandler,
+	public <O, C, M> ModuleBindingScheme<M> newBindingScheme(
+			Import<C, M> importInstance, Binder<O, C, M> bindingHandler,
 			Loader<O, C, M> loader) {
 		return new FromImportAsScheme<O, C, M>(importInstance, alias,
 				bindingHandler, loader);
 	}
 
-	private FromImportAsInfo(String moduleImportName, String itemName,
+	/**
+	 * Creates new from-style import with alias.
+	 * 
+	 * @param moduleImportName
+	 *            the relative path of the module whose namespace item is being
+	 *            imported
+	 * @param itemName
+	 *            the name of the item being imported
+	 * @param alias
+	 *            the name that imported item is bound to with respect to the
+	 *            container
+	 */
+	private FromImportAsSpecification(String moduleImportName, String itemName,
 			String alias) {
+		if (moduleImportName == null)
+			throw new NullPointerException("Module path is not optional");
+		if (moduleImportName.isEmpty())
+			throw new IllegalArgumentException("Module path cannot be empty");
+		if (itemName == null)
+			throw new NullPointerException("Item name is not optional");
+		if (itemName.isEmpty())
+			throw new IllegalArgumentException("Item name cannot be empty");
+		if (alias == null)
+			throw new NullPointerException("Alias is not optional");
+		if (alias.isEmpty())
+			throw new IllegalArgumentException("Alias name cannot be empty");
+			
 		this.moduleImportName = moduleImportName;
 		this.itemName = itemName;
 		this.alias = alias;
@@ -62,7 +100,7 @@ final class FromImportAsInfo implements ImportInfo {
 			return false;
 		if (getClass() != obj.getClass())
 			return false;
-		FromImportAsInfo other = (FromImportAsInfo) obj;
+		FromImportAsSpecification other = (FromImportAsSpecification) obj;
 		if (alias == null) {
 			if (other.alias != null)
 				return false;

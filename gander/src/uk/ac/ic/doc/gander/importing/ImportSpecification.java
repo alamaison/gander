@@ -1,6 +1,6 @@
 package uk.ac.ic.doc.gander.importing;
 
-public interface ImportInfo {
+public interface ImportSpecification {
 
 	/**
 	 * Returns the name that a module is bound to in the binding namespace of

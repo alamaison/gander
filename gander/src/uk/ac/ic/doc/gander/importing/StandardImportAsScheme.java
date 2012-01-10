@@ -1,12 +1,12 @@
 package uk.ac.ic.doc.gander.importing;
 
-final class ImportAsScheme<O, C, M> implements ModuleBindingScheme<M> {
+final class StandardImportAsScheme<O, C, M> implements ModuleBindingScheme<M> {
 
 	private final String asName;
 	private final ImportSimulator.Binder<O, C, M> bindingHandler;
 	private final Import<C, M> importInstance;
 
-	ImportAsScheme(Import<C, M> importInstance, String asName,
+	StandardImportAsScheme(Import<C, M> importInstance, String asName,
 			ImportSimulator.Binder<O, C, M> bindingHandler) {
 		assert importInstance != null;
 		assert !asName.isEmpty();

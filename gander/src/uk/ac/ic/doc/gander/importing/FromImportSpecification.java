@@ -3,10 +3,20 @@ package uk.ac.ic.doc.gander.importing;
 import uk.ac.ic.doc.gander.importing.ImportSimulator.Binder;
 import uk.ac.ic.doc.gander.importing.ImportSimulator.Loader;
 
-final class FromImportInfo implements ImportInfo {
+final class FromImportSpecification implements ImportSpecification {
 
-	static FromImportInfo newInstance(String moduleImportName, String itemName) {
-		return new FromImportInfo(moduleImportName, itemName);
+	/**
+	 * Creates new from-style import.
+	 * 
+	 * @param moduleImportName
+	 *            the relative path of the module whose namespace item is being
+	 *            imported
+	 * @param itemName
+	 *            the name of the item being imported
+	 */
+	static FromImportSpecification newInstance(String moduleImportName,
+			String itemName) {
+		return new FromImportSpecification(moduleImportName, itemName);
 	}
 
 	private final String moduleImportName;
@@ -33,7 +43,25 @@ final class FromImportInfo implements ImportInfo {
 				bindingHandler, loader);
 	}
 
-	private FromImportInfo(String moduleImportName, String itemName) {
+	/**
+	 * Creates new from-style import.
+	 * 
+	 * @param moduleImportName
+	 *            the relative path of the module whose namespace item is being
+	 *            imported
+	 * @param itemName
+	 *            the name of the item being imported
+	 */
+	private FromImportSpecification(String moduleImportName, String itemName) {
+		if (moduleImportName == null)
+			throw new NullPointerException("Module path is not optional");
+		if (moduleImportName.isEmpty())
+			throw new IllegalArgumentException("Module path cannot be empty");
+		if (itemName == null)
+			throw new NullPointerException("Item name is not optional");
+		if (itemName.isEmpty())
+			throw new IllegalArgumentException("Item name cannot be empty");
+
 		this.moduleImportName = moduleImportName;
 		this.itemName = itemName;
 	}
@@ -58,7 +86,7 @@ final class FromImportInfo implements ImportInfo {
 			return false;
 		if (getClass() != obj.getClass())
 			return false;
-		FromImportInfo other = (FromImportInfo) obj;
+		FromImportSpecification other = (FromImportSpecification) obj;
 		if (itemName == null) {
 			if (other.itemName != null)
 				return false;
