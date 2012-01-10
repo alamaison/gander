@@ -1,5 +1,9 @@
 package uk.ac.ic.doc.gander.importing;
 
+/**
+ * Common interface to the essential nature of the four particular types of
+ * import.
+ */
 public interface ImportSpecification {
 
 	/**

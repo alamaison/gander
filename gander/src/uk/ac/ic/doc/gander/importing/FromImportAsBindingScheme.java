@@ -32,7 +32,7 @@ final class FromImportAsBindingScheme<O, C, M> implements BindingScheme<M> {
 			bindingHandler.bindModuleToName(module, name,
 					previouslyLoadedModule);
 		} else {
-			bindingHandler.onUnresolvedImport(importInstance, name);
+			bindingHandler.onUnresolvedImport(importInstance, name, previouslyLoadedModule);
 		}
 	}
 
@@ -51,7 +51,7 @@ final class FromImportAsBindingScheme<O, C, M> implements BindingScheme<M> {
 						.container());
 			} else {
 				// TODO: distinguish the object case
-				bindingHandler.onUnresolvedImport(importInstance, name);
+				bindingHandler.onUnresolvedImport(importInstance, name, previouslyLoadedModule);
 			}
 		} else {
 			bindingHandler.bindModuleToLocalName(module, importInstance

@@ -4,20 +4,21 @@ import java.util.ArrayList;
 import java.util.List;
 
 import uk.ac.ic.doc.gander.DottedName;
-import uk.ac.ic.doc.gander.importing.ImportSimulator.Loader;
+import uk.ac.ic.doc.gander.importing.LegacyImportSimulator.Loader;
 import uk.ac.ic.doc.gander.model.codeobject.CodeObject;
 import uk.ac.ic.doc.gander.model.codeobject.ModuleCO;
+import uk.ac.ic.doc.gander.model.codeobject.NestedCodeObject;
 
 /**
  * 'Loader' for import simulation that just looks the objects up in a preloaded
  * model.
  */
-public final class StandardModelLookupLoader implements
-		Loader<CodeObject, ModuleCO> {
+public final class LegacyModelLookupLoader implements
+		Loader<CodeObject, CodeObject, ModuleCO> {
 
 	private final Model model;
 
-	public StandardModelLookupLoader(Model model) {
+	public LegacyModelLookupLoader(Model model) {
 		this.model = model;
 	}
 
@@ -44,19 +45,41 @@ public final class StandardModelLookupLoader implements
 		}
 	}
 
-	public CodeObject loadNonModuleMember(String itemName, ModuleCO sourceModule) {
-		Namespace loaded = sourceModule.oldStyleConflatedNamespace()
-				.getClasses().get(itemName);
+	public Module parentModule(Namespace importReceiver) {
+		if (importReceiver instanceof Module)
+			return ((Module) importReceiver).getParent();
+		else
+			return importReceiver.getGlobalNamespace();
+	}
+
+	public CodeObject loadNonModuleMember(String itemName,
+			CodeObject codeObjectWhoseNamespaceWeAreLoadingFrom) {
+		Namespace loaded = codeObjectWhoseNamespaceWeAreLoadingFrom
+				.oldStyleConflatedNamespace().getClasses().get(itemName);
 
 		if (loaded == null) {
-			loaded = sourceModule.oldStyleConflatedNamespace().getFunctions()
-					.get(itemName);
+			loaded = codeObjectWhoseNamespaceWeAreLoadingFrom
+					.oldStyleConflatedNamespace().getFunctions().get(itemName);
 		}
 
 		if (loaded != null) {
 			return loaded.codeObject();
 		} else {
 			return null;
+		}
+	}
+
+	public ModuleCO parentModule(CodeObject importReceiver) {
+		if (importReceiver instanceof NestedCodeObject) {
+			return ((NestedCodeObject) importReceiver).enclosingModule();
+		} else {
+			Module parent = (Module) importReceiver
+					.oldStyleConflatedNamespace().getParentScope();
+			if (parent != null) {
+				return (ModuleCO) parent.codeObject();
+			} else {
+				return null;
+			}
 		}
 	}
 }

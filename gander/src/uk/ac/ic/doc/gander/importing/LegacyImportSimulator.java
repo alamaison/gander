@@ -70,10 +70,10 @@ public final class LegacyImportSimulator<O, C extends O, M extends C> {
 		void bindName(O loadedObject, String name, C importReceiver);
 
 		void onUnresolvedImport(List<String> importPath, M relativeTo,
-				String as, C codeBlock);
+				String as, C importReceiver);
 
 		void onUnresolvedImportFromItem(List<String> fromPath, M relativeTo,
-				String itemName, String as, C codeBlock);
+				String itemName, String as, C importReceiver);
 
 	}
 
@@ -231,6 +231,15 @@ public final class LegacyImportSimulator<O, C extends O, M extends C> {
 		}
 
 		public void onUnresolvedImport(Import<O, C, M> importInstance,
+				String name, M receivingModule) {
+			assert importInstance.container() != null;
+
+			innerEventHandler.onUnresolvedImport(importInstance.specification()
+					.objectPath(), importInstance.relativeTo(), name,
+					receivingModule);
+		}
+
+		public void onUnresolvedLocalImport(Import<O, C, M> importInstance,
 				String name) {
 			assert importInstance.container() != null;
 

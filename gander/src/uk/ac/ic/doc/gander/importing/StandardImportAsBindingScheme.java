@@ -21,7 +21,7 @@ final class StandardImportAsBindingScheme<O, C, M> implements BindingScheme<M> {
 			bindingHandler.bindModuleToLocalName(module, importInstance
 					.specification().bindingName(), importInstance.container());
 		} else {
-			bindingHandler.onUnresolvedImport(importInstance, name);
+			bindingHandler.onUnresolvedLocalImport(importInstance, name);
 		}
 	}
 
@@ -34,7 +34,8 @@ final class StandardImportAsBindingScheme<O, C, M> implements BindingScheme<M> {
 			bindingHandler.bindModuleToName(module, name,
 					previouslyLoadedModule);
 		} else {
-			bindingHandler.onUnresolvedImport(importInstance, name);
+			bindingHandler.onUnresolvedImport(importInstance, name,
+					previouslyLoadedModule);
 		}
 	}
 
@@ -45,7 +46,8 @@ final class StandardImportAsBindingScheme<O, C, M> implements BindingScheme<M> {
 			bindingHandler.bindModuleToLocalName(module, importInstance
 					.specification().bindingName(), importInstance.container());
 		} else {
-			bindingHandler.onUnresolvedImport(importInstance, name);
+			bindingHandler.onUnresolvedImport(importInstance, name,
+					previouslyLoadedModule);
 		}
 	}
 

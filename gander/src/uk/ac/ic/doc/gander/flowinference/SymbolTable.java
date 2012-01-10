@@ -11,13 +11,13 @@ import org.python.pydev.parser.jython.ast.Import;
 import org.python.pydev.parser.jython.ast.ImportFrom;
 import org.python.pydev.parser.jython.ast.NameTok;
 import org.python.pydev.parser.jython.ast.VisitorBase;
-import org.python.pydev.parser.jython.ast.aliasType;
 
 import uk.ac.ic.doc.gander.flowinference.ImportedNameTypeWatcher.ImportTypeEvent;
 import uk.ac.ic.doc.gander.flowinference.types.TClass;
 import uk.ac.ic.doc.gander.flowinference.types.TFunction;
 import uk.ac.ic.doc.gander.flowinference.types.Type;
-import uk.ac.ic.doc.gander.importing.LegacyImportSimulator;
+import uk.ac.ic.doc.gander.importing.ImportFactory;
+import uk.ac.ic.doc.gander.importing.ImportSimulator;
 import uk.ac.ic.doc.gander.model.Class;
 import uk.ac.ic.doc.gander.model.Function;
 import uk.ac.ic.doc.gander.model.Model;
@@ -126,10 +126,10 @@ public class SymbolTable {
 	}
 
 	private class ImportSymbols {
-		private Namespace currentScope;
+		private CodeObject currentScope;
 
 		ImportSymbols(Namespace currentScope) {
-			this.currentScope = currentScope;
+			this.currentScope = currentScope.codeObject();
 		}
 
 		void resolveImport(Import node) {
@@ -158,50 +158,52 @@ public class SymbolTable {
 			//
 			// We have to simulate the same thing by breaking the import name
 			// apart and each to the inferred types
-			for (aliasType alias : node.names) {
-				if (alias.asname != null) {
-					simulator(currentScope).simulateImportAs(
-							((NameTok) alias.name).id,
-							((NameTok) alias.asname).id);
-				} else {
-					simulator(currentScope).simulateImport(
-							((NameTok) alias.name).id);
-				}
+
+			ModuleCO relativeTo = null;
+			if (currentScope.enclosingModule().oldStyleConflatedNamespace()
+					.getParent() != null) {
+				relativeTo = currentScope.enclosingModule()
+						.oldStyleConflatedNamespace().getParent().codeObject();
+			}
+
+			Iterable<uk.ac.ic.doc.gander.importing.Import<CodeObject, CodeObject, ModuleCO>> imports = ImportFactory
+					.fromAstNode(node, relativeTo, currentScope);
+			for (uk.ac.ic.doc.gander.importing.Import<CodeObject, CodeObject, ModuleCO> importInstance : imports) {
+				simulator().simulateImport(importInstance);
 			}
 		}
 
 		void resolveImportFrom(ImportFrom node) throws Exception {
 
-			for (aliasType alias : node.names) {
-				if (alias.asname != null) {
-					simulator(currentScope).simulateImportFromAs(
-							((NameTok) node.module).id,
-							((NameTok) alias.name).id,
-							((NameTok) alias.asname).id);
-				} else {
-					simulator(currentScope).simulateImportFrom(
-							((NameTok) node.module).id,
-							((NameTok) alias.name).id);
-				}
+			ModuleCO relativeTo = null;
+			if (currentScope.enclosingModule().oldStyleConflatedNamespace()
+					.getParent() != null) {
+				relativeTo = currentScope.enclosingModule()
+						.oldStyleConflatedNamespace().getParent().codeObject();
 			}
 
+			Iterable<uk.ac.ic.doc.gander.importing.Import<CodeObject, CodeObject, ModuleCO>> imports = ImportFactory
+					.fromAstNode(node, relativeTo, currentScope);
+			for (uk.ac.ic.doc.gander.importing.Import<CodeObject, CodeObject, ModuleCO> importInstance : imports) {
+				simulator().simulateImport(importInstance);
+			}
 		}
-
 	}
 
-	private LegacyImportSimulator<CodeObject, CodeObject, ModuleCO> simulator(Namespace importReceiver) {
+	private ImportSimulator<CodeObject, CodeObject, ModuleCO> simulator() {
 
-		return new LegacyImportSimulator<CodeObject, CodeObject, ModuleCO>(
-				importReceiver.codeObject(), new ImportedNameTypeWatcher(
-						new ImportTypeEvent() {
+		return new ImportSimulator<CodeObject, CodeObject, ModuleCO>(
+				new ImportedNameTypeWatcher(new ImportTypeEvent() {
 
-							public void onImportTyped(CodeObject scope,
-									String name, Type type) {
-								SymbolTable.this.put(scope
-										.oldStyleConflatedNamespace(), name,
-										type);
-							}
-						}), new StandardModelLookupLoader(model));
+					public void onImportTyped(CodeObject container,
+							String name, Type type) {
+
+						// FIXME: container is not the location of the symbol;
+						// should resolve
+						SymbolTable.this.put(container
+								.oldStyleConflatedNamespace(), name, type);
+					}
+				}), new StandardModelLookupLoader(model));
 	}
 
 	private void processScope(Namespace scope) {

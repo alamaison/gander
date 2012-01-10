@@ -78,7 +78,11 @@ public final class ImportSimulator<O, C, M> {
 
 		void bindObjectToName(O importedObject, String name, M receivingModule);
 
-		void onUnresolvedImport(Import<O, C, M> importInstance, String name);
+		void onUnresolvedImport(Import<O, C, M> importInstance, String name,
+				M receivingModule);
+
+		void onUnresolvedLocalImport(Import<O, C, M> importInstance,
+				String name);
 	}
 
 	/**

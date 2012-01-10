@@ -42,6 +42,12 @@ public final class ImportSimulatorTest {
 		}
 
 		public void onUnresolvedImport(
+				Import<String, String, String> importInstance, String name,
+				String receivingModule) {
+			fail();
+		}
+
+		public void onUnresolvedLocalImport(
 				Import<String, String, String> importInstance, String name) {
 			fail();
 		}

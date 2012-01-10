@@ -1,8 +1,8 @@
 package uk.ac.ic.doc.gander.importing;
 
 import uk.ac.ic.doc.gander.importing.LegacyImportSimulator.Binder;
+import uk.ac.ic.doc.gander.model.LegacyModelLookupLoader;
 import uk.ac.ic.doc.gander.model.Model;
-import uk.ac.ic.doc.gander.model.StandardModelLookupLoader;
 import uk.ac.ic.doc.gander.model.codeobject.CodeObject;
 import uk.ac.ic.doc.gander.model.codeobject.ModuleCO;
 
@@ -60,6 +60,6 @@ public final class WholeModelImportSimulation {
 	private LegacyImportSimulator<CodeObject, CodeObject, ModuleCO> newImportSimulator(
 			CodeObject importReceiver) {
 		return new LegacyImportSimulator<CodeObject, CodeObject, ModuleCO>(
-				importReceiver, callback, new StandardModelLookupLoader(model));
+				importReceiver, callback, new LegacyModelLookupLoader(model));
 	}
 }
