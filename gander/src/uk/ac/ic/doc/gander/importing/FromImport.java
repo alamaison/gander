@@ -63,7 +63,7 @@ final class FromImport<C, M> implements Import<C, M> {
 	}
 
 	public <O> BindingScheme<M> newBindingScheme(
-			Binder<O, C, M> bindingHandler, Loader<O, C, M> loader) {
+			Binder<O, C, M> bindingHandler, Loader<O, M> loader) {
 		// The non-aliased from-import shares the from-import-as binding scheme
 		return new FromImportAsBindingScheme<O, C, M>(this, bindingHandler,
 				loader);

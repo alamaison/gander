@@ -240,7 +240,7 @@ public final class LegacyImportSimulator<O, C extends O, M extends C> {
 	}
 
 	private final class LegacyLoaderAdaptor implements
-			ImportSimulator.Loader<O, C, M> {
+			ImportSimulator.Loader<O, M> {
 
 		private final Loader<O, C, M> innerLoader;
 

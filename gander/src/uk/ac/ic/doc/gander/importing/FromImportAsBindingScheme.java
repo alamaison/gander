@@ -7,10 +7,10 @@ final class FromImportAsBindingScheme<O, C, M> implements BindingScheme<M> {
 
 	private final Import<C, M> importInstance;
 	private final ImportSimulator.Binder<O, C, M> bindingHandler;
-	private final Loader<O, C, M> loader;
+	private final Loader<O, M> loader;
 
 	public FromImportAsBindingScheme(Import<C, M> importInstance,
-			Binder<O, C, M> bindingHandler, Loader<O, C, M> loader) {
+			Binder<O, C, M> bindingHandler, Loader<O, M> loader) {
 		assert importInstance != null;
 		assert bindingHandler != null;
 		assert loader != null;

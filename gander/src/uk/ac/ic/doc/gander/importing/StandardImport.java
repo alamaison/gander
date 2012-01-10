@@ -64,7 +64,7 @@ final class StandardImport<C, M> implements Import<C, M> {
 	}
 
 	public <O> BindingScheme<M> newBindingScheme(
-			Binder<O, C, M> bindingHandler, Loader<O, C, M> loader) {
+			Binder<O, C, M> bindingHandler, Loader<O, M> loader) {
 		return new StandardImportBindingScheme<O, C, M>(this, bindingHandler);
 	}
 

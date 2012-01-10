@@ -47,7 +47,7 @@ public final class ImportSimulatorTest {
 		}
 	};
 
-	private Loader<String, String, String> loader = new Loader<String, String, String>() {
+	private Loader<String, String> loader = new Loader<String, String>() {
 
 		public String loadModule(List<String> importPath,
 				String relativeToModule) {

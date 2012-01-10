@@ -89,14 +89,10 @@ public final class ImportSimulator<O, C, M> {
 	 * @param <O>
 	 *            the supertype of Java objects representing other Python
 	 *            objects that can be imported
-	 * 
-	 * @param <C>
-	 *            the type of Java objects representing Python code objects
-	 *            (modules, functions, classes)
 	 * @param <M>
 	 *            the type of Java objects representing Python modules
 	 */
-	public interface Loader<O, C, M> {
+	public interface Loader<O, M> {
 
 		/**
 		 * Load a module or package relative to the given module.
@@ -130,9 +126,9 @@ public final class ImportSimulator<O, C, M> {
 	}
 
 	private final ImportSimulator.Binder<O, C, M> eventHandler;
-	private final ImportSimulator.Loader<O, C, M> loader;
+	private final ImportSimulator.Loader<O, M> loader;
 
-	public ImportSimulator(Binder<O, C, M> eventHandler, Loader<O, C, M> loader) {
+	public ImportSimulator(Binder<O, C, M> eventHandler, Loader<O, M> loader) {
 		if (eventHandler == null)
 			throw new NullPointerException(
 					"Must have an event handler to react to import events");
