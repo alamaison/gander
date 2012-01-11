@@ -1,8 +1,8 @@
 package uk.ac.ic.doc.gander.importing;
 
-import uk.ac.ic.doc.gander.importing.LegacyImportSimulator.Binder;
-import uk.ac.ic.doc.gander.model.LegacyModelLookupLoader;
+import uk.ac.ic.doc.gander.importing.ImportSimulator.Binder;
 import uk.ac.ic.doc.gander.model.Model;
+import uk.ac.ic.doc.gander.model.StandardModelLookupLoader;
 import uk.ac.ic.doc.gander.model.codeobject.CodeObject;
 import uk.ac.ic.doc.gander.model.codeobject.ModuleCO;
 
@@ -33,33 +33,78 @@ public final class WholeModelImportSimulation {
 		new WholeModelImportVisitation(model, new ImportHandler<CodeObject>() {
 
 			public void onImport(CodeObject importReceiver, String moduleName) {
-				newImportSimulator(importReceiver).simulateImport(moduleName);
+
+				ModuleCO relativeTo = null;
+				if (importReceiver.enclosingModule()
+						.oldStyleConflatedNamespace().getParent() != null) {
+					relativeTo = importReceiver.enclosingModule()
+							.oldStyleConflatedNamespace().getParent()
+							.codeObject();
+				}
+
+				Import<CodeObject, CodeObject, ModuleCO> importInstance = ImportFactory
+						.newImport(moduleName, relativeTo, importReceiver);
+				newImportSimulator().simulateImport(importInstance);
 			}
 
 			public void onImportAs(CodeObject importReceiver,
 					String moduleName, String asName) {
-				newImportSimulator(importReceiver).simulateImportAs(moduleName,
-						asName);
+
+				ModuleCO relativeTo = null;
+				if (importReceiver.enclosingModule()
+						.oldStyleConflatedNamespace().getParent() != null) {
+					relativeTo = importReceiver.enclosingModule()
+							.oldStyleConflatedNamespace().getParent()
+							.codeObject();
+				}
+
+				Import<CodeObject, CodeObject, ModuleCO> importInstance = ImportFactory
+						.newImportAs(moduleName, asName, relativeTo,
+								importReceiver);
+
+				newImportSimulator().simulateImport(importInstance);
 			}
 
 			public void onImportFrom(CodeObject importReceiver,
 					String moduleName, String itemName) {
-				newImportSimulator(importReceiver).simulateImportFrom(
-						moduleName, itemName);
+
+				ModuleCO relativeTo = null;
+				if (importReceiver.enclosingModule()
+						.oldStyleConflatedNamespace().getParent() != null) {
+					relativeTo = importReceiver.enclosingModule()
+							.oldStyleConflatedNamespace().getParent()
+							.codeObject();
+				}
+
+				Import<CodeObject, CodeObject, ModuleCO> importInstance = ImportFactory
+						.newFromImport(moduleName, itemName, relativeTo,
+								importReceiver);
+				newImportSimulator().simulateImport(importInstance);
 			}
 
 			public void onImportFromAs(CodeObject importReceiver,
 					String moduleName, String itemName, String asName) {
-				newImportSimulator(importReceiver).simulateImportFromAs(
-						moduleName, itemName, asName);
+
+				ModuleCO relativeTo = null;
+				if (importReceiver.enclosingModule()
+						.oldStyleConflatedNamespace().getParent() != null) {
+					relativeTo = importReceiver.enclosingModule()
+							.oldStyleConflatedNamespace().getParent()
+							.codeObject();
+				}
+
+				Import<CodeObject, CodeObject, ModuleCO> importInstance = ImportFactory
+						.newFromImportAs(moduleName, itemName, asName,
+								relativeTo, importReceiver);
+				newImportSimulator().simulateImport(importInstance);
 			}
 
 		});
+
 	}
 
-	private LegacyImportSimulator<CodeObject, CodeObject, ModuleCO> newImportSimulator(
-			CodeObject importReceiver) {
-		return new LegacyImportSimulator<CodeObject, CodeObject, ModuleCO>(
-				importReceiver, callback, new LegacyModelLookupLoader(model));
+	private ImportSimulator<CodeObject, CodeObject, ModuleCO> newImportSimulator() {
+		return new ImportSimulator<CodeObject, CodeObject, ModuleCO>(callback,
+				new StandardModelLookupLoader(model));
 	}
 }

@@ -3,7 +3,6 @@ package uk.ac.ic.doc.gander.flowinference.flowgoals;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 import org.python.pydev.parser.jython.SimpleNode;
@@ -13,7 +12,6 @@ import org.python.pydev.parser.jython.ast.Name;
 import org.python.pydev.parser.jython.ast.NameTok;
 import org.python.pydev.parser.jython.ast.exprType;
 
-import uk.ac.ic.doc.gander.DottedName;
 import uk.ac.ic.doc.gander.ast.LocalCodeBlockVisitor;
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
 import uk.ac.ic.doc.gander.flowinference.flowgoals.expressionflow.ExpressionPosition;
@@ -23,9 +21,9 @@ import uk.ac.ic.doc.gander.flowinference.result.RedundancyEliminator;
 import uk.ac.ic.doc.gander.flowinference.result.Result;
 import uk.ac.ic.doc.gander.flowinference.result.Result.Processor;
 import uk.ac.ic.doc.gander.flowinference.result.Result.Transformer;
-import uk.ac.ic.doc.gander.importing.LegacyImportSimulator;
+import uk.ac.ic.doc.gander.importing.Import;
 import uk.ac.ic.doc.gander.importing.WholeModelImportSimulation;
-import uk.ac.ic.doc.gander.importing.LegacyImportSimulator.Binder;
+import uk.ac.ic.doc.gander.importing.ImportSimulator.Binder;
 import uk.ac.ic.doc.gander.model.AttributeAccessFinder;
 import uk.ac.ic.doc.gander.model.CodeObjectWalker;
 import uk.ac.ic.doc.gander.model.Model;
@@ -451,49 +449,80 @@ final class NamespaceNameFlowStepGoalSolver {
 		 */
 		private final RedundancyEliminator<FlowPosition> importedReferences = new RedundancyEliminator<FlowPosition>();
 
-		private final Binder<CodeObject, CodeObject, ModuleCO> worker = new LegacyImportSimulator.Binder<CodeObject, CodeObject, ModuleCO>() {
+		private final Binder<CodeObject, CodeObject, ModuleCO> worker = new Binder<CodeObject, CodeObject, ModuleCO>() {
 
-			public void bindName(CodeObject object, String variableName,
-					CodeObject importReceiver) {
+			public void bindModuleToLocalName(ModuleCO loadedModule,
+					String name, CodeObject container) {
 				/*
 				 * The binding occurs as though it were being bound to a
-				 * variable in a particular code object, the {@code
-				 * importReceiver}. Like with all variables, this may not be the
-				 * code object whose unqualified namespace the variable binds in
-				 * so the binding namespace must be resolved.
+				 * variable in a particular code object, the code object
+				 * containing the import statement. Like with all variables,
+				 * this may not be the code object whose unqualified namespace
+				 * the variable binds in.
 				 */
-				handleBind(object, new Variable(variableName, importReceiver));
+				handleBind(loadedModule, new Variable(name, container));
 			}
 
-			public void onUnresolvedImport(List<String> importPath,
-					ModuleCO relativeTo, String as, CodeObject codeBlock) {
-				warnUnresolvedImport("import "
-						+ DottedName.toDottedName(importPath) + " as " + as);
+			public void bindModuleToName(ModuleCO loadedModule, String name,
+					ModuleCO receivingModule) {
+				/*
+				 * The binding occurs as though it were being bound to a global
+				 * variable in a particular module.
+				 */
+				handleBind(loadedModule, new Variable(name, receivingModule));
 			}
 
-			public void onUnresolvedImportFromItem(List<String> fromPath,
-					ModuleCO relativeTo, String itemName, String as,
-					CodeObject codeBlock) {
-				warnUnresolvedImport("from "
-						+ DottedName.toDottedName(fromPath) + " import "
-						+ itemName + " as " + as);
+			public void bindObjectToLocalName(CodeObject importedObject,
+					String name, CodeObject container) {
+				/*
+				 * The binding occurs as though it were being bound to a
+				 * variable in a particular code object, the code object
+				 * containing the import statement. Like with all variables,
+				 * this may not be the code object whose unqualified namespace
+				 * the variable binds in.
+				 */
+				handleBind(importedObject, new Variable(name, container));
 			}
 
-			private void warnUnresolvedImport(String importDescription) {
+			public void bindObjectToName(CodeObject importedObject,
+					String name, ModuleCO receivingModule) {
+				/*
+				 * The binding occurs as though it were being bound to a global
+				 * variable in a particular module.
+				 */
+				handleBind(importedObject, new Variable(name, receivingModule));
+			}
+
+			public void onUnresolvedImport(
+					Import<CodeObject, CodeObject, ModuleCO> importInstance,
+					String name, ModuleCO receivingModule) {
+				warnUnresolvedImport(importInstance, name);
+			}
+
+			public void onUnresolvedLocalImport(
+					Import<CodeObject, CodeObject, ModuleCO> importInstance,
+					String name) {
+				warnUnresolvedImport(importInstance, name);
+			}
+
+			private void warnUnresolvedImport(
+					Import<CodeObject, CodeObject, ModuleCO> importInstance,
+					String name) {
+
 				/*
 				 * We pretend that unresolved imports don't matter because they
 				 * would swamp our results with Top. All flow results would
 				 * return Top if even a single import were unresolved.
 				 */
 				System.err.println("CORRECTNESS WARNING: Unable to "
-						+ "resolve import which means we may have lost track "
-						+ "of some data flow: " + importDescription);
+						+ "resolve '" + name + "' during import which "
+						+ "means we may have lost track of some data flow: "
+						+ importInstance);
 			}
-
 		};
 
 		ImportedKeyReferenceFlower() {
-			
+
 			new WholeModelImportSimulation(namespaceName.namespace().model(),
 					worker);
 		}

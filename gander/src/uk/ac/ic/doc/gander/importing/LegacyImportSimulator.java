@@ -31,6 +31,7 @@ import uk.ac.ic.doc.gander.model.Module;
  * @param <M>
  *            the type of Java objects representing Python modules
  */
+@Deprecated
 public final class LegacyImportSimulator<O, C extends O, M extends C> {
 
 	/**
@@ -47,6 +48,7 @@ public final class LegacyImportSimulator<O, C extends O, M extends C> {
 	 * @param <M>
 	 *            the type of Java objects representing Python modules
 	 */
+	@Deprecated
 	public interface Binder<O, C, M> {
 
 		/**
@@ -91,6 +93,7 @@ public final class LegacyImportSimulator<O, C extends O, M extends C> {
 	 * @param <M>
 	 *            the type of Java objects representing Python modules
 	 */
+	@Deprecated
 	public interface Loader<O, C, M> {
 
 		/**
