@@ -532,32 +532,12 @@ public class ZeroCfaTypeEngineTest {
 				typeJudgement(listType), type);
 	}
 
-	private void doGlobalTest(String tag) throws Exception {
+	private void doGlobalTest(String testName, String tag) throws Exception {
 		Set<Type> expectedType = new HashSet<Type>();
 		expectedType.add(stringType);
 		expectedType.add(integerType);
 
-		ScopedPrintNode node = findPrintNode("global", tag);
-		Result<Type> type = engine
-				.typeOf(node.getExpression(), node.getScope());
-
-		assertEquals("Global's type not inferred correctly.", expectedType,
-				type);
-
-	}
-
-	private void doGlobalDefinedInOtherModuleTest(String moduleName, String tag)
-			throws Exception {
-		ScopedPrintNode node = findPrintNode(moduleName, tag);
-
-		Set<Type> expectedType = new HashSet<Type>();
-		expectedType.add(stringType);
-		expectedType.add(integerType);
-		expectedType.add(listType);
-		expectedType.add(new TObject(model.loadModule(
-				"global_defined_in_other_module_worker").getClasses()
-				.get("Bob")));
-
+		ScopedPrintNode node = findPrintNode(testName, tag);
 		Result<Type> type = engine
 				.typeOf(node.getExpression(), node.getScope());
 
@@ -567,28 +547,30 @@ public class ZeroCfaTypeEngineTest {
 
 	@Test
 	public void global() throws Throwable {
-		doGlobalTest("what_am_i_without_global_statement");
-		doGlobalTest("what_am_i_with_global_statement");
-		doGlobalTest("what_am_i_at_global_scope");
+		doGlobalTest("global", "what_am_i_without_global_statement");
+		doGlobalTest("global", "what_am_i_with_global_statement");
+		doGlobalTest("global", "what_am_i_at_global_scope");
+	}
+
+	@Test
+	public void globalImported() throws Throwable {
+		doGlobalTest("global_imported", "what_am_i");
+	}
+
+	@Test
+	public void globalImportedFrom() throws Throwable {
+		doGlobalTest("global_imported_from",
+				"what_am_i_without_global_statement");
+		doGlobalTest("global_imported_from", "what_am_i_with_global_statement");
+		doGlobalTest("global_imported_from", "what_am_i_at_global_scope");
 	}
 
 	@Test
 	public void globalDefinedInOtherModule() throws Throwable {
-		doGlobalDefinedInOtherModuleTest("global_defined_in_other_module",
-				"what_am_i_without_global_statement");
-		doGlobalDefinedInOtherModuleTest("global_defined_in_other_module",
-				"what_am_i_with_global_statement");
-		doGlobalDefinedInOtherModuleTest("global_defined_in_other_module",
-				"what_am_i_at_global_scope");
-		doGlobalDefinedInOtherModuleTest(
-				"global_defined_in_other_module_worker",
-				"what_am_i_without_global_statement_in_foreign_module");
-		doGlobalDefinedInOtherModuleTest(
-				"global_defined_in_other_module_worker",
-				"what_am_i_with_global_statement_in_foreign_module");
-		doGlobalDefinedInOtherModuleTest(
-				"global_defined_in_other_module_worker",
-				"what_am_i_at_global_scope_in_foreign_module");
+		doGlobalTest("global_redefined_in_other_module",
+				"what_am_i_before_import");
+		doGlobalTest("global_redefined_in_other_module",
+				"what_am_i_after_import");
 	}
 
 	@Test
@@ -889,6 +871,25 @@ public class ZeroCfaTypeEngineTest {
 				+ "realise the function is imported into another "
 				+ "module and called from there with a different type "
 				+ "of parameter.", expectedType, type);
+	}
+
+	@Test
+	public void functionParameterCalledFromOtherModuleViaFrommedParent()
+			throws Throwable {
+		String testName = "function_parameter_called_from_other_module_via_frommed_parent";
+		ScopedPrintNode node = findPrintNode(testName, "what_am_i");
+		Result<Type> type = engine
+				.typeOf(node.getExpression(), node.getScope());
+
+		Set<Type> expectedType = new HashSet<Type>();
+		expectedType.add(stringType);
+		expectedType.add(integerType);
+
+		assertEquals("Function parameter's type not inferred "
+				+ "correctly. This probably means that the analysis didn't "
+				+ "realise the function's container is imported into another "
+				+ "module which allows it to be called from that container's "
+				+ "import name by attribute access.", expectedType, type);
 	}
 
 	@Test

@@ -449,7 +449,7 @@ final class NamespaceNameFlowStepGoalSolver {
 		 */
 		private final RedundancyEliminator<FlowPosition> importedReferences = new RedundancyEliminator<FlowPosition>();
 
-		private final Binder<CodeObject, CodeObject, ModuleCO> worker = new Binder<CodeObject, CodeObject, ModuleCO>() {
+		private final Binder<NamespaceName, CodeObject, ModuleCO> worker = new Binder<NamespaceName, CodeObject, ModuleCO>() {
 
 			public void bindModuleToLocalName(ModuleCO loadedModule,
 					String name, CodeObject container) {
@@ -472,7 +472,7 @@ final class NamespaceNameFlowStepGoalSolver {
 				handleBind(loadedModule, new Variable(name, receivingModule));
 			}
 
-			public void bindObjectToLocalName(CodeObject importedObject,
+			public void bindObjectToLocalName(NamespaceName importedObject,
 					String name, CodeObject container) {
 				/*
 				 * The binding occurs as though it were being bound to a
@@ -484,7 +484,7 @@ final class NamespaceNameFlowStepGoalSolver {
 				handleBind(importedObject, new Variable(name, container));
 			}
 
-			public void bindObjectToName(CodeObject importedObject,
+			public void bindObjectToName(NamespaceName importedObject,
 					String name, ModuleCO receivingModule) {
 				/*
 				 * The binding occurs as though it were being bound to a global
@@ -494,19 +494,19 @@ final class NamespaceNameFlowStepGoalSolver {
 			}
 
 			public void onUnresolvedImport(
-					Import<CodeObject, CodeObject, ModuleCO> importInstance,
+					Import<NamespaceName, CodeObject, ModuleCO> importInstance,
 					String name, ModuleCO receivingModule) {
 				warnUnresolvedImport(importInstance, name);
 			}
 
 			public void onUnresolvedLocalImport(
-					Import<CodeObject, CodeObject, ModuleCO> importInstance,
+					Import<NamespaceName, CodeObject, ModuleCO> importInstance,
 					String name) {
 				warnUnresolvedImport(importInstance, name);
 			}
 
 			private void warnUnresolvedImport(
-					Import<CodeObject, CodeObject, ModuleCO> importInstance,
+					Import<NamespaceName, CodeObject, ModuleCO> importInstance,
 					String name) {
 
 				/*
@@ -583,6 +583,54 @@ final class NamespaceNameFlowStepGoalSolver {
 				 */
 				importedReferences
 						.add(referencesToAttributeOfImportedCodeObject(objectBinding));
+			}
+		}
+
+		protected void handleBind(NamespaceName object, Variable objectBinding) {
+			assert variableBindsLocallyOrGlobally(objectBinding);
+
+			if (object.equals(namespaceName)) {
+
+				/*
+				 * The imported object directly aliases the namespace name we
+				 * care about.
+				 */
+				/* import key */
+				/* from module import key */
+				importedReferences.add(variableFlowPositions(objectBinding));
+
+			} else {
+				/*
+				 * A namespace name (not ours) was imported into this namespace
+				 * and bound to a name which may permit access to our namespace
+				 * name by attribute access on the new name. Check if we are
+				 * able to flow to this other namespace. If so, check whether we
+				 * do, indeed, access that alias via attribute access on the
+				 * imported name because anywhere that happens may lead to our
+				 * namespace name flowing onwards.
+				 */
+
+				// FIXME: HOW?!
+				//if (weCanFlowToNameInImportedObjectsNamespace) {
+
+					/*
+					 * The imported object potentially allows access to the namespace
+					 * name we care about by way of an attribute access.
+					 */
+					/*
+					 * import module
+					 * 
+					 * module.key
+					 */
+					/*
+					 * from module import object
+					 * 
+					 * object.key
+					 */
+					// importedReferences
+					// .add(referencesToAttributeOfImportedCodeObject(objectBinding));
+					// }
+				//}
 			}
 		}
 

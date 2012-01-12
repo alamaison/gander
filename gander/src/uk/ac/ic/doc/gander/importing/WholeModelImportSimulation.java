@@ -2,7 +2,8 @@ package uk.ac.ic.doc.gander.importing;
 
 import uk.ac.ic.doc.gander.importing.ImportSimulator.Binder;
 import uk.ac.ic.doc.gander.model.Model;
-import uk.ac.ic.doc.gander.model.StandardModelLookupLoader;
+import uk.ac.ic.doc.gander.model.NamespaceName;
+import uk.ac.ic.doc.gander.model.NamespaceNameLoader;
 import uk.ac.ic.doc.gander.model.codeobject.CodeObject;
 import uk.ac.ic.doc.gander.model.codeobject.ModuleCO;
 
@@ -18,11 +19,11 @@ import uk.ac.ic.doc.gander.model.codeobject.ModuleCO;
  */
 public final class WholeModelImportSimulation {
 
-	private final Binder<CodeObject, CodeObject, ModuleCO> callback;
+	private final Binder<NamespaceName, CodeObject, ModuleCO> callback;
 	private final Model model;
 
 	public WholeModelImportSimulation(Model model,
-			Binder<CodeObject, CodeObject, ModuleCO> callback) {
+			Binder<NamespaceName, CodeObject, ModuleCO> callback) {
 		this.model = model;
 		this.callback = callback;
 		walkModel();
@@ -42,7 +43,7 @@ public final class WholeModelImportSimulation {
 							.codeObject();
 				}
 
-				Import<CodeObject, CodeObject, ModuleCO> importInstance = ImportFactory
+				Import<NamespaceName, CodeObject, ModuleCO> importInstance = ImportFactory
 						.newImport(moduleName, relativeTo, importReceiver);
 				newImportSimulator().simulateImport(importInstance);
 			}
@@ -58,7 +59,7 @@ public final class WholeModelImportSimulation {
 							.codeObject();
 				}
 
-				Import<CodeObject, CodeObject, ModuleCO> importInstance = ImportFactory
+				Import<NamespaceName, CodeObject, ModuleCO> importInstance = ImportFactory
 						.newImportAs(moduleName, asName, relativeTo,
 								importReceiver);
 
@@ -76,7 +77,7 @@ public final class WholeModelImportSimulation {
 							.codeObject();
 				}
 
-				Import<CodeObject, CodeObject, ModuleCO> importInstance = ImportFactory
+				Import<NamespaceName, CodeObject, ModuleCO> importInstance = ImportFactory
 						.newFromImport(moduleName, itemName, relativeTo,
 								importReceiver);
 				newImportSimulator().simulateImport(importInstance);
@@ -93,7 +94,7 @@ public final class WholeModelImportSimulation {
 							.codeObject();
 				}
 
-				Import<CodeObject, CodeObject, ModuleCO> importInstance = ImportFactory
+				Import<NamespaceName, CodeObject, ModuleCO> importInstance = ImportFactory
 						.newFromImportAs(moduleName, itemName, asName,
 								relativeTo, importReceiver);
 				newImportSimulator().simulateImport(importInstance);
@@ -103,8 +104,8 @@ public final class WholeModelImportSimulation {
 
 	}
 
-	private ImportSimulator<CodeObject, CodeObject, ModuleCO> newImportSimulator() {
-		return new ImportSimulator<CodeObject, CodeObject, ModuleCO>(callback,
-				new StandardModelLookupLoader(model));
+	private ImportSimulator<NamespaceName, CodeObject, ModuleCO> newImportSimulator() {
+		return new ImportSimulator<NamespaceName, CodeObject, ModuleCO>(
+				callback, new NamespaceNameLoader(model));
 	}
 }
