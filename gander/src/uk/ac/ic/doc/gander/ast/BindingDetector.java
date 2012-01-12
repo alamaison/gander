@@ -3,13 +3,16 @@ package uk.ac.ic.doc.gander.ast;
 import org.python.pydev.parser.jython.SimpleNode;
 import org.python.pydev.parser.jython.ast.Assign;
 import org.python.pydev.parser.jython.ast.ClassDef;
+import org.python.pydev.parser.jython.ast.Comprehension;
 import org.python.pydev.parser.jython.ast.For;
 import org.python.pydev.parser.jython.ast.FunctionDef;
 import org.python.pydev.parser.jython.ast.Import;
 import org.python.pydev.parser.jython.ast.ImportFrom;
+import org.python.pydev.parser.jython.ast.ListComp;
 import org.python.pydev.parser.jython.ast.NameTok;
 import org.python.pydev.parser.jython.ast.TryExcept;
 import org.python.pydev.parser.jython.ast.aliasType;
+import org.python.pydev.parser.jython.ast.comprehensionType;
 import org.python.pydev.parser.jython.ast.excepthandlerType;
 import org.python.pydev.parser.jython.ast.exprType;
 
@@ -73,6 +76,21 @@ public final class BindingDetector extends BindingStatementVisitor {
 	@Override
 	public Object visitFor(For node) throws Exception {
 		eventHandler.forLoop(node.target, node.iter);
+		return null;
+	}
+
+	@Override
+	public Object visitListComp(ListComp node) throws Exception {
+		/*
+		 * UNOBVIOUS: list comprehensions' temporary variables survive after the
+		 * comprehension is complete. In other words, they just treat the temp
+		 * var as though it were any other variable of that name in the code
+		 * block.
+		 */
+		for (comprehensionType generator : node.generators) {
+			eventHandler.forLoop(((Comprehension) generator).target,
+					((Comprehension) generator).iter);
+		}
 		return null;
 	}
 

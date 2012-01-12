@@ -11,6 +11,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.python.pydev.parser.jython.ast.Assign;
 import org.python.pydev.parser.jython.ast.Expr;
+import org.python.pydev.parser.jython.ast.ListComp;
 import org.python.pydev.parser.jython.ast.exprType;
 
 import uk.ac.ic.doc.gander.RelativeTestModelCreator;
@@ -1470,7 +1471,19 @@ public class ZeroCfaTypeEngineTest {
 		assertEquals("We shouldn't be able to infer a type for items pulled "
 				+ "out of an iterable by a for loop.", TopT.INSTANCE, type);
 	}
-	
+
+	@Test
+	public void listComprehensionTarget() throws Throwable {
+		String testName = "list_comprehension_target";
+
+		ScopedAstNode node = findNode(testName, "what_am_i");
+		ListComp listComp = (ListComp) node.getNode();
+		Result<Type> type = engine.typeOf(listComp.elt, node.getScope());
+
+		assertEquals("We shouldn't be able to infer a type for items pulled "
+				+ "out of an iterable by a for loop.", TopT.INSTANCE, type);
+	}
+
 	private ScopedAstNode findNode(String moduleName, String tag)
 			throws Exception {
 		return new TaggedNodeAndScopeFinder(model.loadModule(moduleName), tag)
