@@ -6,6 +6,7 @@ import org.python.pydev.parser.jython.SimpleNode;
 import org.python.pydev.parser.jython.ast.ClassDef;
 import org.python.pydev.parser.jython.ast.FunctionDef;
 import org.python.pydev.parser.jython.ast.Name;
+import org.python.pydev.parser.jython.ast.Tuple;
 import org.python.pydev.parser.jython.ast.exprType;
 
 import uk.ac.ic.doc.gander.ast.BindingDetector;
@@ -209,9 +210,16 @@ class BoundTypeVisitor implements BindingDetector.DetectionEvent {
 
 		if (target instanceof Name && isMatch(((Name) target).id)) {
 			// TODO: Try to infer type of iterable
-
-			// Give up early because nothing beats Top
 			judgement.add(TopT.INSTANCE);
+		} else if (target instanceof Tuple) {
+			for (exprType tupleItem : ((Tuple) target).elts) {
+				if (tupleItem instanceof Name && isMatch(((Name) tupleItem).id)) {
+					// TODO: Try to infer type of iterable
+					judgement.add(TopT.INSTANCE);
+				}
+			}
+		} else {
+			System.err.println("Funny for loop target: " + target);
 		}
 	}
 

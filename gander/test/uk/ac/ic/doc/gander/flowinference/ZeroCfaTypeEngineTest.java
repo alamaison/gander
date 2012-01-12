@@ -1441,6 +1441,36 @@ public class ZeroCfaTypeEngineTest {
 				+ "a dictionary.", TopT.INSTANCE, type);
 	}
 
+	@Test
+	public void forLoopTarget() throws Throwable {
+		String testName = "for_loop_target";
+
+		ScopedPrintNode node = findPrintNode(testName, "what_am_i");
+		Result<Type> type = engine
+				.typeOf(node.getExpression(), node.getScope());
+
+		assertEquals("We shouldn't be able to infer a type for items pulled "
+				+ "out of an iterable by a for loop.", TopT.INSTANCE, type);
+	}
+
+	@Test
+	public void forLoopTupleTarget() throws Throwable {
+		String testName = "for_loop_tuple_target";
+
+		ScopedPrintNode node = findPrintNode(testName, "what_am_i_x");
+		Result<Type> type = engine
+				.typeOf(node.getExpression(), node.getScope());
+
+		assertEquals("We shouldn't be able to infer a type for items pulled "
+				+ "out of an iterable by a for loop.", TopT.INSTANCE, type);
+
+		node = findPrintNode(testName, "what_am_i_y");
+		type = engine.typeOf(node.getExpression(), node.getScope());
+
+		assertEquals("We shouldn't be able to infer a type for items pulled "
+				+ "out of an iterable by a for loop.", TopT.INSTANCE, type);
+	}
+	
 	private ScopedAstNode findNode(String moduleName, String tag)
 			throws Exception {
 		return new TaggedNodeAndScopeFinder(model.loadModule(moduleName), tag)
