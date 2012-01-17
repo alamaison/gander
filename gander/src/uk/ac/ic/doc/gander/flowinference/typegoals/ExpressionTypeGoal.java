@@ -50,11 +50,6 @@ public final class ExpressionTypeGoal implements TypeGoal {
 
 	private final ModelSite<? extends exprType> expression;
 
-	@Deprecated
-	public ExpressionTypeGoal(Namespace scope, exprType expression) {
-		this.expression = new ModelSite<exprType>(expression, scope);
-	}
-
 	public ExpressionTypeGoal(ModelSite<? extends exprType> expression) {
 		if (expression == null)
 			throw new NullPointerException(
