@@ -148,6 +148,7 @@ public final class FunctionCO implements NamedCodeObject, NestedCodeObject,
 		return parent;
 	}
 
+	@Deprecated
 	public Function oldStyleConflatedNamespace() {
 		return oldStyleFunctionNamespace;
 	}

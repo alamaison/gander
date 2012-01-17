@@ -106,6 +106,7 @@ public final class ModuleCO implements NamedCodeObject {
 		return oldStyleModuleNamespace.model();
 	}
 
+	@Deprecated
 	public Module oldStyleConflatedNamespace() {
 		return oldStyleModuleNamespace;
 	}

@@ -128,6 +128,7 @@ public final class ClassCO implements NamedCodeObject, NestedCodeObject {
 		return oldStyleClassNamespace;
 	}
 
+	@Deprecated
 	public Class oldStyleConflatedNamespace() {
 		return oldStyleClassNamespace;
 	}
