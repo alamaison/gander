@@ -256,7 +256,7 @@ final class SituationMapper implements VisitorIF {
 			 * flowed to the 'self' parameter of its methods; this is handled
 			 * here
 			 */
-			return new CallResultSituation(expression);
+			return new CallResultSituation(nodeToSite(node));
 		} else {
 			return notInAFlowSituation();
 		}
@@ -588,6 +588,11 @@ final class SituationMapper implements VisitorIF {
 
 	private boolean isMatch(exprType otherExpression) {
 		return expression.astNode().equals(otherExpression);
+	}
+
+	private <T extends exprType> ModelSite<T> nodeToSite(T node) {
+		assert isMatch(node);
+		return new ModelSite<T>(node, expression.codeObject());
 	}
 
 	private Object notInAFlowSituation() {

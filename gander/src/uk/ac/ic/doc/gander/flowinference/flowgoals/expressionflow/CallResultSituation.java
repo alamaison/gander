@@ -6,6 +6,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.python.pydev.parser.jython.ast.Call;
 import org.python.pydev.parser.jython.ast.exprType;
 
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
@@ -16,7 +17,7 @@ import uk.ac.ic.doc.gander.flowinference.result.FiniteResult;
 import uk.ac.ic.doc.gander.flowinference.result.Result;
 import uk.ac.ic.doc.gander.flowinference.result.Concentrator.DatumProcessor;
 import uk.ac.ic.doc.gander.flowinference.typegoals.ExpressionTypeGoal;
-import uk.ac.ic.doc.gander.flowinference.types.TObject;
+import uk.ac.ic.doc.gander.flowinference.types.TClass;
 import uk.ac.ic.doc.gander.flowinference.types.Type;
 import uk.ac.ic.doc.gander.model.Class;
 import uk.ac.ic.doc.gander.model.Function;
@@ -33,14 +34,13 @@ import uk.ac.ic.doc.gander.model.ModelSite;
  */
 final class CallResultSituation implements FlowSituation {
 
-	private final ModelSite<? extends exprType> expression;
+	private final ModelSite<Call> expression;
 
-	CallResultSituation(ModelSite<? extends exprType> expression) {
+	CallResultSituation(ModelSite<Call> expression) {
 		this.expression = expression;
 	}
 
 	public Result<FlowPosition> nextFlowPositions(SubgoalManager goalManager) {
-
 		return new CallResultSituationSolver(expression, goalManager)
 				.solution();
 	}
@@ -82,11 +82,13 @@ final class CallResultSituationSolver {
 
 	private final Result<FlowPosition> solution;
 
-	CallResultSituationSolver(ModelSite<? extends exprType> expression,
+	CallResultSituationSolver(ModelSite<Call> expression,
 			SubgoalManager goalManager) {
 
 		Result<Type> types = goalManager
-				.registerSubgoal(new ExpressionTypeGoal(expression));
+				.registerSubgoal(new ExpressionTypeGoal(
+						new ModelSite<exprType>(expression.astNode().func,
+								expression.codeObject())));
 
 		Concentrator<Type, FlowPosition> action = Concentrator.newInstance(
 				new ConstructorValueFlower(), TopFp.INSTANCE);
@@ -106,11 +108,11 @@ final class CallResultSituationSolver {
 final class ConstructorValueFlower implements
 		DatumProcessor<Type, FlowPosition> {
 
-	public Result<FlowPosition> process(Type datum) {
+	public Result<FlowPosition> process(Type callable) {
 
 		Set<FlowPosition> positions;
-		if (datum instanceof TObject) {
-			positions = selfPositionsInMethods(((TObject) datum)
+		if (callable instanceof TClass) {
+			positions = selfPositionsInMethods(((TClass) callable)
 					.getClassInstance());
 		} else {
 			positions = Collections.emptySet();
