@@ -1,5 +1,8 @@
 package uk.ac.ic.doc.gander.flowinference.types;
 
+import java.util.Collections;
+import java.util.Set;
+
 import org.python.pydev.parser.jython.ast.Call;
 import org.python.pydev.parser.jython.ast.exprType;
 
@@ -10,6 +13,7 @@ import uk.ac.ic.doc.gander.flowinference.typegoals.NamespaceNameTypeGoal;
 import uk.ac.ic.doc.gander.flowinference.typegoals.TopT;
 import uk.ac.ic.doc.gander.model.Function;
 import uk.ac.ic.doc.gander.model.ModelSite;
+import uk.ac.ic.doc.gander.model.Namespace;
 import uk.ac.ic.doc.gander.model.NamespaceName;
 import uk.ac.ic.doc.gander.model.codeobject.FunctionCO;
 import uk.ac.ic.doc.gander.model.codeobject.NamedParameter;
@@ -64,6 +68,21 @@ public class TFunction implements TCodeObject, TCallable {
 		NamespaceName member = new NamespaceName(memberName, functionObject
 				.fullyQualifiedNamespace());
 		return goalManager.registerSubgoal(new NamespaceNameTypeGoal(member));
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public Set<Namespace> memberReadableNamespaces() {
+		return Collections.<Namespace> singleton(functionObject
+				.fullyQualifiedNamespace());
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public Namespace memberWriteableNamespace() {
+		return functionObject.fullyQualifiedNamespace();
 	}
 
 	public Result<Type> typeOfArgumentAtNamedParameter(String parameterName,

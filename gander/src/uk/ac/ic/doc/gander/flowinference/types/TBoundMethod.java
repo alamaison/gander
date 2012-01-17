@@ -1,6 +1,7 @@
 package uk.ac.ic.doc.gander.flowinference.types;
 
 import java.util.Collections;
+import java.util.Set;
 
 import org.python.pydev.parser.jython.ast.Call;
 import org.python.pydev.parser.jython.ast.exprType;
@@ -12,8 +13,8 @@ import uk.ac.ic.doc.gander.flowinference.typegoals.ExpressionTypeGoal;
 import uk.ac.ic.doc.gander.flowinference.typegoals.NamespaceNameTypeGoal;
 import uk.ac.ic.doc.gander.flowinference.typegoals.TopT;
 import uk.ac.ic.doc.gander.model.ModelSite;
+import uk.ac.ic.doc.gander.model.Namespace;
 import uk.ac.ic.doc.gander.model.NamespaceName;
-import uk.ac.ic.doc.gander.model.codeobject.ClassCO;
 import uk.ac.ic.doc.gander.model.codeobject.FunctionCO;
 import uk.ac.ic.doc.gander.model.codeobject.NamedParameter;
 
@@ -30,7 +31,7 @@ public final class TBoundMethod implements TCallable {
 			throw new NullPointerException(
 					"Bound methods are bound to an instance of a class");
 
-		assert unboundMethod.parent() instanceof ClassCO;
+		// unboundMethod's parent is not necessarily a class
 
 		this.unboundMethod = unboundMethod;
 		this.instance = instance;
@@ -61,6 +62,28 @@ public final class TBoundMethod implements TCallable {
 		NamespaceName member = new NamespaceName(memberName, unboundMethod
 				.fullyQualifiedNamespace());
 		return goalManager.registerSubgoal(new NamespaceNameTypeGoal(member));
+	}
+
+	/**
+	 * {@inheritDoc}
+	 * 
+	 * Reading a member from a methods delegates the lookup to the wrapped
+	 * unbound function object.
+	 */
+	public Set<Namespace> memberReadableNamespaces() {
+		return Collections.<Namespace> singleton(unboundMethod
+				.fullyQualifiedNamespace());
+	}
+
+	/**
+	 * {@inheritDoc}
+	 * 
+	 * It is a type error to try to write to a member of a bound method, even if
+	 * that member was readable (by delegating to the unbound method @see
+	 * memberReadableNamespaces). It throws an {@code AttributeError}.
+	 */
+	public Namespace memberWriteableNamespace() {
+		return null;
 	}
 
 	public Result<Type> typeOfArgumentAtNamedParameter(String parameterName,
@@ -98,7 +121,7 @@ public final class TBoundMethod implements TCallable {
 
 	private ModelSite<exprType> expressionFromArgumentList(
 			ModelSite<Call> callSite, int index, NamedParameter parameter) {
-		
+
 		if (index < callSite.astNode().args.length) {
 
 			return new ModelSite<exprType>(callSite.astNode().args[index],

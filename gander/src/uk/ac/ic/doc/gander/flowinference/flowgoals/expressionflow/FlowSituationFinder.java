@@ -168,16 +168,22 @@ final class SituationMapper implements VisitorIF {
 	}
 
 	public Object visitAttribute(Attribute node) throws Exception {
-		/*
-		 * In reality, attributes accesses cause the value of the LHS to flow to
-		 * the method wrapper if the RHS is a method. In that situations, the
-		 * LHS's value flows to the first parameter of the method when it is
-		 * called. But we don't model that.
-		 * 
-		 * Instead we capture results of constructor calls in visitCall and flow
-		 * that value to the self parameter of each method.
-		 */
-		return notInAFlowSituation();
+		if (isMatch(node)) {
+			return new AttributeSituation(nodeToSite(node));
+		} else if (isMatch(node.value)) {
+			/*
+			 * In reality, attributes accesses cause the value of the LHS to
+			 * flow to the method wrapper if the RHS is a method. In that
+			 * situations, the LHS's value flows to the first parameter of the
+			 * method when it is called. But we don't model that.
+			 * 
+			 * Instead we capture results of constructor calls in visitCall and
+			 * flow that value to the self parameter of each method.
+			 */
+			return notInAFlowSituation();
+		} else {
+			return notInAFlowSituation();
+		}
 	}
 
 	public Object visitAugAssign(AugAssign node) throws Exception {

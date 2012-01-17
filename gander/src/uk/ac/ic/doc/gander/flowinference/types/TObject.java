@@ -1,5 +1,6 @@
 package uk.ac.ic.doc.gander.flowinference.types;
 
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -10,6 +11,7 @@ import uk.ac.ic.doc.gander.flowinference.result.Result.Transformer;
 import uk.ac.ic.doc.gander.flowinference.typegoals.NamespaceNameTypeGoal;
 import uk.ac.ic.doc.gander.flowinference.typegoals.TopT;
 import uk.ac.ic.doc.gander.model.Class;
+import uk.ac.ic.doc.gander.model.Namespace;
 import uk.ac.ic.doc.gander.model.NamespaceName;
 import uk.ac.ic.doc.gander.model.codeobject.ClassCO;
 
@@ -86,6 +88,27 @@ public class TObject implements Type {
 		} else {
 			return unboundType;
 		}
+	}
+
+	/**
+	 * {@inheritDoc}
+	 * 
+	 * Object instances are summarised using their class's namespace so a member
+	 * in once instance will affect all instances.
+	 */
+	public Set<Namespace> memberReadableNamespaces() {
+		return Collections.<Namespace> singleton(classObject
+				.fullyQualifiedNamespace());
+	}
+
+	/**
+	 * {@inheritDoc}
+	 * 
+	 * Object instances are summarised using their class's namespace so a member
+	 * in once instance will affect all instances.
+	 */
+	public Namespace memberWriteableNamespace() {
+		return classObject.fullyQualifiedNamespace();
 	}
 
 	@Override

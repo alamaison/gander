@@ -14,6 +14,7 @@ import uk.ac.ic.doc.gander.flowinference.typegoals.NamespaceNameTypeGoal;
 import uk.ac.ic.doc.gander.flowinference.typegoals.TopT;
 import uk.ac.ic.doc.gander.model.Class;
 import uk.ac.ic.doc.gander.model.ModelSite;
+import uk.ac.ic.doc.gander.model.Namespace;
 import uk.ac.ic.doc.gander.model.NamespaceName;
 import uk.ac.ic.doc.gander.model.codeobject.ClassCO;
 
@@ -71,6 +72,21 @@ public class TClass implements TCodeObject, TCallable {
 		NamespaceName member = new NamespaceName(memberName, classObject
 				.fullyQualifiedNamespace());
 		return goalManager.registerSubgoal(new NamespaceNameTypeGoal(member));
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public Set<Namespace> memberReadableNamespaces() {
+		return Collections.<Namespace> singleton(classObject
+				.fullyQualifiedNamespace());
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public Namespace memberWriteableNamespace() {
+		return classObject.fullyQualifiedNamespace();
 	}
 
 	public Result<Type> typeOfArgumentAtNamedParameter(

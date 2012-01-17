@@ -1484,6 +1484,18 @@ public class ZeroCfaTypeEngineTest {
 				+ "out of an iterable by a for loop.", TopT.INSTANCE, type);
 	}
 
+	@Test
+	public void flowThroughMember() throws Throwable {
+		String testName = "flow_through_member";
+
+		ScopedPrintNode node = findPrintNode(testName, "what_am_i");
+		Result<Type> type = engine
+				.typeOf(node.getExpression(), node.getScope());
+
+		assertEquals("Object probably not tracked through other "
+				+ "object's member.", Collections.singleton(integerType), type);
+	}
+
 	private ScopedAstNode findNode(String moduleName, String tag)
 			throws Exception {
 		return new TaggedNodeAndScopeFinder(model.loadModule(moduleName), tag)
