@@ -390,6 +390,7 @@ final class NamespaceNameFlowStepGoalSolver {
 								throws Exception {
 							addPositionIfAttributeMatches(codeObjectReference,
 									positions, codeObject, node);
+							node.traverse(this);
 							return null;
 						}
 
