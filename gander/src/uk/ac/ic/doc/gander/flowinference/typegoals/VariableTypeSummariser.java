@@ -208,9 +208,11 @@ class BoundTypeVisitor implements BindingDetector.DetectionEvent {
 
 	public void forLoop(exprType target, exprType iterable) {
 
-		if (target instanceof Name && isMatch(((Name) target).id)) {
-			// TODO: Try to infer type of iterable
-			judgement.add(TopT.INSTANCE);
+		if (target instanceof Name) {
+			if (isMatch(((Name) target).id)) {
+				// TODO: Try to infer type of iterable
+				judgement.add(TopT.INSTANCE);
+			}
 		} else if (target instanceof Tuple) {
 			for (exprType tupleItem : ((Tuple) target).elts) {
 				if (tupleItem instanceof Name && isMatch(((Name) tupleItem).id)) {
