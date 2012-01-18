@@ -7,6 +7,7 @@ import org.python.pydev.parser.jython.ast.Call;
 import org.python.pydev.parser.jython.ast.exprType;
 
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
+import uk.ac.ic.doc.gander.flowinference.flowgoals.FlowPosition;
 import uk.ac.ic.doc.gander.flowinference.result.FiniteResult;
 import uk.ac.ic.doc.gander.flowinference.result.Result;
 import uk.ac.ic.doc.gander.flowinference.typegoals.ExpressionTypeGoal;
@@ -143,6 +144,10 @@ public final class TBoundMethod implements TCallable {
 				return null;
 			}
 		}
+	}
+
+	public Result<FlowPosition> flowPositionsCausedByCalling() {
+		return FiniteResult.bottom();
 	}
 
 	@Override

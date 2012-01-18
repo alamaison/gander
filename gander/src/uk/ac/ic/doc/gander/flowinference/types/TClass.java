@@ -1,11 +1,17 @@
 package uk.ac.ic.doc.gander.flowinference.types;
 
+import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import org.python.pydev.parser.jython.ast.Call;
+import org.python.pydev.parser.jython.ast.exprType;
 
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
+import uk.ac.ic.doc.gander.flowinference.flowgoals.FlowPosition;
+import uk.ac.ic.doc.gander.flowinference.flowgoals.expressionflow.ExpressionPosition;
 import uk.ac.ic.doc.gander.flowinference.result.FiniteResult;
 import uk.ac.ic.doc.gander.flowinference.result.RedundancyEliminator;
 import uk.ac.ic.doc.gander.flowinference.result.Result;
@@ -13,6 +19,7 @@ import uk.ac.ic.doc.gander.flowinference.result.Result.Transformer;
 import uk.ac.ic.doc.gander.flowinference.typegoals.NamespaceNameTypeGoal;
 import uk.ac.ic.doc.gander.flowinference.typegoals.TopT;
 import uk.ac.ic.doc.gander.model.Class;
+import uk.ac.ic.doc.gander.model.Function;
 import uk.ac.ic.doc.gander.model.ModelSite;
 import uk.ac.ic.doc.gander.model.Namespace;
 import uk.ac.ic.doc.gander.model.NamespaceName;
@@ -129,6 +136,37 @@ public class TClass implements TCodeObject, TCallable {
 				});
 	}
 
+	/**
+	 * {@inheritDoc}
+	 * 
+	 * We model this for results of constructor calls by flowing the value to
+	 * the positions of the {@code self} parameter in each method.
+	 * 
+	 * XXX: This is a bit of a hack. Really, the result should only be flowed at
+	 * the method call site except for {@code __init__}.
+	 */
+	public Result<FlowPosition> flowPositionsCausedByCalling() {
+		Set<FlowPosition> positions = new HashSet<FlowPosition>();
+
+		Collection<Function> methods = classObject.oldStyleConflatedNamespace()
+				.getFunctions().values();
+
+		for (Function method : methods) {
+			List<ModelSite<exprType>> parameters = method.codeObject()
+					.formalParameters().parameters();
+
+			if (parameters.size() > 0) {
+				ModelSite<exprType> selfParameter = parameters.get(0);
+				assert selfParameter.codeObject().equals(method.codeObject());
+				positions.add(new ExpressionPosition<exprType>(selfParameter));
+			} else {
+				System.err.println("Method missing self parameter: " + method);
+			}
+		}
+
+		return new FiniteResult<FlowPosition>(positions);
+	}
+
 	@Override
 	public int hashCode() {
 		final int prime = 31;
@@ -159,5 +197,4 @@ public class TClass implements TCodeObject, TCallable {
 	public String toString() {
 		return "TClass [" + getName() + "]";
 	}
-
 }

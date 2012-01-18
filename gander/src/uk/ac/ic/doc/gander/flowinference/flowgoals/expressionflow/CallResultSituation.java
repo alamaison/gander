@@ -1,26 +1,18 @@
 package uk.ac.ic.doc.gander.flowinference.flowgoals.expressionflow;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
 import org.python.pydev.parser.jython.ast.Call;
 import org.python.pydev.parser.jython.ast.exprType;
 
+import uk.ac.ic.doc.gander.flowinference.TypeError;
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
 import uk.ac.ic.doc.gander.flowinference.flowgoals.FlowPosition;
 import uk.ac.ic.doc.gander.flowinference.flowgoals.TopFp;
 import uk.ac.ic.doc.gander.flowinference.result.Concentrator;
-import uk.ac.ic.doc.gander.flowinference.result.FiniteResult;
 import uk.ac.ic.doc.gander.flowinference.result.Result;
 import uk.ac.ic.doc.gander.flowinference.result.Concentrator.DatumProcessor;
 import uk.ac.ic.doc.gander.flowinference.typegoals.ExpressionTypeGoal;
-import uk.ac.ic.doc.gander.flowinference.types.TClass;
+import uk.ac.ic.doc.gander.flowinference.types.TCallable;
 import uk.ac.ic.doc.gander.flowinference.types.Type;
-import uk.ac.ic.doc.gander.model.Class;
-import uk.ac.ic.doc.gander.model.Function;
 import uk.ac.ic.doc.gander.model.ModelSite;
 
 /**
@@ -91,7 +83,7 @@ final class CallResultSituationSolver {
 								expression.codeObject())));
 
 		Concentrator<Type, FlowPosition> action = Concentrator.newInstance(
-				new ConstructorValueFlower(), TopFp.INSTANCE);
+				new CallResultFlower(), TopFp.INSTANCE);
 		types.actOnResult(action);
 		solution = action.result();
 	}
@@ -102,45 +94,20 @@ final class CallResultSituationSolver {
 }
 
 /**
- * Flows the value produced by contructor calls to the positions of the {@code
- * self} parameter in each method.
+ * Flows the value produced by the act of calling an object.
  */
-final class ConstructorValueFlower implements
+final class CallResultFlower implements
 		DatumProcessor<Type, FlowPosition> {
 
 	public Result<FlowPosition> process(Type callable) {
 
-		Set<FlowPosition> positions;
-		if (callable instanceof TClass) {
-			positions = selfPositionsInMethods(((TClass) callable)
-					.getClassInstance());
+		if (callable instanceof TCallable) {
+			return ((TCallable) callable).flowPositionsCausedByCalling();
 		} else {
-			positions = Collections.emptySet();
-		}
-		return new FiniteResult<FlowPosition>(positions);
-
-	}
-
-	private static Set<FlowPosition> selfPositionsInMethods(Class classObject) {
-
-		Set<FlowPosition> positions = new HashSet<FlowPosition>();
-
-		Collection<Function> methods = classObject.getFunctions().values();
-
-		for (Function method : methods) {
-			List<ModelSite<exprType>> parameters = method.codeObject()
-					.formalParameters().parameters();
-
-			if (parameters.size() > 0) {
-				ModelSite<exprType> selfParameter = parameters.get(0);
-				assert selfParameter.codeObject().equals(method.codeObject());
-				positions.add(new ExpressionPosition<exprType>(selfParameter));
-			} else {
-				// Method is missing its self parameter!
-			}
+			throw new RuntimeException(new TypeError(
+					"May call uncallable object", callable));
 		}
 
-		return positions;
 	}
 
 }

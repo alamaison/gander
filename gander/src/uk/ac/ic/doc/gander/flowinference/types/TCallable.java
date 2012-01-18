@@ -3,6 +3,7 @@ package uk.ac.ic.doc.gander.flowinference.types;
 import org.python.pydev.parser.jython.ast.Call;
 
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
+import uk.ac.ic.doc.gander.flowinference.flowgoals.FlowPosition;
 import uk.ac.ic.doc.gander.flowinference.result.Result;
 import uk.ac.ic.doc.gander.model.ModelSite;
 
@@ -42,4 +43,17 @@ public interface TCallable extends Type {
 	 */
 	Result<Type> typeOfArgumentAtNamedParameter(String parameterName,
 			ModelSite<Call> callSite, SubgoalManager goalManager);
+
+	/**
+	 * Returns the flow positions that the result of calling an object of this
+	 * type can flow to in one step purely by virtue of being the result of a
+	 * call.
+	 * 
+	 * This does not include how it can flow by being assigned (or otherwise
+	 * bound) to another expression. It only includes flow that happens through
+	 * the very act of being a call result. The only example of this is if the
+	 * call was a constructor call when the value flows to the {@code self}
+	 * parameter of the class's methods.
+	 */
+	Result<FlowPosition> flowPositionsCausedByCalling();
 }
