@@ -2,8 +2,10 @@ package uk.ac.ic.doc.gander.model;
 
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.python.pydev.parser.jython.ast.ClassDef;
 import org.python.pydev.parser.jython.ast.NameTok;
@@ -12,10 +14,16 @@ import org.python.pydev.parser.jython.ast.exprType;
 import org.python.pydev.parser.jython.ast.stmtType;
 
 import uk.ac.ic.doc.gander.cfg.Cfg;
+import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
+import uk.ac.ic.doc.gander.flowinference.flowgoals.CodeObjectNamespacePosition;
+import uk.ac.ic.doc.gander.flowinference.flowgoals.FlowGoal;
+import uk.ac.ic.doc.gander.flowinference.result.Result;
 import uk.ac.ic.doc.gander.model.codeblock.CodeBlock;
 import uk.ac.ic.doc.gander.model.codeblock.DefaultCodeBlock;
 import uk.ac.ic.doc.gander.model.codeblock.DefaultCodeBlock.Acceptor;
 import uk.ac.ic.doc.gander.model.codeobject.ClassCO;
+import uk.ac.ic.doc.gander.model.codeobject.CodeObject;
+import uk.ac.ic.doc.gander.model.name_binding.Variable;
 
 public final class Class implements Namespace {
 
@@ -33,6 +41,58 @@ public final class Class implements Namespace {
 		this.parent = parent;
 		this.model = model;
 		this.codeObject = new ClassCO(this, parent.codeObject());
+	}
+
+	public Result<ModelSite<? extends exprType>> references(
+			SubgoalManager goalManager) {
+
+		return goalManager.registerSubgoal(new FlowGoal(
+				new CodeObjectNamespacePosition(codeObject)));
+	}
+
+	public Set<Variable> variablesInScope(String name) {
+
+		Set<Variable> variables = new HashSet<Variable>();
+		NamespaceName namespaceName = new NamespaceName(name, this);
+
+		addVariableIfInScope(name, namespaceName, codeObject, variables);
+
+		for (CodeObject nestedCodeObject : codeObject.nestedCodeObjects()) {
+			addVariableIfInScope(name, namespaceName, nestedCodeObject,
+					variables);
+		}
+
+		return variables;
+	}
+
+	static private void addVariableIfInScope(String name,
+			NamespaceName namespaceName, CodeObject codeObject,
+			Set<Variable> variables) {
+
+		Variable localVariable = new Variable(name, codeObject);
+
+		if (localVariable.bindingLocation().equals(namespaceName)) {
+			variables.add(localVariable);
+		}
+	}
+
+	/**
+	 * {@inheritDoc}
+	 * 
+	 * Legally, only global names (i.e. ones whose binding location is their
+	 * containing module) can be written to inside a nested code object so this
+	 * will return at most one variable.
+	 */
+	public Set<Variable> variablesWriteableInScope(String name) {
+
+		Variable localVariable = new Variable(name, codeObject);
+		NamespaceName namespaceName = new NamespaceName(name, this);
+
+		if (localVariable.bindingLocation().equals(namespaceName)) {
+			return Collections.singleton(localVariable);
+		} else {
+			return Collections.emptySet();
+		}
 	}
 
 	public exprType[] inheritsFrom() {

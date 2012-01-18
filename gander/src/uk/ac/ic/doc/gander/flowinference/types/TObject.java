@@ -6,6 +6,7 @@ import java.util.Set;
 
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
 import uk.ac.ic.doc.gander.flowinference.result.FiniteResult;
+import uk.ac.ic.doc.gander.flowinference.result.RedundancyEliminator;
 import uk.ac.ic.doc.gander.flowinference.result.Result;
 import uk.ac.ic.doc.gander.flowinference.result.Result.Transformer;
 import uk.ac.ic.doc.gander.flowinference.typegoals.NamespaceNameTypeGoal;
@@ -13,6 +14,7 @@ import uk.ac.ic.doc.gander.flowinference.typegoals.TopT;
 import uk.ac.ic.doc.gander.model.Class;
 import uk.ac.ic.doc.gander.model.Namespace;
 import uk.ac.ic.doc.gander.model.NamespaceName;
+import uk.ac.ic.doc.gander.model.ObjectInstanceNamespace;
 import uk.ac.ic.doc.gander.model.codeobject.ClassCO;
 
 public class TObject implements Type {
@@ -50,18 +52,33 @@ public class TObject implements Type {
 	 * 
 	 * Members on an object are converted to bound method objects before they
 	 * are returned from the namespace.
-	 * 
-	 * FIXME: This isn't completely true. It only happens if the member came
-	 * from the class object's namespace, rather than the object itself.
 	 */
 	public Result<Type> memberType(String memberName, SubgoalManager goalManager) {
 
-		NamespaceName member = new NamespaceName(memberName, classObject
-				.fullyQualifiedNamespace());
-		Result<Type> unboundTypes = goalManager
-				.registerSubgoal(new NamespaceNameTypeGoal(member));
+		RedundancyEliminator<Type> result = new RedundancyEliminator<Type>();
+		result.add(memberTypeFromObject(memberName, goalManager));
+		result.add(memberTypeFromClass(memberName, goalManager));
+		return result.result();
+	}
+
+	private Result<Type> memberTypeFromObject(String memberName,
+			SubgoalManager goalManager) {
+		return memberTypeFromNamespace(memberName, new ObjectInstanceNamespace(
+				classObject), goalManager);
+	}
+
+	private Result<Type> memberTypeFromClass(String memberName,
+			SubgoalManager goalManager) {
+		Result<Type> unboundTypes = memberTypeFromNamespace(memberName,
+				classObject.fullyQualifiedNamespace(), goalManager);
 
 		return unboundTypes.transformResult(new TypeBinder());
+	}
+
+	private Result<Type> memberTypeFromNamespace(String memberName,
+			Namespace namespace, SubgoalManager goalManager) {
+		NamespaceName member = new NamespaceName(memberName, namespace);
+		return goalManager.registerSubgoal(new NamespaceNameTypeGoal(member));
 	}
 
 	private final class TypeBinder implements Transformer<Type, Result<Type>> {

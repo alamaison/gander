@@ -6,14 +6,11 @@ import org.python.pydev.parser.jython.ast.Attribute;
 import org.python.pydev.parser.jython.ast.exprType;
 
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
-import uk.ac.ic.doc.gander.flowinference.flowgoals.CodeObjectNamespacePosition;
-import uk.ac.ic.doc.gander.flowinference.flowgoals.FlowGoal;
 import uk.ac.ic.doc.gander.flowinference.result.RedundancyEliminator;
 import uk.ac.ic.doc.gander.flowinference.result.Result;
 import uk.ac.ic.doc.gander.flowinference.result.Result.Processor;
 import uk.ac.ic.doc.gander.flowinference.types.Type;
 import uk.ac.ic.doc.gander.model.ModelSite;
-import uk.ac.ic.doc.gander.model.codeobject.CodeObject;
 
 /**
  * Typer collector for attribute accesses on a code object.
@@ -27,18 +24,15 @@ final class AttributeTypeSummariser {
 	private final SubgoalManager goalManager;
 	private final String attributeName;
 
-	AttributeTypeSummariser(CodeObject codeObject, String attributeName,
-			SubgoalManager goalManager) {
-		assert codeObject != null;
+	AttributeTypeSummariser(
+			Result<ModelSite<? extends exprType>> namespaceReferences,
+			String attributeName, SubgoalManager goalManager) {
+		assert namespaceReferences != null;
 		assert !attributeName.isEmpty();
 		assert goalManager != null;
 
 		this.attributeName = attributeName;
 		this.goalManager = goalManager;
-
-		Result<ModelSite<? extends exprType>> namespaceReferences = goalManager
-				.registerSubgoal(new FlowGoal(new CodeObjectNamespacePosition(
-						codeObject)));
 
 		namespaceReferences.actOnResult(new ReferenceProcessor());
 	}

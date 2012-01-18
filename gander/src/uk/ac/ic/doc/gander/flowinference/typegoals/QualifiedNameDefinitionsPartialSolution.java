@@ -1,9 +1,11 @@
 package uk.ac.ic.doc.gander.flowinference.typegoals;
 
+import org.python.pydev.parser.jython.ast.exprType;
+
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
-import uk.ac.ic.doc.gander.flowinference.result.FiniteResult;
 import uk.ac.ic.doc.gander.flowinference.result.Result;
 import uk.ac.ic.doc.gander.flowinference.types.Type;
+import uk.ac.ic.doc.gander.model.ModelSite;
 import uk.ac.ic.doc.gander.model.NamespaceName;
 
 /**
@@ -30,17 +32,16 @@ final class QualifiedNameDefinitionsPartialSolution implements
 		assert goalManager != null;
 		assert name != null;
 
-		if (name.namespace().equals(
-				name.namespace().codeObject().fullyQualifiedNamespace())) {
-			/*
-			 * FIXME: The AttributeTypeSummariser may end up using other
-			 * namespaces that differ in their external accessibility
-			 */
-			inferredType = new AttributeTypeSummariser(name.namespace()
-					.codeObject(), name.name(), goalManager).type();
-		} else {
-			inferredType = FiniteResult.bottom();
-		}
+		/*
+		 * FIXME: The AttributeTypeSummariser may end up using other namespaces
+		 * that differ in their external accessibility
+		 */
+
+		Result<ModelSite<? extends exprType>> namespaceReferences = name
+				.namespace().references(goalManager);
+
+		inferredType = new AttributeTypeSummariser(namespaceReferences, name
+				.name(), goalManager).type();
 	}
 
 }

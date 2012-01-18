@@ -88,6 +88,7 @@ final class NamespaceNameTypeGoalSolver {
 
 		addTypesFromNamespace();
 		if (name.namespace() instanceof Class) {
+			// XXX: what about inherited objects? Their namespace is not class
 			addTypesFromInheritanceChain((Class) name.namespace());
 		}
 	}

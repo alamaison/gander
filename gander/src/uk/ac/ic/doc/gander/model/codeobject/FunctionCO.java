@@ -8,8 +8,13 @@ import org.python.pydev.parser.jython.SimpleNode;
 import org.python.pydev.parser.jython.ast.FunctionDef;
 import org.python.pydev.parser.jython.ast.NameTok;
 import org.python.pydev.parser.jython.ast.argumentsType;
+import org.python.pydev.parser.jython.ast.exprType;
 
 import uk.ac.ic.doc.gander.cfg.Cfg;
+import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
+import uk.ac.ic.doc.gander.flowinference.flowgoals.CodeObjectNamespacePosition;
+import uk.ac.ic.doc.gander.flowinference.flowgoals.FlowGoal;
+import uk.ac.ic.doc.gander.flowinference.result.Result;
 import uk.ac.ic.doc.gander.model.Class;
 import uk.ac.ic.doc.gander.model.Function;
 import uk.ac.ic.doc.gander.model.Member;
@@ -18,6 +23,7 @@ import uk.ac.ic.doc.gander.model.ModelSite;
 import uk.ac.ic.doc.gander.model.Module;
 import uk.ac.ic.doc.gander.model.Namespace;
 import uk.ac.ic.doc.gander.model.codeblock.CodeBlock;
+import uk.ac.ic.doc.gander.model.name_binding.Variable;
 
 /**
  * Model of Python functions as first-class objects.
@@ -119,7 +125,7 @@ public final class FunctionCO implements NamedCodeObject, NestedCodeObject,
 	 * from the function body.
 	 */
 	public Namespace fullyQualifiedNamespace() {
-		return new DummyNamespace(this);
+		return new FunctionObjectNamespace(this);
 	}
 
 	/**
@@ -190,12 +196,28 @@ public final class FunctionCO implements NamedCodeObject, NestedCodeObject,
 
 }
 
-final class DummyNamespace implements Namespace {
-	
-	private final CodeObject codeObject;
-	
-	DummyNamespace(CodeObject codeObject) {
+final class FunctionObjectNamespace implements Namespace {
+
+	private final FunctionCO codeObject;
+
+	FunctionObjectNamespace(FunctionCO codeObject) {
 		this.codeObject = codeObject;
+	}
+
+	public Result<ModelSite<? extends exprType>> references(
+			SubgoalManager goalManager) {
+		return goalManager.registerSubgoal(new FlowGoal(
+				new CodeObjectNamespacePosition(codeObject)));
+	}
+
+	public Set<Variable> variablesInScope(String name) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	public Set<Variable> variablesWriteableInScope(String name) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 	private static final String ERROR = "External function namespaces are currently non-functional";

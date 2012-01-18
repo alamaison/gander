@@ -5,6 +5,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.python.pydev.parser.jython.SimpleNode;
+import org.python.pydev.parser.jython.ast.exprType;
 
 import uk.ac.ic.doc.gander.cfg.Cfg;
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
@@ -15,10 +16,12 @@ import uk.ac.ic.doc.gander.model.Class;
 import uk.ac.ic.doc.gander.model.Function;
 import uk.ac.ic.doc.gander.model.Member;
 import uk.ac.ic.doc.gander.model.Model;
+import uk.ac.ic.doc.gander.model.ModelSite;
 import uk.ac.ic.doc.gander.model.Module;
 import uk.ac.ic.doc.gander.model.Namespace;
 import uk.ac.ic.doc.gander.model.codeblock.CodeBlock;
 import uk.ac.ic.doc.gander.model.codeobject.CodeObject;
+import uk.ac.ic.doc.gander.model.name_binding.Variable;
 
 public class TUnresolvedImport implements TCodeObject {
 
@@ -128,6 +131,19 @@ public class TUnresolvedImport implements TCodeObject {
 			}
 
 			public void addClass(Class klass) {
+			}
+
+			public Result<ModelSite<? extends exprType>> references(
+					SubgoalManager goalManager) {
+				return null;
+			}
+
+			public Set<Variable> variablesInScope(String name) {
+				return null;
+			}
+
+			public Set<Variable> variablesWriteableInScope(String name) {
+				return null;
 			}
 		};
 	}

@@ -1,12 +1,42 @@
 package uk.ac.ic.doc.gander.model;
 
 import java.util.Map;
+import java.util.Set;
+
+import org.python.pydev.parser.jython.ast.exprType;
 
 import uk.ac.ic.doc.gander.cfg.Cfg;
+import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
+import uk.ac.ic.doc.gander.flowinference.result.Result;
 import uk.ac.ic.doc.gander.model.codeblock.CodeBlock;
 import uk.ac.ic.doc.gander.model.codeobject.CodeObject;
+import uk.ac.ic.doc.gander.model.name_binding.Variable;
 
 public interface Namespace extends Member {
+
+	/**
+	 * Returns the expressions referencing this namespace.
+	 * 
+	 * In other words, the expressions that may hold an object that, via an
+	 * attribute access, can access names of this namespace.
+	 * 
+	 * @param goalManager
+	 *            allows us to use type inference to determine the result.
+	 */
+	public Result<ModelSite<? extends exprType>> references(
+			SubgoalManager goalManager);
+
+	/**
+	 * Returns the set of variables that can read the value of the given name in
+	 * this namespace.
+	 */
+	public Set<Variable> variablesInScope(String name);
+
+	/**
+	 * Returns the set of variables that can set the value of the given name in
+	 * this namespace.
+	 */
+	public Set<Variable> variablesWriteableInScope(String name);
 
 	public String getFullName();
 
