@@ -8,6 +8,10 @@ import uk.ac.ic.doc.gander.model.codeobject.CodeObject;
  * Code objects such as modules, classes and functions are Python objects like
  * any other. Their 'value' can flow into any named reference in their enclosing
  * code block as well as anywhere they are explicitly imported.
+ * 
+ * Code objects are flowed using this special CodeObjectDefinitionPosition
+ * because they don't have expressions to represent them. They have to be
+ * modelled specially.
  */
 public final class CodeObjectDefinitionPosition implements FlowPosition {
 

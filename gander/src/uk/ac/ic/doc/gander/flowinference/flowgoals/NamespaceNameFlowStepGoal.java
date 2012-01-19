@@ -267,18 +267,16 @@ final class NamespaceNameFlowStepGoalSolver {
 			/*
 			 * The first task is to find where our namespace can flow to.
 			 * 
-			 * This is done using CodeObjectNamespacePosition because namespaces
-			 * don't follow the code object slavishly. For example, a class's
+			 * This is done by the namespace instance because namespaces don't
+			 * follow the code object slavishly. For example, a class's
 			 * namespace flows to the class body as well as its instances
 			 * methods.
 			 * 
 			 * XXX: these will always be attribute references so why don't we
 			 * get the attributes instead of the expression on the LHS?
 			 */
-			Result<ModelSite<? extends exprType>> namespaceReferences = goalManager
-					.registerSubgoal(new FlowGoal(
-							new CodeObjectNamespacePosition(namespaceName
-									.namespace().codeObject())));
+			Result<ModelSite<? extends exprType>> namespaceReferences = namespaceName
+					.namespace().references(goalManager);
 
 			namespaceReferences.actOnResult(this);
 		}
@@ -316,18 +314,16 @@ final class NamespaceNameFlowStepGoalSolver {
 			/*
 			 * The first task is to find where our namespace can flow to.
 			 * 
-			 * This is done using CodeObjectNamespacePosition because namespaces
-			 * don't follow the code object slavishly. For example, a class's
+			 * This is done by the namespace instance because namespaces don't
+			 * follow the code object slavishly. For example, a class's
 			 * namespace flows to the class body as well as its instances
 			 * methods.
 			 * 
 			 * XXX: these will always be attribute references so why don't we
 			 * get the attributes instead of the expression on the LHS?
 			 */
-			Result<ModelSite<? extends exprType>> namespaceReferences = goalManager
-					.registerSubgoal(new FlowGoal(
-							new CodeObjectNamespacePosition(namespaceName
-									.namespace().codeObject())));
+			Result<ModelSite<? extends exprType>> namespaceReferences = namespaceName
+					.namespace().references(goalManager);
 
 			namespaceReferences.actOnResult(this);
 		}

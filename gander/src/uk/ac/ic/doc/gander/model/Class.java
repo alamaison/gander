@@ -15,8 +15,10 @@ import org.python.pydev.parser.jython.ast.stmtType;
 
 import uk.ac.ic.doc.gander.cfg.Cfg;
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
-import uk.ac.ic.doc.gander.flowinference.flowgoals.CodeObjectNamespacePosition;
+import uk.ac.ic.doc.gander.flowinference.flowgoals.CodeObjectDefinitionPosition;
 import uk.ac.ic.doc.gander.flowinference.flowgoals.FlowGoal;
+import uk.ac.ic.doc.gander.flowinference.flowgoals.InstanceCreationPosition;
+import uk.ac.ic.doc.gander.flowinference.result.RedundancyEliminator;
 import uk.ac.ic.doc.gander.flowinference.result.Result;
 import uk.ac.ic.doc.gander.model.codeblock.CodeBlock;
 import uk.ac.ic.doc.gander.model.codeblock.DefaultCodeBlock;
@@ -43,11 +45,28 @@ public final class Class implements Namespace {
 		this.codeObject = new ClassCO(this, parent.codeObject());
 	}
 
+	/**
+	 * {@inheritDoc}
+	 * 
+	 * A class's execution namespace is accessible by attribute access on any
+	 * expression that the class code object can reach as well as any expression
+	 * that can result in an instance of the class.
+	 * 
+	 * TODO: The accessibility is different depending on whether the attribute
+	 * is being read or written. Class namespaces members are readable via
+	 * instances but not writable via them.
+	 */
 	public Result<ModelSite<? extends exprType>> references(
 			SubgoalManager goalManager) {
 
-		return goalManager.registerSubgoal(new FlowGoal(
-				new CodeObjectNamespacePosition(codeObject)));
+		RedundancyEliminator<ModelSite<? extends exprType>> references = new RedundancyEliminator<ModelSite<? extends exprType>>();
+
+		references.add(goalManager.registerSubgoal(new FlowGoal(
+				new CodeObjectDefinitionPosition(codeObject))));
+		references.add(goalManager.registerSubgoal(new FlowGoal(
+				new InstanceCreationPosition(codeObject))));
+
+		return references.result();
 	}
 
 	public Set<Variable> variablesInScope(String name) {

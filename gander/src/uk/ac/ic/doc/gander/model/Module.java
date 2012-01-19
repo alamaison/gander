@@ -15,7 +15,7 @@ import org.python.pydev.parser.jython.ast.stmtType;
 
 import uk.ac.ic.doc.gander.cfg.Cfg;
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
-import uk.ac.ic.doc.gander.flowinference.flowgoals.CodeObjectNamespacePosition;
+import uk.ac.ic.doc.gander.flowinference.flowgoals.CodeObjectDefinitionPosition;
 import uk.ac.ic.doc.gander.flowinference.flowgoals.FlowGoal;
 import uk.ac.ic.doc.gander.flowinference.result.Result;
 import uk.ac.ic.doc.gander.model.codeblock.CodeBlock;
@@ -54,11 +54,17 @@ public final class Module implements Namespace {
 		this.codeObject = new ModuleCO(this);
 	}
 
+	/**
+	 * {@inheritDoc}
+	 * 
+	 * A module's execution namespace is accessible by attribute access on any
+	 * expression that the module code object can reach.
+	 */
 	public Result<ModelSite<? extends exprType>> references(
 			SubgoalManager goalManager) {
 
 		return goalManager.registerSubgoal(new FlowGoal(
-				new CodeObjectNamespacePosition(codeObject)));
+				new CodeObjectDefinitionPosition(codeObject)));
 	}
 
 	public Set<Variable> variablesInScope(String name) {

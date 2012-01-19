@@ -12,7 +12,7 @@ import org.python.pydev.parser.jython.ast.exprType;
 
 import uk.ac.ic.doc.gander.cfg.Cfg;
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
-import uk.ac.ic.doc.gander.flowinference.flowgoals.CodeObjectNamespacePosition;
+import uk.ac.ic.doc.gander.flowinference.flowgoals.CodeObjectDefinitionPosition;
 import uk.ac.ic.doc.gander.flowinference.flowgoals.FlowGoal;
 import uk.ac.ic.doc.gander.flowinference.result.Result;
 import uk.ac.ic.doc.gander.model.Class;
@@ -204,10 +204,16 @@ final class FunctionObjectNamespace implements Namespace {
 		this.codeObject = codeObject;
 	}
 
+	/**
+	 * {@inheritDoc}
+	 * 
+	 * A function object's namespace is accessible by attribute reference from
+	 * anywhere the function object flows to.
+	 */
 	public Result<ModelSite<? extends exprType>> references(
 			SubgoalManager goalManager) {
 		return goalManager.registerSubgoal(new FlowGoal(
-				new CodeObjectNamespacePosition(codeObject)));
+				new CodeObjectDefinitionPosition(codeObject)));
 	}
 
 	public Set<Variable> variablesInScope(String name) {

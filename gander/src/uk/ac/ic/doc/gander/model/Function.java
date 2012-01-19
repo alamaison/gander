@@ -14,8 +14,7 @@ import org.python.pydev.parser.jython.ast.stmtType;
 
 import uk.ac.ic.doc.gander.cfg.Cfg;
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
-import uk.ac.ic.doc.gander.flowinference.flowgoals.CodeObjectNamespacePosition;
-import uk.ac.ic.doc.gander.flowinference.flowgoals.FlowGoal;
+import uk.ac.ic.doc.gander.flowinference.result.FiniteResult;
 import uk.ac.ic.doc.gander.flowinference.result.Result;
 import uk.ac.ic.doc.gander.model.codeblock.CodeBlock;
 import uk.ac.ic.doc.gander.model.codeblock.DefaultCodeBlock;
@@ -43,11 +42,15 @@ public final class Function implements Namespace {
 		this.codeObject = new FunctionCO(this, parent.codeObject());
 	}
 
+	/**
+	 * {@inheritDoc}
+	 * 
+	 * The namespace in which a function executes is never accessible via
+	 * attribute access.
+	 */
 	public Result<ModelSite<? extends exprType>> references(
 			SubgoalManager goalManager) {
-
-		return goalManager.registerSubgoal(new FlowGoal(
-				new CodeObjectNamespacePosition(codeObject)));
+		return FiniteResult.bottom();
 	}
 
 	public Set<Variable> variablesInScope(String name) {
@@ -61,7 +64,7 @@ public final class Function implements Namespace {
 			addVariableIfInScope(name, namespaceName, nestedCodeObject,
 					variables);
 		}
-		
+
 		return variables;
 	}
 
