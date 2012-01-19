@@ -17,7 +17,6 @@ import uk.ac.ic.doc.gander.ast.AstParentNodeFinder;
 import uk.ac.ic.doc.gander.ast.LocalCodeBlockVisitor;
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
 import uk.ac.ic.doc.gander.flowinference.flowgoals.expressionflow.ExpressionPosition;
-import uk.ac.ic.doc.gander.flowinference.modelgoals.NameScopeGoal;
 import uk.ac.ic.doc.gander.flowinference.result.FiniteResult;
 import uk.ac.ic.doc.gander.flowinference.result.RedundancyEliminator;
 import uk.ac.ic.doc.gander.flowinference.result.Result;
@@ -39,6 +38,7 @@ import uk.ac.ic.doc.gander.model.codeobject.CodeObject;
 import uk.ac.ic.doc.gander.model.codeobject.ModuleCO;
 import uk.ac.ic.doc.gander.model.codeobject.NamedCodeObject;
 import uk.ac.ic.doc.gander.model.codeobject.NestedCodeObject;
+import uk.ac.ic.doc.gander.model.name_binding.NameScopeFinder;
 import uk.ac.ic.doc.gander.model.name_binding.Variable;
 
 /**
@@ -236,8 +236,8 @@ final class NamespaceNameFlowStepGoalSolver {
 		 * it does, this name in the namespace flows to all uses of that name in
 		 * the codeblock.
 		 */
-		Set<ModelSite<Name>> lexicallyBoundVariables = goalManager
-				.registerSubgoal(new NameScopeGoal(namespaceName));
+		Set<ModelSite<Name>> lexicallyBoundVariables = new NameScopeFinder(
+				namespaceName).getNameBindings();
 		for (ModelSite<Name> variable : lexicallyBoundVariables) {
 			positions.add(new ExpressionPosition<Name>(variable));
 		}
