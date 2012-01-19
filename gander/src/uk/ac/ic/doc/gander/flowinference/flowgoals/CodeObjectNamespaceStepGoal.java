@@ -35,15 +35,16 @@ final class CodeObjectNamespaceStepGoal implements FlowStepGoal {
 		Set<FlowPosition> positions = new HashSet<FlowPosition>();
 
 		/*
-		 * Code objects are flowed using this special CodeObjectCreationPosition
-		 * because they don't have expressions to represent them. They have to
-		 * be modelled specially.
+		 * Code objects are flowed using this special
+		 * CodeObjectDefinitionPosition because they don't have expressions to
+		 * represent them. They have to be modelled specially.
 		 */
 		if (!(codeObject instanceof FunctionCO)) {
-			positions.add(new CodeObjectCreationPosition(codeObject));
+			positions.add(new CodeObjectDefinitionPosition(codeObject));
 
 			if (codeObject instanceof ClassCO) {
-				positions.add(new InstanceCreationPosition((ClassCO) codeObject));
+				positions
+						.add(new InstanceCreationPosition((ClassCO) codeObject));
 			}
 		}
 

@@ -660,6 +660,21 @@ public class ZeroCfaTypeEngineTest {
 	}
 
 	@Test
+	public void methodParameterSelfConstructorByAssignment() throws Throwable {
+		ScopedPrintNode node = findPrintNode(
+				"method_parameter_self_constructor_by_assignment", "what_am_i");
+		Result<Type> type = engine
+				.typeOf(node.getExpression(), node.getScope());
+		Set<Type> expectedType = typeJudgement(new TObject(node
+				.getGlobalNamespace().getClasses().get("A")));
+
+		assertEquals("Constructor parameter's type not inferred "
+				+ "correctly. The analysis probably missed the "
+				+ "constructor being declared outside the "
+				+ "class and inserted by assignment.", expectedType, type);
+	}
+
+	@Test
 	public void methodParameterInherited() throws Throwable {
 		ScopedPrintNode node = findPrintNode("method_parameter_inherited",
 				"what_am_i");
@@ -694,6 +709,23 @@ public class ZeroCfaTypeEngineTest {
 				+ "class is never instantiated and 'm' is only "
 				+ "called from a subclass instance so self only has the "
 				+ "subclass type.", expectedType, type);
+	}
+
+	@Test
+	public void methodParameterInheritedConstructor() throws Throwable {
+		ScopedPrintNode node = findPrintNode(
+				"method_parameter_inherited_constructor", "what_am_i");
+		Result<Type> type = engine
+				.typeOf(node.getExpression(), node.getScope());
+
+		Set<Type> expectedType = new HashSet<Type>();
+		expectedType.add(new TObject(node.getGlobalNamespace().getClasses()
+				.get("S")));
+
+		assertEquals("'self' parameter type not inferred correctly. "
+				+ "This probably means it failed to realise that the "
+				+ "constructor is called from the subclass.", expectedType,
+				type);
 	}
 
 	@Test

@@ -9,16 +9,13 @@ import org.python.pydev.parser.jython.ast.exprType;
 
 import uk.ac.ic.doc.gander.ast.AstParentNodeFinder;
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
-import uk.ac.ic.doc.gander.flowinference.flowgoals.CodeObjectCreationPosition;
+import uk.ac.ic.doc.gander.flowinference.flowgoals.CodeObjectDefinitionPosition;
 import uk.ac.ic.doc.gander.flowinference.flowgoals.FlowGoal;
 import uk.ac.ic.doc.gander.flowinference.result.FiniteResult;
-import uk.ac.ic.doc.gander.flowinference.result.RedundancyEliminator;
 import uk.ac.ic.doc.gander.flowinference.result.Result;
 import uk.ac.ic.doc.gander.flowinference.result.Result.Processor;
 import uk.ac.ic.doc.gander.model.ModelSite;
 import uk.ac.ic.doc.gander.model.codeobject.CallableCodeObject;
-import uk.ac.ic.doc.gander.model.codeobject.ClassCO;
-import uk.ac.ic.doc.gander.model.codeobject.NamedCodeObject;
 
 /**
  * Find any callsites that could call the given function.
@@ -72,57 +69,37 @@ public class FunctionSendersGoal implements SendersGoal {
 
 }
 
-final class FunctionSendersGoalSolver {
+final class FunctionSendersGoalSolver implements
+		Processor<ModelSite<? extends exprType>> {
 
 	private Result<ModelSite<Call>> callSites;
 
 	public FunctionSendersGoalSolver(CallableCodeObject callable,
 			SubgoalManager goalManager) {
 
-		RedundancyEliminator<ModelSite<? extends exprType>> positions = new RedundancyEliminator<ModelSite<? extends exprType>>();
-		positions.add(goalManager.registerSubgoal(new FlowGoal(
-				new CodeObjectCreationPosition(callable))));
+		Result<ModelSite<? extends exprType>> callableObjectPositions = goalManager
+				.registerSubgoal(new FlowGoal(new CodeObjectDefinitionPosition(
+						callable)));
+		callableObjectPositions.actOnResult(this);
+	}
 
-		/*
-		 * The value of an __init__ method's code object can be considered as
-		 * 'flowing to' the positions of the methods class object.
-		 */
-		if (!positions.isFinished()
-				&& callable instanceof NamedCodeObject
-				&& callable.parent() instanceof ClassCO
-				&& ((NamedCodeObject) callable).declaredName().equals(
-						"__init__")) {
-			positions.add(goalManager
-					.registerSubgoal(new FlowGoal(
-							new CodeObjectCreationPosition((ClassCO) callable
-									.parent()))));
+	public void processInfiniteResult() {
+		callSites = TopS.INSTANCE;
+	}
+
+	public void processFiniteResult(Set<ModelSite<? extends exprType>> positions) {
+		Set<ModelSite<Call>> callSitePositions = new HashSet<ModelSite<Call>>();
+
+		for (ModelSite<? extends exprType> expression : positions) {
+			SimpleNode parent = AstParentNodeFinder.findParent(expression
+					.astNode(), expression.codeObject().ast());
+			if (parent instanceof Call) {
+				callSitePositions.add(new ModelSite<Call>((Call) parent,
+						expression.codeObject()));
+			}
 		}
 
-		positions.result().actOnResult(
-				new Processor<ModelSite<? extends exprType>>() {
-
-					public void processInfiniteResult() {
-						callSites = TopS.INSTANCE;
-					}
-
-					public void processFiniteResult(
-							Set<ModelSite<? extends exprType>> positions) {
-						Set<ModelSite<Call>> callSitePositions = new HashSet<ModelSite<Call>>();
-						for (ModelSite<? extends exprType> expression : positions) {
-							SimpleNode parent = AstParentNodeFinder.findParent(
-									expression.astNode(), expression
-											.codeObject().ast());
-							if (parent instanceof Call) {
-								callSitePositions
-										.add(new ModelSite<Call>((Call) parent,
-												expression.codeObject()));
-							}
-						}
-						callSites = new FiniteResult<ModelSite<Call>>(
-								callSitePositions);
-					}
-				});
-
+		callSites = new FiniteResult<ModelSite<Call>>(callSitePositions);
 	}
 
 	Result<ModelSite<Call>> solution() {

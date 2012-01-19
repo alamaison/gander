@@ -39,11 +39,11 @@ import uk.ac.ic.doc.gander.model.name_binding.Variable;
  * 
  * A module doesn't flow anywhere by default. It has to be imported.
  */
-final class CodeObjectCreationStepGoal implements FlowStepGoal {
+final class CodeObjectDefinitionFlowStepGoal implements FlowStepGoal {
 
 	private final CodeObject codeObject;
 
-	CodeObjectCreationStepGoal(CodeObject codeObject) {
+	CodeObjectDefinitionFlowStepGoal(CodeObject codeObject) {
 		this.codeObject = codeObject;
 	}
 
@@ -109,7 +109,7 @@ final class CodeObjectCreationStepGoal implements FlowStepGoal {
 			return false;
 		if (getClass() != obj.getClass())
 			return false;
-		CodeObjectCreationStepGoal other = (CodeObjectCreationStepGoal) obj;
+		CodeObjectDefinitionFlowStepGoal other = (CodeObjectDefinitionFlowStepGoal) obj;
 		if (codeObject == null) {
 			if (other.codeObject != null)
 				return false;
@@ -120,7 +120,8 @@ final class CodeObjectCreationStepGoal implements FlowStepGoal {
 
 	@Override
 	public String toString() {
-		return "CodeObjectCreationStepGoal [codeObject=" + codeObject + "]";
+		return "CodeObjectDefinitionFlowStepGoal [codeObject=" + codeObject
+				+ "]";
 	}
 
 }

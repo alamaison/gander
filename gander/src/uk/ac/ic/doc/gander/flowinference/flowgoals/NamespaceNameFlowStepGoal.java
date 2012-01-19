@@ -7,11 +7,13 @@ import java.util.Set;
 
 import org.python.pydev.parser.jython.SimpleNode;
 import org.python.pydev.parser.jython.ast.Attribute;
+import org.python.pydev.parser.jython.ast.Call;
 import org.python.pydev.parser.jython.ast.ClassDef;
 import org.python.pydev.parser.jython.ast.Name;
 import org.python.pydev.parser.jython.ast.NameTok;
 import org.python.pydev.parser.jython.ast.exprType;
 
+import uk.ac.ic.doc.gander.ast.AstParentNodeFinder;
 import uk.ac.ic.doc.gander.ast.LocalCodeBlockVisitor;
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
 import uk.ac.ic.doc.gander.flowinference.flowgoals.expressionflow.ExpressionPosition;
@@ -204,6 +206,10 @@ final class NamespaceNameFlowStepGoalSolver {
 			return;
 
 		positions.add(new ImportedKeyReferenceFlower().positions());
+		if (positions.isFinished())
+			return;
+
+		positions.add(new ConstructorFlower().positions());
 		if (positions.isFinished())
 			return;
 	}
@@ -758,6 +764,67 @@ final class NamespaceNameFlowStepGoalSolver {
 		return new FiniteResult<FlowPosition>(
 				Collections.singleton(new NamespaceNamePosition(importAs
 						.bindingLocation())));
+	}
+
+	/**
+	 * The value of an __init__ member of a class code code object can be
+	 * considered as 'flowing to' any positions of the class object that are
+	 * subject to a call.
+	 */
+	private final class ConstructorFlower implements
+			Processor<ModelSite<? extends exprType>> {
+
+		private Result<FlowPosition> positions;
+
+		ConstructorFlower() {
+
+			if (namespaceName.namespace() instanceof uk.ac.ic.doc.gander.model.Class
+					&& namespaceName.name().equals("__init__")) {
+
+				Result<ModelSite<? extends exprType>> classObjectPositions = goalManager
+						.registerSubgoal(new FlowGoal(
+								new CodeObjectDefinitionPosition(namespaceName
+										.namespace().codeObject())));
+
+				classObjectPositions.actOnResult(this);
+
+			} else {
+				positions = FiniteResult.bottom();
+			}
+		}
+
+		public void processInfiniteResult() {
+			positions = TopFp.INSTANCE;
+		}
+
+		public void processFiniteResult(
+				Set<ModelSite<? extends exprType>> classObjectPositions) {
+
+			Set<FlowPosition> newFlowPositions = new HashSet<FlowPosition>();
+
+			/*
+			 * The code object associated with the __init__ member only flows to
+			 * where the code object is subject to a call.
+			 */
+			for (ModelSite<? extends exprType> expression : classObjectPositions) {
+
+				SimpleNode parentNode = AstParentNodeFinder.findParent(
+						expression.astNode(), expression.codeObject().ast());
+
+				if (parentNode instanceof Call) {
+					newFlowPositions.add(new ExpressionPosition<exprType>(
+							new ModelSite<exprType>(expression.astNode(),
+									expression.codeObject())));
+				}
+			}
+
+			positions = new FiniteResult<FlowPosition>(newFlowPositions);
+		}
+
+		Result<FlowPosition> positions() {
+			return positions;
+		}
+
 	}
 
 	public boolean variableBindsLocallyOrGlobally(Variable variable) {
