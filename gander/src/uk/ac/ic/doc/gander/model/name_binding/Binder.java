@@ -4,9 +4,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import uk.ac.ic.doc.gander.model.LexicalResolver;
-import uk.ac.ic.doc.gander.model.Module;
-import uk.ac.ic.doc.gander.model.Namespace;
-import uk.ac.ic.doc.gander.model.NamespaceName;
 import uk.ac.ic.doc.gander.model.codeblock.CodeBlock;
 import uk.ac.ic.doc.gander.model.codeobject.CodeObject;
 import uk.ac.ic.doc.gander.model.codeobject.ModuleCO;
@@ -26,15 +23,16 @@ import uk.ac.ic.doc.gander.model.codeobject.ModuleCO;
 final class Binder {
 
 	private static final BindingScopeResolver RESOLVER = new BindingScopeResolver();
-	private static final Map<Variable, NamespaceName> locations = new HashMap<Variable, NamespaceName>();
+	private static final Map<Variable, BindingLocation> locations = new HashMap<Variable, BindingLocation>();
 
-	public static NamespaceName resolveBindingLocation(Variable variable) {
+	public static BindingLocation resolveBindingLocation(Variable variable) {
 
-		NamespaceName location = locations.get(variable);
+		BindingLocation location = locations.get(variable);
 		if (location == null) {
-			Namespace bindingNamespace = RESOLVER.resolveToken(variable.name(),
-					variable.codeObject());
-			location = new NamespaceName(variable.name(), bindingNamespace);
+			CodeObject bindingCodeObject = RESOLVER.resolveToken(variable
+					.name(), variable.codeObject());
+
+			location = new BindingLocation(variable.name(), bindingCodeObject);
 			locations.put(variable, location);
 		}
 
@@ -57,7 +55,7 @@ final class Binder {
  * local or global or until the we reach the global namespace. At this point all
  * names are, by definition global.
  */
-final class BindingScopeResolver extends LexicalResolver<Namespace> {
+final class BindingScopeResolver extends LexicalResolver<CodeObject> {
 
 	/**
 	 * Find the scope that a name in a given variable binds in.
@@ -83,8 +81,8 @@ final class BindingScopeResolver extends LexicalResolver<Namespace> {
 	 *         the enclosing scope.
 	 */
 	@Override
-	protected Namespace searchScopeForVariable(final String variableName,
-			final CodeObject scope) {
+	protected CodeObject searchScopeForVariable(final String variableName,
+			CodeObject scope) {
 
 		ModuleCO containingModule = scope.enclosingModule();
 
@@ -108,7 +106,7 @@ final class BindingScopeResolver extends LexicalResolver<Namespace> {
 		if (nameIsGlobal) {
 			return getGlobalNamespace(scope);
 		} else if (isNameBoundInCodeBlock(variableName, scope.codeBlock())) {
-			return scope.model().intrinsicNamespace(scope);
+			return scope;
 		} else {
 			return null;
 		}
@@ -145,12 +143,8 @@ final class BindingScopeResolver extends LexicalResolver<Namespace> {
 	 * If the current scope is a module then it is the global namespace so this
 	 * method returns the scope it is given.
 	 */
-	private static Namespace getGlobalNamespace(CodeObject scope) {
+	private static CodeObject getGlobalNamespace(CodeObject scope) {
 
-		Namespace globalNamespace = scope.model().intrinsicNamespace(
-				scope.enclosingModule());
-
-		assert globalNamespace instanceof Module;
-		return globalNamespace;
+		return scope.enclosingModule();
 	}
 }

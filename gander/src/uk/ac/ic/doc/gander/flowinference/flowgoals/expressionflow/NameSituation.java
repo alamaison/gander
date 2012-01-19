@@ -36,8 +36,8 @@ final class NameSituation implements FlowSituation {
 		 * The name doesn't necessarily bind in the enclosing code object's
 		 * namespace. We have to resolve the lexical binding first.
 		 */
-		NamespaceName bindingNamespace = new Variable(name.id, expressionSite
-				.codeObject()).bindingLocation();
+		NamespaceName bindingNamespace = new NamespaceName(new Variable(
+				name.id, expressionSite.codeObject()).bindingLocation());
 
 		return new FiniteResult<FlowPosition>(Collections
 				.singleton(new NamespaceNamePosition(bindingNamespace)));

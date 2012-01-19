@@ -74,7 +74,7 @@ public final class Function implements Namespace {
 
 		Variable localVariable = new Variable(name, codeObject);
 
-		if (localVariable.bindingLocation().equals(namespaceName)) {
+		if (new NamespaceName(localVariable.bindingLocation()).equals(namespaceName)) {
 			variables.add(localVariable);
 		}
 	}
@@ -91,7 +91,7 @@ public final class Function implements Namespace {
 		Variable localVariable = new Variable(name, codeObject);
 		NamespaceName namespaceName = new NamespaceName(name, this);
 
-		if (localVariable.bindingLocation().equals(namespaceName)) {
+		if (new NamespaceName(localVariable.bindingLocation()).equals(namespaceName)) {
 			return Collections.singleton(localVariable);
 		} else {
 			return Collections.emptySet();

@@ -49,7 +49,7 @@ final class UnqualifiedNameDefinitionsPartialSolution implements
 			 * same namespace location that we are interested in. So now we want
 			 * to know what this code object binds to it
 			 */
-			assert variable.bindingLocation().equals(name);
+			assert new NamespaceName(variable.bindingLocation()).equals(name);
 
 			VariableTypeSummariser df = new VariableTypeSummariser(variable,
 					goalManager);

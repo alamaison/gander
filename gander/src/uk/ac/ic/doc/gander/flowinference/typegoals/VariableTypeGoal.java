@@ -4,6 +4,7 @@ import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
 import uk.ac.ic.doc.gander.flowinference.result.FiniteResult;
 import uk.ac.ic.doc.gander.flowinference.result.Result;
 import uk.ac.ic.doc.gander.flowinference.types.Type;
+import uk.ac.ic.doc.gander.model.NamespaceName;
 import uk.ac.ic.doc.gander.model.name_binding.Variable;
 
 /**
@@ -31,8 +32,8 @@ public final class VariableTypeGoal implements TypeGoal {
 	 */
 	public Result<Type> recalculateSolution(SubgoalManager goalManager) {
 
-		return goalManager.registerSubgoal(new NamespaceNameTypeGoal(variable
-				.bindingLocation()));
+		return goalManager.registerSubgoal(new NamespaceNameTypeGoal(
+				new NamespaceName(variable.bindingLocation())));
 	}
 
 	@Override

@@ -1,5 +1,6 @@
 package uk.ac.ic.doc.gander.model;
 
+import uk.ac.ic.doc.gander.model.name_binding.BindingLocation;
 import uk.ac.ic.doc.gander.model.name_binding.Variable;
 
 /**
@@ -35,6 +36,21 @@ public final class NamespaceName {
 
 		this.name = name;
 		this.namespace = namespace;
+	}
+
+	/**
+	 * Converts a binding location into the namespace name model used for
+	 * flow-based type inference.
+	 * 
+	 * @param bindingLocation
+	 *            the location to convert
+	 */
+	public NamespaceName(BindingLocation bindingLocation) {
+		if (bindingLocation == null)
+			throw new NullPointerException("Must have a location to convert");
+
+		this.name = bindingLocation.name();
+		this.namespace = bindingLocation.codeObject().unqualifiedNamespace();
 	}
 
 	public String name() {

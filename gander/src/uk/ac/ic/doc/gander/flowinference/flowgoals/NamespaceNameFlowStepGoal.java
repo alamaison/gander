@@ -685,7 +685,7 @@ final class NamespaceNameFlowStepGoalSolver {
 
 		Result<ModelSite<? extends exprType>> moduleReferences = goalManager
 				.registerSubgoal(new FlowGoal(new NamespaceNamePosition(
-						objectBinding.bindingLocation())));
+						new NamespaceName(objectBinding.bindingLocation()))));
 
 		Transformer<ModelSite<? extends exprType>, Result<FlowPosition>> accessPositioner = new Transformer<ModelSite<? extends exprType>, Result<FlowPosition>>() {
 
@@ -753,9 +753,9 @@ final class NamespaceNameFlowStepGoalSolver {
 		 * It could be the global scope so we resolve the name here.
 		 */
 
-		return new FiniteResult<FlowPosition>(
-				Collections.singleton(new NamespaceNamePosition(importAs
-						.bindingLocation())));
+		return new FiniteResult<FlowPosition>(Collections
+				.singleton(new NamespaceNamePosition(new NamespaceName(importAs
+						.bindingLocation()))));
 	}
 
 	/**
@@ -821,8 +821,8 @@ final class NamespaceNameFlowStepGoalSolver {
 	}
 
 	public boolean variableBindsLocallyOrGlobally(Variable variable) {
-		return nameBindsLocallyOrGlobally(variable.codeObject(), variable
-				.bindingLocation());
+		return nameBindsLocallyOrGlobally(variable.codeObject(),
+				new NamespaceName(variable.bindingLocation()));
 	}
 
 	private boolean nameBindsLocallyOrGlobally(CodeObject importReceiver,

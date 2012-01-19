@@ -9,6 +9,7 @@ import uk.ac.ic.doc.gander.RelativeTestModelCreator;
 import uk.ac.ic.doc.gander.ScopedPrintNode;
 import uk.ac.ic.doc.gander.model.MutableModel;
 import uk.ac.ic.doc.gander.model.Namespace;
+import uk.ac.ic.doc.gander.model.NamespaceName;
 
 public final class BinderTest {
 	private static final String TEST_FOLDER = "../python_test_code/name_binding";
@@ -451,8 +452,8 @@ public final class BinderTest {
 	}
 
 	private Namespace resolveBindingScope(ScopedPrintNode node) {
-		return new Variable(node.getExpressionName(), node.getScope())
-				.bindingLocation().namespace();
+		return new NamespaceName(new Variable(node.getExpressionName(), node
+				.getScope()).bindingLocation()).namespace();
 	}
 
 	private ScopedPrintNode findPrintNode(String moduleName, String tag)

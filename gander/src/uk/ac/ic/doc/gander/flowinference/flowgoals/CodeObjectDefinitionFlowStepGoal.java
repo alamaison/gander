@@ -5,9 +5,11 @@ import java.util.Collections;
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
 import uk.ac.ic.doc.gander.flowinference.result.FiniteResult;
 import uk.ac.ic.doc.gander.flowinference.result.Result;
+import uk.ac.ic.doc.gander.model.NamespaceName;
 import uk.ac.ic.doc.gander.model.codeobject.CodeObject;
 import uk.ac.ic.doc.gander.model.codeobject.NamedCodeObject;
 import uk.ac.ic.doc.gander.model.codeobject.NestedCodeObject;
+import uk.ac.ic.doc.gander.model.name_binding.BindingLocation;
 import uk.ac.ic.doc.gander.model.name_binding.Variable;
 
 /**
@@ -77,9 +79,11 @@ final class CodeObjectDefinitionFlowStepGoal implements FlowStepGoal {
 						((NamedCodeObject) codeObject).declaredName(),
 						((NestedCodeObject) codeObject).parent());
 
+				BindingLocation bindingLocation = nameBinding.bindingLocation();
+				NamespaceName namespaceName = new NamespaceName(bindingLocation);
+
 				return new FiniteResult<FlowPosition>(Collections
-						.singleton(new NamespaceNamePosition(nameBinding
-								.bindingLocation())));
+						.singleton(new NamespaceNamePosition(namespaceName)));
 			} else {
 				/*
 				 * TODO: handle lambdas etc which are unnamed code object. These

@@ -23,6 +23,7 @@ import uk.ac.ic.doc.gander.importing.ImportSpecificationFactory;
 import uk.ac.ic.doc.gander.model.Class;
 import uk.ac.ic.doc.gander.model.Function;
 import uk.ac.ic.doc.gander.model.ModelSite;
+import uk.ac.ic.doc.gander.model.NamespaceName;
 import uk.ac.ic.doc.gander.model.codeobject.CallableCodeObject;
 import uk.ac.ic.doc.gander.model.codeobject.CodeObject;
 import uk.ac.ic.doc.gander.model.name_binding.Variable;
@@ -45,7 +46,7 @@ final class VariableTypeSummariser {
 		 * mythical 'top-level' namespace where the decision as to which one the
 		 * value comes from is made at runtime.
 		 */
-		if (variable.bindingLocation().namespace().equals(
+		if (new NamespaceName(variable.bindingLocation()).namespace().equals(
 				variable.codeBlock().getGlobalNamespace())) {
 
 			types.add(new BoundTypeVisitor(manager, new Variable(variable

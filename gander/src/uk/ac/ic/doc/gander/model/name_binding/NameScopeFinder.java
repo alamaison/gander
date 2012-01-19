@@ -20,7 +20,9 @@ import uk.ac.ic.doc.gander.model.codeobject.CodeObject;
  * entry.
  * 
  * In other words, a subset of the {@link Name}s that alias the value of the
- * given name binding.
+ * given name binding. Names can be shadowed by local variable declarations or
+ * global statements in their code block. This class essentially filters those
+ * out.
  * 
  * Many other expressions, such as attribute references that explicitly specify
  * the namespace, may alias the bound name's value but they are not found by
@@ -31,9 +33,6 @@ import uk.ac.ic.doc.gander.model.codeobject.CodeObject;
  * name, but these are also not included in the names found by this class.
  * 
  * XXX: from-style import names always bind to the given entry, don't they?
- * 
- * Names can be shadowed by local variable declarations or global statements in
- * their code block. This class essentially filters those out.
  */
 public final class NameScopeFinder {
 
@@ -137,7 +136,8 @@ public final class NameScopeFinder {
 
 		Variable otherBinding = new Variable(nameBinding.name(), codeObject);
 
-		return otherBinding.bindingLocation().equals(nameBinding);
+		return new NamespaceName(otherBinding.bindingLocation())
+				.equals(nameBinding);
 	}
 
 }

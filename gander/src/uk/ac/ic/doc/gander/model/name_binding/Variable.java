@@ -59,20 +59,18 @@ public class Variable {
 	}
 
 	/**
-	 * Return the namespace whose matching name the variable bind to.
+	 * Return the location that is accessed or modified by this variable.
 	 * 
-	 * Variables have two namespaces of interest. One is the namespace of the
-	 * code object they appear in, the enclosing namespace. The other is the
-	 * namespace whose matching name they are an unqualified reference to, the
-	 * binding namespace.
+	 * Variables have two locations of interest. One is the code object they
+	 * appear in. The other is the code object whose execution namespace they
+	 * are an unqualified reference to, the binding namespace.
 	 * 
 	 * Variables can appear all over the place but, in a lexically bound
 	 * language like Python, each appearance of a variable binds in a single
-	 * namespace. This namespace, the binding namespace, will be the same
-	 * throughout the code block it appears in. This method finds that
-	 * namespace.
+	 * location. This binding location will be the same throughout the code
+	 * block it appears in. This method finds that location.
 	 */
-	public NamespaceName bindingLocation() {
+	public BindingLocation bindingLocation() {
 		return Binder.resolveBindingLocation(this);
 	}
 
