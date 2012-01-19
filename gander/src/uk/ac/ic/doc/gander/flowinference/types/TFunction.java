@@ -138,7 +138,7 @@ public class TFunction implements TCodeObject, TCallable {
 		}
 	}
 
-	public Result<FlowPosition> flowPositionsCausedByCalling() {
+	public Result<FlowPosition> flowPositionsCausedByCalling(SubgoalManager goalManager) {
 		return FiniteResult.bottom();
 	}
 

@@ -54,6 +54,9 @@ public interface TCallable extends Type {
 	 * the very act of being a call result. The only example of this is if the
 	 * call was a constructor call when the value flows to the {@code self}
 	 * parameter of the class's methods.
+	 * 
+	 * @param goalManager
+	 *            allows us to determine the flow positions using type inference
 	 */
-	Result<FlowPosition> flowPositionsCausedByCalling();
+	Result<FlowPosition> flowPositionsCausedByCalling(SubgoalManager goalManager);
 }

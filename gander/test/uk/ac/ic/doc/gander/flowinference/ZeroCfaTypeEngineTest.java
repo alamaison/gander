@@ -1527,6 +1527,33 @@ public class ZeroCfaTypeEngineTest {
 		assertEquals("Object probably not tracked through other "
 				+ "object's member.", Collections.singleton(integerType), type);
 	}
+	@Test
+	public void flowThroughMemberApart() throws Throwable {
+		String testName = "flow_through_member_apart";
+
+		ScopedPrintNode node = findPrintNode(testName, "what_am_i");
+		Result<Type> type = engine
+				.typeOf(node.getExpression(), node.getScope());
+
+		assertEquals("Object probably not tracked through other "
+				+ "object's member because it is defined in one code "
+				+ "object and accessed in another.", Collections
+				.singleton(integerType), type);
+	}
+
+	@Test
+	public void virtualMethodCall() throws Throwable {
+		String testName = "virtual_method_call";
+
+		ScopedPrintNode node = findPrintNode(testName, "what_am_i");
+		Result<Type> type = engine
+				.typeOf(node.getExpression(), node.getScope());
+		Set<Type> expectedType = Collections.<Type> singleton(new TObject(node
+				.getGlobalNamespace().getClasses().get("S").codeObject()));
+
+		assertEquals("'self' probably not tracked properly as it arrives "
+				+ "through a 'virtual' call.", expectedType, type);
+	}
 
 	private ScopedAstNode findNode(String moduleName, String tag)
 			throws Exception {

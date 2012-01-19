@@ -9,13 +9,17 @@ import java.util.Set;
 import org.python.pydev.parser.jython.ast.Call;
 import org.python.pydev.parser.jython.ast.exprType;
 
+import uk.ac.ic.doc.gander.flowinference.TypeError;
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
 import uk.ac.ic.doc.gander.flowinference.flowgoals.FlowPosition;
+import uk.ac.ic.doc.gander.flowinference.flowgoals.TopFp;
 import uk.ac.ic.doc.gander.flowinference.flowgoals.expressionflow.ExpressionPosition;
 import uk.ac.ic.doc.gander.flowinference.result.FiniteResult;
 import uk.ac.ic.doc.gander.flowinference.result.RedundancyEliminator;
 import uk.ac.ic.doc.gander.flowinference.result.Result;
+import uk.ac.ic.doc.gander.flowinference.result.Result.Processor;
 import uk.ac.ic.doc.gander.flowinference.result.Result.Transformer;
+import uk.ac.ic.doc.gander.flowinference.typegoals.ExpressionTypeGoal;
 import uk.ac.ic.doc.gander.flowinference.typegoals.NamespaceNameTypeGoal;
 import uk.ac.ic.doc.gander.flowinference.typegoals.TopT;
 import uk.ac.ic.doc.gander.model.Class;
@@ -144,13 +148,37 @@ public class TClass implements TCodeObject, TCallable {
 	 * 
 	 * XXX: This is a bit of a hack. Really, the result should only be flowed at
 	 * the method call site except for {@code __init__}.
+	 * 
+	 * FIXME: Doesn't work if the method was added by assignment rather than
+	 * declaration.
 	 */
-	public Result<FlowPosition> flowPositionsCausedByCalling() {
-		Set<FlowPosition> positions = new HashSet<FlowPosition>();
+	public Result<FlowPosition> flowPositionsCausedByCalling(
+			SubgoalManager goalManager) {
+
+		RedundancyEliminator<FlowPosition> positions = new RedundancyEliminator<FlowPosition>();
+
+		/*
+		 * The value only flows to the most specific overload of each method so
+		 * we keep track of which methods we've seen already so we can ignore
+		 * them as we walk further up the inheritance tree.
+		 * 
+		 * XXX: I don't know if we walk the tree in the correct order.
+		 */
+		Set<String> doneMethods = new HashSet<String>();
+
+		flowToMethodsOfClass(classObject, doneMethods, goalManager, positions);
+
+		return positions.result();
+	}
+
+	private void flowToMethodsOfClass(ClassCO classObject,
+			Set<String> doneMethods, SubgoalManager goalManager,
+			RedundancyEliminator<FlowPosition> positions) {
 
 		Collection<Function> methods = classObject.oldStyleConflatedNamespace()
 				.getFunctions().values();
 
+		Set<FlowPosition> localPositions = new HashSet<FlowPosition>();
 		for (Function method : methods) {
 			List<ModelSite<exprType>> parameters = method.codeObject()
 					.formalParameters().parameters();
@@ -158,13 +186,55 @@ public class TClass implements TCodeObject, TCallable {
 			if (parameters.size() > 0) {
 				ModelSite<exprType> selfParameter = parameters.get(0);
 				assert selfParameter.codeObject().equals(method.codeObject());
-				positions.add(new ExpressionPosition<exprType>(selfParameter));
+				localPositions.add(new ExpressionPosition<exprType>(
+						selfParameter));
+				doneMethods.add(method.getName());
 			} else {
 				System.err.println("Method missing self parameter: " + method);
 			}
 		}
 
-		return new FiniteResult<FlowPosition>(positions);
+		positions.add(new FiniteResult<FlowPosition>(localPositions));
+
+		for (exprType base : classObject.ast().bases) {
+
+			flowToMethodsOfSuperClass(new ModelSite<exprType>(base, classObject
+					.parent()), doneMethods, positions, goalManager);
+
+			if (positions.isFinished())
+				break;
+		}
+
+	}
+
+	private void flowToMethodsOfSuperClass(
+			final ModelSite<exprType> superclass,
+			final Set<String> doneMethods,
+			final RedundancyEliminator<FlowPosition> positions,
+			final SubgoalManager goalManager) {
+
+		Result<Type> superclassTypes = goalManager
+				.registerSubgoal(new ExpressionTypeGoal(superclass));
+
+		superclassTypes.actOnResult(new Processor<Type>() {
+
+			public void processInfiniteResult() {
+				positions.add(TopFp.INSTANCE);
+			}
+
+			public void processFiniteResult(Set<Type> possibleSuperclassTypes) {
+				for (Type supertype : possibleSuperclassTypes) {
+					if (supertype instanceof TClass) {
+						TClass superclass = (TClass) supertype;
+						flowToMethodsOfClass(superclass.codeObject(),
+								doneMethods, goalManager, positions);
+					} else {
+						throw new RuntimeException(new TypeError(
+								"Inheriting from non-class", superclass));
+					}
+				}
+			}
+		});
 	}
 
 	@Override

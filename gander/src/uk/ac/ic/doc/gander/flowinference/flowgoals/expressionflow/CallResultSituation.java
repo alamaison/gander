@@ -83,7 +83,7 @@ final class CallResultSituationSolver {
 								expression.codeObject())));
 
 		Concentrator<Type, FlowPosition> action = Concentrator.newInstance(
-				new CallResultFlower(), TopFp.INSTANCE);
+				new CallResultFlower(goalManager), TopFp.INSTANCE);
 		types.actOnResult(action);
 		solution = action.result();
 	}
@@ -96,13 +96,19 @@ final class CallResultSituationSolver {
 /**
  * Flows the value produced by the act of calling an object.
  */
-final class CallResultFlower implements
-		DatumProcessor<Type, FlowPosition> {
+final class CallResultFlower implements DatumProcessor<Type, FlowPosition> {
+
+	private final SubgoalManager goalManager;
+
+	CallResultFlower(SubgoalManager goalManager) {
+		this.goalManager = goalManager;
+	}
 
 	public Result<FlowPosition> process(Type callable) {
 
 		if (callable instanceof TCallable) {
-			return ((TCallable) callable).flowPositionsCausedByCalling();
+			return ((TCallable) callable)
+					.flowPositionsCausedByCalling(goalManager);
 		} else {
 			throw new RuntimeException(new TypeError(
 					"May call uncallable object", callable));
