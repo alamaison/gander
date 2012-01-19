@@ -3,6 +3,8 @@ package uk.ac.ic.doc.gander.model.codeobject;
 import java.util.HashSet;
 import java.util.Set;
 
+import uk.ac.ic.doc.gander.model.Class;
+import uk.ac.ic.doc.gander.model.Function;
 import uk.ac.ic.doc.gander.model.Model;
 import uk.ac.ic.doc.gander.model.Module;
 import uk.ac.ic.doc.gander.model.Namespace;
@@ -45,15 +47,13 @@ public final class ModuleCO implements NamedCodeObject {
 
 	public Set<CodeObject> nestedCodeObjects() {
 		Set<CodeObject> nestedCodeObjects = new HashSet<CodeObject>();
-		for (Namespace namespace : oldStyleModuleNamespace.getModules()
-				.values()) {
+		for (Module namespace : oldStyleModuleNamespace.getModules().values()) {
 			nestedCodeObjects.add(namespace.codeObject());
 		}
-		for (Namespace namespace : oldStyleModuleNamespace.getClasses()
-				.values()) {
+		for (Class namespace : oldStyleModuleNamespace.getClasses().values()) {
 			nestedCodeObjects.add(namespace.codeObject());
 		}
-		for (Namespace namespace : oldStyleModuleNamespace.getFunctions()
+		for (Function namespace : oldStyleModuleNamespace.getFunctions()
 				.values()) {
 			nestedCodeObjects.add(namespace.codeObject());
 		}

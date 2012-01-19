@@ -78,15 +78,13 @@ public final class FunctionCO implements NamedCodeObject, NestedCodeObject,
 
 	public Set<CodeObject> nestedCodeObjects() {
 		Set<CodeObject> nestedCodeObjects = new HashSet<CodeObject>();
-		for (Namespace namespace : oldStyleFunctionNamespace.getModules()
-				.values()) {
+		for (Module namespace : oldStyleFunctionNamespace.getModules().values()) {
 			nestedCodeObjects.add(namespace.codeObject());
 		}
-		for (Namespace namespace : oldStyleFunctionNamespace.getClasses()
-				.values()) {
+		for (Class namespace : oldStyleFunctionNamespace.getClasses().values()) {
 			nestedCodeObjects.add(namespace.codeObject());
 		}
-		for (Namespace namespace : oldStyleFunctionNamespace.getFunctions()
+		for (Function namespace : oldStyleFunctionNamespace.getFunctions()
 				.values()) {
 			nestedCodeObjects.add(namespace.codeObject());
 		}

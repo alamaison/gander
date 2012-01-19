@@ -27,6 +27,7 @@ import uk.ac.ic.doc.gander.importing.WholeModelImportSimulation;
 import uk.ac.ic.doc.gander.importing.ImportSimulator.Binder;
 import uk.ac.ic.doc.gander.model.AttributeAccessFinder;
 import uk.ac.ic.doc.gander.model.CodeObjectWalker;
+import uk.ac.ic.doc.gander.model.Class;
 import uk.ac.ic.doc.gander.model.Model;
 import uk.ac.ic.doc.gander.model.ModelSite;
 import uk.ac.ic.doc.gander.model.Module;
@@ -769,13 +770,14 @@ final class NamespaceNameFlowStepGoalSolver {
 
 		ConstructorFlower() {
 
-			if (namespaceName.namespace() instanceof uk.ac.ic.doc.gander.model.Class
+			if (namespaceName.namespace() instanceof Class
 					&& namespaceName.name().equals("__init__")) {
 
+				Class classObject = (Class) namespaceName.namespace();
 				Result<ModelSite<? extends exprType>> classObjectPositions = goalManager
 						.registerSubgoal(new FlowGoal(
-								new CodeObjectDefinitionPosition(namespaceName
-										.namespace().codeObject())));
+								new CodeObjectDefinitionPosition(classObject
+										.codeObject())));
 
 				classObjectPositions.actOnResult(this);
 

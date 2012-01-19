@@ -7,7 +7,9 @@ import org.python.pydev.parser.jython.ast.ClassDef;
 import org.python.pydev.parser.jython.ast.NameTok;
 
 import uk.ac.ic.doc.gander.model.Class;
+import uk.ac.ic.doc.gander.model.Function;
 import uk.ac.ic.doc.gander.model.Model;
+import uk.ac.ic.doc.gander.model.Module;
 import uk.ac.ic.doc.gander.model.Namespace;
 import uk.ac.ic.doc.gander.model.codeblock.CodeBlock;
 
@@ -61,13 +63,13 @@ public final class ClassCO implements NamedCodeObject, NestedCodeObject {
 
 	public Set<CodeObject> nestedCodeObjects() {
 		Set<CodeObject> nestedCodeObjects = new HashSet<CodeObject>();
-		for (Namespace namespace : oldStyleClassNamespace.getModules().values()) {
+		for (Module namespace : oldStyleClassNamespace.getModules().values()) {
 			nestedCodeObjects.add(namespace.codeObject());
 		}
-		for (Namespace namespace : oldStyleClassNamespace.getClasses().values()) {
+		for (Class namespace : oldStyleClassNamespace.getClasses().values()) {
 			nestedCodeObjects.add(namespace.codeObject());
 		}
-		for (Namespace namespace : oldStyleClassNamespace.getFunctions()
+		for (Function namespace : oldStyleClassNamespace.getFunctions()
 				.values()) {
 			nestedCodeObjects.add(namespace.codeObject());
 		}

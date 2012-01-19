@@ -122,7 +122,7 @@ final class NamespaceNameTypeGoalSolver {
 			Result<Type> supertypeTypes = goalManager
 					.registerSubgoal(new ExpressionTypeGoal(
 							new ModelSite<exprType>(supertype, klass
-									.getParentScope().codeObject())));
+									.codeObject().parent())));
 
 			MemberTyper memberTyper = new MemberTyper();
 			supertypeTypes.actOnResult(memberTyper);
