@@ -503,28 +503,23 @@ final class NamespaceNameFlowStepGoalSolver {
 			public void onUnresolvedImport(
 					Import<NamespaceName, CodeObject, ModuleCO> importInstance,
 					String name, ModuleCO receivingModule) {
-				warnUnresolvedImport(importInstance, name);
+				/*
+				 * WARNING: We pretend that unresolved imports don't matter
+				 * because they would swamp our results with Top. All flow
+				 * results would return Top if even a single import were
+				 * unresolved.
+				 */
 			}
 
 			public void onUnresolvedLocalImport(
 					Import<NamespaceName, CodeObject, ModuleCO> importInstance,
 					String name) {
-				warnUnresolvedImport(importInstance, name);
-			}
-
-			private void warnUnresolvedImport(
-					Import<NamespaceName, CodeObject, ModuleCO> importInstance,
-					String name) {
-
 				/*
-				 * We pretend that unresolved imports don't matter because they
-				 * would swamp our results with Top. All flow results would
-				 * return Top if even a single import were unresolved.
+				 * WARNING: We pretend that unresolved imports don't matter
+				 * because they would swamp our results with Top. All flow
+				 * results would return Top if even a single import were
+				 * unresolved.
 				 */
-				System.err.println("CORRECTNESS WARNING: Unable to "
-						+ "resolve '" + name + "' during import which "
-						+ "means we may have lost track of some data flow: "
-						+ importInstance);
 			}
 		};
 
