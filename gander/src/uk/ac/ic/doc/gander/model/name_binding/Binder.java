@@ -27,15 +27,14 @@ final class Binder {
 
 	private static final BindingScopeResolver RESOLVER = new BindingScopeResolver();
 	private static final Map<Variable, NamespaceName> locations = new HashMap<Variable, NamespaceName>();
-	
+
 	public static NamespaceName resolveBindingLocation(Variable variable) {
 
 		NamespaceName location = locations.get(variable);
 		if (location == null) {
 			Namespace bindingNamespace = RESOLVER.resolveToken(variable.name(),
 					variable.codeObject());
-			location = new NamespaceName(variable.name(),
-					bindingNamespace);
+			location = new NamespaceName(variable.name(), bindingNamespace);
 			locations.put(variable, location);
 		}
 
@@ -61,24 +60,23 @@ final class Binder {
 final class BindingScopeResolver extends LexicalResolver<Namespace> {
 
 	/**
-	 * Find the scope that a name in a given scope binds in.
+	 * Find the scope that a name in a given variable binds in.
 	 * 
-	 * Two things can determine the binding of a name. Firstly, a 'global'
-	 * statement anywhere in the local scope will cause the name to be global
-	 * and the name binds in the global namespace. Secondly, the name may be the
-	 * subject of a binding operation in the current scope. If neither of these
-	 * is the case, the name binds to whatever the enclosing scope binds it to.
+	 * Two things can determine the binding of a variable. Firstly, a 'global'
+	 * statement anywhere in the local scope will cause the variable to be
+	 * global and the name binds in the global namespace. Secondly, the variable
+	 * may be the subject of a binding operation in the current scope. If
+	 * neither of these is the case, the variable binds in the same scope
+	 * whatever the enclosing scope binds it in.
 	 * 
-	 * If the current scope is the global namespace, then the name is bound to
-	 * that namespace. We don't need to search any further out than that
+	 * If the current scope is the global namespace, then the variable is bound
+	 * in that namespace. We don't need to search any further out than that
 	 * enclosing module as global declarations don't cross module boundaries.
 	 * 
-	 * XXX: Is this true? What about submodules (subpackages really).
-	 * 
 	 * @param variableName
-	 *            Name being bound.
+	 *            the variable being bound.
 	 * @param scope
-	 *            Local (current) scope.
+	 *            the scope within which the variable might appear
 	 * @return The binding scope of the name (either the current scope or the
 	 *         global namespace) if that could be determined. If not, {@code
 	 *         null} indicating that the determination should be delegated to
@@ -118,7 +116,7 @@ final class BindingScopeResolver extends LexicalResolver<Namespace> {
 	}
 
 	/**
-	 * Finds whether a token is bound in the given code block.
+	 * Finds whether a variable is bound in the given code block.
 	 * 
 	 * This doesn't necessarily mean that it's a local variable of the block as
 	 * it may be the subject of a 'global' declaration in that block.
@@ -126,15 +124,15 @@ final class BindingScopeResolver extends LexicalResolver<Namespace> {
 	 * This function doesn't find bindings that occur in declarations such as
 	 * nested functions and classes that create a new code block.
 	 * 
-	 * @param name
-	 *            Token whose binding we are searching for.
+	 * @param variableName
+	 *            Variable whose binding we are searching for.
 	 * @param codeBlock
 	 *            Code block to search.
 	 */
-	private static boolean isNameBoundInCodeBlock(final String name,
+	private static boolean isNameBoundInCodeBlock(final String variableName,
 			final CodeBlock codeBlock) {
 
-		return codeBlock.getBoundVariables().contains(name);
+		return codeBlock.getBoundVariables().contains(variableName);
 	}
 
 	/**
