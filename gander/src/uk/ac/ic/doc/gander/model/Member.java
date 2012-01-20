@@ -9,6 +9,7 @@ import org.python.pydev.parser.jython.SimpleNode;
  * For example, {@link Namespace}s could contain data members but these
  * data members can't contain others in the model.
  */
+@Deprecated
 public interface Member {
 
 	public abstract String getName();

@@ -6,7 +6,9 @@ import org.python.pydev.parser.jython.ParseException;
 
 import uk.ac.ic.doc.gander.hierarchy.SourceFile;
 import uk.ac.ic.doc.gander.model.Module;
+import uk.ac.ic.doc.gander.model.ModuleNamespace;
 import uk.ac.ic.doc.gander.model.MutableModel;
+import uk.ac.ic.doc.gander.model.codeobject.ModuleCO;
 
 /**
  * Create new SourceFile object in the model by parsing its file and following
@@ -34,8 +36,10 @@ public final class FileLoader {
 		// imported from within it, try to import this module again. In other
 		// words, we have to do this to avoid infinite recursion when there
 		// are import cycles.
-		module = new Module(sourceFile.getName(), parent, model, sourceFile
-				.isSystem());
+		ModuleCO codeObject = new ModuleCO(sourceFile.getName(), parser
+				.getAst());
+		module = new ModuleNamespace(codeObject, parent, model, sourceFile.isSystem());
+		codeObject.setNamespace(module);
 		parent.addModule(module);
 
 		// XXX: If loading module fails (due to problems with imported modules,
@@ -43,7 +47,6 @@ public final class FileLoader {
 		// need to clean this up?
 
 		new ImportAwareModulePopulator(module, model).build(parser.getAst());
-		module.setAst(parser.getAst());
 	}
 
 	public Module getModule() {

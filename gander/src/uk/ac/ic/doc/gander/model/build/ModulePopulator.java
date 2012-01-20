@@ -1,8 +1,5 @@
 package uk.ac.ic.doc.gander.model.build;
 
-import java.io.IOException;
-
-import org.python.pydev.parser.jython.ParseException;
 import org.python.pydev.parser.jython.SimpleNode;
 import org.python.pydev.parser.jython.ast.ClassDef;
 import org.python.pydev.parser.jython.ast.FunctionDef;
@@ -30,7 +27,7 @@ class ModulePopulator extends ScopedAstVisitor<Namespace> {
 		this.model = model;
 	}
 
-	void build(SimpleNode ast) throws ParseException, IOException {
+	public void build(SimpleNode ast) {
 
 		// The builder should never throw any checked exception apart from
 		// parse and io errors.
@@ -38,10 +35,6 @@ class ModulePopulator extends ScopedAstVisitor<Namespace> {
 		// noisily (by throwing an unchecked exception) if one occurs.
 		try {
 			ast.accept(this);
-		} catch (ParseException e) {
-			throw e;
-		} catch (IOException e) {
-			throw e;
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}

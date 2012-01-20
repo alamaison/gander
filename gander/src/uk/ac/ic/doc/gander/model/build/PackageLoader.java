@@ -5,7 +5,9 @@ import java.io.IOException;
 import org.python.pydev.parser.jython.ParseException;
 
 import uk.ac.ic.doc.gander.model.Module;
+import uk.ac.ic.doc.gander.model.ModuleNamespace;
 import uk.ac.ic.doc.gander.model.MutableModel;
+import uk.ac.ic.doc.gander.model.codeobject.ModuleCO;
 
 /**
  * Create new SourceFile object in the model by parsing the {@code __init__.py}
@@ -34,9 +36,11 @@ public final class PackageLoader {
 		// This only loads the __init__ file. Submodules of the package aren't
 		// <b>loaded</b> when the package is loaded. They must be explicitly
 		// mentioned in the import statement.
-
-		pkg = new Module(hierarchyPackage.getName(), parent, model,
-				hierarchyPackage.isSystem());
+		ModuleCO codeObject = new ModuleCO(hierarchyPackage.getName(), parser
+				.getAst());
+		pkg = new ModuleNamespace(codeObject, parent, model, hierarchyPackage
+				.isSystem());
+		codeObject.setNamespace(pkg);
 
 		// Must add the package to the model before we load it in case the
 		// __init__ file (about to be loaded) imports modules which try to
@@ -48,7 +52,6 @@ public final class PackageLoader {
 		// modules, most likely), we're left with this empty package in the
 		// model. Do we need to clean this up?
 		new ImportAwareModulePopulator(pkg, model).build(parser.getAst());
-		pkg.setAst(parser.getAst());
 	}
 
 	public Module getPackage() {

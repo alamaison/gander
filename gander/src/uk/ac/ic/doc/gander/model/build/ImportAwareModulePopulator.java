@@ -21,11 +21,11 @@ import uk.ac.ic.doc.gander.model.Namespace;
  * This class loads a module but also follows any import statements and loads
  * their targets as well.
  */
-class ImportAwareModulePopulator extends ModulePopulator {
+public class ImportAwareModulePopulator extends ModulePopulator {
 
 	private MutableModel model;
 
-	ImportAwareModulePopulator(Module loadable, MutableModel model) {
+	public ImportAwareModulePopulator(Module loadable, MutableModel model) {
 		super(loadable, model);
 		this.model = model;
 	}

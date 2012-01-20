@@ -2,6 +2,7 @@ package uk.ac.ic.doc.gander.importing;
 
 import uk.ac.ic.doc.gander.importing.ImportSimulator.Binder;
 import uk.ac.ic.doc.gander.model.Model;
+import uk.ac.ic.doc.gander.model.Module;
 import uk.ac.ic.doc.gander.model.NamespaceName;
 import uk.ac.ic.doc.gander.model.NamespaceNameLoader;
 import uk.ac.ic.doc.gander.model.codeobject.CodeObject;
@@ -34,13 +35,14 @@ public final class WholeModelImportSimulation {
 		new WholeModelImportVisitation(model, new ImportHandler<CodeObject>() {
 
 			public void onImport(CodeObject importReceiver, String moduleName) {
+				assert importReceiver != null;
+				assert importReceiver.enclosingModule() != null;
 
 				ModuleCO relativeTo = null;
-				if (importReceiver.enclosingModule()
-						.oldStyleConflatedNamespace().getParent() != null) {
-					relativeTo = importReceiver.enclosingModule()
-							.oldStyleConflatedNamespace().getParent()
-							.codeObject();
+				Module relativeToPackage = importReceiver.enclosingModule()
+						.oldStyleConflatedNamespace().getParent();
+				if (relativeToPackage != null) {
+					relativeTo = relativeToPackage.codeObject();
 				}
 
 				Import<NamespaceName, CodeObject, ModuleCO> importInstance = ImportFactory
@@ -52,11 +54,10 @@ public final class WholeModelImportSimulation {
 					String moduleName, String asName) {
 
 				ModuleCO relativeTo = null;
-				if (importReceiver.enclosingModule()
-						.oldStyleConflatedNamespace().getParent() != null) {
-					relativeTo = importReceiver.enclosingModule()
-							.oldStyleConflatedNamespace().getParent()
-							.codeObject();
+				Module relativeToPackage = importReceiver.enclosingModule()
+						.oldStyleConflatedNamespace().getParent();
+				if (relativeToPackage != null) {
+					relativeTo = relativeToPackage.codeObject();
 				}
 
 				Import<NamespaceName, CodeObject, ModuleCO> importInstance = ImportFactory
@@ -70,11 +71,10 @@ public final class WholeModelImportSimulation {
 					String moduleName, String itemName) {
 
 				ModuleCO relativeTo = null;
-				if (importReceiver.enclosingModule()
-						.oldStyleConflatedNamespace().getParent() != null) {
-					relativeTo = importReceiver.enclosingModule()
-							.oldStyleConflatedNamespace().getParent()
-							.codeObject();
+				Module relativeToPackage = importReceiver.enclosingModule()
+						.oldStyleConflatedNamespace().getParent();
+				if (relativeToPackage != null) {
+					relativeTo = relativeToPackage.codeObject();
 				}
 
 				Import<NamespaceName, CodeObject, ModuleCO> importInstance = ImportFactory
@@ -87,11 +87,10 @@ public final class WholeModelImportSimulation {
 					String moduleName, String itemName, String asName) {
 
 				ModuleCO relativeTo = null;
-				if (importReceiver.enclosingModule()
-						.oldStyleConflatedNamespace().getParent() != null) {
-					relativeTo = importReceiver.enclosingModule()
-							.oldStyleConflatedNamespace().getParent()
-							.codeObject();
+				Module relativeToPackage = importReceiver.enclosingModule()
+						.oldStyleConflatedNamespace().getParent();
+				if (relativeToPackage != null) {
+					relativeTo = relativeToPackage.codeObject();
 				}
 
 				Import<NamespaceName, CodeObject, ModuleCO> importInstance = ImportFactory

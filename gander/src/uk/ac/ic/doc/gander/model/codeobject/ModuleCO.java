@@ -1,44 +1,73 @@
 package uk.ac.ic.doc.gander.model.codeobject;
 
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
+
+import org.python.pydev.parser.jython.ast.VisitorIF;
+import org.python.pydev.parser.jython.ast.exprType;
+import org.python.pydev.parser.jython.ast.stmtType;
 
 import uk.ac.ic.doc.gander.model.Class;
 import uk.ac.ic.doc.gander.model.Function;
 import uk.ac.ic.doc.gander.model.Model;
+import uk.ac.ic.doc.gander.model.ModelSite;
 import uk.ac.ic.doc.gander.model.Module;
 import uk.ac.ic.doc.gander.model.Namespace;
 import uk.ac.ic.doc.gander.model.codeblock.CodeBlock;
+import uk.ac.ic.doc.gander.model.codeblock.DefaultCodeBlock;
+import uk.ac.ic.doc.gander.model.codeblock.DefaultCodeBlock.Acceptor;
 
 /**
  * Model of Python modules as first-class objects.
- * 
- * Currently just an adapter around the hopelessly conflated {@link Namespace}.
  */
 public final class ModuleCO implements NamedCodeObject {
 
-	private final Module oldStyleModuleNamespace;
+	private final String name;
+	private final org.python.pydev.parser.jython.ast.Module ast;
+	private Module oldYukkyNamespace = null;
+	private CodeBlock codeBlock = null;
 
 	/**
-	 * Create new function code object representation.
+	 * Create new module code object representation.
 	 * 
-	 * @param oldStyleModuleNamespace
-	 *            the old-style namespace for the function; XXX: Eventually this
-	 *            should be replaced to just take the AST
+	 * @param ast
+	 *            the code of the module as an abstract syntax tree
 	 */
-	public ModuleCO(Module oldStyleFunctionNamespace) {
-		if (oldStyleFunctionNamespace == null)
-			throw new NullPointerException();
+	public ModuleCO(String name, org.python.pydev.parser.jython.ast.Module ast) {
+		if (name == null)
+			throw new NullPointerException("All modules have names");
+		// if (name.isEmpty())
+		// throw new IllegalArgumentException("A module name cannot be empty");
+		if (ast == null)
+			throw new NullPointerException(
+					"Module code objects must have code associated with them");
 
-		this.oldStyleModuleNamespace = oldStyleFunctionNamespace;
+		this.name = name;
+		this.ast = ast;
 	}
 
 	public org.python.pydev.parser.jython.ast.Module ast() {
-		return oldStyleModuleNamespace.getAst();
+		return ast;
 	}
 
 	public CodeBlock codeBlock() {
-		return oldStyleModuleNamespace.asCodeBlock();
+		if (codeBlock == null) {
+
+			Acceptor acceptor = new Acceptor() {
+
+				public void accept(VisitorIF visitor) throws Exception {
+					for (stmtType stmt : ast.body) {
+						stmt.accept(visitor);
+					}
+				}
+			};
+
+			codeBlock = new DefaultCodeBlock(Collections
+					.<ModelSite<exprType>> emptyList(), acceptor);
+		}
+
+		return codeBlock;
 	}
 
 	public ModuleCO enclosingModule() {
@@ -47,13 +76,15 @@ public final class ModuleCO implements NamedCodeObject {
 
 	public Set<CodeObject> nestedCodeObjects() {
 		Set<CodeObject> nestedCodeObjects = new HashSet<CodeObject>();
-		for (Module namespace : oldStyleModuleNamespace.getModules().values()) {
+		for (Module namespace : oldStyleConflatedNamespace().getModules()
+				.values()) {
 			nestedCodeObjects.add(namespace.codeObject());
 		}
-		for (Class namespace : oldStyleModuleNamespace.getClasses().values()) {
+		for (Class namespace : oldStyleConflatedNamespace().getClasses()
+				.values()) {
 			nestedCodeObjects.add(namespace.codeObject());
 		}
-		for (Function namespace : oldStyleModuleNamespace.getFunctions()
+		for (Function namespace : oldStyleConflatedNamespace().getFunctions()
 				.values()) {
 			nestedCodeObjects.add(namespace.codeObject());
 		}
@@ -88,8 +119,9 @@ public final class ModuleCO implements NamedCodeObject {
 	 * Both qualified and unqualified references of a module access the same
 	 * namespace.
 	 */
+	@Deprecated
 	public Namespace fullyQualifiedNamespace() {
-		return oldStyleModuleNamespace;
+		return oldStyleConflatedNamespace();
 	}
 
 	/**
@@ -98,21 +130,24 @@ public final class ModuleCO implements NamedCodeObject {
 	 * Both qualified and unqualified references of a module access the same
 	 * namespace.
 	 */
+	@Deprecated
 	public Namespace unqualifiedNamespace() {
-		return oldStyleModuleNamespace;
+		return oldStyleConflatedNamespace();
 	}
 
+	@Deprecated
 	public Model model() {
-		return oldStyleModuleNamespace.model();
+		return oldStyleConflatedNamespace().model();
 	}
 
 	@Deprecated
 	public Module oldStyleConflatedNamespace() {
-		return oldStyleModuleNamespace;
+		assert oldYukkyNamespace != null;
+		return oldYukkyNamespace;
 	}
 
 	public String declaredName() {
-		return oldStyleModuleNamespace.getName();
+		return name;
 	}
 
 	public String absoluteDescription() {
@@ -123,10 +158,8 @@ public final class ModuleCO implements NamedCodeObject {
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime
-				* result
-				+ ((oldStyleModuleNamespace == null) ? 0
-						: oldStyleModuleNamespace.hashCode());
+		result = prime * result + ((ast == null) ? 0 : ast.hashCode());
+		result = prime * result + ((name == null) ? 0 : name.hashCode());
 		return result;
 	}
 
@@ -139,11 +172,15 @@ public final class ModuleCO implements NamedCodeObject {
 		if (getClass() != obj.getClass())
 			return false;
 		ModuleCO other = (ModuleCO) obj;
-		if (oldStyleModuleNamespace == null) {
-			if (other.oldStyleModuleNamespace != null)
+		if (ast == null) {
+			if (other.ast != null)
 				return false;
-		} else if (!oldStyleModuleNamespace
-				.equals(other.oldStyleModuleNamespace))
+		} else if (!ast.equals(other.ast))
+			return false;
+		if (name == null) {
+			if (other.name != null)
+				return false;
+		} else if (!name.equals(other.name))
 			return false;
 		return true;
 	}
@@ -151,6 +188,11 @@ public final class ModuleCO implements NamedCodeObject {
 	@Override
 	public String toString() {
 		return "ModuleCO[" + absoluteDescription() + "]";
+	}
+
+	public void setNamespace(Module module) {
+		assert module != null;
+		oldYukkyNamespace = module;
 	}
 
 }
