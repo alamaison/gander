@@ -2,10 +2,10 @@ package uk.ac.ic.doc.gander;
 
 import org.python.pydev.parser.jython.SimpleNode;
 
-import uk.ac.ic.doc.gander.model.Namespace;
+import uk.ac.ic.doc.gander.model.codeobject.CodeObject;
 
 public class ScopedAstNode {
-	public ScopedAstNode(SimpleNode node, Namespace scope) {
+	public ScopedAstNode(SimpleNode node, CodeObject scope) {
 		this.node = node;
 		this.scope = scope;
 	}
@@ -14,10 +14,10 @@ public class ScopedAstNode {
 		return node;
 	}
 
-	public Namespace getScope() {
+	public CodeObject getScope() {
 		return scope;
 	}
 
 	private SimpleNode node;
-	private Namespace scope;
+	private CodeObject scope;
 }

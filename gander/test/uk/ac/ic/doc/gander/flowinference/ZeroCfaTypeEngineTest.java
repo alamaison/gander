@@ -1527,6 +1527,7 @@ public class ZeroCfaTypeEngineTest {
 		assertEquals("Object probably not tracked through other "
 				+ "object's member.", Collections.singleton(integerType), type);
 	}
+
 	@Test
 	public void flowThroughMemberApart() throws Throwable {
 		String testName = "flow_through_member_apart";
@@ -1557,8 +1558,8 @@ public class ZeroCfaTypeEngineTest {
 
 	private ScopedAstNode findNode(String moduleName, String tag)
 			throws Exception {
-		return new TaggedNodeAndScopeFinder(model.loadModule(moduleName), tag)
-				.getTaggedNode();
+		return new TaggedNodeAndScopeFinder(model.loadModule(moduleName)
+				.codeObject(), tag).getTaggedNode();
 	}
 
 	private ScopedPrintNode findPrintNode(String moduleName, String tag)

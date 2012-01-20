@@ -9,16 +9,16 @@ import org.python.pydev.parser.jython.ast.VisitorBase;
 import org.python.pydev.parser.jython.ast.commentType;
 
 import uk.ac.ic.doc.gander.ast.ScopedAstVisitor;
-import uk.ac.ic.doc.gander.model.Namespace;
+import uk.ac.ic.doc.gander.model.codeobject.CodeObject;
 
 public class TaggedNodeAndScopeFinder {
 	private int taggedLine = 0;
 	private ScopedAstNode taggedNode = null;
 
-	public TaggedNodeAndScopeFinder(Namespace startingScope, String tag)
+	public TaggedNodeAndScopeFinder(CodeObject startingScope, String tag)
 			throws Exception {
-		startingScope.getAst().accept(new TagFinder(tag));
-		startingScope.getAst().accept(new LineFinder(startingScope));
+		startingScope.ast().accept(new TagFinder(tag));
+		startingScope.ast().accept(new LineFinder(startingScope));
 	}
 
 	public ScopedAstNode getTaggedNode() {
@@ -64,9 +64,9 @@ public class TaggedNodeAndScopeFinder {
 	/**
 	 * Find the least-nested AST node that occurs on the tagged line.
 	 */
-	private class LineFinder extends ScopedAstVisitor<Namespace> {
+	private class LineFinder extends ScopedAstVisitor<CodeObject> {
 
-		public LineFinder(Namespace startingScope) {
+		public LineFinder(CodeObject startingScope) {
 			super(startingScope);
 		}
 
@@ -84,19 +84,21 @@ public class TaggedNodeAndScopeFinder {
 		}
 
 		@Override
-		protected Namespace atScope(Module node) {
-			assert getScope().getAst() == node;
+		protected CodeObject atScope(Module node) {
+			assert getScope().ast() == node;
 			return getScope();
 		}
 
 		@Override
-		protected Namespace atScope(FunctionDef node) {
-			return getScope().getFunctions().get(((NameTok) node.name).id);
+		protected CodeObject atScope(FunctionDef node) {
+			return getScope().oldStyleConflatedNamespace().getFunctions().get(
+					((NameTok) node.name).id).codeObject();
 		}
 
 		@Override
-		protected Namespace atScope(ClassDef node) {
-			return getScope().getClasses().get(((NameTok) node.name).id);
+		protected CodeObject atScope(ClassDef node) {
+			return getScope().oldStyleConflatedNamespace().getClasses().get(
+					((NameTok) node.name).id).codeObject();
 		}
 	}
 }

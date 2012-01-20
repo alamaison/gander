@@ -9,6 +9,8 @@ import org.python.pydev.parser.jython.ast.exprType;
 import uk.ac.ic.doc.gander.model.Module;
 import uk.ac.ic.doc.gander.model.MutableModel;
 import uk.ac.ic.doc.gander.model.Namespace;
+import uk.ac.ic.doc.gander.model.codeobject.CodeObject;
+import uk.ac.ic.doc.gander.model.codeobject.ModuleCO;
 
 /**
  * We're keen on using the print statement because it means we can easily run
@@ -19,17 +21,21 @@ public final class ScopedPrintNode {
 	private ScopedAstNode node;
 	private Module module;
 
-	public static ScopedPrintNode findPrintNode(MutableModel model, String moduleName,
-			String tag) throws Exception {
+	public static ScopedPrintNode findPrintNode(MutableModel model,
+			String moduleName, String tag) throws Exception {
 		return new ScopedPrintNode(model, moduleName, tag);
 	}
 
-	public Namespace getScope() {
+	public CodeObject getScope() {
 		return node.getScope();
 	}
 
 	public Namespace getGlobalNamespace() {
 		return module;
+	}
+
+	public ModuleCO enclosingModule() {
+		return module.codeObject();
 	}
 
 	/**
@@ -38,22 +44,22 @@ public final class ScopedPrintNode {
 	public exprType getExpression() {
 		return ((Print) node.getNode()).values[0];
 	}
-	
+
 	/**
 	 * Expression being printed as a String if it's a simple variable.
 	 */
 	public String getExpressionName() {
-		return ((Name)getExpression()).id;
+		return ((Name) getExpression()).id;
 	}
 
 	private ScopedPrintNode(MutableModel model, String moduleName, String tag)
 			throws Exception {
 
 		module = model.loadModule(moduleName);
-		node = findNode(module, tag);
+		node = findNode(module.codeObject(), tag);
 	}
 
-	private static ScopedAstNode findNode(Module module, String tag)
+	private static ScopedAstNode findNode(ModuleCO module, String tag)
 			throws Exception {
 		assertTrue("Module not found", module != null);
 		ScopedAstNode node = new TaggedNodeAndScopeFinder(module, tag)

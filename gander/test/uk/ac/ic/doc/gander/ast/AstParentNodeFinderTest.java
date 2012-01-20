@@ -30,7 +30,7 @@ public class AstParentNodeFinderTest {
 		Call call = ((Call) ((Expr) node.getNode()).value);
 		Name callable = ((Name) call.func);
 		SimpleNode parent = AstParentNodeFinder.findParent(callable, node
-				.getScope().getAst());
+				.getScope().ast());
 
 		assertEquals(call, parent);
 	}
@@ -38,18 +38,17 @@ public class AstParentNodeFinderTest {
 	@Test
 	public void callParent2() throws Throwable {
 		ScopedAstNode node = findNode("call_parent", "test2");
-		Call call = ((Call)((Call) ((Expr) node.getNode()).value).func);
+		Call call = ((Call) ((Call) ((Expr) node.getNode()).value).func);
 		Name callable = ((Name) call.func);
 		SimpleNode parent = AstParentNodeFinder.findParent(callable, node
-				.getScope().getAst());
+				.getScope().ast());
 
 		assertEquals(call, parent);
 	}
 
-
 	private ScopedAstNode findNode(String moduleName, String tag)
 			throws Exception {
-		return new TaggedNodeAndScopeFinder(model.loadModule(moduleName), tag)
-				.getTaggedNode();
+		return new TaggedNodeAndScopeFinder(model.loadModule(moduleName)
+				.codeObject(), tag).getTaggedNode();
 	}
 }

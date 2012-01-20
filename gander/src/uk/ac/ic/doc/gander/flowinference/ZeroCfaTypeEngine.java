@@ -9,7 +9,7 @@ import uk.ac.ic.doc.gander.flowinference.result.Result;
 import uk.ac.ic.doc.gander.flowinference.typegoals.ExpressionTypeGoal;
 import uk.ac.ic.doc.gander.flowinference.types.Type;
 import uk.ac.ic.doc.gander.model.ModelSite;
-import uk.ac.ic.doc.gander.model.Namespace;
+import uk.ac.ic.doc.gander.model.codeobject.CodeObject;
 
 interface TypeEngine {
 
@@ -19,7 +19,7 @@ interface TypeEngine {
 	 * TODO: Can we get rid of the scope parameter? It shouldn't strictly be
 	 * necessary.
 	 */
-	public Result<Type> typeOf(exprType expression, Namespace scope);
+	public Result<Type> typeOf(exprType expression, CodeObject scope);
 }
 
 /**
@@ -32,7 +32,7 @@ public final class ZeroCfaTypeEngine implements TypeEngine {
 	public ZeroCfaTypeEngine() {
 	}
 
-	public Result<Type> typeOf(exprType expression, Namespace scope) {
+	public Result<Type> typeOf(exprType expression, CodeObject scope) {
 		Goal<Result<Type>> rootGoal = new ExpressionTypeGoal(
 				new ModelSite<exprType>(expression, scope));
 		System.out.print("Inferring type of " + expression + " in " + scope);

@@ -124,7 +124,7 @@ public class CallTargetTypeDiff {
 		for (ResultObserver observer : observers) {
 			this.observers.add(observer);
 		}
-		
+
 		this.observers.add(new ResultObserver() {
 
 			public void resultReady(DiffResult result) {
@@ -171,7 +171,7 @@ public class CallTargetTypeDiff {
 					Set<Type> duckType = new DuckTyper(model, typer).typeOf(
 							call, block, function);
 					Result<Type> flowType = engine.typeOf(CallHelper
-							.indirectCallTarget(call), function);
+							.indirectCallTarget(call), function.codeObject());
 
 					informObservers(new DiffResult(callsite, duckType, flowType));
 				}

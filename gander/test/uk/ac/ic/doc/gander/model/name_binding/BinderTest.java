@@ -1,6 +1,7 @@
 package uk.ac.ic.doc.gander.model.name_binding;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -8,8 +9,8 @@ import org.junit.Test;
 import uk.ac.ic.doc.gander.RelativeTestModelCreator;
 import uk.ac.ic.doc.gander.ScopedPrintNode;
 import uk.ac.ic.doc.gander.model.MutableModel;
-import uk.ac.ic.doc.gander.model.Namespace;
-import uk.ac.ic.doc.gander.model.NamespaceName;
+import uk.ac.ic.doc.gander.model.codeobject.CodeObject;
+import uk.ac.ic.doc.gander.model.codeobject.NamedCodeObject;
 
 public final class BinderTest {
 	private static final String TEST_FOLDER = "../python_test_code/name_binding";
@@ -29,11 +30,12 @@ public final class BinderTest {
 	public void globalHiddenByLocal() throws Throwable {
 		ScopedPrintNode node = findPrintNode("global_hidden_by_local",
 				"what_am_i");
-		Namespace scope = resolveBindingScope(node);
+		CodeObject scope = resolveBindingScope(node);
 
 		assertEquals("This probably means it picked up the global i instead "
 				+ "of the local one bound in the local scope by assignment",
-				node.getGlobalNamespace().lookupMember("f"), scope);
+				findNestedCodeObjectDeclaredAs("f", node.enclosingModule()),
+				scope);
 	}
 
 	/**
@@ -44,11 +46,12 @@ public final class BinderTest {
 	public void globalHiddenByParent() throws Throwable {
 		ScopedPrintNode node = findPrintNode("global_hidden_by_parent",
 				"what_am_i");
-		Namespace scope = resolveBindingScope(node);
+		CodeObject scope = resolveBindingScope(node);
 
 		assertEquals("This probably means it picked up the global i instead "
-				+ "of the one bound in the parent's scope by assignment", node
-				.getGlobalNamespace().lookupMember("f"), scope);
+				+ "of the one bound in the parent's scope by assignment",
+				findNestedCodeObjectDeclaredAs("f", node.enclosingModule()),
+				scope);
 	}
 
 	/**
@@ -59,11 +62,12 @@ public final class BinderTest {
 	public void globalHiddenByGrandparent() throws Throwable {
 		ScopedPrintNode node = findPrintNode("global_hidden_by_grandparent",
 				"what_am_i");
-		Namespace scope = resolveBindingScope(node);
+		CodeObject scope = resolveBindingScope(node);
 
 		assertEquals("This probably means it picked up the global i instead "
-				+ "of the one bound in the parent's scope by assignment", node
-				.getGlobalNamespace().lookupMember("f"), scope);
+				+ "of the one bound in the parent's scope by assignment",
+				findNestedCodeObjectDeclaredAs("f", node.enclosingModule()),
+				scope);
 	}
 
 	/**
@@ -74,11 +78,11 @@ public final class BinderTest {
 	public void globalDeclAsOnlyDefinition() throws Throwable {
 		ScopedPrintNode node = findPrintNode("global_decl_as_only_definition",
 				"whose_am_i_locally");
-		Namespace scope = resolveBindingScope(node);
+		CodeObject scope = resolveBindingScope(node);
 
 		assertEquals("This probably means it saw there was no definition "
 				+ "in the global code block and assumed it was a builtin.",
-				node.getGlobalNamespace(), scope);
+				node.enclosingModule(), scope);
 
 		node = findPrintNode("global_decl_as_only_definition",
 				"whose_am_i_globally");
@@ -86,7 +90,7 @@ public final class BinderTest {
 
 		assertEquals("This probably means it saw there was no definition "
 				+ "in the global code block and assumed it was a builtin.",
-				node.getGlobalNamespace(), scope);
+				node.enclosingModule(), scope);
 	}
 
 	@Test
@@ -94,7 +98,7 @@ public final class BinderTest {
 		ScopedPrintNode node = findPrintNode(
 				"global_decl_distracted_by_local_definition",
 				"whose_am_i_locally");
-		Namespace scope = resolveBindingScope(node);
+		CodeObject scope = resolveBindingScope(node);
 
 		assertEquals("This probably means it saw there was no definition "
 				+ "in the global code block but looked for other bindings "
@@ -120,7 +124,7 @@ public final class BinderTest {
 	@Test
 	public void builtinNamespace() throws Throwable {
 		ScopedPrintNode node = findPrintNode("builtin_namespace", "whose_am_i");
-		Namespace scope = resolveBindingScope(node);
+		CodeObject scope = resolveBindingScope(node);
 
 		assertEquals(node.getScope(), scope);
 	}
@@ -133,7 +137,7 @@ public final class BinderTest {
 	public void parentHiddenByLocal() throws Throwable {
 		ScopedPrintNode node = findPrintNode("parent_hidden_by_local",
 				"what_am_i");
-		Namespace scope = resolveBindingScope(node);
+		CodeObject scope = resolveBindingScope(node);
 
 		assertEquals("This probably means it picked up the global i instead "
 				+ "of the local one bound in the local scope by assignment",
@@ -148,11 +152,11 @@ public final class BinderTest {
 	@Test
 	public void globalDeclarationLocal() throws Throwable {
 		ScopedPrintNode node = findPrintNode("global_decl_local", "what_am_i");
-		Namespace scope = resolveBindingScope(node);
+		CodeObject scope = resolveBindingScope(node);
 
 		assertEquals("This probably means it ignored the 'global' statement "
 				+ "and picked up the one bound in the local scope "
-				+ "by assignment", node.getGlobalNamespace(), scope);
+				+ "by assignment", node.enclosingModule(), scope);
 	}
 
 	/**
@@ -164,11 +168,11 @@ public final class BinderTest {
 	public void globalDeclarationInAncestor() throws Throwable {
 		ScopedPrintNode node = findPrintNode("global_decl_in_ancestor",
 				"what_am_i");
-		Namespace scope = resolveBindingScope(node);
+		CodeObject scope = resolveBindingScope(node);
 
 		assertEquals("This probably means it ignored the 'global' statement "
 				+ "in the parent scope and picked up the one bound in the "
-				+ "local scope by assignment", node.getGlobalNamespace(), scope);
+				+ "local scope by assignment", node.enclosingModule(), scope);
 	}
 
 	/**
@@ -180,12 +184,12 @@ public final class BinderTest {
 	public void globalDeclarationInGrandcestor() throws Throwable {
 		ScopedPrintNode node = findPrintNode("global_decl_in_grandcestor",
 				"what_am_i");
-		Namespace scope = resolveBindingScope(node);
+		CodeObject scope = resolveBindingScope(node);
 
 		assertEquals("This probably "
 				+ "means it ignored the 'global' statement in the grandparent "
 				+ "scope and picked up the one bound in the local scope "
-				+ "by assignment", node.getGlobalNamespace(), scope);
+				+ "by assignment", node.enclosingModule(), scope);
 	}
 
 	/**
@@ -196,13 +200,13 @@ public final class BinderTest {
 	public void globalDeclarationInChild() throws Throwable {
 		ScopedPrintNode node = findPrintNode("global_decl_in_child",
 				"what_am_i");
-		Namespace scope = resolveBindingScope(node);
+		CodeObject scope = resolveBindingScope(node);
 
 		assertEquals("This probably "
 				+ "means it saw the 'global' statement in the child "
 				+ "scope and mistakenly let it affect the binding "
-				+ "in the parent scope", node.getGlobalNamespace()
-				.lookupMember("f"), scope);
+				+ "in the parent scope", findNestedCodeObjectDeclaredAs("f",
+				node.enclosingModule()), scope);
 	}
 
 	/**
@@ -214,7 +218,7 @@ public final class BinderTest {
 	public void localOverridingGlobalDeclarationInAncestor() throws Throwable {
 		ScopedPrintNode node = findPrintNode(
 				"local_overriding_global_decl_in_ancestor", "what_am_i_locally");
-		Namespace scope = resolveBindingScope(node);
+		CodeObject scope = resolveBindingScope(node);
 
 		assertEquals("This probably means it saw its parent's 'global' "
 				+ "statement but didn't pay attention to the local "
@@ -228,7 +232,7 @@ public final class BinderTest {
 		assertEquals("This probably means the definition in h() was bound "
 				+ "to the global instead of the local causing the string "
 				+ "assignment to affect the outer i's binding scope somehow",
-				node.getGlobalNamespace(), scope);
+				node.enclosingModule(), scope);
 	}
 
 	/**
@@ -239,20 +243,21 @@ public final class BinderTest {
 	public void classScopingAnomaly() throws Throwable {
 		ScopedPrintNode node = findPrintNode("class_scoping_anomaly",
 				"what_am_i_in_a_method");
-		Namespace scope = resolveBindingScope(node);
+		CodeObject scope = resolveBindingScope(node);
 
 		assertEquals("This probably "
 				+ "means that the variable in the method was bound to "
 				+ "the variable defined in the class when it should have "
 				+ "skipped that scope and been bound to the first enclosing "
-				+ "non-class scope.", node.getGlobalNamespace(), scope);
+				+ "non-class scope.", node.enclosingModule(), scope);
 
 		node = findPrintNode("class_scoping_anomaly", "what_am_i_in_the_class");
 		scope = resolveBindingScope(node);
 
 		assertEquals("Within the class's code block, i should refer "
-				+ "to the one defined the the class's namespace", node
-				.getGlobalNamespace().lookupMember("A"), scope);
+				+ "to the one defined the the class's namespace",
+				findNestedCodeObjectDeclaredAs("A", node.enclosingModule()),
+				scope);
 	}
 
 	/**
@@ -263,30 +268,32 @@ public final class BinderTest {
 	public void classScopingAnomalyDeep() throws Throwable {
 		ScopedPrintNode node = findPrintNode("class_scoping_anomaly_deep",
 				"what_am_i_in_a_method");
-		Namespace scope = resolveBindingScope(node);
+		CodeObject scope = resolveBindingScope(node);
 
 		assertEquals("This probably "
 				+ "means that the variable in the method was bound to "
 				+ "the variable defined in the class when it should have "
 				+ "skipped that scope and been bound to the first enclosing "
-				+ "non-class scope.", node.getGlobalNamespace(), scope);
+				+ "non-class scope.", node.enclosingModule(), scope);
 
 		node = findPrintNode("class_scoping_anomaly_deep",
 				"what_am_i_in_the_parent_class");
 		scope = resolveBindingScope(node);
 
 		assertEquals("Within the class's code block, i should refer "
-				+ "to the one defined the the class's namespace", node
-				.getGlobalNamespace().getClasses().get("A").lookupMember("B"),
-				scope);
+				+ "to the one defined the the class's namespace",
+				findNestedCodeObjectDeclaredAs("B",
+						findNestedCodeObjectDeclaredAs("A", node
+								.enclosingModule())), scope);
 
 		node = findPrintNode("class_scoping_anomaly_deep",
 				"what_am_i_in_the_grandparent_class");
 		scope = resolveBindingScope(node);
 
 		assertEquals("Within the class's code block, i should refer "
-				+ "to the one defined the the class's namespace", node
-				.getGlobalNamespace().lookupMember("A"), scope);
+				+ "to the one defined the the class's namespace",
+				findNestedCodeObjectDeclaredAs("A", node.enclosingModule()),
+				scope);
 	}
 
 	/**
@@ -298,14 +305,14 @@ public final class BinderTest {
 	public void classScopeNestedClass() throws Throwable {
 		ScopedPrintNode node = findPrintNode("class_scope_nested_class",
 				"what_am_i");
-		Namespace scope = resolveBindingScope(node);
+		CodeObject scope = resolveBindingScope(node);
 
 		assertEquals("Variable not bound correctly. This probably "
 				+ "means that the variable in the nested class was "
 				+ "bound to the variable defined in the enclosing "
 				+ "class when it should have skipped that scope and been "
 				+ "bound to the first enclosing non-class scope.", node
-				.getGlobalNamespace(), scope);
+				.enclosingModule(), scope);
 	}
 
 	/**
@@ -328,7 +335,7 @@ public final class BinderTest {
 		String testName = "class_scope_non_static";
 		ScopedPrintNode node = findPrintNode(testName,
 				"prints 42 so must have bound in global namespace");
-		Namespace scope = resolveBindingScope(node);
+		CodeObject scope = resolveBindingScope(node);
 
 		assertEquals("Even though this should bind globally we model it "
 				+ "as binding locally.", node.getScope(), scope);
@@ -344,12 +351,13 @@ public final class BinderTest {
 	@Test
 	public void subtleGlobalHiding() throws Throwable {
 		ScopedPrintNode node = findPrintNode("subtle_hiding_global", "who_am_i");
-		Namespace scope = resolveBindingScope(node);
+		CodeObject scope = resolveBindingScope(node);
 
 		assertEquals("Variable not bound in function f's namespace. This "
 				+ "probably means it picked up the global i instead of the "
-				+ "local one declared in the for loop.", node
-				.getGlobalNamespace().lookupMember("f"), scope);
+				+ "local one declared in the for loop.",
+				findNestedCodeObjectDeclaredAs("f", node.enclosingModule()),
+				scope);
 	}
 
 	/**
@@ -359,7 +367,7 @@ public final class BinderTest {
 	public void functionParameters() throws Throwable {
 		ScopedPrintNode node = findPrintNode("function_parameters",
 				"whose_am_i");
-		Namespace scope = resolveBindingScope(node);
+		CodeObject scope = resolveBindingScope(node);
 
 		assertEquals(
 				"Function parameter not bound using the function's namespace.",
@@ -374,7 +382,7 @@ public final class BinderTest {
 	public void nestedFunction() throws Throwable {
 		ScopedPrintNode node = findPrintNode("nested_function",
 				"who_am_i_inside");
-		Namespace scope = resolveBindingScope(node);
+		CodeObject scope = resolveBindingScope(node);
 
 		assertEquals("Nested use of name resolved to wrong scope.", node
 				.getScope(), scope);
@@ -394,7 +402,7 @@ public final class BinderTest {
 	public void nestedDefinitionIntereresWithGlobal() throws Throwable {
 		ScopedPrintNode node = findPrintNode(
 				"nested_definition_interferes_with_global", "who_am_i_inside");
-		Namespace scope = resolveBindingScope(node);
+		CodeObject scope = resolveBindingScope(node);
 
 		assertEquals("Nested use of name resolved to wrong scope.", node
 				.getScope(), scope);
@@ -404,14 +412,14 @@ public final class BinderTest {
 		scope = resolveBindingScope(node);
 
 		assertEquals("Outer use of name resolved to wrong scope.", node
-				.getGlobalNamespace(), scope);
+				.enclosingModule(), scope);
 	}
 
 	@Test
 	public void imported() throws Throwable {
 		String testName = "imported";
 		ScopedPrintNode node = findPrintNode(testName, "whose_am_i");
-		Namespace scope = resolveBindingScope(node);
+		CodeObject scope = resolveBindingScope(node);
 
 		assertEquals(
 				"Name introduced by import statement binds in enclosing scope.",
@@ -422,7 +430,7 @@ public final class BinderTest {
 	public void importedAs() throws Throwable {
 		String testName = "imported_as";
 		ScopedPrintNode node = findPrintNode(testName, "whose_am_i");
-		Namespace scope = resolveBindingScope(node);
+		CodeObject scope = resolveBindingScope(node);
 
 		assertEquals(
 				"Name introduced by import statement binds in enclosing scope.",
@@ -433,7 +441,7 @@ public final class BinderTest {
 	public void importedFrom() throws Throwable {
 		String testName = "imported_from";
 		ScopedPrintNode node = findPrintNode(testName, "whose_am_i");
-		Namespace scope = resolveBindingScope(node);
+		CodeObject scope = resolveBindingScope(node);
 
 		assertEquals(
 				"Name introduced by import statement binds in enclosing scope.",
@@ -444,16 +452,30 @@ public final class BinderTest {
 	public void importedFromAs() throws Throwable {
 		String testName = "imported_from_as";
 		ScopedPrintNode node = findPrintNode(testName, "whose_am_i");
-		Namespace scope = resolveBindingScope(node);
+		CodeObject scope = resolveBindingScope(node);
 
 		assertEquals(
 				"Name introduced by import statement binds in enclosing scope.",
 				node.getScope(), scope);
 	}
 
-	private Namespace resolveBindingScope(ScopedPrintNode node) {
-		return new NamespaceName(new Variable(node.getExpressionName(), node
-				.getScope()).bindingLocation()).namespace();
+	private CodeObject resolveBindingScope(ScopedPrintNode node) {
+		return new Variable(node.getExpressionName(), node.getScope())
+				.bindingLocation().codeObject();
+	}
+
+	private CodeObject findNestedCodeObjectDeclaredAs(String name,
+			CodeObject codeObject) {
+		for (CodeObject nested : codeObject.nestedCodeObjects()) {
+			if (nested instanceof NamedCodeObject
+					&& ((NamedCodeObject) nested).declaredName().equals(name)) {
+				return nested;
+			}
+		}
+
+		fail("Unable to find code object '" + name + "' nested in "
+				+ codeObject);
+		return null;
 	}
 
 	private ScopedPrintNode findPrintNode(String moduleName, String tag)

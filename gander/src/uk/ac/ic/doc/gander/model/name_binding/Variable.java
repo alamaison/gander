@@ -2,7 +2,6 @@ package uk.ac.ic.doc.gander.model.name_binding;
 
 import uk.ac.ic.doc.gander.model.Model;
 import uk.ac.ic.doc.gander.model.Namespace;
-import uk.ac.ic.doc.gander.model.NamespaceName;
 import uk.ac.ic.doc.gander.model.codeobject.CodeObject;
 
 /**
@@ -18,22 +17,6 @@ public class Variable {
 
 	private final String name;
 	private final CodeObject codeObject;
-
-	@Deprecated
-	public Variable(String name, Namespace codeBlock) {
-		if (name == null)
-			throw new NullPointerException("A variable without a "
-					+ "name doesn't make sense");
-		if (name.isEmpty())
-			throw new IllegalArgumentException("A variable without a "
-					+ "name doesn't make sense");
-		if (codeBlock.codeObject() == null)
-			throw new NullPointerException(
-					"Variables can only appear in a code block");
-
-		this.name = name;
-		this.codeObject = codeBlock.codeObject();
-	}
 
 	public Variable(String name, CodeObject codeObject) {
 		if (name == null)

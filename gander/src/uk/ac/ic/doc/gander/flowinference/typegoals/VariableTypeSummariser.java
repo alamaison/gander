@@ -50,7 +50,8 @@ final class VariableTypeSummariser {
 				variable.codeBlock().getGlobalNamespace())) {
 
 			types.add(new BoundTypeVisitor(manager, new Variable(variable
-					.name(), variable.model().getTopLevel())).getJudgement());
+					.name(), variable.model().getTopLevel().codeObject()))
+					.getJudgement());
 		}
 
 	}
