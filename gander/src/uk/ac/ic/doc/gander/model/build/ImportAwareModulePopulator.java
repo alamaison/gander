@@ -7,12 +7,11 @@ import java.util.List;
 import org.python.pydev.parser.jython.ParseException;
 import org.python.pydev.parser.jython.ast.Import;
 import org.python.pydev.parser.jython.ast.ImportFrom;
-import org.python.pydev.parser.jython.ast.NameTok;
-import org.python.pydev.parser.jython.ast.aliasType;
 
 import uk.ac.ic.doc.gander.DottedName;
 import uk.ac.ic.doc.gander.hierarchy.SourceFile;
-import uk.ac.ic.doc.gander.importing.LegacyImportSimulator;
+import uk.ac.ic.doc.gander.importing.ImportFactory;
+import uk.ac.ic.doc.gander.importing.ImportSimulator;
 import uk.ac.ic.doc.gander.model.Member;
 import uk.ac.ic.doc.gander.model.Module;
 import uk.ac.ic.doc.gander.model.MutableModel;
@@ -31,41 +30,41 @@ class ImportAwareModulePopulator extends ModulePopulator {
 		this.model = model;
 	}
 
+	private Module parentModule(Namespace importReceiver) {
+		if (importReceiver instanceof Module)
+			return ((Module) importReceiver).getParent();
+		else
+			return importReceiver.getGlobalNamespace();
+	}
+
 	@Override
 	public Object visitImport(Import node) throws Exception {
-		LegacyImportSimulator<Member, Namespace, Module> simulator = new LegacyImportSimulator<Member, Namespace, Module>(
-				getScope(), new DoNothingBinder(), new Importer(model));
+		ImportSimulator<Member, Namespace, Module> simulator = new ImportSimulator<Member, Namespace, Module>(
+				new DoNothingBinder(), new Importer(model));
 
-		for (aliasType alias : node.names) {
-			if (alias.asname == null) {
-				simulator.simulateImport(((NameTok) alias.name).id);
-			} else {
-				simulator.simulateImportAs(((NameTok) alias.name).id,
-						((NameTok) alias.asname).id);
-			}
+		for (uk.ac.ic.doc.gander.importing.Import<Member, Namespace, Module> importInstance : ImportFactory
+				.<Member, Namespace, Module> fromAstNode(node,
+						parentModule(getScope()), getScope())) {
+			simulator.simulateImport(importInstance);
 		}
 		return null;
 	}
 
 	@Override
 	public Object visitImportFrom(ImportFrom node) throws Exception {
-		LegacyImportSimulator<Member, Namespace, Module> simulator = new LegacyImportSimulator<Member, Namespace, Module>(
-				getScope(), new DoNothingBinder(), new Importer(model));
+		ImportSimulator<Member, Namespace, Module> simulator = new ImportSimulator<Member, Namespace, Module>(
+				new DoNothingBinder(), new Importer(model));
 
-		for (aliasType alias : node.names) {
-			if (alias.asname == null) {
-				simulator.simulateImportFrom(((NameTok) node.module).id,
-						((NameTok) alias.name).id);
-			} else {
-				simulator.simulateImportFromAs(((NameTok) node.module).id,
-						((NameTok) alias.name).id, ((NameTok) alias.asname).id);
-			}
+		for (uk.ac.ic.doc.gander.importing.Import<Member, Namespace, Module> importInstance : ImportFactory
+				.<Member, Namespace, Module> fromAstNode(node,
+						parentModule(getScope()), getScope())) {
+			simulator.simulateImport(importInstance);
 		}
 		return null;
 	}
 
 	private static class Importer implements
-			LegacyImportSimulator.Loader<Member, Namespace, Module> {
+			ImportSimulator.Loader<Member, Module> {
 
 		private MutableModel model;
 
@@ -120,22 +119,8 @@ class ImportAwareModulePopulator extends ModulePopulator {
 			return loaded;
 		}
 
-		public Module parentModule(Namespace importReceiver) {
-			if (importReceiver instanceof Module)
-				return ((Module) importReceiver).getParent();
-			else
-				return importReceiver.getGlobalNamespace();
-		}
-
-		public Namespace loadNonModuleMember(String itemName,
-				Namespace codeObjectWhoseNamespaceWeAreLoadingFrom) {
-
-			Namespace loaded = codeObjectWhoseNamespaceWeAreLoadingFrom
-					.getClasses().get(itemName);
-			if (loaded == null)
-				loaded = codeObjectWhoseNamespaceWeAreLoadingFrom
-						.getFunctions().get(itemName);
-			return loaded;
+		public Member loadNonModuleMember(String itemName, Module sourceModule) {
+			return sourceModule.lookupMember(itemName);
 		}
 	}
 
@@ -151,18 +136,32 @@ class ImportAwareModulePopulator extends ModulePopulator {
 	 * FIXME: This explanation is clear as mud
 	 */
 	private static class DoNothingBinder implements
-			LegacyImportSimulator.Binder<Member, Namespace, Module> {
+			ImportSimulator.Binder<Member, Namespace, Module> {
 
-		public void bindName(Member loadedObject, String as, Namespace scope) {
+		public void bindModuleToLocalName(Module loadedModule, String name,
+				Namespace container) {
 		}
 
-		public void onUnresolvedImport(List<String> importPath,
-				Module relativeToPackage, String as, Namespace codeBlock) {
+		public void bindModuleToName(Module loadedModule, String name,
+				Module receivingModule) {
 		}
 
-		public void onUnresolvedImportFromItem(List<String> fromPath,
-				Module relativeTo, String itemName, String as,
-				Namespace codeObject) {
+		public void bindObjectToLocalName(Member importedObject, String name,
+				Namespace container) {
+		}
+
+		public void bindObjectToName(Member importedObject, String name,
+				Module receivingModule) {
+		}
+
+		public void onUnresolvedImport(
+				uk.ac.ic.doc.gander.importing.Import<Member, Namespace, Module> importInstance,
+				String name, Module receivingModule) {
+		}
+
+		public void onUnresolvedLocalImport(
+				uk.ac.ic.doc.gander.importing.Import<Member, Namespace, Module> importInstance,
+				String name) {
 			// FIXME: This gets fired when 'from x import a' occurs inside a
 			// module that x is currently importing as x is not yet complete.
 			// That's fine, that's what's supposed to happen. However, it also
