@@ -119,6 +119,7 @@ public final class Module implements Namespace {
 		throw new Error("Not implemented yet");
 	}
 
+	@Deprecated
 	public Map<String, Class> getClasses() {
 		// return Collections.unmodifiableMap(classes);
 		return classes;
@@ -136,11 +137,13 @@ public final class Module implements Namespace {
 		}
 	}
 
+	@Deprecated
 	public Map<String, Function> getFunctions() {
 		// return Collections.unmodifiableMap(functions);
 		return functions;
 	}
 
+	@Deprecated
 	public Map<String, Module> getModules() {
 		// return Collections.unmodifiableMap(modules);
 		return modules;
@@ -166,6 +169,7 @@ public final class Module implements Namespace {
 		return getParent() == null;
 	}
 
+	@Deprecated
 	public Module lookup(List<String> importNameTokens) {
 		Queue<String> tokens = new LinkedList<String>(importNameTokens);
 
@@ -186,6 +190,7 @@ public final class Module implements Namespace {
 		return "Module[" + getFullName() + "]";
 	}
 
+	@Deprecated
 	public Member lookupMember(String memberName) {
 		if (modules.containsKey(memberName))
 			return modules.get(memberName);

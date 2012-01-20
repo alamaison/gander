@@ -28,8 +28,8 @@ public class TUnresolvedImport implements TCodeObject {
 	private Import<?, ?, ?> importInstance;
 
 	public TUnresolvedImport(Import<?, ?, ?> importInstance) {
-		if (importInstance == null)
-			throw new NullPointerException("Failed import not optional");
+		//if (importInstance == null)
+		//	throw new NullPointerException("Failed import not optional");
 		this.importInstance = importInstance;
 	}
 

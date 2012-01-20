@@ -110,28 +110,34 @@ public final class Class implements Namespace {
 		return parent;
 	}
 
+	@Deprecated
 	public Map<String, Module> getModules() {
 		return Collections.emptyMap();
 	}
 
+	@Deprecated
 	public Map<String, Class> getClasses() {
 		return classes;
 		// return Collections.unmodifiableMap(classes);
 	}
 
+	@Deprecated
 	public Map<String, Function> getFunctions() {
 		return methods;
 		// return Collections.unmodifiableMap(methods);
 	}
 
+	@Deprecated
 	public void addModule(Module module) {
 		throw new Error("A class cannot contain a package");
 	}
 
+	@Deprecated
 	public void addClass(Class klass) {
 		classes.put(klass.getName(), klass);
 	}
 
+	@Deprecated
 	public void addFunction(Function function) {
 		methods.put(function.getName(), function);
 	}
@@ -166,6 +172,7 @@ public final class Class implements Namespace {
 		throw new Error("Not implemented yet");
 	}
 
+	@Deprecated
 	public Member lookupMember(String memberName) {
 		if (classes.containsKey(memberName))
 			return classes.get(memberName);

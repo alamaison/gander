@@ -23,7 +23,8 @@ import uk.ac.ic.doc.gander.model.Function;
 import uk.ac.ic.doc.gander.model.Model;
 import uk.ac.ic.doc.gander.model.Module;
 import uk.ac.ic.doc.gander.model.Namespace;
-import uk.ac.ic.doc.gander.model.StandardModelLookupLoader;
+import uk.ac.ic.doc.gander.model.NamespaceName;
+import uk.ac.ic.doc.gander.model.NamespaceNameLoader;
 import uk.ac.ic.doc.gander.model.codeobject.CodeObject;
 import uk.ac.ic.doc.gander.model.codeobject.ModuleCO;
 
@@ -166,9 +167,9 @@ public class SymbolTable {
 						.oldStyleConflatedNamespace().getParent().codeObject();
 			}
 
-			Iterable<uk.ac.ic.doc.gander.importing.Import<CodeObject, CodeObject, ModuleCO>> imports = ImportFactory
+			Iterable<uk.ac.ic.doc.gander.importing.Import<NamespaceName, CodeObject, ModuleCO>> imports = ImportFactory
 					.fromAstNode(node, relativeTo, currentScope);
-			for (uk.ac.ic.doc.gander.importing.Import<CodeObject, CodeObject, ModuleCO> importInstance : imports) {
+			for (uk.ac.ic.doc.gander.importing.Import<NamespaceName, CodeObject, ModuleCO> importInstance : imports) {
 				simulator().simulateImport(importInstance);
 			}
 		}
@@ -182,17 +183,17 @@ public class SymbolTable {
 						.oldStyleConflatedNamespace().getParent().codeObject();
 			}
 
-			Iterable<uk.ac.ic.doc.gander.importing.Import<CodeObject, CodeObject, ModuleCO>> imports = ImportFactory
+			Iterable<uk.ac.ic.doc.gander.importing.Import<NamespaceName, CodeObject, ModuleCO>> imports = ImportFactory
 					.fromAstNode(node, relativeTo, currentScope);
-			for (uk.ac.ic.doc.gander.importing.Import<CodeObject, CodeObject, ModuleCO> importInstance : imports) {
+			for (uk.ac.ic.doc.gander.importing.Import<NamespaceName, CodeObject, ModuleCO> importInstance : imports) {
 				simulator().simulateImport(importInstance);
 			}
 		}
 	}
 
-	private ImportSimulator<CodeObject, CodeObject, ModuleCO> simulator() {
+	private ImportSimulator<NamespaceName, CodeObject, ModuleCO> simulator() {
 
-		return new ImportSimulator<CodeObject, CodeObject, ModuleCO>(
+		return new ImportSimulator<NamespaceName, CodeObject, ModuleCO>(
 				new ImportedNameTypeWatcher(new ImportTypeEvent() {
 
 					public void onImportTyped(CodeObject container,
@@ -203,7 +204,7 @@ public class SymbolTable {
 						SymbolTable.this.put(container
 								.oldStyleConflatedNamespace(), name, type);
 					}
-				}), new StandardModelLookupLoader(model));
+				}), new NamespaceNameLoader(model));
 	}
 
 	private void processScope(Namespace scope) {

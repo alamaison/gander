@@ -40,18 +40,25 @@ public interface Namespace extends Member {
 
 	public String getFullName();
 
+	@Deprecated
 	public Member lookupMember(String memberName);
 
+	@Deprecated
 	public Map<String, Class> getClasses();
 
+	@Deprecated
 	public Map<String, Function> getFunctions();
 
+	@Deprecated
 	public Map<String, Module> getModules();
 
+	@Deprecated
 	public void addModule(Module module);
 
+	@Deprecated
 	public void addFunction(Function function);
 
+	@Deprecated
 	public void addClass(Class klass);
 
 	public boolean isSystem();
@@ -61,6 +68,7 @@ public interface Namespace extends Member {
 	@Deprecated
 	public CodeBlock asCodeBlock();
 
+	@Deprecated
 	public CodeObject codeObject();
 
 	/**

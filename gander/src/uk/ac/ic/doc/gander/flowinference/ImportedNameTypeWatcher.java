@@ -7,9 +7,12 @@ import uk.ac.ic.doc.gander.flowinference.types.TUnresolvedImport;
 import uk.ac.ic.doc.gander.flowinference.types.Type;
 import uk.ac.ic.doc.gander.importing.Import;
 import uk.ac.ic.doc.gander.importing.ImportSimulator;
-import uk.ac.ic.doc.gander.model.codeobject.ClassCO;
+import uk.ac.ic.doc.gander.model.Class;
+import uk.ac.ic.doc.gander.model.Function;
+import uk.ac.ic.doc.gander.model.Module;
+import uk.ac.ic.doc.gander.model.Namespace;
+import uk.ac.ic.doc.gander.model.NamespaceName;
 import uk.ac.ic.doc.gander.model.codeobject.CodeObject;
-import uk.ac.ic.doc.gander.model.codeobject.FunctionCO;
 import uk.ac.ic.doc.gander.model.codeobject.ModuleCO;
 
 /**
@@ -17,7 +20,7 @@ import uk.ac.ic.doc.gander.model.codeobject.ModuleCO;
  * correct {@link Type} for the object.
  */
 final class ImportedNameTypeWatcher implements
-		ImportSimulator.Binder<CodeObject, CodeObject, ModuleCO> {
+		ImportSimulator.Binder<NamespaceName, CodeObject, ModuleCO> {
 
 	private final ImportTypeEvent eventHandler;
 
@@ -48,20 +51,17 @@ final class ImportedNameTypeWatcher implements
 		eventHandler.onImportTyped(container, name, new TModule(loadedModule));
 	}
 
-	public void bindObjectToLocalName(CodeObject importedObject, String name,
-			CodeObject container) {
+	public void bindObjectToLocalName(NamespaceName importedObject,
+			String name, CodeObject container) {
 
 		assert importedObject != null;
 		assert container != null;
 		assert !name.isEmpty();
 
-		Type type = null;
-		if (importedObject instanceof ModuleCO)
-			type = new TModule((ModuleCO) importedObject);
-		else if (importedObject instanceof ClassCO)
-			type = new TClass((ClassCO) importedObject);
-		else if (importedObject instanceof FunctionCO)
-			type = new TFunction((FunctionCO) importedObject);
+		Type type = oldSchoolNamespaceLookup(importedObject);
+		if (type == null) {
+			type = new TUnresolvedImport(null);
+		}
 
 		// TODO: The target of the 'from foo import bar' can
 		// be a variable.
@@ -69,19 +69,16 @@ final class ImportedNameTypeWatcher implements
 		eventHandler.onImportTyped(container, name, type);
 	}
 
-	public void bindObjectToName(CodeObject importedObject, String name,
+	public void bindObjectToName(NamespaceName importedObject, String name,
 			ModuleCO receivingModule) {
 		assert importedObject != null;
 		assert receivingModule != null;
 		assert !name.isEmpty();
 
-		Type type = null;
-		if (importedObject instanceof ModuleCO)
-			type = new TModule((ModuleCO) importedObject);
-		else if (importedObject instanceof ClassCO)
-			type = new TClass((ClassCO) importedObject);
-		else if (importedObject instanceof FunctionCO)
-			type = new TFunction((FunctionCO) importedObject);
+		Type type = oldSchoolNamespaceLookup(importedObject);
+		if (type == null) {
+			type = new TUnresolvedImport(null);
+		}
 
 		// TODO: The target of the 'from foo import bar' can
 		// be a variable.
@@ -89,8 +86,35 @@ final class ImportedNameTypeWatcher implements
 		eventHandler.onImportTyped(receivingModule, name, type);
 	}
 
+	private Type oldSchoolNamespaceLookup(NamespaceName importedObjectName) {
+
+		Namespace parent = importedObjectName.namespace();
+		String objectName = importedObjectName.name();
+
+		Module importedModule = parent.getModules().get(objectName);
+		if (importedModule != null) {
+			return new TModule(importedModule.codeObject());
+		} else {
+
+			Class importedClass = parent.getClasses().get(objectName);
+
+			if (importedClass != null) {
+				return new TClass(importedClass.codeObject());
+			} else {
+
+				Function importedFunction = parent.getFunctions().get(
+						objectName);
+				if (importedFunction != null) {
+					return new TFunction(importedFunction.codeObject());
+				} else {
+					return null;
+				}
+			}
+		}
+	}
+
 	public void onUnresolvedImport(
-			Import<CodeObject, CodeObject, ModuleCO> importInstance,
+			Import<NamespaceName, CodeObject, ModuleCO> importInstance,
 			String name, ModuleCO relativeTo) {
 		System.err.print("WARNING: unresolved import at '" + name + "': "
 				+ importInstance);
@@ -111,7 +135,8 @@ final class ImportedNameTypeWatcher implements
 	}
 
 	public void onUnresolvedLocalImport(
-			Import<CodeObject, CodeObject, ModuleCO> importInstance, String name) {
+			Import<NamespaceName, CodeObject, ModuleCO> importInstance,
+			String name) {
 		System.err.print("WARNING: unresolved import at '" + name + "': "
 				+ importInstance);
 

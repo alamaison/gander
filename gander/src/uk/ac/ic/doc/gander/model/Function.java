@@ -96,28 +96,34 @@ public final class Function implements Namespace {
 		return parent;
 	}
 
+	@Deprecated
 	public Map<String, Module> getModules() {
 		return Collections.emptyMap();
 	}
 
+	@Deprecated
 	public Map<String, Class> getClasses() {
 		// return Collections.unmodifiableMap(classes);
 		return classes;
 	}
 
+	@Deprecated
 	public Map<String, Function> getFunctions() {
 		return functions;
 		// return Collections.unmodifiableMap(functions);
 	}
 
+	@Deprecated
 	public void addModule(Module pkg) {
 		throw new Error("A function cannot contain a module");
 	}
 
+	@Deprecated
 	public void addClass(Class klass) {
 		classes.put(klass.getName(), klass);
 	}
 
+	@Deprecated
 	public void addFunction(Function function) {
 		functions.put(function.getName(), function);
 	}
@@ -148,6 +154,7 @@ public final class Function implements Namespace {
 		return function;
 	}
 
+	@Deprecated
 	public Member lookupMember(String memberName) {
 		if (classes.containsKey(memberName))
 			return classes.get(memberName);

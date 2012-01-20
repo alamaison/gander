@@ -10,12 +10,6 @@ public class ModelSite<T extends SimpleNode> {
 	private final T node;
 	private final CodeObject codeObject;
 
-	@Deprecated
-	public ModelSite(T node, Namespace codeObject) {
-		this.node = node;
-		this.codeObject = codeObject.codeObject();
-	}
-
 	public ModelSite(T node, CodeObject codeObject) {
 		this.node = node;
 		this.codeObject = codeObject;
