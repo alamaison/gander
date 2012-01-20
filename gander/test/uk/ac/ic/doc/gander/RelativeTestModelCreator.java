@@ -3,7 +3,6 @@ package uk.ac.ic.doc.gander;
 import java.io.File;
 import java.net.URL;
 
-import junit.framework.AssertionFailedError;
 import uk.ac.ic.doc.gander.hierarchy.Hierarchy;
 import uk.ac.ic.doc.gander.hierarchy.HierarchyFactory;
 import uk.ac.ic.doc.gander.model.DefaultModel;
@@ -23,8 +22,7 @@ public final class RelativeTestModelCreator {
 					.createHierarchy(new File(topLevel.toURI()));
 			model = new DefaultModel(hierarchy);
 		} catch (Exception e) {
-			throw new AssertionFailedError(
-					"Exception while creating test model: " + e);
+			throw new RuntimeException("Exception while creating test model", e);
 		}
 	}
 
