@@ -2,7 +2,6 @@ package uk.ac.ic.doc.gander.model;
 
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -19,8 +18,8 @@ import uk.ac.ic.doc.gander.flowinference.result.Result;
 import uk.ac.ic.doc.gander.model.codeblock.CodeBlock;
 import uk.ac.ic.doc.gander.model.codeblock.DefaultCodeBlock;
 import uk.ac.ic.doc.gander.model.codeblock.DefaultCodeBlock.Acceptor;
-import uk.ac.ic.doc.gander.model.codeobject.CodeObject;
 import uk.ac.ic.doc.gander.model.codeobject.FunctionCO;
+import uk.ac.ic.doc.gander.model.name_binding.InScopeVariableFinder;
 import uk.ac.ic.doc.gander.model.name_binding.Variable;
 
 public final class Function implements Namespace {
@@ -54,29 +53,7 @@ public final class Function implements Namespace {
 	}
 
 	public Set<Variable> variablesInScope(String name) {
-
-		Set<Variable> variables = new HashSet<Variable>();
-		NamespaceName namespaceName = new NamespaceName(name, this);
-
-		addVariableIfInScope(name, namespaceName, codeObject, variables);
-
-		for (CodeObject nestedCodeObject : codeObject.nestedCodeObjects()) {
-			addVariableIfInScope(name, namespaceName, nestedCodeObject,
-					variables);
-		}
-
-		return variables;
-	}
-
-	static private void addVariableIfInScope(String name,
-			NamespaceName namespaceName, CodeObject codeObject,
-			Set<Variable> variables) {
-
-		Variable localVariable = new Variable(name, codeObject);
-
-		if (new NamespaceName(localVariable.bindingLocation()).equals(namespaceName)) {
-			variables.add(localVariable);
-		}
+		return new InScopeVariableFinder(codeObject, name).variables();
 	}
 
 	/**
@@ -89,9 +66,8 @@ public final class Function implements Namespace {
 	public Set<Variable> variablesWriteableInScope(String name) {
 
 		Variable localVariable = new Variable(name, codeObject);
-		NamespaceName namespaceName = new NamespaceName(name, this);
 
-		if (new NamespaceName(localVariable.bindingLocation()).equals(namespaceName)) {
+		if (localVariable.bindingLocation().codeObject().equals(codeObject)) {
 			return Collections.singleton(localVariable);
 		} else {
 			return Collections.emptySet();
