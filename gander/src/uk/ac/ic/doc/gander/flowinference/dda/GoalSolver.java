@@ -1,9 +1,12 @@
 package uk.ac.ic.doc.gander.flowinference.dda;
 
+import java.io.File;
 import java.util.ArrayDeque;
 import java.util.Collection;
 import java.util.Deque;
 import java.util.Stack;
+
+import uk.ac.ic.doc.gander.flowinference.result.FiniteResult;
 
 /**
  * Find the solution to a single goal.
@@ -18,12 +21,15 @@ public final class GoalSolver<T> {
 	private final WorkList workList = new DequeBasedWorkList();
 	private final KnowledgeBase knowledgebase;
 	private final Goal<T> rootGoal;
+	private File debugTrigger;
 
 	public GoalSolver(Goal<T> goal, KnowledgeBase knowledgebase) {
 		rootGoal = goal;
 		this.knowledgebase = knowledgebase;
 		workList.add(goal);
 		this.knowledgebase.addGoal(goal);
+
+		debugTrigger = new File("dodebug");
 	}
 
 	public T solve() {
@@ -70,6 +76,23 @@ public final class GoalSolver<T> {
 				return (R) currentSolutionOfGoal(newSubgoal);
 			}
 		});
+
+		if (debugTrigger.exists()) {
+			System.out.println("-" + goal + ":");
+
+			if (newSolution instanceof FiniteResult<?>) {
+				if (((FiniteResult<?>) newSolution).isEmpty()) {
+					System.out.println("\t\tBOTTOM");
+				} else {
+					for (Object result : ((FiniteResult<?>) newSolution)) {
+						System.out.println("\t\t" + result);
+					}
+				}
+			} else {
+
+				System.out.println("\t\t" + newSolution);
+			}
+		}
 
 		knowledgebase.updateSolution(goal, newSolution);
 
