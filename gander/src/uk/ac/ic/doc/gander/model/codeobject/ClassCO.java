@@ -1,52 +1,57 @@
 package uk.ac.ic.doc.gander.model.codeobject;
 
-import java.util.HashSet;
+import java.util.Collections;
+import java.util.List;
 import java.util.Set;
 
 import org.python.pydev.parser.jython.ast.ClassDef;
 import org.python.pydev.parser.jython.ast.NameTok;
+import org.python.pydev.parser.jython.ast.VisitorIF;
+import org.python.pydev.parser.jython.ast.exprType;
+import org.python.pydev.parser.jython.ast.stmtType;
 
 import uk.ac.ic.doc.gander.model.Class;
-import uk.ac.ic.doc.gander.model.Function;
 import uk.ac.ic.doc.gander.model.Model;
-import uk.ac.ic.doc.gander.model.Module;
+import uk.ac.ic.doc.gander.model.ModelSite;
 import uk.ac.ic.doc.gander.model.Namespace;
 import uk.ac.ic.doc.gander.model.codeblock.CodeBlock;
+import uk.ac.ic.doc.gander.model.codeblock.DefaultCodeBlock;
+import uk.ac.ic.doc.gander.model.codeblock.DefaultCodeBlock.Acceptor;
 
 /**
  * Model of Python classes as first-class objects.
- * 
- * Currently just an adapter around the hopelessly conflated {@link Namespace}.
  */
 public final class ClassCO implements NamedCodeObject, NestedCodeObject {
 
 	private final ClassDef ast;
-	private final Class oldStyleClassNamespace;
 	private final CodeObject parent;
+	private Class yukkyOldNamespace = null;
+	private CodeBlock codeBlock = null;
 
 	/**
-	 * Create new function code object representation.
+	 * Create new class code object representation.
 	 * 
-	 * @param oldStyleClassNamespace
-	 *            the old-style namespace for the function; XXX: Eventually this
-	 *            should be replaced to just take the AST
+	 * @param ast
+	 *            the code of the class as an abstract syntax tree
+	 * @param parent
+	 *            the code object that this class is declared within
 	 */
-	public ClassCO(Class oldStyleClassNamespace, CodeObject parent) {
-		if (oldStyleClassNamespace == null) {
-			throw new NullPointerException();
+	public ClassCO(ClassDef ast, CodeObject parent) {
+		if (ast == null) {
+			throw new NullPointerException(
+					"Code objects must have code associated with them");
 		}
 		if (parent == null) {
 			throw new NullPointerException(
-					"All classes appear inside another code object");
+					"Classes are always contained within another code objects");
 		}
-		/*
-		 * if (parent.ast().equals(oldStyleClassNamespace.getAst())) { throw new
-		 * IllegalArgumentException( "Code block cannot be its own parent"); }
-		 */
+		if (parent.ast().equals(ast)) {
+			throw new IllegalArgumentException(
+					"Code object cannot be its own parent");
+		}
 
-		this.oldStyleClassNamespace = oldStyleClassNamespace;
+		this.ast = ast;
 		this.parent = parent;
-		this.ast = oldStyleClassNamespace.getAst();
 	}
 
 	public ClassDef ast() {
@@ -54,7 +59,27 @@ public final class ClassCO implements NamedCodeObject, NestedCodeObject {
 	}
 
 	public CodeBlock codeBlock() {
-		return oldStyleClassNamespace.asCodeBlock();
+		if (codeBlock == null) {
+			// Classes don't have parameters that get bound after
+			// declaration
+			//
+			// XXX: WTF? The ClassDef node has parameters! Are these from
+			// the constructor?
+			List<ModelSite<exprType>> args = Collections.emptyList();
+
+			Acceptor acceptor = new Acceptor() {
+
+				public void accept(VisitorIF visitor) throws Exception {
+					for (stmtType stmt : ast.body) {
+						stmt.accept(visitor);
+					}
+				}
+			};
+
+			codeBlock = new DefaultCodeBlock(args, acceptor);
+		}
+
+		return codeBlock;
 	}
 
 	public ModuleCO enclosingModule() {
@@ -62,22 +87,12 @@ public final class ClassCO implements NamedCodeObject, NestedCodeObject {
 	}
 
 	public Set<CodeObject> nestedCodeObjects() {
-		Set<CodeObject> nestedCodeObjects = new HashSet<CodeObject>();
-		for (Module namespace : oldStyleClassNamespace.getModules().values()) {
-			nestedCodeObjects.add(namespace.codeObject());
-		}
-		for (Class namespace : oldStyleClassNamespace.getClasses().values()) {
-			nestedCodeObjects.add(namespace.codeObject());
-		}
-		for (Function namespace : oldStyleClassNamespace.getFunctions()
-				.values()) {
-			nestedCodeObjects.add(namespace.codeObject());
-		}
-		return nestedCodeObjects;
+		return new NestedCodeObjectFinder(ast, this, model()).codeObjects();
 	}
 
+	@Deprecated
 	public Model model() {
-		return oldStyleClassNamespace.model();
+		return oldStyleConflatedNamespace().model();
 	}
 
 	public String declaredName() {
@@ -117,7 +132,7 @@ public final class ClassCO implements NamedCodeObject, NestedCodeObject {
 	 * namespace.
 	 */
 	public Namespace fullyQualifiedNamespace() {
-		return oldStyleClassNamespace;
+		return oldStyleConflatedNamespace();
 	}
 
 	/**
@@ -127,12 +142,13 @@ public final class ClassCO implements NamedCodeObject, NestedCodeObject {
 	 * namespace.
 	 */
 	public Namespace unqualifiedNamespace() {
-		return oldStyleClassNamespace;
+		return oldStyleConflatedNamespace();
 	}
 
 	@Deprecated
 	public Class oldStyleConflatedNamespace() {
-		return oldStyleClassNamespace;
+		assert yukkyOldNamespace != null;
+		return yukkyOldNamespace;
 	}
 
 	@Override
@@ -163,6 +179,11 @@ public final class ClassCO implements NamedCodeObject, NestedCodeObject {
 	@Override
 	public String toString() {
 		return "ClassCO[" + absoluteDescription() + "]";
+	}
+
+	public void setNamespace(Class namespace) {
+		assert namespace != null;
+		yukkyOldNamespace = namespace;
 	}
 
 }

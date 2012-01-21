@@ -10,8 +10,8 @@ import org.python.pydev.parser.jython.ParseException;
 
 import uk.ac.ic.doc.gander.DottedName;
 import uk.ac.ic.doc.gander.hierarchy.Hierarchy;
+import uk.ac.ic.doc.gander.model.build.CodeObjectImportLoader;
 import uk.ac.ic.doc.gander.model.build.FileLoader;
-import uk.ac.ic.doc.gander.model.build.ImportAwareModulePopulator;
 import uk.ac.ic.doc.gander.model.build.PackageLoader;
 import uk.ac.ic.doc.gander.model.build.TopLevelModuleLoader;
 import uk.ac.ic.doc.gander.model.codeobject.CodeObject;
@@ -25,9 +25,7 @@ public class DefaultModel implements MutableModel {
 		this.hierarchy = hierarchy;
 
 		topLevelPackage = TopLevelModuleLoader.load(this);
-
-		new ImportAwareModulePopulator(topLevelPackage, this)
-				.build(topLevelPackage.getAst());
+		new CodeObjectImportLoader(topLevelPackage.codeObject(), this);
 	}
 
 	public Module getTopLevel() {

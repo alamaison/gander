@@ -18,7 +18,7 @@ import uk.ac.ic.doc.gander.model.codeobject.ModuleCO;
  */
 public final class PackageLoader {
 
-	private Module pkg;
+	private ModuleNamespace pkg;
 
 	/**
 	 * Load a runtime-model package given a hierarchy package.
@@ -48,10 +48,12 @@ public final class PackageLoader {
 		// avoid infinite recursion when there are import cycles.
 		parent.addModule(pkg);
 
+		pkg.addNestedCodeObjects();
+
 		// XXX: If loading __init__ fails (due to problems with imported
 		// modules, most likely), we're left with this empty package in the
 		// model. Do we need to clean this up?
-		new ImportAwareModulePopulator(pkg, model).build(parser.getAst());
+		new CodeObjectImportLoader(codeObject, model);
 	}
 
 	public Module getPackage() {

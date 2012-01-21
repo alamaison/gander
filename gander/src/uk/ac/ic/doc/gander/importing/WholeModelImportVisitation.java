@@ -5,7 +5,10 @@ import org.python.pydev.parser.jython.SimpleNode;
 import uk.ac.ic.doc.gander.ast.LocalCodeBlockVisitor;
 import uk.ac.ic.doc.gander.model.CodeObjectWalker;
 import uk.ac.ic.doc.gander.model.Model;
+import uk.ac.ic.doc.gander.model.ModelWalker;
+import uk.ac.ic.doc.gander.model.Module;
 import uk.ac.ic.doc.gander.model.codeobject.CodeObject;
+import uk.ac.ic.doc.gander.model.codeobject.ModuleCO;
 
 /**
  * Visitation of every import statement in the given runtime model.
@@ -15,13 +18,49 @@ public final class WholeModelImportVisitation {
 	private final ImportHandler<CodeObject> callback;
 	private final Model model;
 
-	public WholeModelImportVisitation(Model model, ImportHandler<CodeObject> callback) {
+	public WholeModelImportVisitation(Model model,
+			ImportHandler<CodeObject> callback) {
 		this.model = model;
 		this.callback = callback;
 		walkModel();
 	}
 
 	void walkModel() {
+
+		/*
+		 * The code below basically does just two things: walks the model
+		 * looking for imports and then uses the ImportVisitor to unpack them,
+		 * calling the callback as appropriate.
+		 */
+		new ModelWalker() {
+
+			@Override
+			protected void visitModule(Module module) {
+
+				try {
+					final CodeObject codeObject = module.codeObject();
+					codeObject.codeBlock().accept(new LocalCodeBlockVisitor() {
+
+						@Override
+						protected Object unhandled_node(SimpleNode node)
+								throws Exception {
+							return node.accept(newImportVisitor(codeObject));
+						}
+
+						@Override
+						public void traverse(SimpleNode node) throws Exception {
+							node.traverse(this);
+						}
+					});
+				} catch (Exception e) {
+					throw new RuntimeException(e);
+				}
+			}
+
+		}.walk(model);
+	}
+
+	void walkModule(ModuleCO module) {
 
 		/*
 		 * The code below basically does just two things: walks the model
@@ -51,7 +90,7 @@ public final class WholeModelImportVisitation {
 				}
 			}
 
-		}.walk(model.getTopLevel().codeObject());
+		}.walk(module);
 	}
 
 	/**

@@ -1,15 +1,12 @@
 package uk.ac.ic.doc.gander.model.codeobject;
 
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.Set;
 
 import org.python.pydev.parser.jython.ast.VisitorIF;
 import org.python.pydev.parser.jython.ast.exprType;
 import org.python.pydev.parser.jython.ast.stmtType;
 
-import uk.ac.ic.doc.gander.model.Class;
-import uk.ac.ic.doc.gander.model.Function;
 import uk.ac.ic.doc.gander.model.Model;
 import uk.ac.ic.doc.gander.model.ModelSite;
 import uk.ac.ic.doc.gander.model.Module;
@@ -41,7 +38,7 @@ public final class ModuleCO implements NamedCodeObject {
 		// throw new IllegalArgumentException("A module name cannot be empty");
 		if (ast == null)
 			throw new NullPointerException(
-					"Module code objects must have code associated with them");
+					"Code objects must have code associated with them");
 
 		this.name = name;
 		this.ast = ast;
@@ -75,20 +72,7 @@ public final class ModuleCO implements NamedCodeObject {
 	}
 
 	public Set<CodeObject> nestedCodeObjects() {
-		Set<CodeObject> nestedCodeObjects = new HashSet<CodeObject>();
-		for (Module namespace : oldStyleConflatedNamespace().getModules()
-				.values()) {
-			nestedCodeObjects.add(namespace.codeObject());
-		}
-		for (Class namespace : oldStyleConflatedNamespace().getClasses()
-				.values()) {
-			nestedCodeObjects.add(namespace.codeObject());
-		}
-		for (Function namespace : oldStyleConflatedNamespace().getFunctions()
-				.values()) {
-			nestedCodeObjects.add(namespace.codeObject());
-		}
-		return nestedCodeObjects;
+		return new NestedCodeObjectFinder(ast, this, model()).codeObjects();
 	}
 
 	/**

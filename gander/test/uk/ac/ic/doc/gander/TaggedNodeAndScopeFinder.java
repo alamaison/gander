@@ -9,6 +9,8 @@ import org.python.pydev.parser.jython.ast.VisitorBase;
 import org.python.pydev.parser.jython.ast.commentType;
 
 import uk.ac.ic.doc.gander.ast.ScopedAstVisitor;
+import uk.ac.ic.doc.gander.model.Class;
+import uk.ac.ic.doc.gander.model.Function;
 import uk.ac.ic.doc.gander.model.codeobject.CodeObject;
 
 public class TaggedNodeAndScopeFinder {
@@ -91,14 +93,25 @@ public class TaggedNodeAndScopeFinder {
 
 		@Override
 		protected CodeObject atScope(FunctionDef node) {
-			return getScope().oldStyleConflatedNamespace().getFunctions().get(
-					((NameTok) node.name).id).codeObject();
+			Function functionNamespace = getScope()
+					.oldStyleConflatedNamespace().getFunctions().get(
+							((NameTok) node.name).id);
+			if (functionNamespace == null)
+				throw new AssertionError("Function not found: "
+						+ ((NameTok) node.name).id + " in "
+						+ getScope().oldStyleConflatedNamespace());
+			return functionNamespace.codeObject();
 		}
 
 		@Override
 		protected CodeObject atScope(ClassDef node) {
-			return getScope().oldStyleConflatedNamespace().getClasses().get(
-					((NameTok) node.name).id).codeObject();
+			Class classNamespace = getScope().oldStyleConflatedNamespace()
+					.getClasses().get(((NameTok) node.name).id);
+			if (classNamespace == null)
+				throw new AssertionError("Class not found: "
+						+ ((NameTok) node.name).id + " in "
+						+ getScope().oldStyleConflatedNamespace());
+			return classNamespace.codeObject();
 		}
 	}
 }

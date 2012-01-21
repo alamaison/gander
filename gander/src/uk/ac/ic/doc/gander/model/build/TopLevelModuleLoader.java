@@ -28,9 +28,10 @@ public final class TopLevelModuleLoader {
 
 		FileParser parser = new FileParser(moduleFile);
 		ModuleCO codeObject = new ModuleCO("", parser.getAst());
-		Module module = new ModuleNamespace(codeObject, null, model, true);
+		ModuleNamespace module = new ModuleNamespace(codeObject, null, model, true);
 		codeObject.setNamespace(module);
-
+		module.addNestedCodeObjects();
+		
 		return module;
 	}
 

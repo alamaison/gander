@@ -15,6 +15,9 @@ import uk.ac.ic.doc.gander.flowinference.flowgoals.CodeObjectDefinitionPosition;
 import uk.ac.ic.doc.gander.flowinference.flowgoals.FlowGoal;
 import uk.ac.ic.doc.gander.flowinference.result.Result;
 import uk.ac.ic.doc.gander.model.codeblock.CodeBlock;
+import uk.ac.ic.doc.gander.model.codeobject.ClassCO;
+import uk.ac.ic.doc.gander.model.codeobject.CodeObject;
+import uk.ac.ic.doc.gander.model.codeobject.FunctionCO;
 import uk.ac.ic.doc.gander.model.codeobject.ModuleCO;
 import uk.ac.ic.doc.gander.model.name_binding.InScopeVariableFinder;
 import uk.ac.ic.doc.gander.model.name_binding.Variable;
@@ -48,6 +51,18 @@ public final class ModuleNamespace implements Module {
 		this.parent = parent;
 		this.model = model;
 		this.isSystem = isSystem;
+	}
+
+	public void addNestedCodeObjects() {
+		for (CodeObject nestedCodeObject : codeObject.nestedCodeObjects()) {
+			if (nestedCodeObject instanceof ClassCO) {
+				addClass(((ClassCO) nestedCodeObject)
+						.oldStyleConflatedNamespace());
+			} else if (nestedCodeObject instanceof FunctionCO) {
+				addFunction(((FunctionCO) nestedCodeObject)
+						.oldStyleConflatedNamespace());
+			}
+		}
 	}
 
 	/**
@@ -193,6 +208,32 @@ public final class ModuleNamespace implements Module {
 
 	public ModuleCO codeObject() {
 		return codeObject;
+	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result
+				+ ((codeObject == null) ? 0 : codeObject.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		ModuleNamespace other = (ModuleNamespace) obj;
+		if (codeObject == null) {
+			if (other.codeObject != null)
+				return false;
+		} else if (!codeObject.equals(other.codeObject))
+			return false;
+		return true;
 	}
 
 }

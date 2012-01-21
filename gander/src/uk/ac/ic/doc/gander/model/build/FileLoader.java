@@ -19,7 +19,7 @@ import uk.ac.ic.doc.gander.model.codeobject.ModuleCO;
  */
 public final class FileLoader {
 
-	private Module module;
+	private ModuleNamespace module;
 
 	/**
 	 * Load a runtime-model module given a hierarchy package.
@@ -41,12 +41,13 @@ public final class FileLoader {
 		module = new ModuleNamespace(codeObject, parent, model, sourceFile.isSystem());
 		codeObject.setNamespace(module);
 		parent.addModule(module);
+		module.addNestedCodeObjects();
 
 		// XXX: If loading module fails (due to problems with imported modules,
 		// most likely), we're left with this empty module in the model. Do we
 		// need to clean this up?
 
-		new ImportAwareModulePopulator(module, model).build(parser.getAst());
+		new CodeObjectImportLoader(codeObject, model);
 	}
 
 	public Module getModule() {

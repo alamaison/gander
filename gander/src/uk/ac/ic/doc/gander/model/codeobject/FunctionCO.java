@@ -1,14 +1,15 @@
 package uk.ac.ic.doc.gander.model.codeobject;
 
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
 import org.python.pydev.parser.jython.SimpleNode;
 import org.python.pydev.parser.jython.ast.FunctionDef;
 import org.python.pydev.parser.jython.ast.NameTok;
+import org.python.pydev.parser.jython.ast.VisitorIF;
 import org.python.pydev.parser.jython.ast.argumentsType;
 import org.python.pydev.parser.jython.ast.exprType;
+import org.python.pydev.parser.jython.ast.stmtType;
 
 import uk.ac.ic.doc.gander.cfg.Cfg;
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
@@ -23,45 +24,45 @@ import uk.ac.ic.doc.gander.model.ModelSite;
 import uk.ac.ic.doc.gander.model.Module;
 import uk.ac.ic.doc.gander.model.Namespace;
 import uk.ac.ic.doc.gander.model.codeblock.CodeBlock;
+import uk.ac.ic.doc.gander.model.codeblock.DefaultCodeBlock;
+import uk.ac.ic.doc.gander.model.codeblock.DefaultCodeBlock.Acceptor;
 import uk.ac.ic.doc.gander.model.name_binding.Variable;
 
 /**
  * Model of Python functions as first-class objects.
- * 
- * Currently just an adapter around the hopelessly conflated {@link Namespace}.
  */
 public final class FunctionCO implements NamedCodeObject, NestedCodeObject,
 		CallableCodeObject {
 
 	private final FunctionDef ast;
-	private final Function oldStyleFunctionNamespace;
 	private final CodeObject parent;
+	private Function yukkyOldNamespace = null;
+	private CodeBlock codeBlock = null;
 
 	/**
 	 * Create new function code object representation.
 	 * 
-	 * XXX: Eventually this should be replaced to just take the AST
-	 * 
-	 * @param oldStyleFunctionNamespace
-	 *            the old-style namespace for the function
+	 * @param ast
+	 *            the code of the function as an abstract syntax tree
+	 * @param parent
+	 *            the code object that this function is declared within
 	 */
-	public FunctionCO(Function oldStyleFunctionNamespace, CodeObject parent) {
-		if (oldStyleFunctionNamespace == null) {
-			throw new NullPointerException();
+	public FunctionCO(FunctionDef ast, CodeObject parent) {
+		if (ast == null) {
+			throw new NullPointerException(
+					"Code objects must have code associated with them");
 		}
 		if (parent == null) {
 			throw new NullPointerException(
-					"All functions appear inside another code object");
+					"Functions are always contained within another code objects");
 		}
-		/*
-		 * if (parent.ast().equals(oldStyleFunctionNamespace.getAst())) { throw
-		 * new IllegalArgumentException( "Code block cannot be its own parent");
-		 * }
-		 */
+		if (parent.ast().equals(ast)) {
+			throw new IllegalArgumentException(
+					"Code object cannot be its own parent");
+		}
 
-		this.oldStyleFunctionNamespace = oldStyleFunctionNamespace;
+		this.ast = ast;
 		this.parent = parent;
-		this.ast = oldStyleFunctionNamespace.getAst();
 	}
 
 	public FunctionDef ast() {
@@ -69,7 +70,24 @@ public final class FunctionCO implements NamedCodeObject, NestedCodeObject,
 	}
 
 	public CodeBlock codeBlock() {
-		return oldStyleFunctionNamespace.asCodeBlock();
+		if (codeBlock == null) {
+
+			Acceptor acceptor = new Acceptor() {
+
+				public void accept(VisitorIF visitor) throws Exception {
+					ast.args.accept(visitor);
+
+					for (stmtType stmt : ast.body) {
+						stmt.accept(visitor);
+					}
+				}
+			};
+
+			codeBlock = new DefaultCodeBlock(formalParameters().parameters(),
+					acceptor);
+		}
+
+		return codeBlock;
 	}
 
 	public ModuleCO enclosingModule() {
@@ -77,18 +95,7 @@ public final class FunctionCO implements NamedCodeObject, NestedCodeObject,
 	}
 
 	public Set<CodeObject> nestedCodeObjects() {
-		Set<CodeObject> nestedCodeObjects = new HashSet<CodeObject>();
-		for (Module namespace : oldStyleFunctionNamespace.getModules().values()) {
-			nestedCodeObjects.add(namespace.codeObject());
-		}
-		for (Class namespace : oldStyleFunctionNamespace.getClasses().values()) {
-			nestedCodeObjects.add(namespace.codeObject());
-		}
-		for (Function namespace : oldStyleFunctionNamespace.getFunctions()
-				.values()) {
-			nestedCodeObjects.add(namespace.codeObject());
-		}
-		return nestedCodeObjects;
+		return new NestedCodeObjectFinder(ast, this, model()).codeObjects();
 	}
 
 	/**
@@ -133,11 +140,11 @@ public final class FunctionCO implements NamedCodeObject, NestedCodeObject,
 	 * the references on the function object.
 	 */
 	public Namespace unqualifiedNamespace() {
-		return oldStyleFunctionNamespace;
+		return oldStyleConflatedNamespace();
 	}
 
 	public Model model() {
-		return oldStyleFunctionNamespace.model();
+		return oldStyleConflatedNamespace().model();
 	}
 
 	public String declaredName() {
@@ -154,7 +161,8 @@ public final class FunctionCO implements NamedCodeObject, NestedCodeObject,
 
 	@Deprecated
 	public Function oldStyleConflatedNamespace() {
-		return oldStyleFunctionNamespace;
+		assert yukkyOldNamespace != null;
+		return yukkyOldNamespace;
 	}
 
 	public FormalParameters formalParameters() {
@@ -190,6 +198,11 @@ public final class FunctionCO implements NamedCodeObject, NestedCodeObject,
 	@Override
 	public String toString() {
 		return "FunctionCO[" + absoluteDescription() + "]";
+	}
+
+	public void setNamespace(Function function) {
+		assert function != null;
+		yukkyOldNamespace = function;
 	}
 
 }

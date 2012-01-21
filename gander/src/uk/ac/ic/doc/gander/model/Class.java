@@ -2,15 +2,11 @@ package uk.ac.ic.doc.gander.model;
 
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import org.python.pydev.parser.jython.ast.ClassDef;
-import org.python.pydev.parser.jython.ast.NameTok;
-import org.python.pydev.parser.jython.ast.VisitorIF;
 import org.python.pydev.parser.jython.ast.exprType;
-import org.python.pydev.parser.jython.ast.stmtType;
 
 import uk.ac.ic.doc.gander.cfg.Cfg;
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
@@ -20,9 +16,9 @@ import uk.ac.ic.doc.gander.flowinference.flowgoals.InstanceCreationPosition;
 import uk.ac.ic.doc.gander.flowinference.result.RedundancyEliminator;
 import uk.ac.ic.doc.gander.flowinference.result.Result;
 import uk.ac.ic.doc.gander.model.codeblock.CodeBlock;
-import uk.ac.ic.doc.gander.model.codeblock.DefaultCodeBlock;
-import uk.ac.ic.doc.gander.model.codeblock.DefaultCodeBlock.Acceptor;
 import uk.ac.ic.doc.gander.model.codeobject.ClassCO;
+import uk.ac.ic.doc.gander.model.codeobject.CodeObject;
+import uk.ac.ic.doc.gander.model.codeobject.FunctionCO;
 import uk.ac.ic.doc.gander.model.name_binding.InScopeVariableFinder;
 import uk.ac.ic.doc.gander.model.name_binding.Variable;
 
@@ -32,16 +28,23 @@ public final class Class implements Namespace {
 	private final Map<String, Class> classes = new HashMap<String, Class>();
 
 	private final ClassCO codeObject;
-	private final ClassDef cls;
-	private final Namespace parent;
-	private CodeBlock codeBlock = null;
 	private final Model model;
 
-	public Class(ClassDef cls, Namespace parent, Model model) {
-		this.cls = cls;
-		this.parent = parent;
+	public Class(ClassCO codeObject, Model model) {
 		this.model = model;
-		this.codeObject = new ClassCO(this, parent.codeObject());
+		this.codeObject = codeObject;
+	}
+
+	public void addNestedCodeObjects() {
+		for (CodeObject nestedCodeObject : codeObject.nestedCodeObjects()) {
+			if (nestedCodeObject instanceof ClassCO) {
+				addClass(((ClassCO) nestedCodeObject)
+						.oldStyleConflatedNamespace());
+			} else if (nestedCodeObject instanceof FunctionCO) {
+				addFunction(((FunctionCO) nestedCodeObject)
+						.oldStyleConflatedNamespace());
+			}
+		}
 	}
 
 	/**
@@ -91,15 +94,15 @@ public final class Class implements Namespace {
 	}
 
 	public exprType[] inheritsFrom() {
-		return cls.bases;
+		return codeObject.ast().bases;
 	}
 
 	public String getName() {
-		return ((NameTok) (cls.name)).id;
+		return codeObject.declaredName();
 	}
 
 	public String getFullName() {
-		String parentName = parent.getFullName();
+		String parentName = getParentScope().getFullName();
 		if (parentName.isEmpty())
 			return getName();
 		else
@@ -107,7 +110,12 @@ public final class Class implements Namespace {
 	}
 
 	public Namespace getParentScope() {
-		return parent;
+		CodeObject codeObjectParent = codeObject.parent();
+		if (codeObjectParent != null) {
+			return codeObjectParent.oldStyleConflatedNamespace();
+		} else {
+			return null;
+		}
 	}
 
 	@Deprecated
@@ -161,11 +169,11 @@ public final class Class implements Namespace {
 	 * have a hierarchy element. For example the dummy_builtin module.
 	 */
 	public boolean isSystem() {
-		return parent.isSystem();
+		return getParentScope().isSystem();
 	}
 
 	public ClassDef getAst() {
-		return cls;
+		return codeObject.ast();
 	}
 
 	public Cfg getCfg() {
@@ -183,27 +191,7 @@ public final class Class implements Namespace {
 	}
 
 	public CodeBlock asCodeBlock() {
-		if (codeBlock == null) {
-			// Classes don't have parameters that get bound after
-			// declaration
-			//
-			// XXX: WTF? The ClassDef node has parameters! Are these from
-			// the constructor?
-			List<ModelSite<exprType>> args = Collections.emptyList();
-
-			Acceptor acceptor = new Acceptor() {
-
-				public void accept(VisitorIF visitor) throws Exception {
-					for (stmtType stmt : cls.body) {
-						stmt.accept(visitor);
-					}
-				}
-			};
-
-			codeBlock = new DefaultCodeBlock(args, acceptor);
-		}
-
-		return codeBlock;
+		return codeObject.codeBlock();
 	}
 
 	public Module getGlobalNamespace() {
@@ -217,4 +205,31 @@ public final class Class implements Namespace {
 	public ClassCO codeObject() {
 		return codeObject;
 	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result
+				+ ((codeObject == null) ? 0 : codeObject.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		Class other = (Class) obj;
+		if (codeObject == null) {
+			if (other.codeObject != null)
+				return false;
+		} else if (!codeObject.equals(other.codeObject))
+			return false;
+		return true;
+	}
+	
 }

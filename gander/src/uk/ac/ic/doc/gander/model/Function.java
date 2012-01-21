@@ -6,39 +6,44 @@ import java.util.Map;
 import java.util.Set;
 
 import org.python.pydev.parser.jython.ast.FunctionDef;
-import org.python.pydev.parser.jython.ast.NameTok;
-import org.python.pydev.parser.jython.ast.VisitorIF;
 import org.python.pydev.parser.jython.ast.exprType;
-import org.python.pydev.parser.jython.ast.stmtType;
 
 import uk.ac.ic.doc.gander.cfg.Cfg;
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
 import uk.ac.ic.doc.gander.flowinference.result.FiniteResult;
 import uk.ac.ic.doc.gander.flowinference.result.Result;
 import uk.ac.ic.doc.gander.model.codeblock.CodeBlock;
-import uk.ac.ic.doc.gander.model.codeblock.DefaultCodeBlock;
-import uk.ac.ic.doc.gander.model.codeblock.DefaultCodeBlock.Acceptor;
+import uk.ac.ic.doc.gander.model.codeobject.ClassCO;
+import uk.ac.ic.doc.gander.model.codeobject.CodeObject;
 import uk.ac.ic.doc.gander.model.codeobject.FunctionCO;
 import uk.ac.ic.doc.gander.model.name_binding.InScopeVariableFinder;
 import uk.ac.ic.doc.gander.model.name_binding.Variable;
 
 public final class Function implements Namespace {
 
-	private final FunctionCO codeObject;
-	private final FunctionDef function;
-	private final Namespace parent;
-	private final Model model;
 	private final Map<String, Function> functions = new HashMap<String, Function>();
 	private final Map<String, Class> classes = new HashMap<String, Class>();
 
-	private CodeBlock codeBlock = null;
+	private final FunctionCO codeObject;
+	private final Model model;
+
 	private Cfg graph = null;
 
-	public Function(FunctionDef function, Namespace parent, Model model) {
-		this.function = function;
-		this.parent = parent;
+	public Function(FunctionCO codeObject, Model model) {
 		this.model = model;
-		this.codeObject = new FunctionCO(this, parent.codeObject());
+		this.codeObject = codeObject;
+	}
+
+	public void addNestedCodeObjects() {
+		for (CodeObject nestedCodeObject : codeObject.nestedCodeObjects()) {
+			if (nestedCodeObject instanceof ClassCO) {
+				addClass(((ClassCO) nestedCodeObject)
+						.oldStyleConflatedNamespace());
+			} else if (nestedCodeObject instanceof FunctionCO) {
+				addFunction(((FunctionCO) nestedCodeObject)
+						.oldStyleConflatedNamespace());
+			}
+		}
 	}
 
 	/**
@@ -75,11 +80,11 @@ public final class Function implements Namespace {
 	}
 
 	public String getName() {
-		return ((NameTok) (function.name)).id;
+		return codeObject.declaredName();
 	}
 
 	public String getFullName() {
-		String parentName = parent.getFullName();
+		String parentName = getParentScope().getFullName();
 		if (parentName.isEmpty())
 			return getName();
 		else
@@ -88,12 +93,17 @@ public final class Function implements Namespace {
 
 	public Cfg getCfg() {
 		if (graph == null)
-			graph = new Cfg(function);
+			graph = new Cfg(getAst());
 		return graph;
 	}
 
 	public Namespace getParentScope() {
-		return parent;
+		CodeObject codeObjectParent = codeObject.parent();
+		if (codeObjectParent != null) {
+			return codeObjectParent.oldStyleConflatedNamespace();
+		} else {
+			return null;
+		}
 	}
 
 	@Deprecated
@@ -147,11 +157,11 @@ public final class Function implements Namespace {
 	 * have a hierarchy element. For example the dummy_builtin module.
 	 */
 	public boolean isSystem() {
-		return parent.isSystem();
+		return getParentScope().isSystem();
 	}
 
 	public FunctionDef getAst() {
-		return function;
+		return codeObject.ast();
 	}
 
 	@Deprecated
@@ -165,24 +175,7 @@ public final class Function implements Namespace {
 	}
 
 	public CodeBlock asCodeBlock() {
-		if (codeBlock == null) {
-
-			Acceptor acceptor = new Acceptor() {
-
-				public void accept(VisitorIF visitor) throws Exception {
-					function.args.accept(visitor);
-
-					for (stmtType stmt : function.body) {
-						stmt.accept(visitor);
-					}
-				}
-			};
-
-			codeBlock = new DefaultCodeBlock(codeObject.formalParameters()
-					.parameters(), acceptor);
-		}
-
-		return codeBlock;
+		return codeObject.codeBlock();
 	}
 
 	public Module getGlobalNamespace() {
@@ -196,4 +189,31 @@ public final class Function implements Namespace {
 	public FunctionCO codeObject() {
 		return codeObject;
 	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result
+				+ ((codeObject == null) ? 0 : codeObject.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		Function other = (Function) obj;
+		if (codeObject == null) {
+			if (other.codeObject != null)
+				return false;
+		} else if (!codeObject.equals(other.codeObject))
+			return false;
+		return true;
+	}
+	
 }
