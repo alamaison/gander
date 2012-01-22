@@ -1,7 +1,6 @@
 package uk.ac.ic.doc.gander.model.codeobject;
 
 import java.util.Collections;
-import java.util.Set;
 
 import org.python.pydev.parser.jython.ast.VisitorIF;
 import org.python.pydev.parser.jython.ast.exprType;
@@ -60,8 +59,8 @@ public final class ModuleCO implements NamedCodeObject {
 				}
 			};
 
-			codeBlock = new DefaultCodeBlock(Collections
-					.<ModelSite<exprType>> emptyList(), acceptor);
+			codeBlock = new DefaultCodeBlock(
+					Collections.<ModelSite<exprType>> emptyList(), acceptor);
 		}
 
 		return codeBlock;
@@ -71,8 +70,8 @@ public final class ModuleCO implements NamedCodeObject {
 		return this;
 	}
 
-	public Set<CodeObject> nestedCodeObjects() {
-		return new NestedCodeObjectFinder(ast, this, model()).codeObjects();
+	public NestedCodeObjects nestedCodeObjects() {
+		return new DefaultNestedCodeObjects(this, model());
 	}
 
 	/**

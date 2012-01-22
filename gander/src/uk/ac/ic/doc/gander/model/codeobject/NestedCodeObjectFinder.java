@@ -1,7 +1,9 @@
 package uk.ac.ic.doc.gander.model.codeobject;
 
+import java.util.AbstractSet;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Set;
 
 import org.python.pydev.parser.jython.SimpleNode;
@@ -17,19 +19,23 @@ import uk.ac.ic.doc.gander.model.Class;
 import uk.ac.ic.doc.gander.model.Function;
 import uk.ac.ic.doc.gander.model.Model;
 
-final class NestedCodeObjectFinder {
+/**
+ * Nested code object builder.
+ * 
+ * Turns an AST node into a set of the code objects declared <em>directly</em>
+ * beneath it.
+ */
+final class NestedCodeObjectFinder extends AbstractSet<NestedCodeObject> {
 
-	private final CodeObject enclosingCodeObject;
-	private final Set<CodeObject> nestedCodeObjects = new HashSet<CodeObject>();
+	private final CodeObject parentCodeObject;
+	private final Set<NestedCodeObject> nestedCodeObjects = new HashSet<NestedCodeObject>();
 	private final Model model;
 
-	NestedCodeObjectFinder(SimpleNode ast, CodeObject enclosingCodeObject,
-			Model model) {
-		assert ast != null;
-		assert enclosingCodeObject != null;
+	NestedCodeObjectFinder(CodeObject parentCodeObject, Model model) {
+		assert parentCodeObject != null;
 		assert model != null;
 
-		this.enclosingCodeObject = enclosingCodeObject;
+		this.parentCodeObject = parentCodeObject;
 		this.model = model;
 
 		try {
@@ -37,13 +43,23 @@ final class NestedCodeObjectFinder {
 			 * We ignore the top of the tree because that is the current code
 			 * block so we traverse rather than accept
 			 */
-			ast.traverse(new Finder());
+			parentCodeObject.ast().traverse(new Finder());
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}
 	}
 
-	Set<CodeObject> codeObjects() {
+	@Override
+	public Iterator<NestedCodeObject> iterator() {
+		return codeObjects().iterator();
+	}
+
+	@Override
+	public int size() {
+		return codeObjects().size();
+	}
+
+	private Set<NestedCodeObject> codeObjects() {
 		return Collections.unmodifiableSet(nestedCodeObjects);
 	}
 
@@ -51,7 +67,7 @@ final class NestedCodeObjectFinder {
 
 		@Override
 		public Object visitClassDef(ClassDef node) throws Exception {
-			ClassCO classCodeObject = new ClassCO(node, enclosingCodeObject);
+			ClassCO classCodeObject = new ClassCO(node, parentCodeObject);
 			nestedCodeObjects.add(classCodeObject);
 			Class namespace = new Class(classCodeObject, model);
 			classCodeObject.setNamespace(namespace);
@@ -67,7 +83,7 @@ final class NestedCodeObjectFinder {
 		@Override
 		public Object visitFunctionDef(FunctionDef node) throws Exception {
 			FunctionCO functionCodeObject = new FunctionCO(node,
-					enclosingCodeObject);
+					parentCodeObject);
 			nestedCodeObjects.add(functionCodeObject);
 			Function namespace = new Function(functionCodeObject, model);
 			functionCodeObject.setNamespace(namespace);
@@ -115,6 +131,39 @@ final class NestedCodeObjectFinder {
 			return null;
 		}
 
+	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = super.hashCode();
+		result = prime
+				* result
+				+ ((parentCodeObject == null) ? 0 : parentCodeObject.hashCode());
+		result = prime * result + ((model == null) ? 0 : model.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (!super.equals(obj))
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		NestedCodeObjectFinder other = (NestedCodeObjectFinder) obj;
+		if (parentCodeObject == null) {
+			if (other.parentCodeObject != null)
+				return false;
+		} else if (!parentCodeObject.equals(other.parentCodeObject))
+			return false;
+		if (model == null) {
+			if (other.model != null)
+				return false;
+		} else if (!model.equals(other.model))
+			return false;
+		return true;
 	}
 
 }

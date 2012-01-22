@@ -54,7 +54,7 @@ public final class ImportTypeMapper {
 	/**
 	 * Type a from-style imported item.
 	 * 
-	 * This works a bit unusually. The mechanism for determining the type can't
+	 * This works a bit unusually; the mechanism for determining the type can't
 	 * just delegate the typing to the module's namespace. If the item being
 	 * imported is a submodule then it isn't an attribute of the module's
 	 * namespace. In other words the dotted import name isn't an attribute

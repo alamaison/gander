@@ -23,11 +23,11 @@ import uk.ac.ic.doc.gander.flowinference.result.Result;
 import uk.ac.ic.doc.gander.flowinference.result.Result.Processor;
 import uk.ac.ic.doc.gander.flowinference.result.Result.Transformer;
 import uk.ac.ic.doc.gander.importing.Import;
-import uk.ac.ic.doc.gander.importing.WholeModelImportSimulation;
 import uk.ac.ic.doc.gander.importing.ImportSimulator.Binder;
+import uk.ac.ic.doc.gander.importing.WholeModelImportSimulation;
 import uk.ac.ic.doc.gander.model.AttributeAccessFinder;
-import uk.ac.ic.doc.gander.model.CodeObjectWalker;
 import uk.ac.ic.doc.gander.model.Class;
+import uk.ac.ic.doc.gander.model.CodeObjectWalker;
 import uk.ac.ic.doc.gander.model.Model;
 import uk.ac.ic.doc.gander.model.ModelSite;
 import uk.ac.ic.doc.gander.model.Module;
@@ -39,6 +39,7 @@ import uk.ac.ic.doc.gander.model.codeobject.CodeObject;
 import uk.ac.ic.doc.gander.model.codeobject.ModuleCO;
 import uk.ac.ic.doc.gander.model.codeobject.NamedCodeObject;
 import uk.ac.ic.doc.gander.model.codeobject.NestedCodeObject;
+import uk.ac.ic.doc.gander.model.codeobject.NestedCodeObjects;
 import uk.ac.ic.doc.gander.model.name_binding.NameScopeFinder;
 import uk.ac.ic.doc.gander.model.name_binding.Variable;
 
@@ -354,14 +355,9 @@ final class NamespaceNameFlowStepGoalSolver {
 						 * ClassDef node into a ClassCO so that we can
 						 */
 
-						ClassCO inheritingClass = null;
-						for (CodeObject nestedObject : parentNode.codeObject()
-								.nestedCodeObjects()) {
-
-							if (nestedObject.ast().equals(classAst)) {
-								inheritingClass = (ClassCO) nestedObject;
-							}
-						}
+						ClassCO inheritingClass = (ClassCO) parentNode
+								.codeObject().nestedCodeObjects()
+								.findCodeObjectMatchingAstNode(classAst);
 
 						if (inheritingClass == null)
 							throw new AssertionError(
@@ -381,22 +377,18 @@ final class NamespaceNameFlowStepGoalSolver {
 						 * the namespace of the superclass while it executes so
 						 * there isn't a race condition where it might use a
 						 * name before overriding it.
+						 * 
+						 * Even if the name doesn't appear in the superclass
+						 * until after the elaboration phase, the declaration in
+						 * the subclass will still override it.
 						 */
 
-						boolean overridden = false;
-						for (CodeObject nestedObject : inheritingClass
-								.nestedCodeObjects()) {
-							if (nestedObject instanceof NamedCodeObject) {
-								if (((NamedCodeObject) nestedObject)
-										.declaredName().equals(
-												namespaceName.name())) {
-									overridden = true;
-									break;
-								}
-							}
-						}
+						NestedCodeObjects overridingDeclarations = inheritingClass
+								.nestedCodeObjects()
+								.namedCodeObjectsDeclaredAs(
+										namespaceName.name());
 
-						if (!overridden) {
+						if (overridingDeclarations.isEmpty()) {
 							inheritedPositions
 									.add(new NamespaceNamePosition(
 											new NamespaceName(

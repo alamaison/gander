@@ -94,8 +94,8 @@ public final class FunctionCO implements NamedCodeObject, NestedCodeObject,
 		return parent().enclosingModule();
 	}
 
-	public Set<CodeObject> nestedCodeObjects() {
-		return new NestedCodeObjectFinder(ast, this, model()).codeObjects();
+	public NestedCodeObjects nestedCodeObjects() {
+		return new DefaultNestedCodeObjects(this, model());
 	}
 
 	/**

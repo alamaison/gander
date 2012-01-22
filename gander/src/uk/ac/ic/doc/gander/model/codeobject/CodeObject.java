@@ -37,7 +37,7 @@ public interface CodeObject {
 	/**
 	 * Return the code objects nested within this one.
 	 */
-	Set<CodeObject> nestedCodeObjects();
+	NestedCodeObjects nestedCodeObjects();
 
 	/**
 	 * Returns the code object whose namespace is the next candidate for

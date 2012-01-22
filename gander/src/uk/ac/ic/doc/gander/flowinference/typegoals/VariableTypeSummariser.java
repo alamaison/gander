@@ -21,11 +21,12 @@ import uk.ac.ic.doc.gander.flowinference.types.Type;
 import uk.ac.ic.doc.gander.importing.ImportSpecification;
 import uk.ac.ic.doc.gander.importing.ImportSpecificationFactory;
 import uk.ac.ic.doc.gander.model.Class;
-import uk.ac.ic.doc.gander.model.Function;
 import uk.ac.ic.doc.gander.model.ModelSite;
 import uk.ac.ic.doc.gander.model.NamespaceName;
 import uk.ac.ic.doc.gander.model.codeobject.CallableCodeObject;
+import uk.ac.ic.doc.gander.model.codeobject.ClassCO;
 import uk.ac.ic.doc.gander.model.codeobject.CodeObject;
+import uk.ac.ic.doc.gander.model.codeobject.FunctionCO;
 import uk.ac.ic.doc.gander.model.name_binding.Variable;
 
 /**
@@ -165,49 +166,39 @@ class BoundTypeVisitor implements BindingDetector.DetectionEvent {
 	public void classDefiniton(String name, ClassDef node) {
 
 		if (isMatch(name)) {
-			Class klass = variable.codeObject().oldStyleConflatedNamespace()
-					.getClasses().get(name);
-			// If we can see the ClassDef here, it _must_ already be
-			// in the model.
-			//
-			// XXX: Not sure exactly how our model Classes and this
-			// relate conceptually. We've had this issue before as
-			// well. Needs more thought.
+			ClassCO klass = (ClassCO) variable.codeObject().nestedCodeObjects()
+					.findCodeObjectMatchingAstNode(node);
 			assert klass != null;
 			judgement.add(new FiniteResult<Type>(Collections
 					.singleton(new TClass(klass))));
 		}
 
-		// Do NOT recurse into the ClassDef body. Despite
-		// appearances, it is not part of this namespace's code object.
-		// It is a declaration of the nested class's code object.
-		// Another way to think about it: the class's body is not
-		// being 'executed' now whereas the enclosing namespace's
-		// body is.
+		/*
+		 * Do NOT recurse into the ClassDef body. Despite appearances, it is not
+		 * part of this namespace's code object. It is a declaration of the
+		 * nested class's code object. Another way to think about it: the
+		 * class's body is not being 'executed' now whereas the enclosing
+		 * namespace's body is.
+		 */
 	}
 
 	public void function(String name, FunctionDef node) {
 
 		if (isMatch(name)) {
-			Function function = variable.codeObject()
-					.oldStyleConflatedNamespace().getFunctions().get(name);
-			// If we can see the FunctionDef here, it _must_ already be
-			// in the model.
-			//
-			// XXX: Not sure exactly how our model Functions and this
-			// relate conceptually. We've had this issue before as
-			// well. Needs more thought.
+			FunctionCO function = (FunctionCO) variable.codeObject()
+					.nestedCodeObjects().findCodeObjectMatchingAstNode(node);
 			assert function != null;
 			judgement.add(new FiniteResult<Type>(Collections
 					.singleton(new TFunction(function))));
 		}
 
-		// Do NOT recurse into the FunctionDef body. Despite
-		// appearances, it is not part of this namespace's code object.
-		// It is a declaration of the nested function's code object.
-		// Another way to think about it: the nested function's body is not
-		// being 'executed' now whereas the enclosing namespace's
-		// body is.
+		/*
+		 * Do NOT recurse into the FunctionDef body. Despite appearances, it is
+		 * not part of this namespace's code object. It is a declaration of the
+		 * nested function's code object. Another way to think about it: the
+		 * nested function's body is not being 'executed' now whereas the
+		 * enclosing namespace's body is.
+		 */
 
 	}
 
@@ -287,19 +278,25 @@ class BoundTypeVisitor implements BindingDetector.DetectionEvent {
 				 */
 				if (type instanceof Name) {
 
-					// XXX: Very bad! We're not trying to
-					// resolve the type expression properly.
-					// Instead we look blindly at the top level
-					// hoping that any exception will be
-					// declared there. Do this right.
-					Class exceptionClass = variable.model().getTopLevel()
-							.getClasses().get(((Name) type).id);
-					if (exceptionClass != null) {
-						judgement.add(new FiniteResult<Type>(Collections
-								.singleton(new TClass(exceptionClass))));
-					} else {
-						judgement.add(TopT.INSTANCE);
-					}
+					/*
+					 * Exceptions are the one place that Python's type model is
+					 * very un-pythonic.
+					 * 
+					 * Exceptions are caught by named type. Although it seems
+					 * like we should be able to use that named type here, it
+					 * doesn't fit well with the model we're using as the
+					 * exception object isn't necessarily an instance of the
+					 * named exception class. It could be an instance of a
+					 * _subtype_.
+					 * 
+					 * For the moment we just return Top here until we think of
+					 * a better way.
+					 * 
+					 * goalManager.registerSubgoal(new ExpressionTypeGoal(new
+					 * ModelSite<exprType>(type, variable.codeObject())));
+					 */
+					judgement.add(TopT.INSTANCE);
+
 				} else {
 					// TODO: Try to resolve the expression to an
 					// exception class

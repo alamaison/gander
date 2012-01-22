@@ -2,7 +2,6 @@ package uk.ac.ic.doc.gander.model.codeobject;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Set;
 
 import org.python.pydev.parser.jython.ast.ClassDef;
 import org.python.pydev.parser.jython.ast.NameTok;
@@ -86,8 +85,8 @@ public final class ClassCO implements NamedCodeObject, NestedCodeObject {
 		return parent().enclosingModule();
 	}
 
-	public Set<CodeObject> nestedCodeObjects() {
-		return new NestedCodeObjectFinder(ast, this, model()).codeObjects();
+	public NestedCodeObjects nestedCodeObjects() {
+		return new DefaultNestedCodeObjects(this, model());
 	}
 
 	@Deprecated
