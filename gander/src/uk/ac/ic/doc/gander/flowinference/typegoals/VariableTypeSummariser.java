@@ -47,7 +47,8 @@ final class VariableTypeSummariser {
 		 * value comes from is made at runtime.
 		 */
 		if (new NamespaceName(variable.bindingLocation()).namespace().equals(
-				variable.codeBlock().getGlobalNamespace())) {
+				variable.codeObject().oldStyleConflatedNamespace()
+						.getGlobalNamespace())) {
 
 			types.add(new BoundTypeVisitor(manager, new Variable(variable
 					.name(), variable.model().getTopLevel().codeObject()))
@@ -164,7 +165,8 @@ class BoundTypeVisitor implements BindingDetector.DetectionEvent {
 	public void classDefiniton(String name, ClassDef node) {
 
 		if (isMatch(name)) {
-			Class klass = variable.codeBlock().getClasses().get(name);
+			Class klass = variable.codeObject().oldStyleConflatedNamespace()
+					.getClasses().get(name);
 			// If we can see the ClassDef here, it _must_ already be
 			// in the model.
 			//
@@ -187,7 +189,8 @@ class BoundTypeVisitor implements BindingDetector.DetectionEvent {
 	public void function(String name, FunctionDef node) {
 
 		if (isMatch(name)) {
-			Function function = variable.codeBlock().getFunctions().get(name);
+			Function function = variable.codeObject()
+					.oldStyleConflatedNamespace().getFunctions().get(name);
 			// If we can see the FunctionDef here, it _must_ already be
 			// in the model.
 			//
@@ -231,8 +234,8 @@ class BoundTypeVisitor implements BindingDetector.DetectionEvent {
 		ImportSpecification info = ImportSpecificationFactory
 				.newImport(moduleName);
 		if (isMatch(info.bindingName())) {
-			judgement.add(new ImportTypeMapper(goalManager).typeImport(variable
-					.model(), info.bindingObject()));
+			judgement.add(new ImportTypeMapper(goalManager).typeImport(
+					variable.model(), info.bindingObject()));
 		}
 
 		return judgement.isFinished();
@@ -242,8 +245,8 @@ class BoundTypeVisitor implements BindingDetector.DetectionEvent {
 		ImportSpecification info = ImportSpecificationFactory.newImportAs(
 				moduleName, as);
 		if (isMatch(info.bindingName())) {
-			judgement.add(new ImportTypeMapper(goalManager).typeImport(variable
-					.model(), info.bindingObject()));
+			judgement.add(new ImportTypeMapper(goalManager).typeImport(
+					variable.model(), info.bindingObject()));
 		}
 
 		return judgement.isFinished();

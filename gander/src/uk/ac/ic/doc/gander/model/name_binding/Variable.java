@@ -58,11 +58,6 @@ public class Variable {
 	}
 
 	@Deprecated
-	public Namespace codeBlock() {
-		return codeObject.model().intrinsicNamespace(codeObject);
-	}
-
-	@Deprecated
 	public Model model() {
 		return codeObject.model();
 	}

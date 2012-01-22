@@ -827,7 +827,7 @@ final class NamespaceNameFlowStepGoalSolver {
 
 	private boolean nameBindsLocallyOrGlobally(CodeObject importReceiver,
 			NamespaceName nameBinding) {
-		Model model = importReceiver.model();
+		Model model = nameBinding.namespace().model();
 
 		return nameBinding.namespace().equals(
 				model.intrinsicNamespace(importReceiver))

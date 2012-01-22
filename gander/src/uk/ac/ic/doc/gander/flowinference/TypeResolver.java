@@ -112,7 +112,7 @@ public class TypeResolver extends VisitorBase {
 	/**
 	 * Token resolver using the existing symbol table to map names to types.
 	 */
-	private static class SymbolTableTypeResolver extends LexicalResolver<Type> {
+	private class SymbolTableTypeResolver extends LexicalResolver<Type> {
 
 		private SymbolTable table;
 
@@ -122,7 +122,7 @@ public class TypeResolver extends VisitorBase {
 
 		@Override
 		protected Type searchScopeForVariable(String token, CodeObject scope) {
-			Map<String, Type> scopeTokens = table.symbols(scope.model()
+			Map<String, Type> scopeTokens = table.symbols(model
 					.intrinsicNamespace(scope));
 			if (scopeTokens != null)
 				return scopeTokens.get(token);
