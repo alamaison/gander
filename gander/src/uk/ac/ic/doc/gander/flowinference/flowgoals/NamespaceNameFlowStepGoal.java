@@ -340,27 +340,68 @@ final class NamespaceNameFlowStepGoalSolver {
 
 			for (ModelSite<? extends exprType> namespaceReference : result) {
 
-				ModelSite<SimpleNode> parent = ParentSiteFinder
+				ModelSite<SimpleNode> parentNode = ParentSiteFinder
 						.findParent(namespaceReference);
-				if (parent.astNode() instanceof ClassDef) {
-					ClassDef classDef = (ClassDef) parent.astNode();
+				if (parentNode.astNode() instanceof ClassDef) {
 
-					if (Arrays.asList(classDef.bases).contains(
+					ClassDef classAst = (ClassDef) parentNode.astNode();
+					if (Arrays.asList(classAst.bases).contains(
 							namespaceReference.astNode())) {
-						/* Established that this is a subclass */
 
-						// XXX: HACK: Nasty way to get subclass's code object
-						ClassCO subclass = parent.codeObject()
-								.unqualifiedNamespace().getClasses().get(
-										((NameTok) classDef.name).id)
-								.codeObject();
-						if (subclass.oldStyleConflatedNamespace().lookupMember(
-								namespaceName.name()) == null) {
+						/*
+						 * The expression has flowed to the superclass list of a
+						 * class definition. Now we have to find turn this
+						 * ClassDef node into a ClassCO so that we can
+						 */
+
+						ClassCO inheritingClass = null;
+						for (CodeObject nestedObject : parentNode.codeObject()
+								.nestedCodeObjects()) {
+
+							if (nestedObject.ast().equals(classAst)) {
+								inheritingClass = (ClassCO) nestedObject;
+							}
+						}
+
+						if (inheritingClass == null)
+							throw new AssertionError(
+									"ClassDef found with no code object");
+
+						/*
+						 * Technically, the namespace name from the superclass
+						 * flows to the subclass unconditionally. However, in
+						 * practice, anything declared in the subclass overrides
+						 * an inherited item of the same name so the flow is
+						 * conditional here.
+						 * 
+						 * Although relying on the declared names of nested code
+						 * objects seems like a bit of a hack, I can't work out
+						 * a way it could fail. It turns out that the code block
+						 * of the inheriting class doesn't even have access to
+						 * the namespace of the superclass while it executes so
+						 * there isn't a race condition where it might use a
+						 * name before overriding it.
+						 */
+
+						boolean overridden = false;
+						for (CodeObject nestedObject : inheritingClass
+								.nestedCodeObjects()) {
+							if (nestedObject instanceof NamedCodeObject) {
+								if (((NamedCodeObject) nestedObject)
+										.declaredName().equals(
+												namespaceName.name())) {
+									overridden = true;
+									break;
+								}
+							}
+						}
+
+						if (!overridden) {
 							inheritedPositions
 									.add(new NamespaceNamePosition(
 											new NamespaceName(
 													namespaceName.name(),
-													subclass
+													inheritingClass
 															.oldStyleConflatedNamespace())));
 						}
 					}
@@ -610,26 +651,26 @@ final class NamespaceNameFlowStepGoalSolver {
 				 */
 
 				// FIXME: HOW?!
-				//if (weCanFlowToNameInImportedObjectsNamespace) {
+				// if (weCanFlowToNameInImportedObjectsNamespace) {
 
-					/*
-					 * The imported object potentially allows access to the namespace
-					 * name we care about by way of an attribute access.
-					 */
-					/*
-					 * import module
-					 * 
-					 * module.key
-					 */
-					/*
-					 * from module import object
-					 * 
-					 * object.key
-					 */
-					// importedReferences
-					// .add(referencesToAttributeOfImportedCodeObject(objectBinding));
-					// }
-				//}
+				/*
+				 * The imported object potentially allows access to the
+				 * namespace name we care about by way of an attribute access.
+				 */
+				/*
+				 * import module
+				 * 
+				 * module.key
+				 */
+				/*
+				 * from module import object
+				 * 
+				 * object.key
+				 */
+				// importedReferences
+				// .add(referencesToAttributeOfImportedCodeObject(objectBinding));
+				// }
+				// }
 			}
 		}
 
@@ -648,9 +689,11 @@ final class NamespaceNameFlowStepGoalSolver {
 			 */
 
 			return object instanceof NestedCodeObject
-					&& object.model().intrinsicNamespace(
-							((NestedCodeObject) object).parent()).equals(
-							namespaceName.namespace())
+					&& object
+							.model()
+							.intrinsicNamespace(
+									((NestedCodeObject) object).parent())
+							.equals(namespaceName.namespace())
 					&& object instanceof NamedCodeObject
 					&& ((NamedCodeObject) object).declaredName().equals(
 							namespaceName.name());
@@ -753,9 +796,9 @@ final class NamespaceNameFlowStepGoalSolver {
 		 * It could be the global scope so we resolve the name here.
 		 */
 
-		return new FiniteResult<FlowPosition>(Collections
-				.singleton(new NamespaceNamePosition(new NamespaceName(importAs
-						.bindingLocation()))));
+		return new FiniteResult<FlowPosition>(
+				Collections.singleton(new NamespaceNamePosition(
+						new NamespaceName(importAs.bindingLocation()))));
 	}
 
 	/**

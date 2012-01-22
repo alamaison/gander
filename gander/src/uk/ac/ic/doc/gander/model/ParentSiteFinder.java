@@ -8,11 +8,13 @@ import uk.ac.ic.doc.gander.model.codeobject.CodeObject;
 
 /**
  * Search that finds the parent of a given model site.
+ * 
+ * This is the AST parent, not the code object parent.
  */
 public final class ParentSiteFinder {
 
 	/**
-	 * Returns the parent of a given site.
+	 * Returns the AST parent of a given site.
 	 * 
 	 * @param subject
 	 *            site whose parent we are looking for
