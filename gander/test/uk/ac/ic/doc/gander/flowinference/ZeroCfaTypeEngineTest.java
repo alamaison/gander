@@ -5,6 +5,7 @@ import static org.junit.Assert.assertEquals;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 import org.junit.Before;
@@ -28,6 +29,7 @@ import uk.ac.ic.doc.gander.flowinference.types.TModule;
 import uk.ac.ic.doc.gander.flowinference.types.TObject;
 import uk.ac.ic.doc.gander.flowinference.types.Type;
 import uk.ac.ic.doc.gander.model.Class;
+import uk.ac.ic.doc.gander.model.Function;
 import uk.ac.ic.doc.gander.model.MutableModel;
 import uk.ac.ic.doc.gander.model.codeobject.FunctionCO;
 
@@ -40,6 +42,8 @@ public class ZeroCfaTypeEngineTest {
 	private TObject integerType;
 	private TObject listType;
 	private TObject noneType;
+	private TObject tupleType;
+	private TObject dictType;
 
 	@Before
 	public void setup() throws Throwable {
@@ -47,8 +51,10 @@ public class ZeroCfaTypeEngineTest {
 		stringType = new TObject(model.getTopLevel().getClasses().get("str"));
 		integerType = new TObject(model.getTopLevel().getClasses().get("int"));
 		listType = new TObject(model.getTopLevel().getClasses().get("list"));
-		noneType = new TObject(model.getTopLevel().getClasses().get(
-				"__BuiltinNoneType__"));
+		tupleType = new TObject(model.getTopLevel().getClasses().get("tuple"));
+		dictType = new TObject(model.getTopLevel().getClasses().get("dict"));
+		noneType = new TObject(model.getTopLevel().getClasses()
+				.get("__BuiltinNoneType__"));
 		engine = new ZeroCfaTypeEngine();
 	}
 
@@ -72,8 +78,8 @@ public class ZeroCfaTypeEngineTest {
 		Result<Type> type = engine.typeOf(((Expr) literal.getNode()).value,
 				literal.getScope());
 
-		Type expectedType = new TObject(model.getTopLevel().getClasses().get(
-				expectedClassName));
+		Type expectedType = new TObject(model.getTopLevel().getClasses()
+				.get(expectedClassName));
 
 		assertEquals("Target of " + literalName.toLowerCase()
 				+ " literal's type not inferred correctly",
@@ -301,21 +307,22 @@ public class ZeroCfaTypeEngineTest {
 	 * Infer a type based on assignment from a constructor.
 	 */
 	@Test
-	public void constructor() throws Throwable {
-		ScopedPrintNode node = findPrintNode("constructor", "what_is_a");
+	public void constructorResult() throws Throwable {
+		String testName = "constructor_result";
+		ScopedPrintNode node = findPrintNode(testName, "what_is_a");
 		Result<Type> type = engine
 				.typeOf(node.getExpression(), node.getScope());
 
 		assertEquals("Variable's type not inferred correctly",
-				typeJudgement(new TObject(node.getGlobalNamespace()
-						.getClasses().get("A"))), type);
+				typeJudgement(new TObject(topLevelClasses(node).get("A"))),
+				type);
 
-		node = findPrintNode("constructor", "what_is_b");
+		node = findPrintNode(testName, "what_is_b");
 		type = engine.typeOf(node.getExpression(), node.getScope());
 
 		assertEquals("Variable's type not inferred correctly",
-				typeJudgement(new TObject(node.getGlobalNamespace()
-						.getClasses().get("A"))), type);
+				typeJudgement(new TObject(topLevelClasses(node).get("A"))),
+				type);
 	}
 
 	/**
@@ -330,8 +337,8 @@ public class ZeroCfaTypeEngineTest {
 				.typeOf(node.getExpression(), node.getScope());
 
 		assertEquals("Variable's type not inferred correctly",
-				typeJudgement(new TObject(node.getGlobalNamespace()
-						.getClasses().get("A"))), type);
+				typeJudgement(new TObject(topLevelClasses(node).get("A"))),
+				type);
 
 		node = findPrintNode("constructor_vs_instance", "what_is_b");
 		type = engine.typeOf(node.getExpression(), node.getScope());
@@ -352,13 +359,13 @@ public class ZeroCfaTypeEngineTest {
 				.typeOf(node.getExpression(), node.getScope());
 
 		assertEquals("W not inferred as a metaclass", typeJudgement(new TClass(
-				node.getGlobalNamespace().getClasses().get("W"))), type);
+				topLevelClasses(node).get("W"))), type);
 
 		node = findPrintNode("metaclass", "am_i_also_a_class");
 		type = engine.typeOf(node.getExpression(), node.getScope());
 
 		assertEquals("W not inferred as a metaclass", typeJudgement(new TClass(
-				node.getGlobalNamespace().getClasses().get("W"))), type);
+				topLevelClasses(node).get("W"))), type);
 
 		node = findPrintNode("metaclass", "am_i_an_instance");
 		type = engine.typeOf(node.getExpression(), node.getScope());
@@ -366,7 +373,7 @@ public class ZeroCfaTypeEngineTest {
 		assertEquals("Variable's type not inferred correctly. This probably "
 				+ "means it gave the type of a class instance the type "
 				+ "of the class object (metaclass)", typeJudgement(new TObject(
-				node.getGlobalNamespace().getClasses().get("W"))), type);
+				topLevelClasses(node).get("W"))), type);
 
 		node = findPrintNode("metaclass", "am_i_also_an_instance");
 		type = engine.typeOf(node.getExpression(), node.getScope());
@@ -374,7 +381,7 @@ public class ZeroCfaTypeEngineTest {
 		assertEquals("Variable's type not inferred correctly. This probably "
 				+ "means it gave the type of a class instance the type "
 				+ "of the class object (metaclass)", typeJudgement(new TObject(
-				node.getGlobalNamespace().getClasses().get("W"))), type);
+				topLevelClasses(node).get("W"))), type);
 	}
 
 	/**
@@ -385,8 +392,8 @@ public class ZeroCfaTypeEngineTest {
 		ScopedPrintNode node = findPrintNode("function", "what_am_i");
 		Result<Type> type = engine
 				.typeOf(node.getExpression(), node.getScope());
-		Set<Type> expectedType = typeJudgement(new TFunction(node
-				.getGlobalNamespace().getFunctions().get("f")));
+		Set<Type> expectedType = typeJudgement(new TFunction(topLevelFunctions(
+				node).get("f")));
 
 		assertEquals("Function type not inferred correctly", expectedType, type);
 	}
@@ -401,7 +408,7 @@ public class ZeroCfaTypeEngineTest {
 		Result<Type> type = engine
 				.typeOf(node.getExpression(), node.getScope());
 
-		Class klass = node.getGlobalNamespace().getClasses().get("A");
+		Class klass = topLevelClasses(node).get("A");
 		FunctionCO unboundMethod = klass.getFunctions().get("method")
 				.codeObject();
 		Set<Type> expectedBoundType = typeJudgement(new TBoundMethod(
@@ -432,7 +439,7 @@ public class ZeroCfaTypeEngineTest {
 		Result<Type> type = engine
 				.typeOf(node.getExpression(), node.getScope());
 
-		Class klass = node.getGlobalNamespace().getClasses().get("A");
+		Class klass = topLevelClasses(node).get("A");
 		FunctionCO unboundMethod = klass.getFunctions().get("g").codeObject();
 		Set<Type> expectedType = typeJudgement(new TBoundMethod(unboundMethod,
 				new TObject(klass.codeObject())));
@@ -472,8 +479,8 @@ public class ZeroCfaTypeEngineTest {
 
 		Set<Type> expectedType = new HashSet<Type>();
 		expectedType.add(integerType);
-		expectedType.add(new TObject(node.getGlobalNamespace().getFunctions()
-				.get("f").getClasses().get("X")));
+		expectedType.add(new TObject(topLevelFunctions(node).get("f")
+				.getClasses().get("X")));
 
 		assertEquals("Function return's type not inferred correctly",
 				expectedType, type);
@@ -493,8 +500,8 @@ public class ZeroCfaTypeEngineTest {
 		Set<Type> expectedType = new HashSet<Type>();
 		expectedType.add(stringType);
 		expectedType.add(integerType);
-		expectedType.add(new TObject(node.getGlobalNamespace().getFunctions()
-				.get("f").getClasses().get("X")));
+		expectedType.add(new TObject(topLevelFunctions(node).get("f")
+				.getClasses().get("X")));
 
 		assertEquals("Function return's type not inferred correctly",
 				expectedType, type);
@@ -567,7 +574,7 @@ public class ZeroCfaTypeEngineTest {
 	}
 
 	@Test
-	public void globalDefinedInOtherModule() throws Throwable {
+	public void globalRedefinedInOtherModule() throws Throwable {
 		doGlobalTest("global_redefined_in_other_module",
 				"what_am_i_before_import");
 		doGlobalTest("global_redefined_in_other_module",
@@ -635,57 +642,139 @@ public class ZeroCfaTypeEngineTest {
 
 	@Test
 	public void methodParameterSelf() throws Throwable {
-		ScopedPrintNode node = findPrintNode("method_parameter_self",
-				"what_am_i");
+		String testName = "method_parameter_self";
+		ScopedPrintNode node = findPrintNode(testName, "what_am_i");
+
 		Result<Type> type = engine
 				.typeOf(node.getExpression(), node.getScope());
-		Set<Type> expectedType = typeJudgement(new TObject(node
-				.getGlobalNamespace().getClasses().get("A")));
+		Set<Type> expectedType = typeJudgement(new TObject(
+				topLevelClasses(node).get("A")));
 
 		assertEquals("Method parameter's type not inferred correctly",
 				expectedType, type);
 	}
 
 	@Test
-	public void methodParameterSelfConstructor() throws Throwable {
-		ScopedPrintNode node = findPrintNode(
-				"method_parameter_self_constructor", "what_am_i");
+	public void methodParameterAssigned() throws Throwable {
+		String testName = "method_parameter_assigned";
+		ScopedPrintNode node = findPrintNode(testName, "what_am_i");
+
 		Result<Type> type = engine
 				.typeOf(node.getExpression(), node.getScope());
-		Set<Type> expectedType = typeJudgement(new TObject(node
-				.getGlobalNamespace().getClasses().get("A")));
+		Set<Type> expectedType = typeJudgement(integerType);
 
-		assertEquals("Constructor parameter's type not inferred correctly",
+		assertEquals("Method parameter's type not inferred correctly",
 				expectedType, type);
 	}
 
 	@Test
-	public void methodParameterSelfConstructorByAssignment() throws Throwable {
-		ScopedPrintNode node = findPrintNode(
-				"method_parameter_self_constructor_by_assignment", "what_am_i");
+	public void methodParameterSelfAssigned() throws Throwable {
+		String testName = "method_parameter_self_assigned";
+		ScopedPrintNode node = findPrintNode(testName, "what_am_i");
+
 		Result<Type> type = engine
 				.typeOf(node.getExpression(), node.getScope());
-		Set<Type> expectedType = typeJudgement(new TObject(node
-				.getGlobalNamespace().getClasses().get("A")));
+		Set<Type> expectedType = typeJudgement(new TObject(
+				topLevelClasses(node).get("A")));
 
-		assertEquals("Constructor parameter's type not inferred "
-				+ "correctly. The analysis probably missed the "
-				+ "constructor being declared outside the "
-				+ "class and inserted by assignment.", expectedType, type);
+		assertEquals("Method parameter's type not inferred correctly",
+				expectedType, type);
 	}
 
 	@Test
 	public void methodParameterInherited() throws Throwable {
-		ScopedPrintNode node = findPrintNode("method_parameter_inherited",
-				"what_am_i");
+		String testName = "method_parameter_inherited";
+		ScopedPrintNode node = findPrintNode(testName, "what_am_i");
+
 		Result<Type> type = engine
 				.typeOf(node.getExpression(), node.getScope());
 
 		Set<Type> expectedType = new HashSet<Type>();
-		expectedType.add(new TObject(node.getGlobalNamespace().getClasses()
-				.get("A")));
-		expectedType.add(new TObject(node.getGlobalNamespace().getClasses()
-				.get("B")));
+		expectedType.add(dictType);
+		expectedType.add(stringType);
+
+		assertEquals("'Parameter type not inferred correctly. "
+				+ "This probably means it failed to realise that 'm' is "
+				+ "called from a subclass instance.", expectedType, type);
+	}
+
+	@Test
+	public void methodParameterInheritedAssigned1() throws Throwable {
+		String testName = "method_parameter_inherited_assigned1";
+		ScopedPrintNode node = findPrintNode(testName, "what_am_i");
+
+		Result<Type> type = engine
+				.typeOf(node.getExpression(), node.getScope());
+
+		Set<Type> expectedType = new HashSet<Type>();
+		expectedType.add(listType);
+
+		assertEquals("Parameter type not inferred correctly. "
+				+ "This probably means it failed to realise that 'm' is "
+				+ "called from a subclass instance.", expectedType, type);
+	}
+
+	@Test
+	public void methodParameterInheritedAssigned2() throws Throwable {
+		String testName = "method_parameter_inherited_assigned2";
+		ScopedPrintNode node = findPrintNode(testName, "what_am_i");
+
+		Result<Type> type = engine
+				.typeOf(node.getExpression(), node.getScope());
+
+		Set<Type> expectedType = new HashSet<Type>();
+		expectedType.add(listType);
+
+		assertEquals("Parameter type not inferred correctly. "
+				+ "This probably means it failed to realise that 'm' is "
+				+ "called from a subclass instance.", expectedType, type);
+	}
+
+	@Test
+	public void methodParameterInheritedSelf() throws Throwable {
+		String testName = "method_parameter_inherited_self";
+		ScopedPrintNode node = findPrintNode(testName, "what_am_i");
+
+		Result<Type> type = engine
+				.typeOf(node.getExpression(), node.getScope());
+
+		Set<Type> expectedType = new HashSet<Type>();
+		expectedType.add(new TObject(topLevelClasses(node).get("A")));
+		expectedType.add(new TObject(topLevelClasses(node).get("B")));
+
+		assertEquals("'self' parameter type not inferred correctly. "
+				+ "This probably means it failed to realise that 'm' is "
+				+ "called from a subclass instance so self also has the "
+				+ "subclass type.", expectedType, type);
+	}
+
+	@Test
+	public void methodParameterInheritedSelfAssigned1() throws Throwable {
+		String testName = "method_parameter_inherited_self_assigned1";
+		ScopedPrintNode node = findPrintNode(testName, "what_am_i");
+
+		Result<Type> type = engine
+				.typeOf(node.getExpression(), node.getScope());
+
+		Set<Type> expectedType = new HashSet<Type>();
+		expectedType.add(new TObject(topLevelClasses(node).get("B")));
+
+		assertEquals("'self' parameter type not inferred correctly. "
+				+ "This probably means it failed to realise that 'm' is "
+				+ "called from a subclass instance so self also has the "
+				+ "subclass type.", expectedType, type);
+	}
+
+	@Test
+	public void methodParameterInheritedSelfAssigned2() throws Throwable {
+		String testName = "method_parameter_inherited_self_assigned2";
+		ScopedPrintNode node = findPrintNode(testName, "what_am_i");
+
+		Result<Type> type = engine
+				.typeOf(node.getExpression(), node.getScope());
+
+		Set<Type> expectedType = new HashSet<Type>();
+		expectedType.add(new TObject(topLevelClasses(node).get("B")));
 
 		assertEquals("'self' parameter type not inferred correctly. "
 				+ "This probably means it failed to realise that 'm' is "
@@ -695,37 +784,37 @@ public class ZeroCfaTypeEngineTest {
 
 	@Test
 	public void methodParameterInheritedAbstract() throws Throwable {
-		ScopedPrintNode node = findPrintNode(
-				"method_parameter_inherited_abstract", "what_am_i");
+		String testName = "method_parameter_inherited_abstract";
+		ScopedPrintNode node = findPrintNode(testName, "what_am_i");
+
 		Result<Type> type = engine
 				.typeOf(node.getExpression(), node.getScope());
 
 		Set<Type> expectedType = new HashSet<Type>();
-		expectedType.add(new TObject(node.getGlobalNamespace().getClasses()
-				.get("Concrete")));
+		expectedType.add(listType);
+
+		assertEquals("Oarameter type not inferred correctly. "
+				+ "This probably means it failed to realise that the super "
+				+ "class is never instantiated and 'm' is only "
+				+ "called from a subclass instance.", expectedType, type);
+	}
+
+	@Test
+	public void methodParameterInheritedAbstractSelf() throws Throwable {
+		String testName = "method_parameter_inherited_abstract_self";
+		ScopedPrintNode node = findPrintNode(testName, "what_am_i");
+
+		Result<Type> type = engine
+				.typeOf(node.getExpression(), node.getScope());
+
+		Set<Type> expectedType = new HashSet<Type>();
+		expectedType.add(new TObject(topLevelClasses(node).get("Concrete")));
 
 		assertEquals("'self' parameter type not inferred correctly. "
 				+ "This probably means it failed to realise that the super "
 				+ "class is never instantiated and 'm' is only "
 				+ "called from a subclass instance so self only has the "
 				+ "subclass type.", expectedType, type);
-	}
-
-	@Test
-	public void methodParameterInheritedConstructor() throws Throwable {
-		ScopedPrintNode node = findPrintNode(
-				"method_parameter_inherited_constructor", "what_am_i");
-		Result<Type> type = engine
-				.typeOf(node.getExpression(), node.getScope());
-
-		Set<Type> expectedType = new HashSet<Type>();
-		expectedType.add(new TObject(node.getGlobalNamespace().getClasses()
-				.get("S")));
-
-		assertEquals("'self' parameter type not inferred correctly. "
-				+ "This probably means it failed to realise that the "
-				+ "constructor is called from the subclass.", expectedType,
-				type);
 	}
 
 	@Test
@@ -771,6 +860,70 @@ public class ZeroCfaTypeEngineTest {
 				+ "when called explictly. Maybe it only treated the "
 				+ "constructor specially and forgot to look for "
 				+ "explicit calls to __init__.", expectedType, type);
+	}
+
+	@Test
+	public void constructorParameterSelf() throws Throwable {
+		String testName = "constructor_parameter_self";
+		ScopedPrintNode node = findPrintNode(testName, "what_am_i");
+
+		Result<Type> type = engine
+				.typeOf(node.getExpression(), node.getScope());
+		Set<Type> expectedType = typeJudgement(new TObject(
+				topLevelClasses(node).get("A")));
+
+		assertEquals("Constructor parameter's type not inferred correctly",
+				expectedType, type);
+	}
+
+	@Test
+	public void constructorParameterSelfAssigned() throws Throwable {
+		String testName = "constructor_parameter_self_assigned";
+		ScopedPrintNode node = findPrintNode(testName, "what_am_i");
+
+		Result<Type> type = engine
+				.typeOf(node.getExpression(), node.getScope());
+		Set<Type> expectedType = typeJudgement(new TObject(
+				topLevelClasses(node).get("A")));
+
+		assertEquals("Constructor parameter's type not inferred "
+				+ "correctly. The analysis probably missed the "
+				+ "constructor being declared outside the "
+				+ "class and inserted by assignment.", expectedType, type);
+	}
+
+	@Test
+	public void constructorParameterInherited() throws Throwable {
+		String testName = "constructor_parameter_inherited";
+		ScopedPrintNode node = findPrintNode(testName, "what_am_i");
+
+		Result<Type> type = engine
+				.typeOf(node.getExpression(), node.getScope());
+
+		Set<Type> expectedType = new HashSet<Type>();
+		expectedType.add(tupleType);
+
+		assertEquals("Parameter type not inferred correctly. "
+				+ "This probably means it failed to realise that the "
+				+ "constructor is called from the subclass.", expectedType,
+				type);
+	}
+
+	@Test
+	public void constructorParameterInheritedSelf() throws Throwable {
+		String testName = "constructor_parameter_inherited_self";
+		ScopedPrintNode node = findPrintNode(testName, "what_am_i");
+
+		Result<Type> type = engine
+				.typeOf(node.getExpression(), node.getScope());
+
+		Set<Type> expectedType = new HashSet<Type>();
+		expectedType.add(new TObject(topLevelClasses(node).get("S")));
+
+		assertEquals("'self' parameter type not inferred correctly. "
+				+ "This probably means it failed to realise that the "
+				+ "constructor is called from the subclass.", expectedType,
+				type);
 	}
 
 	@Test
@@ -955,8 +1108,7 @@ public class ZeroCfaTypeEngineTest {
 		Set<Type> expectedType = new HashSet<Type>();
 		expectedType.add(stringType);
 		Class x = model
-				.lookup(
-						"function_parameter_called_from_other_module_through_class_aux")
+				.lookup("function_parameter_called_from_other_module_through_class_aux")
 				.getClasses().get("X");
 		expectedType.add(new TObject(x));
 
@@ -1113,8 +1265,7 @@ public class ZeroCfaTypeEngineTest {
 
 		Set<Type> expectedType = new HashSet<Type>();
 		expectedType.add(stringType);
-		expectedType.add(new TObject(node.getGlobalNamespace().getClasses()
-				.get("X")));
+		expectedType.add(new TObject(topLevelClasses(node).get("X")));
 
 		assertEquals("Function parameter's type not inferred "
 				+ "correctly. This probably means that the analysis didn't "
@@ -1132,8 +1283,7 @@ public class ZeroCfaTypeEngineTest {
 
 		Set<Type> expectedType = new HashSet<Type>();
 		expectedType.add(stringType);
-		expectedType.add(new TObject(node.getGlobalNamespace().getClasses()
-				.get("X")));
+		expectedType.add(new TObject(topLevelClasses(node).get("X")));
 
 		assertEquals("Function parameter's type not inferred "
 				+ "correctly. This probably means that the analysis didn't "
@@ -1191,8 +1341,7 @@ public class ZeroCfaTypeEngineTest {
 		expectedType.add(stringType);
 		expectedType.add(integerType);
 		expectedType.add(listType);
-		expectedType.add(new TObject(node.getGlobalNamespace().getClasses()
-				.get("A")));
+		expectedType.add(new TObject(topLevelClasses(node).get("A")));
 
 		assertEquals("Attribute's type not inferred correctly", expectedType,
 				type);
@@ -1300,8 +1449,8 @@ public class ZeroCfaTypeEngineTest {
 		Result<Type> type = engine
 				.typeOf(node.getExpression(), node.getScope());
 
-		Set<Type> expectedType = typeJudgement(new TModule(model
-				.lookup("import_module_aux")));
+		Set<Type> expectedType = typeJudgement(new TModule(
+				model.lookup("import_module_aux")));
 
 		assertEquals("Imported module's type not inferred correctly",
 				expectedType, type);
@@ -1315,8 +1464,8 @@ public class ZeroCfaTypeEngineTest {
 		Result<Type> type = engine
 				.typeOf(node.getExpression(), node.getScope());
 
-		Set<Type> expectedType = typeJudgement(new TModule(model
-				.lookup("import_module_aux")));
+		Set<Type> expectedType = typeJudgement(new TModule(
+				model.lookup("import_module_aux")));
 
 		assertEquals("Imported module's type not inferred correctly",
 				expectedType, type);
@@ -1330,8 +1479,8 @@ public class ZeroCfaTypeEngineTest {
 		Result<Type> type = engine
 				.typeOf(node.getExpression(), node.getScope());
 
-		Set<Type> expectedType = typeJudgement(new TFunction(model.lookup(
-				"import_function_aux").getFunctions().get("fun")));
+		Set<Type> expectedType = typeJudgement(new TFunction(model
+				.lookup("import_function_aux").getFunctions().get("fun")));
 
 		assertEquals("Imported function's type not inferred correctly",
 				expectedType, type);
@@ -1345,8 +1494,8 @@ public class ZeroCfaTypeEngineTest {
 		Result<Type> type = engine
 				.typeOf(node.getExpression(), node.getScope());
 
-		Set<Type> expectedType = typeJudgement(new TFunction(model.lookup(
-				"import_function_aux").getFunctions().get("fun")));
+		Set<Type> expectedType = typeJudgement(new TFunction(model
+				.lookup("import_function_aux").getFunctions().get("fun")));
 
 		assertEquals("Imported function's type not inferred correctly",
 				expectedType, type);
@@ -1376,11 +1525,11 @@ public class ZeroCfaTypeEngineTest {
 		Result<Type> type = engine
 				.typeOf(node.getExpression(), node.getScope());
 
-		Class superclass = node.getGlobalNamespace().getClasses().get("B");
+		Class superclass = topLevelClasses(node).get("B");
 		FunctionCO unboundMethod = superclass.getFunctions().get("m")
 				.codeObject();
 
-		Class klass = node.getGlobalNamespace().getClasses().get("C");
+		Class klass = topLevelClasses(node).get("C");
 		Set<Type> expectedType = typeJudgement(new TBoundMethod(unboundMethod,
 				new TObject(klass.codeObject())));
 
@@ -1391,7 +1540,7 @@ public class ZeroCfaTypeEngineTest {
 		node = findPrintNode(testName, "what_am_i_grandparent");
 		type = engine.typeOf(node.getExpression(), node.getScope());
 
-		klass = node.getGlobalNamespace().getClasses().get("D");
+		klass = topLevelClasses(node).get("D");
 		expectedType = typeJudgement(new TBoundMethod(unboundMethod,
 				new TObject(klass.codeObject())));
 
@@ -1408,12 +1557,12 @@ public class ZeroCfaTypeEngineTest {
 		Result<Type> type = engine
 				.typeOf(node.getExpression(), node.getScope());
 
-		Class klassA = node.getGlobalNamespace().getClasses().get("A");
+		Class klassA = topLevelClasses(node).get("A");
 		FunctionCO unboundMethodA = klassA.getFunctions().get("m").codeObject();
 		Set<Type> am = typeJudgement(new TBoundMethod(unboundMethodA,
 				new TObject(klassA.codeObject())));
 
-		Class klassB = node.getGlobalNamespace().getClasses().get("B");
+		Class klassB = topLevelClasses(node).get("B");
 		FunctionCO unboundMethodB = klassB.getFunctions().get("m").codeObject();
 		Set<Type> bm = typeJudgement(new TBoundMethod(unboundMethodB,
 				new TObject(klassB.codeObject())));
@@ -1430,7 +1579,7 @@ public class ZeroCfaTypeEngineTest {
 				+ "that it is excluded because it is overridden.", bm, type);
 
 		node = findPrintNode(testName, "what_am_i_parent");
-		Class klassC = node.getGlobalNamespace().getClasses().get("C");
+		Class klassC = topLevelClasses(node).get("C");
 		Set<Type> cm = typeJudgement(new TBoundMethod(unboundMethodB,
 				new TObject(klassC.codeObject())));
 		type = engine.typeOf(node.getExpression(), node.getScope());
@@ -1439,7 +1588,7 @@ public class ZeroCfaTypeEngineTest {
 				+ "Probably forgot to look in the superclass.", cm, type);
 
 		node = findPrintNode(testName, "what_am_i_grandparent");
-		Class klassD = node.getGlobalNamespace().getClasses().get("D");
+		Class klassD = topLevelClasses(node).get("D");
 		Set<Type> dm = typeJudgement(new TBoundMethod(unboundMethodB,
 				new TObject(klassD.codeObject())));
 		type = engine.typeOf(node.getExpression(), node.getScope());
@@ -1538,8 +1687,8 @@ public class ZeroCfaTypeEngineTest {
 
 		assertEquals("Object probably not tracked through other "
 				+ "object's member because it is defined in one code "
-				+ "object and accessed in another.", Collections
-				.singleton(integerType), type);
+				+ "object and accessed in another.",
+				Collections.singleton(integerType), type);
 	}
 
 	@Test
@@ -1549,8 +1698,8 @@ public class ZeroCfaTypeEngineTest {
 		ScopedPrintNode node = findPrintNode(testName, "what_am_i");
 		Result<Type> type = engine
 				.typeOf(node.getExpression(), node.getScope());
-		Set<Type> expectedType = Collections.<Type> singleton(new TObject(node
-				.getGlobalNamespace().getClasses().get("S").codeObject()));
+		Set<Type> expectedType = Collections.<Type> singleton(new TObject(
+				topLevelClasses(node).get("S").codeObject()));
 
 		assertEquals("'self' probably not tracked properly as it arrives "
 				+ "through a 'virtual' call.", expectedType, type);
@@ -1569,5 +1718,13 @@ public class ZeroCfaTypeEngineTest {
 
 	private Set<Type> typeJudgement(Type... types) {
 		return new HashSet<Type>(Arrays.asList(types));
+	}
+
+	private Map<String, Class> topLevelClasses(ScopedPrintNode node) {
+		return node.getGlobalNamespace().getClasses();
+	}
+
+	private Map<String, Function> topLevelFunctions(ScopedPrintNode node) {
+		return node.getGlobalNamespace().getFunctions();
 	}
 }

@@ -2,11 +2,11 @@
 # Abstract class
 
 class Abstract:
-	def m(self, a):
-		print a # what_am_i
+	def m(self):
+		print self # what_am_i
 
 class Concrete(Abstract):
 	pass
 
 x = Concrete()
-x.m([])
+x.m()

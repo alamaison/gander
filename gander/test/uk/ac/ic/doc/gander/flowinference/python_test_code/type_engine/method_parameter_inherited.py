@@ -1,12 +1,12 @@
 class A:
-	def m(self):
-		print self # what_am_i
+	def m(self, a):
+		print a # what_am_i
 
 class B(A):
 	pass
 
 a = A()
-a.m()
+a.m("Hello")
 
 b = B()
-b.m()
+b.m({})

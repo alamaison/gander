@@ -56,6 +56,8 @@ public final class ScopedPrintNode {
 			throws Exception {
 
 		module = model.loadModule(moduleName);
+		assertTrue("Test error: Module '" + moduleName + "' not found",
+				module != null);
 		node = findNode(module.codeObject(), tag);
 	}
 
