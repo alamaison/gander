@@ -43,10 +43,12 @@ public class DefaultModel implements MutableModel {
 		return topLevelPackage;
 	}
 
+	@Deprecated
 	public Module lookup(String importName) {
 		return lookup(DottedName.toImportTokens(importName));
 	}
 
+	@Deprecated
 	public Module lookup(List<String> importNameTokens) {
 		return getTopLevel().lookup(importNameTokens);
 	}

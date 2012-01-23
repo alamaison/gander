@@ -7,13 +7,15 @@ import uk.ac.ic.doc.gander.model.codeobject.CodeObject;
 import uk.ac.ic.doc.gander.model.codeobject.ModuleCO;
 
 public interface Model {
-
-	public abstract Module getTopLevel();
-
-	public abstract Module lookup(String importName);
 	
 	ModuleCO lookup(ImportPath path);
 
+	public abstract Module getTopLevel();
+
+	@Deprecated
+	public abstract Module lookup(String importName);
+
+	@Deprecated
 	public abstract Module lookup(List<String> importNameTokens);
 
 	public abstract Namespace intrinsicNamespace(CodeObject codeObject);

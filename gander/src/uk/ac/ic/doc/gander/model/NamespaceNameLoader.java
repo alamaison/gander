@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import uk.ac.ic.doc.gander.DottedName;
+import uk.ac.ic.doc.gander.importing.ImportPath;
 import uk.ac.ic.doc.gander.importing.ImportSimulator.Loader;
 import uk.ac.ic.doc.gander.model.codeobject.ModuleCO;
 
@@ -38,12 +39,7 @@ public final class NamespaceNameLoader implements
 	}
 
 	public ModuleCO loadModule(List<String> importPath) {
-		Module module = model.lookup(importPath);
-		if (module != null) {
-			return module.codeObject();
-		} else {
-			return null;
-		}
+		return model.lookup(ImportPath.fromTokens(importPath));
 	}
 
 	public NamespaceName loadNonModuleMember(String itemName,

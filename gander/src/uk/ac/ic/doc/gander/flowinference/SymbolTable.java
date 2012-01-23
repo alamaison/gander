@@ -17,6 +17,7 @@ import uk.ac.ic.doc.gander.flowinference.types.TClass;
 import uk.ac.ic.doc.gander.flowinference.types.TFunction;
 import uk.ac.ic.doc.gander.flowinference.types.Type;
 import uk.ac.ic.doc.gander.importing.ImportFactory;
+import uk.ac.ic.doc.gander.importing.ImportPath;
 import uk.ac.ic.doc.gander.importing.ImportSimulator;
 import uk.ac.ic.doc.gander.model.Class;
 import uk.ac.ic.doc.gander.model.Function;
@@ -201,8 +202,9 @@ public class SymbolTable {
 
 						// FIXME: container is not the location of the symbol;
 						// should resolve
-						SymbolTable.this.put(container
-								.oldStyleConflatedNamespace(), name, type);
+						SymbolTable.this.put(
+								container.oldStyleConflatedNamespace(), name,
+								type);
 					}
 				}), new NamespaceNameLoader(model));
 	}
@@ -216,7 +218,7 @@ public class SymbolTable {
 			// imports would already have been loaded. This is something we rely
 			// on when resolving the import name to a parsed SourceFile object
 			// later.
-			assert model.lookup(pkg.getFullName()) != null;
+			assert model.lookup(ImportPath.fromDottedName(pkg.getFullName())) != null;
 
 			processScope(pkg);
 		}

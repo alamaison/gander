@@ -9,9 +9,11 @@ import uk.ac.ic.doc.gander.flowinference.result.FiniteResult;
 import uk.ac.ic.doc.gander.flowinference.result.Result;
 import uk.ac.ic.doc.gander.flowinference.types.TModule;
 import uk.ac.ic.doc.gander.flowinference.types.Type;
+import uk.ac.ic.doc.gander.importing.ImportPath;
 import uk.ac.ic.doc.gander.model.Model;
 import uk.ac.ic.doc.gander.model.Module;
 import uk.ac.ic.doc.gander.model.NamespaceName;
+import uk.ac.ic.doc.gander.model.codeobject.ModuleCO;
 
 public final class ImportTypeMapper {
 
@@ -23,7 +25,7 @@ public final class ImportTypeMapper {
 
 	public Result<Type> typeImport(Model model, String importPath) {
 
-		Module module = model.lookup(importPath);
+		ModuleCO module = model.lookup(ImportPath.fromDottedName(importPath));
 
 		/*
 		 * TODO: in theory this could resolve to more than one module but the
@@ -34,7 +36,7 @@ public final class ImportTypeMapper {
 			return TopT.INSTANCE;
 		} else {
 			return new FiniteResult<Type>(Collections.singleton(new TModule(
-					module.codeObject())));
+					module)));
 		}
 	}
 
@@ -42,7 +44,8 @@ public final class ImportTypeMapper {
 
 		List<String> tokens = DottedName.toImportTokens(importPath);
 
-		Module module = model.lookup(tokens.subList(0, tokens.size() - 1));
+		ModuleCO module = model.lookup(ImportPath.fromTokens(tokens.subList(0,
+				tokens.size() - 1)));
 
 		if (module == null) {
 			return TopT.INSTANCE;
@@ -68,14 +71,16 @@ public final class ImportTypeMapper {
 	 *            the name of the item being imported
 	 * @return the type of the item
 	 */
-	private Result<Type> fromStyleType(Module module, String itemName) {
-		Module submodule = module.getModules().get(itemName);
+	private Result<Type> fromStyleType(ModuleCO module, String itemName) {
+		Module submodule = module.oldStyleConflatedNamespace().getModules()
+				.get(itemName);
 		if (submodule != null) {
 			return new FiniteResult<Type>(Collections.singleton(new TModule(
 					submodule.codeObject())));
 		} else {
 			return goalManager.registerSubgoal(new NamespaceNameTypeGoal(
-					new NamespaceName(itemName, module)));
+					new NamespaceName(itemName, module
+							.oldStyleConflatedNamespace())));
 		}
 	}
 }
