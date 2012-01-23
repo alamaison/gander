@@ -37,8 +37,8 @@ final class AssignmentSituation implements FlowSituation {
 		Set<FlowPosition> positions = new HashSet<FlowPosition>();
 
 		for (exprType lhsTarget : node.targets) {
-			positions.add(new ExpressionPosition<exprType>(
-					new ModelSite<exprType>(lhsTarget, site.codeObject())));
+			positions.add(new ExpressionPosition(new ModelSite<exprType>(
+					lhsTarget, site.codeObject())));
 		}
 
 		return new FiniteResult<FlowPosition>(positions);

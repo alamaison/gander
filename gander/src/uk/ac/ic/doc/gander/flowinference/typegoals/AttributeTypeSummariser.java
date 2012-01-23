@@ -24,8 +24,7 @@ final class AttributeTypeSummariser {
 	private final SubgoalManager goalManager;
 	private final String attributeName;
 
-	AttributeTypeSummariser(
-			Result<ModelSite<? extends exprType>> namespaceReferences,
+	AttributeTypeSummariser(Result<ModelSite<exprType>> namespaceReferences,
 			String attributeName, SubgoalManager goalManager) {
 		assert namespaceReferences != null;
 		assert !attributeName.isEmpty();
@@ -41,8 +40,7 @@ final class AttributeTypeSummariser {
 		return typeSummary.result();
 	}
 
-	private class ReferenceProcessor implements
-			Processor<ModelSite<? extends exprType>> {
+	private class ReferenceProcessor implements Processor<ModelSite<exprType>> {
 
 		public void processInfiniteResult() {
 			/*
@@ -53,7 +51,7 @@ final class AttributeTypeSummariser {
 		}
 
 		public void processFiniteResult(
-				Set<ModelSite<? extends exprType>> namespaceReferences) {
+				Set<ModelSite<exprType>> namespaceReferences) {
 
 			/*
 			 * Collect the expressions that access our named attribute on an

@@ -71,7 +71,7 @@ public final class ModuleNamespace implements Module {
 	 * A module's execution namespace is accessible by attribute access on any
 	 * expression that the module code object can reach.
 	 */
-	public Result<ModelSite<? extends exprType>> references(
+	public Result<ModelSite<exprType>> references(
 			SubgoalManager goalManager) {
 
 		return goalManager.registerSubgoal(new FlowGoal(

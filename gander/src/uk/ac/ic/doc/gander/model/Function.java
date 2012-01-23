@@ -52,7 +52,7 @@ public final class Function implements Namespace {
 	 * The namespace in which a function executes is never accessible via
 	 * attribute access.
 	 */
-	public Result<ModelSite<? extends exprType>> references(
+	public Result<ModelSite<exprType>> references(
 			SubgoalManager goalManager) {
 		return FiniteResult.bottom();
 	}

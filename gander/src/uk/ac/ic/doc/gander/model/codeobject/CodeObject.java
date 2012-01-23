@@ -1,7 +1,5 @@
 package uk.ac.ic.doc.gander.model.codeobject;
 
-import java.util.Set;
-
 import org.python.pydev.parser.jython.SimpleNode;
 
 import uk.ac.ic.doc.gander.model.Model;

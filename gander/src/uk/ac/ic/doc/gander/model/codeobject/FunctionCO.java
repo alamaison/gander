@@ -221,8 +221,7 @@ final class FunctionObjectNamespace implements Namespace {
 	 * A function object's namespace is accessible by attribute reference from
 	 * anywhere the function object flows to.
 	 */
-	public Result<ModelSite<? extends exprType>> references(
-			SubgoalManager goalManager) {
+	public Result<ModelSite<exprType>> references(SubgoalManager goalManager) {
 		return goalManager.registerSubgoal(new FlowGoal(
 				new CodeObjectDefinitionPosition(codeObject)));
 	}

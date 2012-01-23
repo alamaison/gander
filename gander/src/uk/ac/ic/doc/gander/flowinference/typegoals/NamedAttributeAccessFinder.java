@@ -20,7 +20,7 @@ final class NamedAttributeAccessFinder {
 	private final Set<ModelSite<Attribute>> matchingAttributes = new HashSet<ModelSite<Attribute>>();
 
 	NamedAttributeAccessFinder(
-			Set<ModelSite<? extends exprType>> namespacePositions,
+			Set<? extends ModelSite<? extends exprType>> namespacePositions,
 			String attributeName) {
 		assert namespacePositions != null;
 		

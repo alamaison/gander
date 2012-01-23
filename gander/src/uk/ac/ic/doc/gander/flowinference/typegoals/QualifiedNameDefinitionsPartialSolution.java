@@ -37,7 +37,7 @@ final class QualifiedNameDefinitionsPartialSolution implements
 		 * that differ in their external accessibility
 		 */
 
-		Result<ModelSite<? extends exprType>> namespaceReferences = name
+		Result<ModelSite<exprType>> namespaceReferences = name
 				.namespace().references(goalManager);
 
 		inferredType = new AttributeTypeSummariser(namespaceReferences, name

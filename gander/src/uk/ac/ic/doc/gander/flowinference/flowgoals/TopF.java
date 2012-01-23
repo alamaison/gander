@@ -11,7 +11,7 @@ import uk.ac.ic.doc.gander.model.ModelSite;
  * Otherwise known as Top, this is used when the flow has 'escaped', in other
  * words when our analysis lost track of it.
  */
-public final class TopF extends Top<ModelSite<? extends exprType>> {
+public final class TopF extends Top<ModelSite<exprType>> {
 
 	public static final TopF INSTANCE = new TopF();
 

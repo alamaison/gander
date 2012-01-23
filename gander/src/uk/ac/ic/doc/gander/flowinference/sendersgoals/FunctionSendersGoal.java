@@ -69,15 +69,14 @@ public class FunctionSendersGoal implements SendersGoal {
 
 }
 
-final class FunctionSendersGoalSolver implements
-		Processor<ModelSite<? extends exprType>> {
+final class FunctionSendersGoalSolver implements Processor<ModelSite<exprType>> {
 
 	private Result<ModelSite<Call>> callSites;
 
 	public FunctionSendersGoalSolver(CallableCodeObject callable,
 			SubgoalManager goalManager) {
 
-		Result<ModelSite<? extends exprType>> callableObjectPositions = goalManager
+		Result<ModelSite<exprType>> callableObjectPositions = goalManager
 				.registerSubgoal(new FlowGoal(new CodeObjectDefinitionPosition(
 						callable)));
 		callableObjectPositions.actOnResult(this);
@@ -87,12 +86,13 @@ final class FunctionSendersGoalSolver implements
 		callSites = TopS.INSTANCE;
 	}
 
-	public void processFiniteResult(Set<ModelSite<? extends exprType>> positions) {
+	public void processFiniteResult(Set<ModelSite<exprType>> positions) {
 		Set<ModelSite<Call>> callSitePositions = new HashSet<ModelSite<Call>>();
 
-		for (ModelSite<? extends exprType> expression : positions) {
-			SimpleNode parent = AstParentNodeFinder.findParent(expression
-					.astNode(), expression.codeObject().ast());
+		for (ModelSite<exprType> expression : positions) {
+			
+			SimpleNode parent = AstParentNodeFinder.findParent(
+					expression.astNode(), expression.codeObject().ast());
 			if (parent instanceof Call) {
 				callSitePositions.add(new ModelSite<Call>((Call) parent,
 						expression.codeObject()));

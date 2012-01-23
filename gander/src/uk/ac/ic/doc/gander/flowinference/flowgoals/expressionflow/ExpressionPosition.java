@@ -8,25 +8,21 @@ import uk.ac.ic.doc.gander.model.ModelSite;
 
 /**
  * A flow position where the value has reached an expression.
- * 
- * @param <T>
- *            type of the expression's AST node
  */
-public final class ExpressionPosition<T extends exprType> implements
-		FlowPosition {
+public final class ExpressionPosition implements FlowPosition {
 
-	private final ModelSite<T> site;
+	private final ModelSite<? extends exprType> site;
 
-	public ExpressionPosition(ModelSite<T> site) {
+	public ExpressionPosition(ModelSite<? extends exprType> site) {
 		this.site = site;
 	}
 
-	public ModelSite<T> getSite() {
+	public ModelSite<? extends exprType> getSite() {
 		return site;
 	}
 
 	public FlowStepGoal nextStepGoal() {
-		return new ExpressionFlowStepGoal<T>(site);
+		return new ExpressionFlowStepGoal(site);
 	}
 
 	@Override
@@ -45,7 +41,7 @@ public final class ExpressionPosition<T extends exprType> implements
 			return false;
 		if (getClass() != obj.getClass())
 			return false;
-		ExpressionPosition<?> other = (ExpressionPosition<?>) obj;
+		ExpressionPosition other = (ExpressionPosition) obj;
 		if (site == null) {
 			if (other.site != null)
 				return false;

@@ -15,11 +15,11 @@ import uk.ac.ic.doc.gander.model.ModelSite;
 /**
  * Finds the next step of an expression's flow based on its flow situation.
  */
-final class ExpressionFlowStepGoal<T extends exprType> implements FlowStepGoal {
+final class ExpressionFlowStepGoal implements FlowStepGoal {
 
-	private final ModelSite<T> expression;
+	private final ModelSite<? extends exprType> expression;
 
-	public ExpressionFlowStepGoal(ModelSite<T> expression) {
+	public ExpressionFlowStepGoal(ModelSite<? extends exprType> expression) {
 		this.expression = expression;
 	}
 
@@ -29,7 +29,7 @@ final class ExpressionFlowStepGoal<T extends exprType> implements FlowStepGoal {
 
 	public Result<FlowPosition> recalculateSolution(SubgoalManager goalManager) {
 
-		return new ExpressionFlowStepGoalSolver<T>(expression, goalManager)
+		return new ExpressionFlowStepGoalSolver(expression, goalManager)
 				.solution();
 	}
 
@@ -50,7 +50,7 @@ final class ExpressionFlowStepGoal<T extends exprType> implements FlowStepGoal {
 			return false;
 		if (getClass() != obj.getClass())
 			return false;
-		ExpressionFlowStepGoal<?> other = (ExpressionFlowStepGoal<?>) obj;
+		ExpressionFlowStepGoal other = (ExpressionFlowStepGoal) obj;
 		if (expression == null) {
 			if (other.expression != null)
 				return false;
@@ -66,12 +66,12 @@ final class ExpressionFlowStepGoal<T extends exprType> implements FlowStepGoal {
 
 }
 
-final class ExpressionFlowStepGoalSolver<T extends exprType> {
+final class ExpressionFlowStepGoalSolver {
 
 	private final RedundancyEliminator<FlowPosition> nextPositions = new RedundancyEliminator<FlowPosition>();
 
-	public ExpressionFlowStepGoalSolver(ModelSite<T> expression,
-			SubgoalManager goalManager) {
+	public ExpressionFlowStepGoalSolver(
+			ModelSite<? extends exprType> expression, SubgoalManager goalManager) {
 
 		Set<FlowSituation> situations = FlowSituationFinder
 				.findFlowSituations(expression);

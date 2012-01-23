@@ -23,8 +23,7 @@ public interface Namespace extends Member {
 	 * @param goalManager
 	 *            allows us to use type inference to determine the result.
 	 */
-	public Result<ModelSite<? extends exprType>> references(
-			SubgoalManager goalManager);
+	public Result<ModelSite<exprType>> references(SubgoalManager goalManager);
 
 	/**
 	 * Returns the set of variables that can read the value of the given name in

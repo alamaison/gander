@@ -58,10 +58,9 @@ public final class Class implements Namespace {
 	 * is being read or written. Class namespaces members are readable via
 	 * instances but not writable via them.
 	 */
-	public Result<ModelSite<? extends exprType>> references(
-			SubgoalManager goalManager) {
+	public Result<ModelSite<exprType>> references(SubgoalManager goalManager) {
 
-		RedundancyEliminator<ModelSite<? extends exprType>> references = new RedundancyEliminator<ModelSite<? extends exprType>>();
+		RedundancyEliminator<ModelSite<exprType>> references = new RedundancyEliminator<ModelSite<exprType>>();
 
 		references.add(goalManager.registerSubgoal(new FlowGoal(
 				new CodeObjectDefinitionPosition(codeObject))));
@@ -231,5 +230,5 @@ public final class Class implements Namespace {
 			return false;
 		return true;
 	}
-	
+
 }

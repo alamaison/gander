@@ -25,7 +25,7 @@ public final class ObjectInstanceNamespace implements Namespace {
 		this.classObject = classObject;
 	}
 
-	public Result<ModelSite<? extends exprType>> references(
+	public Result<ModelSite<exprType>> references(
 			SubgoalManager goalManager) {
 
 		return goalManager.registerSubgoal(new FlowGoal(

@@ -133,7 +133,7 @@ public class TUnresolvedImport implements TCodeObject {
 			public void addClass(Class klass) {
 			}
 
-			public Result<ModelSite<? extends exprType>> references(
+			public Result<ModelSite<exprType>> references(
 					SubgoalManager goalManager) {
 				return null;
 			}

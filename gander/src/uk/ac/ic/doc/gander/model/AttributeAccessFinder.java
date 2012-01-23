@@ -17,7 +17,8 @@ public final class AttributeAccessFinder {
 		boolean attributeAccess(ModelSite<Attribute> access);
 	}
 
-	public AttributeAccessFinder(Set<ModelSite<? extends exprType>> objectPositions,
+	public AttributeAccessFinder(
+			Set<? extends ModelSite<? extends exprType>> objectPositions,
 			Event eventHandler) {
 		assert objectPositions != null;
 

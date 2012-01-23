@@ -77,24 +77,24 @@ final class InstanceCreationStepGoal implements FlowStepGoal {
 
 final class InstanceCreationStepGoalSolver {
 
-	private final Processor<ModelSite<? extends exprType>> processor = new Processor<ModelSite<? extends exprType>>() {
+	private final Processor<ModelSite<exprType>> processor = new Processor<ModelSite<exprType>>() {
 
 		public void processInfiniteResult() {
 			constructors = TopFp.INSTANCE;
 		}
 
-		public void processFiniteResult(
-				Set<ModelSite<? extends exprType>> classReferences) {
+		public void processFiniteResult(Set<ModelSite<exprType>> classReferences) {
 			Set<FlowPosition> positions = new HashSet<FlowPosition>();
 
-			for (ModelSite<? extends exprType> classSite : classReferences) {
-				SimpleNode parent = AstParentNodeFinder.findParent(classSite
-						.astNode(), classSite.codeObject().ast());
+			for (ModelSite<exprType> classSite : classReferences) {
+				
+				SimpleNode parent = AstParentNodeFinder.findParent(
+						classSite.astNode(), classSite.codeObject().ast());
 
 				if (parent instanceof Call) {
 					ModelSite<Call> constructor = new ModelSite<Call>(
 							(Call) parent, classSite.codeObject());
-					positions.add(new ExpressionPosition<Call>(constructor));
+					positions.add(new ExpressionPosition(constructor));
 				}
 			}
 			constructors = new FiniteResult<FlowPosition>(positions);
@@ -105,8 +105,9 @@ final class InstanceCreationStepGoalSolver {
 
 	InstanceCreationStepGoalSolver(ClassCO klass, SubgoalManager goalManager) {
 
-		Result<ModelSite<? extends exprType>> classReferences = goalManager
-				.registerSubgoal(new FlowGoal(new CodeObjectDefinitionPosition(klass)));
+		Result<ModelSite<exprType>> classReferences = goalManager
+				.registerSubgoal(new FlowGoal(new CodeObjectDefinitionPosition(
+						klass)));
 
 		classReferences.actOnResult(processor);
 	}

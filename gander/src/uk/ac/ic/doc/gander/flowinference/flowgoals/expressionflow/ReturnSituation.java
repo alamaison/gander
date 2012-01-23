@@ -4,6 +4,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.python.pydev.parser.jython.ast.Call;
+import org.python.pydev.parser.jython.ast.exprType;
 
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
 import uk.ac.ic.doc.gander.flowinference.flowgoals.FlowPosition;
@@ -17,14 +18,14 @@ import uk.ac.ic.doc.gander.model.codeobject.FunctionCO;
 
 final class ReturnSituation implements FlowSituation {
 
-	private final ModelSite<?> expression;
+	private final ModelSite<? extends exprType> expression;
 
 	/**
 	 * This situation doesn't keep keeps a reference to the node as it has no
 	 * effect on the destination of the flow. All return statements result in
 	 * the same flow destination: the callers of this callable.
 	 */
-	ReturnSituation(ModelSite<?> expression) {
+	ReturnSituation(ModelSite<? extends exprType> expression) {
 		this.expression = expression;
 	}
 
@@ -73,10 +74,12 @@ final class ReturnSituationSolver {
 
 	private Result<FlowPosition> solution;
 
-	ReturnSituationSolver(ModelSite<?> expression, SubgoalManager goalManager) {
+	ReturnSituationSolver(ModelSite<? extends exprType> expression,
+			SubgoalManager goalManager) {
 
 		Result<ModelSite<Call>> callers = goalManager
-				.registerSubgoal(new FunctionSendersGoal((FunctionCO) expression.codeObject()));
+				.registerSubgoal(new FunctionSendersGoal(
+						(FunctionCO) expression.codeObject()));
 
 		callers.actOnResult(new Processor<ModelSite<Call>>() {
 
@@ -89,7 +92,7 @@ final class ReturnSituationSolver {
 				Set<FlowPosition> positions = new HashSet<FlowPosition>();
 
 				for (ModelSite<Call> callSite : callers) {
-					positions.add(new ExpressionPosition<Call>(callSite));
+					positions.add(new ExpressionPosition(callSite));
 				}
 
 				solution = new FiniteResult<FlowPosition>(positions);

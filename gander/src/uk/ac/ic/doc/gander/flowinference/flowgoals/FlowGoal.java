@@ -23,8 +23,7 @@ import uk.ac.ic.doc.gander.model.ModelSite;
  * This class is responsible to building the transitive closure of the one-step
  * flow goal solutions. All other work is delegated to those subgoals.
  */
-public final class FlowGoal implements
-		Goal<Result<ModelSite<? extends exprType>>> {
+public final class FlowGoal implements Goal<Result<ModelSite<exprType>>> {
 
 	private final FlowPosition position;
 
@@ -32,11 +31,11 @@ public final class FlowGoal implements
 		this.position = position;
 	}
 
-	public Result<ModelSite<? extends exprType>> initialSolution() {
+	public Result<ModelSite<exprType>> initialSolution() {
 		return FiniteResult.bottom();
 	}
 
-	public Result<ModelSite<? extends exprType>> recalculateSolution(
+	public Result<ModelSite<exprType>> recalculateSolution(
 			SubgoalManager goalManager) {
 
 		return new FlowGoalSolver(position, goalManager).solution();
@@ -78,7 +77,7 @@ public final class FlowGoal implements
 final class FlowGoalSolver {
 
 	private final SubgoalManager goalManager;
-	private final Result<ModelSite<? extends exprType>> solution;
+	private final Result<ModelSite<exprType>> solution;
 
 	FlowGoalSolver(FlowPosition position, SubgoalManager goalManager) {
 		this.goalManager = goalManager;
@@ -169,12 +168,12 @@ final class FlowGoalSolver {
 
 	}
 
-	private Result<ModelSite<? extends exprType>> filterPositions(
+	private Result<ModelSite<exprType>> filterPositions(
 			Result<FlowPosition> positions) {
 		return new PositionFilter(positions).filteredPositions;
 	}
 
-	public Result<ModelSite<? extends exprType>> solution() {
+	public Result<ModelSite<exprType>> solution() {
 		return solution;
 	}
 
@@ -195,7 +194,7 @@ final class FlowGoalSolver {
 
 	private final class PositionFilter {
 
-		private Result<ModelSite<? extends exprType>> filteredPositions;
+		private Result<ModelSite<exprType>> filteredPositions;
 
 		private final Processor<FlowPosition> processor = new Processor<FlowPosition>() {
 
@@ -205,16 +204,20 @@ final class FlowGoalSolver {
 
 			public void processFiniteResult(Set<FlowPosition> result) {
 
-				Set<ModelSite<? extends exprType>> expressions = new HashSet<ModelSite<? extends exprType>>();
+				Set<ModelSite<exprType>> expressions = new HashSet<ModelSite<exprType>>();
 
 				for (FlowPosition flowPosition : result) {
-					if (flowPosition instanceof ExpressionPosition<?>) {
-						expressions.add(((ExpressionPosition<?>) flowPosition)
-								.getSite());
+					if (flowPosition instanceof ExpressionPosition) {
+						ModelSite<? extends exprType> position = ((ExpressionPosition) flowPosition)
+								.getSite();
+
+						// TODO: better way to lose wildcard
+						expressions.add(new ModelSite<exprType>(position
+								.astNode(), position.codeObject()));
 					}
 				}
 
-				filteredPositions = new FiniteResult<ModelSite<? extends exprType>>(
+				filteredPositions = new FiniteResult<ModelSite<exprType>>(
 						expressions);
 			}
 		};

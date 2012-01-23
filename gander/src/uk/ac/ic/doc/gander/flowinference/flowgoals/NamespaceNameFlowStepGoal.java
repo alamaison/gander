@@ -241,7 +241,7 @@ final class NamespaceNameFlowStepGoalSolver {
 		Set<ModelSite<Name>> lexicallyBoundVariables = new NameScopeFinder(
 				namespaceName).getNameBindings();
 		for (ModelSite<Name> variable : lexicallyBoundVariables) {
-			positions.add(new ExpressionPosition<Name>(variable));
+			positions.add(new ExpressionPosition(variable));
 		}
 
 		return positions;
@@ -260,7 +260,7 @@ final class NamespaceNameFlowStepGoalSolver {
 	 * would allow local variables to be changed from outside the function body.
 	 */
 	final class ExplicitNameReferenceFlower implements
-			Processor<ModelSite<? extends exprType>> {
+			Processor<ModelSite<exprType>> {
 
 		private Result<FlowPosition> positions;
 
@@ -277,7 +277,7 @@ final class NamespaceNameFlowStepGoalSolver {
 			 * XXX: these will always be attribute references so why don't we
 			 * get the attributes instead of the expression on the LHS?
 			 */
-			Result<ModelSite<? extends exprType>> namespaceReferences = namespaceName
+			Result<ModelSite<exprType>> namespaceReferences = namespaceName
 					.namespace().references(goalManager);
 
 			namespaceReferences.actOnResult(this);
@@ -288,10 +288,10 @@ final class NamespaceNameFlowStepGoalSolver {
 		}
 
 		public void processFiniteResult(
-				Set<ModelSite<? extends exprType>> namespaceReferences) {
+				Set<ModelSite<exprType>> namespaceReferences) {
 
 			Set<FlowPosition> newPositions = new HashSet<FlowPosition>();
-			for (ModelSite<? extends exprType> expression : namespaceReferences) {
+			for (ModelSite<exprType> expression : namespaceReferences) {
 
 				addExpressionIfAttributeLHSIsOurs(expression, newPositions);
 
@@ -307,7 +307,7 @@ final class NamespaceNameFlowStepGoalSolver {
 	}
 
 	final class InheritedNameReferenceFlower implements
-			Processor<ModelSite<? extends exprType>> {
+			Processor<ModelSite<exprType>> {
 
 		private Result<FlowPosition> positions;
 
@@ -324,7 +324,7 @@ final class NamespaceNameFlowStepGoalSolver {
 			 * XXX: these will always be attribute references so why don't we
 			 * get the attributes instead of the expression on the LHS?
 			 */
-			Result<ModelSite<? extends exprType>> namespaceReferences = namespaceName
+			Result<ModelSite<exprType>> namespaceReferences = namespaceName
 					.namespace().references(goalManager);
 
 			namespaceReferences.actOnResult(this);
@@ -334,12 +334,11 @@ final class NamespaceNameFlowStepGoalSolver {
 			return positions;
 		}
 
-		public void processFiniteResult(
-				Set<ModelSite<? extends exprType>> result) {
+		public void processFiniteResult(Set<ModelSite<exprType>> result) {
 
 			Set<FlowPosition> inheritedPositions = new HashSet<FlowPosition>();
 
-			for (ModelSite<? extends exprType> namespaceReference : result) {
+			for (ModelSite<exprType> namespaceReference : result) {
 
 				ModelSite<SimpleNode> parentNode = ParentSiteFinder
 						.findParent(namespaceReference);
@@ -464,8 +463,8 @@ final class NamespaceNameFlowStepGoalSolver {
 			Set<FlowPosition> positions, CodeObject enclosingCodeObject,
 			Attribute attribute, String name) {
 		if (((NameTok) attribute.attr).id.equals(name)) {
-			positions.add(new ExpressionPosition<Attribute>(
-					new ModelSite<Attribute>(attribute, enclosingCodeObject)));
+			positions.add(new ExpressionPosition(new ModelSite<Attribute>(
+					attribute, enclosingCodeObject)));
 		}
 	}
 
@@ -718,14 +717,14 @@ final class NamespaceNameFlowStepGoalSolver {
 		 * issue a new flow query to track our namespace rather than its key.
 		 */
 
-		Result<ModelSite<? extends exprType>> moduleReferences = goalManager
+		Result<ModelSite<exprType>> moduleReferences = goalManager
 				.registerSubgoal(new FlowGoal(new NamespaceNamePosition(
 						new NamespaceName(objectBinding.bindingLocation()))));
 
-		Transformer<ModelSite<? extends exprType>, Result<FlowPosition>> accessPositioner = new Transformer<ModelSite<? extends exprType>, Result<FlowPosition>>() {
+		Transformer<ModelSite<exprType>, Result<FlowPosition>> accessPositioner = new Transformer<ModelSite<exprType>, Result<FlowPosition>>() {
 
 			public Result<FlowPosition> transformFiniteResult(
-					Set<ModelSite<? extends exprType>> moduleReferences) {
+					Set<ModelSite<exprType>> moduleReferences) {
 				return new FiniteResult<FlowPosition>(
 						findAccessesToCodeObjectNamespaceName(moduleReferences));
 			}
@@ -743,7 +742,7 @@ final class NamespaceNameFlowStepGoalSolver {
 	 * the code object has flowed to.
 	 */
 	private Set<FlowPosition> findAccessesToCodeObjectNamespaceName(
-			Set<ModelSite<? extends exprType>> moduleReferenceExpressions) {
+			Set<ModelSite<exprType>> moduleReferenceExpressions) {
 
 		final Set<FlowPosition> positions = new HashSet<FlowPosition>();
 
@@ -754,8 +753,7 @@ final class NamespaceNameFlowStepGoalSolver {
 							ModelSite<Attribute> attribute) {
 						if (((NameTok) attribute.astNode().attr).id
 								.equals(namespaceName.name())) {
-							positions.add(new ExpressionPosition<Attribute>(
-									attribute));
+							positions.add(new ExpressionPosition(attribute));
 						}
 						return false;
 					}
@@ -799,7 +797,7 @@ final class NamespaceNameFlowStepGoalSolver {
 	 * subject to a call.
 	 */
 	private final class ConstructorFlower implements
-			Processor<ModelSite<? extends exprType>> {
+			Processor<ModelSite<exprType>> {
 
 		private Result<FlowPosition> positions;
 
@@ -809,7 +807,7 @@ final class NamespaceNameFlowStepGoalSolver {
 					&& namespaceName.name().equals("__init__")) {
 
 				Class classObject = (Class) namespaceName.namespace();
-				Result<ModelSite<? extends exprType>> classObjectPositions = goalManager
+				Result<ModelSite<exprType>> classObjectPositions = goalManager
 						.registerSubgoal(new FlowGoal(
 								new CodeObjectDefinitionPosition(classObject
 										.codeObject())));
@@ -826,7 +824,7 @@ final class NamespaceNameFlowStepGoalSolver {
 		}
 
 		public void processFiniteResult(
-				Set<ModelSite<? extends exprType>> classObjectPositions) {
+				Set<ModelSite<exprType>> classObjectPositions) {
 
 			Set<FlowPosition> newFlowPositions = new HashSet<FlowPosition>();
 
@@ -834,13 +832,13 @@ final class NamespaceNameFlowStepGoalSolver {
 			 * The code object associated with the __init__ member only flows to
 			 * where the code object is subject to a call.
 			 */
-			for (ModelSite<? extends exprType> expression : classObjectPositions) {
+			for (ModelSite<exprType> expression : classObjectPositions) {
 
 				SimpleNode parentNode = AstParentNodeFinder.findParent(
 						expression.astNode(), expression.codeObject().ast());
 
 				if (parentNode instanceof Call) {
-					newFlowPositions.add(new ExpressionPosition<exprType>(
+					newFlowPositions.add(new ExpressionPosition(
 							new ModelSite<exprType>(expression.astNode(),
 									expression.codeObject())));
 				}

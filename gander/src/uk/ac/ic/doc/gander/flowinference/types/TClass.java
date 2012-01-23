@@ -80,8 +80,8 @@ public class TClass implements TCodeObject, TCallable {
 	 */
 	public Result<Type> memberType(String memberName, SubgoalManager goalManager) {
 
-		NamespaceName member = new NamespaceName(memberName, classObject
-				.fullyQualifiedNamespace());
+		NamespaceName member = new NamespaceName(memberName,
+				classObject.fullyQualifiedNamespace());
 		return goalManager.registerSubgoal(new NamespaceNameTypeGoal(member));
 	}
 
@@ -186,8 +186,7 @@ public class TClass implements TCodeObject, TCallable {
 			if (parameters.size() > 0) {
 				ModelSite<exprType> selfParameter = parameters.get(0);
 				assert selfParameter.codeObject().equals(method.codeObject());
-				localPositions.add(new ExpressionPosition<exprType>(
-						selfParameter));
+				localPositions.add(new ExpressionPosition(selfParameter));
 				doneMethods.add(method.getName());
 			} else {
 				System.err.println("Method missing self parameter: " + method);
@@ -198,8 +197,9 @@ public class TClass implements TCodeObject, TCallable {
 
 		for (exprType base : classObject.ast().bases) {
 
-			flowToMethodsOfSuperClass(new ModelSite<exprType>(base, classObject
-					.parent()), doneMethods, positions, goalManager);
+			flowToMethodsOfSuperClass(
+					new ModelSite<exprType>(base, classObject.parent()),
+					doneMethods, positions, goalManager);
 
 			if (positions.isFinished())
 				break;
