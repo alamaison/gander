@@ -23,6 +23,12 @@ public final class GoalSolver<T> {
 	private final Goal<T> rootGoal;
 	private File debugTrigger;
 
+	public static <R> GoalSolver<R> newInstance(Goal<R> goal,
+			KnowledgeBase knowledgebase) {
+		return new GoalSolver<R>(goal, knowledgebase);
+	}
+
+	@Deprecated
 	public GoalSolver(Goal<T> goal, KnowledgeBase knowledgebase) {
 		rootGoal = goal;
 		this.knowledgebase = knowledgebase;
