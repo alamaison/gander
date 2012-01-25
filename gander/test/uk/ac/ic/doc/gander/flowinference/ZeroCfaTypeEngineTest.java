@@ -1192,6 +1192,23 @@ public class ZeroCfaTypeEngineTest {
 	}
 
 	@Test
+	public void functionParameterCalledThroughCallParameter() throws Throwable {
+		String testName = "function_parameter_called_through_call_parameter";
+		ScopedPrintNode node = findPrintNode(testName, "what_am_i");
+		Result<Type> type = engine
+				.typeOf(node.getExpression(), node.getScope());
+
+		Set<Type> expectedType = new HashSet<Type>();
+		expectedType.add(stringType);
+		expectedType.add(listType);
+
+		assertEquals("Function parameter's type not inferred "
+				+ "correctly. This probably means that the analysis didn't "
+				+ "see that the function is passed into another function "
+				+ "and called from there.", expectedType, type);
+	}
+
+	@Test
 	public void functionParameterCalledThroughList() throws Throwable {
 		String testName = "function_parameter_called_through_list";
 		ScopedPrintNode node = findPrintNode(testName, "what_am_i");

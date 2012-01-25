@@ -4,7 +4,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import org.python.pydev.parser.jython.SimpleNode;
 import org.python.pydev.parser.jython.ast.Name;
+import org.python.pydev.parser.jython.ast.VisitorBase;
 import org.python.pydev.parser.jython.ast.argumentsType;
 import org.python.pydev.parser.jython.ast.exprType;
 
@@ -31,36 +33,75 @@ public final class FormalParameters {
 	public NamedParameter namedParameter(String parameterName) {
 
 		for (int i = 0; i < parameters.size(); ++i) {
-			ModelSite<exprType> p = parameters.get(i);
 
-			if (p.astNode() instanceof Name
-					&& ((Name) p.astNode()).id.equals(parameterName)) {
+			FormalParameter p = parameterAtIndex(i);
 
-				int firstDefaultOffset = parameters.size() - defaults.size();
-				assert firstDefaultOffset >= 0;
-
-				ModelSite<exprType> defaultValue;
-				if (i >= firstDefaultOffset) {
-					defaultValue = defaults.get(i - firstDefaultOffset);
-				} else {
-					defaultValue = null;
-				}
-
-				return new NamedParameter(i, parameterName, defaultValue);
+			if (p instanceof NamedParameter
+					&& ((NamedParameter) p).name().equals(parameterName)) {
+				return (NamedParameter) p;
 			}
 		}
 
 		return null;
 	}
 
+	public FormalParameter parameterAtIndex(int i) {
+
+		ModelSite<exprType> p = parameters.get(i);
+		try {
+			return (FormalParameter) p.astNode()
+					.accept(new ParameterBuilder(i));
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	private NamedParameter makeNamedParameter(int i, ModelSite<Name> p) {
+		int firstDefaultOffset = parameters.size() - defaults.size();
+		assert firstDefaultOffset >= 0;
+
+		ModelSite<exprType> defaultValue;
+		if (i >= firstDefaultOffset) {
+			defaultValue = defaults.get(i - firstDefaultOffset);
+		} else {
+			defaultValue = null;
+		}
+
+		return new NamedParameter(i, p, defaultValue);
+	}
+
+	private final class ParameterBuilder extends VisitorBase {
+
+		private final int index;
+
+		public ParameterBuilder(int index) {
+			this.index = index;
+		}
+
+		@Override
+		public Object visitName(Name node) throws Exception {
+			return makeNamedParameter(index,
+					new ModelSite<Name>(node, argsNode.codeObject()));
+		}
+
+		@Override
+		protected Object unhandled_node(SimpleNode node) throws Exception {
+			System.err.println("Unknown parameter type: " + node + " in "
+					+ argsNode);
+			return null;
+		}
+
+		@Override
+		public void traverse(SimpleNode node) throws Exception {
+			/* Just mapping so don't traverse */
+		}
+
+	}
+
 	private FormalParameters() {
 		this.argsNode = null;
 		this.parameters = Collections.emptyList();
 		this.defaults = Collections.emptyList();
-	}
-
-	public List<ModelSite<exprType>> defaults() {
-		return Collections.unmodifiableList(defaults);
 	}
 
 	public List<String> parameterNames() {
@@ -104,7 +145,7 @@ public final class FormalParameters {
 					 * code object
 					 */
 					defaultSites.add(new ModelSite<exprType>(defaultValue,
-							((CallableCodeObject) argsNode.codeObject())
+							((InvokableCodeObject) argsNode.codeObject())
 									.parent()));
 				} else {
 					defaultSites.add(null); // null default means no default

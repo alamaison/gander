@@ -23,7 +23,7 @@ import uk.ac.ic.doc.gander.importing.ImportSpecificationFactory;
 import uk.ac.ic.doc.gander.model.Class;
 import uk.ac.ic.doc.gander.model.ModelSite;
 import uk.ac.ic.doc.gander.model.NamespaceName;
-import uk.ac.ic.doc.gander.model.codeobject.CallableCodeObject;
+import uk.ac.ic.doc.gander.model.codeobject.InvokableCodeObject;
 import uk.ac.ic.doc.gander.model.codeobject.ClassCO;
 import uk.ac.ic.doc.gander.model.codeobject.CodeObject;
 import uk.ac.ic.doc.gander.model.codeobject.FunctionCO;
@@ -128,13 +128,13 @@ class BoundTypeVisitor implements BindingDetector.DetectionEvent {
 	private void processParameters(CodeObject codeObject, String name,
 			SubgoalManager goalManager) {
 
-		if (codeObject instanceof CallableCodeObject
-				&& ((CallableCodeObject) codeObject).formalParameters()
+		if (codeObject instanceof InvokableCodeObject
+				&& ((InvokableCodeObject) codeObject).formalParameters()
 						.parameterNames().contains(name)) {
 
 			judgement.add(goalManager
 					.registerSubgoal(new CallableParameterTypeGoal(
-							(CallableCodeObject) codeObject, name)));
+							(InvokableCodeObject) codeObject, name)));
 		}
 	}
 

@@ -57,4 +57,9 @@ public class SourceFile {
 		return isSystem;
 	}
 
+	@Override
+	public String toString() {
+		return "SourceFile [file=" + file + ", isSystem=" + isSystem + "]";
+	}
+
 }

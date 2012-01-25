@@ -13,6 +13,7 @@ import uk.ac.ic.doc.gander.flowinference.TypeError;
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
 import uk.ac.ic.doc.gander.flowinference.flowgoals.FlowPosition;
 import uk.ac.ic.doc.gander.flowinference.flowgoals.TopFp;
+import uk.ac.ic.doc.gander.flowinference.flowgoals.TopP;
 import uk.ac.ic.doc.gander.flowinference.flowgoals.expressionflow.ExpressionPosition;
 import uk.ac.ic.doc.gander.flowinference.result.FiniteResult;
 import uk.ac.ic.doc.gander.flowinference.result.RedundancyEliminator;
@@ -22,14 +23,83 @@ import uk.ac.ic.doc.gander.flowinference.result.Result.Transformer;
 import uk.ac.ic.doc.gander.flowinference.typegoals.ExpressionTypeGoal;
 import uk.ac.ic.doc.gander.flowinference.typegoals.NamespaceNameTypeGoal;
 import uk.ac.ic.doc.gander.flowinference.typegoals.TopT;
+import uk.ac.ic.doc.gander.model.Argument;
 import uk.ac.ic.doc.gander.model.Class;
 import uk.ac.ic.doc.gander.model.Function;
 import uk.ac.ic.doc.gander.model.ModelSite;
 import uk.ac.ic.doc.gander.model.Namespace;
 import uk.ac.ic.doc.gander.model.NamespaceName;
+import uk.ac.ic.doc.gander.model.OrdinalArgument;
+import uk.ac.ic.doc.gander.model.codeobject.InvokableCodeObject;
 import uk.ac.ic.doc.gander.model.codeobject.ClassCO;
+import uk.ac.ic.doc.gander.model.codeobject.CodeObject;
+import uk.ac.ic.doc.gander.model.codeobject.FormalParameter;
 
 public class TClass implements TCodeObject, TCallable {
+
+	private final class ReceivingParameterFinder implements
+			Transformer<Type, Result<FormalParameter>> {
+
+		private final Argument argument;
+
+		public ReceivingParameterFinder(Argument argument) {
+			this.argument = argument;
+		}
+
+		@Override
+		public Result<FormalParameter> transformFiniteResult(
+				Set<Type> initImplementations) {
+
+			RedundancyEliminator<FormalParameter> parameters = new RedundancyEliminator<FormalParameter>();
+
+			for (Type initType : initImplementations) {
+				if (initType instanceof TCodeObject) {
+					CodeObject codeObject = ((TCodeObject) initType)
+							.codeObject();
+					if (codeObject instanceof InvokableCodeObject) {
+						parameters
+								.add(findParameterInCodeObject((InvokableCodeObject) codeObject));
+					} else {
+						// XXX: init might not be a callable?!
+						parameters.add(TopP.INSTANCE);
+					}
+				} else {
+					// TODO: init might be a callable object
+					parameters.add(TopP.INSTANCE);
+				}
+
+				if (parameters.isFinished())
+					break;
+			}
+
+			return parameters.result();
+		}
+
+		private Result<FormalParameter> findParameterInCodeObject(
+				InvokableCodeObject codeObject) {
+
+			if (argument instanceof OrdinalArgument) {
+
+				int ordinal = ((OrdinalArgument) argument).ordinal();
+
+				Set<FormalParameter> parameter = Collections
+						.singleton(codeObject.formalParameters()
+								.parameterAtIndex(ordinal + 1));
+
+				return new FiniteResult<FormalParameter>(parameter);
+
+			} else {
+				// TODO: keywords and starargs
+				return TopP.INSTANCE;
+			}
+		}
+
+		@Override
+		public Result<FormalParameter> transformInfiniteResult() {
+			return TopP.INSTANCE;
+		}
+
+	}
 
 	private final ClassCO classObject;
 
@@ -69,10 +139,6 @@ public class TClass implements TCodeObject, TCallable {
 				classObject)));
 	}
 
-	public int passedArgumentOffset() {
-		return 1;
-	}
-
 	/**
 	 * {@inheritDoc}
 	 * 
@@ -104,40 +170,67 @@ public class TClass implements TCodeObject, TCallable {
 			final String parameterName, final ModelSite<Call> callSite,
 			final SubgoalManager goalManager) {
 
-		Result<Type> initMethodTypes = memberType("__init__", goalManager);
-		return initMethodTypes
-				.transformResult(new Transformer<Type, Result<Type>>() {
+		Result<Type> initMethodTypes = initMethodTypes(goalManager);
 
-					public Result<Type> transformFiniteResult(Set<Type> result) {
-						RedundancyEliminator<Type> parameterType = new RedundancyEliminator<Type>();
+		return initMethodTypes.transformResult(new ParameterTyper(
+				parameterName, callSite, goalManager));
+	}
 
-						for (Type initType : result) {
-							if (initType instanceof TFunction) {
-								TBoundMethod init = new TBoundMethod(
-										((TFunction) initType).codeObject(),
-										new TObject(classObject));
-								parameterType.add(init
-										.typeOfArgumentAtNamedParameter(
-												parameterName, callSite,
-												goalManager));
-							} else {
-								// XXX: init might not be a function?!
-								parameterType.add(TopT.INSTANCE);
-							}
-						}
+	private class ParameterTyper implements Transformer<Type, Result<Type>> {
 
-						return parameterType.result();
-					}
+		private final String parameterName;
+		private final ModelSite<Call> callSite;
+		private final SubgoalManager goalManager;
 
-					public Result<Type> transformInfiniteResult() {
-						/*
-						 * Can't work out what __init__ implementations could be
-						 * called so we certainly can't work out the type of the
-						 * self parameter
-						 */
-						return TopT.INSTANCE;
-					}
-				});
+		ParameterTyper(String parameterName, ModelSite<Call> callSite,
+				SubgoalManager goalManager) {
+			this.parameterName = parameterName;
+			this.callSite = callSite;
+			this.goalManager = goalManager;
+		}
+
+		public Result<Type> transformFiniteResult(Set<Type> result) {
+			RedundancyEliminator<Type> parameterType = new RedundancyEliminator<Type>();
+
+			for (Type initType : result) {
+				if (initType instanceof TFunction) {
+					TBoundMethod init = new TBoundMethod(
+							((TFunction) initType).codeObject(), new TObject(
+									classObject));
+					parameterType.add(init.typeOfArgumentAtNamedParameter(
+							parameterName, callSite, goalManager));
+				} else {
+					// XXX: init might not be a function?!
+					parameterType.add(TopT.INSTANCE);
+				}
+			}
+
+			return parameterType.result();
+		}
+
+		public Result<Type> transformInfiniteResult() {
+			/*
+			 * Can't work out what __init__ implementations could be called so
+			 * we certainly can't work out the type of the self parameter
+			 */
+			return TopT.INSTANCE;
+		}
+	};
+
+	/**
+	 * {@inheritDoc}
+	 * 
+	 * Ordinal arguments passed to a call to a bound method are passed to the
+	 * parameter of the receiver that is one further along the parameter list
+	 * than the ordinal.
+	 */
+	public Result<FormalParameter> formalParametersReceivingArgument(
+			Argument argument, SubgoalManager goalManager) {
+
+		Result<Type> initMethodTypes = initMethodTypes(goalManager);
+
+		return initMethodTypes.transformResult(new ReceivingParameterFinder(
+				argument));
 	}
 
 	/**
@@ -235,6 +328,10 @@ public class TClass implements TCodeObject, TCallable {
 				}
 			}
 		});
+	}
+
+	private Result<Type> initMethodTypes(SubgoalManager goalManager) {
+		return memberType("__init__", goalManager);
 	}
 
 	@Override

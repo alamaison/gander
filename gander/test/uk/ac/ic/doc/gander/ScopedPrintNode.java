@@ -6,6 +6,7 @@ import org.python.pydev.parser.jython.ast.Name;
 import org.python.pydev.parser.jython.ast.Print;
 import org.python.pydev.parser.jython.ast.exprType;
 
+import uk.ac.ic.doc.gander.model.ModelSite;
 import uk.ac.ic.doc.gander.model.Module;
 import uk.ac.ic.doc.gander.model.MutableModel;
 import uk.ac.ic.doc.gander.model.Namespace;
@@ -42,7 +43,19 @@ public final class ScopedPrintNode {
 	 * Expression being printed.
 	 */
 	public exprType getExpression() {
-		return ((Print) node.getNode()).values[0];
+		if (node != null) {
+			return ((Print) node.getNode()).values[0];
+		} else {
+			return null;
+		}
+	}
+
+	public ModelSite<exprType> site() {
+		if (getExpression() != null) {
+			return new ModelSite<exprType>(getExpression(), getScope());
+		} else {
+			return null;
+		}
 	}
 
 	/**

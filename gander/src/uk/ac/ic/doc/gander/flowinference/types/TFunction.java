@@ -8,15 +8,19 @@ import org.python.pydev.parser.jython.ast.exprType;
 
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
 import uk.ac.ic.doc.gander.flowinference.flowgoals.FlowPosition;
+import uk.ac.ic.doc.gander.flowinference.flowgoals.TopP;
 import uk.ac.ic.doc.gander.flowinference.result.FiniteResult;
 import uk.ac.ic.doc.gander.flowinference.result.Result;
 import uk.ac.ic.doc.gander.flowinference.typegoals.ExpressionTypeGoal;
 import uk.ac.ic.doc.gander.flowinference.typegoals.NamespaceNameTypeGoal;
 import uk.ac.ic.doc.gander.flowinference.typegoals.TopT;
+import uk.ac.ic.doc.gander.model.Argument;
 import uk.ac.ic.doc.gander.model.Function;
 import uk.ac.ic.doc.gander.model.ModelSite;
 import uk.ac.ic.doc.gander.model.Namespace;
 import uk.ac.ic.doc.gander.model.NamespaceName;
+import uk.ac.ic.doc.gander.model.OrdinalArgument;
+import uk.ac.ic.doc.gander.model.codeobject.FormalParameter;
 import uk.ac.ic.doc.gander.model.codeobject.FunctionCO;
 import uk.ac.ic.doc.gander.model.codeobject.NamedParameter;
 
@@ -55,10 +59,6 @@ public class TFunction implements TCodeObject, TCallable {
 				.solution();
 	}
 
-	public int passedArgumentOffset() {
-		return 0;
-	}
-
 	/**
 	 * {@inheritDoc}
 	 * 
@@ -67,8 +67,8 @@ public class TFunction implements TCodeObject, TCallable {
 	 */
 	public Result<Type> memberType(String memberName, SubgoalManager goalManager) {
 
-		NamespaceName member = new NamespaceName(memberName, functionObject
-				.fullyQualifiedNamespace());
+		NamespaceName member = new NamespaceName(memberName,
+				functionObject.fullyQualifiedNamespace());
 		return goalManager.registerSubgoal(new NamespaceNameTypeGoal(member));
 	}
 
@@ -138,7 +138,29 @@ public class TFunction implements TCodeObject, TCallable {
 		}
 	}
 
-	public Result<FlowPosition> flowPositionsCausedByCalling(SubgoalManager goalManager) {
+	/**
+	 * {@inheritDoc}
+	 * 
+	 * Ordinal arguments passed to a call to an unbound method are passed
+	 * directly to the parameter of the receiver with the same index.
+	 */
+	public Result<FormalParameter> formalParametersReceivingArgument(
+			Argument argument, SubgoalManager goalManager) {
+
+		if (argument instanceof OrdinalArgument) {
+
+			int ordinal = ((OrdinalArgument) argument).ordinal();
+			return new FiniteResult<FormalParameter>(
+					Collections.singleton(functionObject.formalParameters()
+							.parameterAtIndex(ordinal)));
+		} else {
+			// TODO: keywords and starargs
+			return TopP.INSTANCE;
+		}
+	}
+
+	public Result<FlowPosition> flowPositionsCausedByCalling(
+			SubgoalManager goalManager) {
 		return FiniteResult.bottom();
 	}
 

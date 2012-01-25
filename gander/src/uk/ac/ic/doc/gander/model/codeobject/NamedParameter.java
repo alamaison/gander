@@ -1,15 +1,16 @@
 package uk.ac.ic.doc.gander.model.codeobject;
 
+import org.python.pydev.parser.jython.ast.Name;
 import org.python.pydev.parser.jython.ast.exprType;
 
 import uk.ac.ic.doc.gander.model.ModelSite;
 
-public final class NamedParameter {
+public final class NamedParameter implements FormalParameter {
 
 	private final int index;
-	private final String parameterName;
 	private final ModelSite<exprType> defaultValue;
-	
+	private final ModelSite<Name> parameter;
+
 	public int index() {
 		return index;
 	}
@@ -18,19 +19,30 @@ public final class NamedParameter {
 		return defaultValue;
 	}
 
-	NamedParameter(int parameterIndex, String parameterName,
+	public String name() {
+		return parameter.astNode().id;
+	}
+
+	NamedParameter(int parameterIndex, ModelSite<Name> parameter,
 			ModelSite<exprType> defaultValue) {
 		if (parameterIndex < 0)
 			throw new IllegalArgumentException("Invalid index index: "
 					+ parameterIndex);
-		if (parameterName == null)
-			throw new NullPointerException("Parameter name required");
-		if (parameterName.isEmpty())
+		if (parameter == null)
+			throw new NullPointerException("Parameter required");
+		if (parameter.astNode().id == null)
+			throw new IllegalArgumentException("Parameter must have name");
+		if (parameter.astNode().id.isEmpty())
 			throw new IllegalArgumentException(
 					"Parameter name must contain characters");
 
 		this.index = parameterIndex;
-		this.parameterName = parameterName;
+		this.parameter = parameter;
 		this.defaultValue = defaultValue; // may be null
+	}
+
+	@Override
+	public ModelSite<Name> parameterSite() {
+		return parameter;
 	}
 }

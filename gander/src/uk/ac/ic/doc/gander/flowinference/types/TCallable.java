@@ -5,7 +5,9 @@ import org.python.pydev.parser.jython.ast.Call;
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
 import uk.ac.ic.doc.gander.flowinference.flowgoals.FlowPosition;
 import uk.ac.ic.doc.gander.flowinference.result.Result;
+import uk.ac.ic.doc.gander.model.Argument;
 import uk.ac.ic.doc.gander.model.ModelSite;
+import uk.ac.ic.doc.gander.model.codeobject.FormalParameter;
 
 public interface TCallable extends Type {
 
@@ -16,12 +18,6 @@ public interface TCallable extends Type {
 	 *            allows us to determine the return type using type inference
 	 */
 	Result<Type> returnType(SubgoalManager goalManager);
-
-	/**
-	 * Returns the offset by which passed arguments are shifted when passed to
-	 * the formal parameters
-	 */
-	int passedArgumentOffset();
 
 	/**
 	 * Return the type of argument that is passed to the named parameter of this
@@ -43,6 +39,17 @@ public interface TCallable extends Type {
 	 */
 	Result<Type> typeOfArgumentAtNamedParameter(String parameterName,
 			ModelSite<Call> callSite, SubgoalManager goalManager);
+
+	/**
+	 * Returns the parameters to which the given argument is passed when calling
+	 * this type of callable.
+	 * 
+	 * This will almost always be a single parameter but very rarely, such as in
+	 * the case of calling a class constructor where the constructor has been
+	 * multiply defined, there may be more than one receiving parameter.
+	 */
+	Result<FormalParameter> formalParametersReceivingArgument(Argument argument,
+			SubgoalManager goalManager);
 
 	/**
 	 * Returns the flow positions that the result of calling an object of this

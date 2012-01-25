@@ -8,14 +8,18 @@ import org.python.pydev.parser.jython.ast.exprType;
 
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
 import uk.ac.ic.doc.gander.flowinference.flowgoals.FlowPosition;
+import uk.ac.ic.doc.gander.flowinference.flowgoals.TopP;
 import uk.ac.ic.doc.gander.flowinference.result.FiniteResult;
 import uk.ac.ic.doc.gander.flowinference.result.Result;
 import uk.ac.ic.doc.gander.flowinference.typegoals.ExpressionTypeGoal;
 import uk.ac.ic.doc.gander.flowinference.typegoals.NamespaceNameTypeGoal;
 import uk.ac.ic.doc.gander.flowinference.typegoals.TopT;
+import uk.ac.ic.doc.gander.model.Argument;
 import uk.ac.ic.doc.gander.model.ModelSite;
 import uk.ac.ic.doc.gander.model.Namespace;
 import uk.ac.ic.doc.gander.model.NamespaceName;
+import uk.ac.ic.doc.gander.model.OrdinalArgument;
+import uk.ac.ic.doc.gander.model.codeobject.FormalParameter;
 import uk.ac.ic.doc.gander.model.codeobject.FunctionCO;
 import uk.ac.ic.doc.gander.model.codeobject.NamedParameter;
 
@@ -48,10 +52,6 @@ public final class TBoundMethod implements TCallable {
 				.solution();
 	}
 
-	public int passedArgumentOffset() {
-		return 1;
-	}
-
 	/**
 	 * {@inheritDoc}
 	 * 
@@ -60,8 +60,8 @@ public final class TBoundMethod implements TCallable {
 	 */
 	public Result<Type> memberType(String memberName, SubgoalManager goalManager) {
 
-		NamespaceName member = new NamespaceName(memberName, unboundMethod
-				.fullyQualifiedNamespace());
+		NamespaceName member = new NamespaceName(memberName,
+				unboundMethod.fullyQualifiedNamespace());
 		return goalManager.registerSubgoal(new NamespaceNameTypeGoal(member));
 	}
 
@@ -117,6 +117,28 @@ public final class TBoundMethod implements TCallable {
 			System.err.println("PROGRAM ERROR: Could not find parameter '"
 					+ parameterName + "' in " + unboundMethod);
 			return TopT.INSTANCE;
+		}
+	}
+
+	/**
+	 * {@inheritDoc}
+	 * 
+	 * Ordinal arguments passed to a call to a bound method are passed to the
+	 * parameter of the receiver that is one further along the parameter list
+	 * than the ordinal.
+	 */
+	public Result<FormalParameter> formalParametersReceivingArgument(
+			Argument argument, SubgoalManager goalManager) {
+		
+		if (argument instanceof OrdinalArgument) {
+			
+			int ordinal = ((OrdinalArgument) argument).ordinal();
+			return new FiniteResult<FormalParameter>(
+					Collections.singleton(unboundMethod.formalParameters()
+							.parameterAtIndex(ordinal + 1)));
+		} else {
+			// TODO: keywords and starargs
+			return TopP.INSTANCE;
 		}
 	}
 

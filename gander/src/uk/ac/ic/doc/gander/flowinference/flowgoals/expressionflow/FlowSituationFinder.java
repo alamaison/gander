@@ -263,7 +263,34 @@ final class SituationMapper implements VisitorIF {
 			 * here
 			 */
 			return new CallResultSituation(nodeToSite(node));
+		} else if (isMatch(node.starargs) || isMatch(node.kwargs)) {
+			/*
+			 * Unpacking an iterable, either through *args or *kwargs doesn't
+			 * cause the iterable to flow any further; only its contents.
+			 */
+			return notInAFlowSituation();
 		} else {
+			/*
+			 * Passing the expression as an argument in a call flows it to the
+			 * corresponding parameter of the call receiver.
+			 */
+
+			for (int i = 0; i < node.args.length; ++i) {
+				if (isMatch(node.args[i])) {
+					ModelSite<Call> site = new ModelSite<Call>(node,
+							expression.codeObject());
+					return new OrdinalArgumentSituation(site, i);
+				}
+			}
+
+			for (int i = 0; i < node.keywords.length; ++i) {
+				if (isMatch(node.keywords[i].value)) {
+					// TODO: flow keyword argument to parameter
+					// return new KeywordArgumentSituation(nodeToSite(node), i);
+					return new EscapeSituation();
+				}
+			}
+
 			return notInAFlowSituation();
 		}
 	}

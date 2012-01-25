@@ -7,25 +7,30 @@ import org.python.pydev.parser.jython.ast.exprType;
 
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
 import uk.ac.ic.doc.gander.flowinference.result.Concentrator;
+import uk.ac.ic.doc.gander.flowinference.result.Concentrator.DatumProcessor;
 import uk.ac.ic.doc.gander.flowinference.result.FiniteResult;
 import uk.ac.ic.doc.gander.flowinference.result.RedundancyEliminator;
 import uk.ac.ic.doc.gander.flowinference.result.Result;
-import uk.ac.ic.doc.gander.flowinference.result.Concentrator.DatumProcessor;
 import uk.ac.ic.doc.gander.flowinference.result.Result.Transformer;
 import uk.ac.ic.doc.gander.flowinference.sendersgoals.FunctionSendersGoal;
 import uk.ac.ic.doc.gander.flowinference.types.TCallable;
 import uk.ac.ic.doc.gander.flowinference.types.Type;
 import uk.ac.ic.doc.gander.model.ModelSite;
-import uk.ac.ic.doc.gander.model.codeobject.CallableCodeObject;
+import uk.ac.ic.doc.gander.model.codeobject.InvokableCodeObject;
 
 final class CallableParameterTypeGoal implements TypeGoal {
 
-	private final CallableCodeObject callable;
-	private final String name;
+	private final InvokableCodeObject callable;
+	private final String parameterName;
 
-	CallableParameterTypeGoal(CallableCodeObject method, String name) {
-		this.callable = method;
-		this.name = name;
+	CallableParameterTypeGoal(InvokableCodeObject callable, String parameterName) {
+		if (callable.formalParameters().namedParameter(parameterName) == null) {
+			throw new IllegalArgumentException("Parameter '" + parameterName
+					+ "' doesn't appear in " + callable);
+		}
+
+		this.callable = callable;
+		this.parameterName = parameterName;
 	}
 
 	public Result<Type> initialSolution() {
@@ -33,8 +38,8 @@ final class CallableParameterTypeGoal implements TypeGoal {
 	}
 
 	public Result<Type> recalculateSolution(SubgoalManager goalManager) {
-		return new CallableParameterTypeGoalSolver(callable, name, goalManager)
-				.solution();
+		return new CallableParameterTypeGoalSolver(callable, parameterName,
+				goalManager).solution();
 	}
 
 	@Override
@@ -43,7 +48,8 @@ final class CallableParameterTypeGoal implements TypeGoal {
 		int result = 1;
 		result = prime * result
 				+ ((callable == null) ? 0 : callable.hashCode());
-		result = prime * result + ((name == null) ? 0 : name.hashCode());
+		result = prime * result
+				+ ((parameterName == null) ? 0 : parameterName.hashCode());
 		return result;
 	}
 
@@ -61,10 +67,10 @@ final class CallableParameterTypeGoal implements TypeGoal {
 				return false;
 		} else if (!callable.equals(other.callable))
 			return false;
-		if (name == null) {
-			if (other.name != null)
+		if (parameterName == null) {
+			if (other.parameterName != null)
 				return false;
-		} else if (!name.equals(other.name))
+		} else if (!parameterName.equals(other.parameterName))
 			return false;
 		return true;
 	}
@@ -72,7 +78,7 @@ final class CallableParameterTypeGoal implements TypeGoal {
 	@Override
 	public String toString() {
 		return "CallableParameterTypeGoal [callable=" + callable
-				+ ", parameterName=" + name + "]";
+				+ ", parameterName=" + parameterName + "]";
 	}
 
 }
@@ -141,7 +147,7 @@ final class CallableParameterTypeGoalSolver {
 	private final Result<Type> solution;
 	private final String parameterName;
 
-	CallableParameterTypeGoalSolver(CallableCodeObject callable,
+	CallableParameterTypeGoalSolver(InvokableCodeObject callable,
 			String parameterName, SubgoalManager goalManager) {
 
 		this.parameterName = parameterName;

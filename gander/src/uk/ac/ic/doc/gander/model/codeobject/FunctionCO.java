@@ -32,7 +32,7 @@ import uk.ac.ic.doc.gander.model.name_binding.Variable;
  * Model of Python functions as first-class objects.
  */
 public final class FunctionCO implements NamedCodeObject, NestedCodeObject,
-		CallableCodeObject {
+		InvokableCodeObject {
 
 	private final FunctionDef ast;
 	private final CodeObject parent;
