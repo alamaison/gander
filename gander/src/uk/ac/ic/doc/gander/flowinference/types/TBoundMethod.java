@@ -129,9 +129,9 @@ public final class TBoundMethod implements TCallable {
 	 */
 	public Result<FormalParameter> formalParametersReceivingArgument(
 			Argument argument, SubgoalManager goalManager) {
-		
+
 		if (argument instanceof OrdinalArgument) {
-			
+
 			int ordinal = ((OrdinalArgument) argument).ordinal();
 			return new FiniteResult<FormalParameter>(
 					Collections.singleton(unboundMethod.formalParameters()
@@ -140,6 +140,11 @@ public final class TBoundMethod implements TCallable {
 			// TODO: keywords and starargs
 			return TopP.INSTANCE;
 		}
+	}
+
+	@Override
+	public FormalParameter selfParameter() {
+		return unboundMethod.formalParameters().parameterAtIndex(0);
 	}
 
 	private ModelSite<exprType> expressionFromArgumentList(

@@ -153,20 +153,32 @@ public class TFunction implements TCodeObject, TCallable {
 			FormalParameter parameter;
 			try {
 				parameter = functionObject.formalParameters().parameterAtIndex(
-						ordinal + 1);
+						ordinal);
 			} catch (IndexOutOfBoundsException e) {
 				System.err
 						.println("Couldn't match argument to parameter: " + e);
 				return TopP.INSTANCE;
 			}
 
-			return new FiniteResult<FormalParameter>(Collections
-					.singleton(parameter));
-			
+			return new FiniteResult<FormalParameter>(
+					Collections.singleton(parameter));
+
 		} else {
 			// TODO: keywords and starargs
 			return TopP.INSTANCE;
 		}
+	}
+
+	/**
+	 * {@inheritDoc}
+	 * 
+	 * Even if an unbound function object is retrieved as an attribute of
+	 * another object and called, that other object doesn't flow anywhere. In
+	 * other words, an unbound function object has no self parameter.
+	 */
+	@Override
+	public FormalParameter selfParameter() {
+		return null;
 	}
 
 	public Result<FlowPosition> flowPositionsCausedByCalling(

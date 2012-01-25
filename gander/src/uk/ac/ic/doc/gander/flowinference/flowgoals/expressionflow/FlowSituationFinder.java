@@ -263,6 +263,22 @@ final class SituationMapper implements VisitorIF {
 			 * here
 			 */
 			return new CallResultSituation(nodeToSite(node));
+		} else if (node.func instanceof Attribute
+				&& isMatch(((Attribute) node.func).value)) {
+			/*
+			 * Normally calling an expression doesn't cause its value to flow
+			 * anywhere but there is a special case where the expression is an
+			 * attribute. If that attribute turns out to be a bound method then
+			 * the value of the LHS of the attribute flows to the first
+			 * parameter of the method.
+			 * 
+			 * Note: this doesn't happen for just any call to an attribute; only
+			 * for those that are bound methods.
+			 */
+			ModelSite<Attribute> receiver = new ModelSite<Attribute>(
+					(Attribute) node.func,
+					expression.codeObject());
+			return new AttributeCallReceiverSituation(receiver);
 		} else if (isMatch(node.starargs) || isMatch(node.kwargs)) {
 			/*
 			 * Unpacking an iterable, either through *args or *kwargs doesn't
@@ -270,6 +286,7 @@ final class SituationMapper implements VisitorIF {
 			 */
 			return notInAFlowSituation();
 		} else {
+
 			/*
 			 * Passing the expression as an argument in a call flows it to the
 			 * corresponding parameter of the call receiver.

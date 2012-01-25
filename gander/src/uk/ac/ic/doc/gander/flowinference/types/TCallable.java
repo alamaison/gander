@@ -48,8 +48,18 @@ public interface TCallable extends Type {
 	 * the case of calling a class constructor where the constructor has been
 	 * multiply defined, there may be more than one receiving parameter.
 	 */
-	Result<FormalParameter> formalParametersReceivingArgument(Argument argument,
-			SubgoalManager goalManager);
+	Result<FormalParameter> formalParametersReceivingArgument(
+			Argument argument, SubgoalManager goalManager);
+
+	/**
+	 * Returns the parameter that magically receives the LHS of a call on an
+	 * attribute access when that call is received by this type of callable.
+	 * 
+	 * Otherwise known as the self parameter.
+	 * 
+	 * @return the parameter or {@code null} if no such parameter exists
+	 */
+	FormalParameter selfParameter();
 
 	/**
 	 * Returns the flow positions that the result of calling an object of this

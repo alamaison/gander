@@ -91,8 +91,8 @@ public class TClass implements TCodeObject, TCallable {
 					return TopP.INSTANCE;
 				}
 
-				return new FiniteResult<FormalParameter>(Collections
-						.singleton(parameter));
+				return new FiniteResult<FormalParameter>(
+						Collections.singleton(parameter));
 
 			} else {
 				// TODO: keywords and starargs
@@ -243,6 +243,20 @@ public class TClass implements TCodeObject, TCallable {
 
 		return initMethodTypes.transformResult(new ReceivingParameterFinder(
 				argument));
+	}
+
+	/**
+	 * {@inheritDoc}
+	 * 
+	 * Even if a class object is retrieved as an attribute of another object and
+	 * called, that other object doesn't flow anywhere. In other words, a class
+	 * object has no self parameter. The class object's constructor might but
+	 * that is not the same thing; this method is about flowing the object on
+	 * the LHS of the attribute.
+	 */
+	@Override
+	public FormalParameter selfParameter() {
+		return null;
 	}
 
 	/**
