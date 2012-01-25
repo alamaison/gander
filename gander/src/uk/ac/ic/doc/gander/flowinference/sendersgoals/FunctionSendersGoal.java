@@ -90,10 +90,11 @@ final class FunctionSendersGoalSolver implements Processor<ModelSite<exprType>> 
 		Set<ModelSite<Call>> callSitePositions = new HashSet<ModelSite<Call>>();
 
 		for (ModelSite<exprType> expression : positions) {
-			
+
 			SimpleNode parent = AstParentNodeFinder.findParent(
 					expression.astNode(), expression.codeObject().ast());
-			if (parent instanceof Call) {
+			if (parent instanceof Call
+					&& ((Call) parent).func.equals(expression.astNode())) {
 				callSitePositions.add(new ModelSite<Call>((Call) parent,
 						expression.codeObject()));
 			}
