@@ -32,7 +32,7 @@ final class OrdinalArgumentSituation implements FlowSituation {
 	}
 
 	@Override
-	public Result<FlowPosition> nextFlowPositions(SubgoalManager goalManager) {
+	public Result<FlowPosition> nextFlowPositions(final SubgoalManager goalManager) {
 		Result<Type> receivers = goalManager
 				.registerSubgoal(new ExpressionTypeGoal(
 						new ModelSite<exprType>(callSite.astNode().func,
@@ -44,7 +44,7 @@ final class OrdinalArgumentSituation implements FlowSituation {
 					@Override
 					public Result<FlowPosition> transformFiniteResult(
 							Set<Type> receiverTypes) {
-						return nextPositions(receiverTypes);
+						return nextPositions(receiverTypes, goalManager);
 					}
 
 					@Override
@@ -58,11 +58,11 @@ final class OrdinalArgumentSituation implements FlowSituation {
 				});
 	}
 
-	private Result<FlowPosition> nextPositions(Set<Type> receiverTypes) {
+	private Result<FlowPosition> nextPositions(Set<Type> receiverTypes, SubgoalManager goalManager) {
 		RedundancyEliminator<FlowPosition> nextPositions = new RedundancyEliminator<FlowPosition>();
 
 		for (Type receiver : receiverTypes) {
-			nextPositions.add(parametersOf(receiver));
+			nextPositions.add(parametersOf(receiver, goalManager));
 			if (nextPositions.isFinished())
 				break;
 		}
@@ -74,12 +74,13 @@ final class OrdinalArgumentSituation implements FlowSituation {
 	 * Finds the flow positions that the argument might flow when invoking a
 	 * particular receiver.
 	 */
-	private Result<FlowPosition> parametersOf(Type receiver) {
+	private Result<FlowPosition> parametersOf(Type receiver,
+			SubgoalManager goalManager) {
 
 		if (receiver instanceof TCallable) {
 
 			Result<FormalParameter> receivingParameters = ((TCallable) receiver)
-					.formalParametersReceivingArgument(argument(), null);
+					.formalParametersReceivingArgument(argument(), goalManager);
 
 			return receivingParameters
 					.transformResult(new ReceivingParameterPositioner());

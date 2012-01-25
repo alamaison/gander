@@ -114,16 +114,16 @@ def globals():
 def hasattr():
     pass
 
-def hash():
+def hash(object):
     return 42;
 
 def help():
     pass
 
-def hex():
+def hex(x):
     pass
 
-def id():
+def id(object):
     pass
 
 def input():

@@ -81,12 +81,18 @@ public class TClass implements TCodeObject, TCallable {
 			if (argument instanceof OrdinalArgument) {
 
 				int ordinal = ((OrdinalArgument) argument).ordinal();
+				FormalParameter parameter;
+				try {
+					parameter = codeObject.formalParameters().parameterAtIndex(
+							ordinal + 1);
+				} catch (IndexOutOfBoundsException e) {
+					System.err.println("Couldn't match argument to parameter: "
+							+ e);
+					return TopP.INSTANCE;
+				}
 
-				Set<FormalParameter> parameter = Collections
-						.singleton(codeObject.formalParameters()
-								.parameterAtIndex(ordinal + 1));
-
-				return new FiniteResult<FormalParameter>(parameter);
+				return new FiniteResult<FormalParameter>(Collections
+						.singleton(parameter));
 
 			} else {
 				// TODO: keywords and starargs
@@ -226,7 +232,13 @@ public class TClass implements TCodeObject, TCallable {
 	 */
 	public Result<FormalParameter> formalParametersReceivingArgument(
 			Argument argument, SubgoalManager goalManager) {
-
+		if (argument == null) {
+			throw new NullPointerException("Argument is not optional");
+		}
+		if (goalManager == null) {
+			throw new NullPointerException(
+					"Goal manager required to resolve constructor");
+		}
 		Result<Type> initMethodTypes = initMethodTypes(goalManager);
 
 		return initMethodTypes.transformResult(new ReceivingParameterFinder(

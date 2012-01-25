@@ -150,9 +150,19 @@ public class TFunction implements TCodeObject, TCallable {
 		if (argument instanceof OrdinalArgument) {
 
 			int ordinal = ((OrdinalArgument) argument).ordinal();
-			return new FiniteResult<FormalParameter>(
-					Collections.singleton(functionObject.formalParameters()
-							.parameterAtIndex(ordinal)));
+			FormalParameter parameter;
+			try {
+				parameter = functionObject.formalParameters().parameterAtIndex(
+						ordinal + 1);
+			} catch (IndexOutOfBoundsException e) {
+				System.err
+						.println("Couldn't match argument to parameter: " + e);
+				return TopP.INSTANCE;
+			}
+
+			return new FiniteResult<FormalParameter>(Collections
+					.singleton(parameter));
+			
 		} else {
 			// TODO: keywords and starargs
 			return TopP.INSTANCE;

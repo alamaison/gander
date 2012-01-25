@@ -46,11 +46,7 @@ public final class NamespaceName {
 	 *            the location to convert
 	 */
 	public NamespaceName(BindingLocation bindingLocation) {
-		if (bindingLocation == null)
-			throw new NullPointerException("Must have a location to convert");
-
-		this.name = bindingLocation.name();
-		this.namespace = bindingLocation.codeObject().unqualifiedNamespace();
+		this(bindingLocation.name(), bindingLocation.codeObject().unqualifiedNamespace());
 	}
 
 	public String name() {

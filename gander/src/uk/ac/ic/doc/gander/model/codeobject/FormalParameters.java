@@ -47,6 +47,12 @@ public final class FormalParameters {
 
 	public FormalParameter parameterAtIndex(int i) {
 
+		if (i >= parameters.size()) {
+			throw new IndexOutOfBoundsException(
+					"Parameter out of bounds: Index: " + i + " Parameters: "
+							+ argsNode);
+		}
+		
 		ModelSite<exprType> p = parameters.get(i);
 		try {
 			return (FormalParameter) p.astNode()
