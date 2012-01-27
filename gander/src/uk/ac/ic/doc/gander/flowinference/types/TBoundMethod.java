@@ -88,24 +88,28 @@ public final class TBoundMethod implements TCallable {
 		return null;
 	}
 
-	public Result<Type> typeOfArgumentAtNamedParameter(String parameterName,
-			ModelSite<Call> callSite, SubgoalManager goalManager) {
+	@Override
+	public Result<Type> typeOfArgumentPassedToParameter(
+			FormalParameter parameter, ModelSite<Call> callSite,
+			SubgoalManager goalManager) {
 
-		NamedParameter parameter = unboundMethod.formalParameters()
-				.namedParameter(parameterName);
-
-		if (parameter.index() == 0) {
+		if (parameter.equals(selfParameter())) {
 			/*
 			 * When a bound method is called the argument passed to the first
 			 * parameter is the bound instance.
 			 */
 			return new FiniteResult<Type>(Collections.singleton(instance));
 		} else {
-			ModelSite<exprType> passedArgument = expressionFromArgumentList(
-					callSite, parameter.index() - 1, parameter);
-			if (passedArgument != null) {
-				return goalManager.registerSubgoal(new ExpressionTypeGoal(
-						passedArgument));
+			if (parameter instanceof NamedParameter) {
+				ModelSite<exprType> passedArgument = expressionFromArgumentList(
+						callSite, ((NamedParameter) parameter).index() - 1,
+						(NamedParameter) parameter);
+				if (passedArgument != null) {
+					return goalManager.registerSubgoal(new ExpressionTypeGoal(
+							passedArgument));
+				} else {
+					return TopT.INSTANCE;
+				}
 			} else {
 				return TopT.INSTANCE;
 			}

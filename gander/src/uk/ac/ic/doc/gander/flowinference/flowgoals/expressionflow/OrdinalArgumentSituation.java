@@ -107,7 +107,7 @@ final class OrdinalArgumentSituation implements FlowSituation {
 
 			for (FormalParameter parameter : receivingParameters) {
 				parameterPositions.add(new ExpressionPosition(parameter
-						.parameterSite()));
+						.site()));
 			}
 
 			return new FiniteResult<FlowPosition>(parameterPositions);

@@ -173,25 +173,26 @@ public class TClass implements TCodeObject, TCallable {
 		return classObject.fullyQualifiedNamespace();
 	}
 
-	public Result<Type> typeOfArgumentAtNamedParameter(
-			final String parameterName, final ModelSite<Call> callSite,
-			final SubgoalManager goalManager) {
+	@Override
+	public Result<Type> typeOfArgumentPassedToParameter(
+			FormalParameter parameter, ModelSite<Call> callSite,
+			SubgoalManager goalManager) {
 
 		Result<Type> initMethodTypes = initMethodTypes(goalManager);
 
-		return initMethodTypes.transformResult(new ParameterTyper(
-				parameterName, callSite, goalManager));
+		return initMethodTypes.transformResult(new ParameterTyper(parameter,
+				callSite, goalManager));
 	}
 
 	private class ParameterTyper implements Transformer<Type, Result<Type>> {
 
-		private final String parameterName;
+		private final FormalParameter parameter;
 		private final ModelSite<Call> callSite;
 		private final SubgoalManager goalManager;
 
-		ParameterTyper(String parameterName, ModelSite<Call> callSite,
+		ParameterTyper(FormalParameter parameter, ModelSite<Call> callSite,
 				SubgoalManager goalManager) {
-			this.parameterName = parameterName;
+			this.parameter = parameter;
 			this.callSite = callSite;
 			this.goalManager = goalManager;
 		}
@@ -204,8 +205,8 @@ public class TClass implements TCodeObject, TCallable {
 					TBoundMethod init = new TBoundMethod(
 							((TFunction) initType).codeObject(), new TObject(
 									classObject));
-					parameterType.add(init.typeOfArgumentAtNamedParameter(
-							parameterName, callSite, goalManager));
+					parameterType.add(init.typeOfArgumentPassedToParameter(
+							parameter, callSite, goalManager));
 				} else {
 					// XXX: init might not be a function?!
 					parameterType.add(TopT.INSTANCE);

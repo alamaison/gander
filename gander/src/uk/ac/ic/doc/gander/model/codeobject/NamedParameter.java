@@ -42,7 +42,40 @@ public final class NamedParameter implements FormalParameter {
 	}
 
 	@Override
-	public ModelSite<Name> parameterSite() {
+	public ModelSite<Name> site() {
 		return parameter;
 	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result
+				+ ((parameter == null) ? 0 : parameter.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		NamedParameter other = (NamedParameter) obj;
+		if (parameter == null) {
+			if (other.parameter != null)
+				return false;
+		} else if (!parameter.equals(other.parameter))
+			return false;
+		return true;
+	}
+
+	@Override
+	public String toString() {
+		return "NamedParameter [parameter=" + parameter + ", index=" + index
+				+ ", defaultValue=" + defaultValue + "]";
+	}
+
 }

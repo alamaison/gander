@@ -88,17 +88,21 @@ public class TFunction implements TCodeObject, TCallable {
 		return functionObject.fullyQualifiedNamespace();
 	}
 
-	public Result<Type> typeOfArgumentAtNamedParameter(String parameterName,
-			ModelSite<Call> callSite, SubgoalManager goalManager) {
+	@Override
+	public Result<Type> typeOfArgumentPassedToParameter(
+			FormalParameter parameter, ModelSite<Call> callSite,
+			SubgoalManager goalManager) {
 
-		NamedParameter parameter = functionObject.formalParameters()
-				.namedParameter(parameterName);
-
-		ModelSite<exprType> passedArgument = expressionFromArgumentList(
-				callSite, parameter.index(), parameter);
-		if (passedArgument != null) {
-			return goalManager.registerSubgoal(new ExpressionTypeGoal(
-					passedArgument));
+		if (parameter instanceof NamedParameter) {
+			ModelSite<exprType> passedArgument = expressionFromArgumentList(
+					callSite, ((NamedParameter) parameter).index(),
+					(NamedParameter) parameter);
+			if (passedArgument != null) {
+				return goalManager.registerSubgoal(new ExpressionTypeGoal(
+						passedArgument));
+			} else {
+				return TopT.INSTANCE;
+			}
 		} else {
 			return TopT.INSTANCE;
 		}

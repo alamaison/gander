@@ -17,22 +17,16 @@ import uk.ac.ic.doc.gander.flowinference.sendersgoals.FunctionSendersGoal;
 import uk.ac.ic.doc.gander.flowinference.types.TCallable;
 import uk.ac.ic.doc.gander.flowinference.types.Type;
 import uk.ac.ic.doc.gander.model.ModelSite;
+import uk.ac.ic.doc.gander.model.codeobject.FormalParameter;
 import uk.ac.ic.doc.gander.model.codeobject.InvokableCodeObject;
 
 final class ParameterTypeGoal implements TypeGoal {
 
-	private final InvokableCodeObject codeObject;
-	private final String parameterName;
+	private final FormalParameter parameter;
 
-	ParameterTypeGoal(InvokableCodeObject codeObject, String parameterName) {
-
-		if (!codeObject.formalParameters().hasParameterName(parameterName)) {
-			throw new IllegalArgumentException("Parameter '" + parameterName
-					+ "' doesn't appear in " + codeObject);
-		}
-
-		this.codeObject = codeObject;
-		this.parameterName = parameterName;
+	ParameterTypeGoal(FormalParameter parameter) {
+		assert parameter != null;
+		this.parameter = parameter;
 	}
 
 	public Result<Type> initialSolution() {
@@ -40,8 +34,7 @@ final class ParameterTypeGoal implements TypeGoal {
 	}
 
 	public Result<Type> recalculateSolution(SubgoalManager goalManager) {
-		return new ParameterTypeGoalSolver(codeObject, parameterName,
-				goalManager).solution();
+		return new ParameterTypeGoalSolver(parameter, goalManager).solution();
 	}
 
 	@Override
@@ -49,9 +42,7 @@ final class ParameterTypeGoal implements TypeGoal {
 		final int prime = 31;
 		int result = 1;
 		result = prime * result
-				+ ((codeObject == null) ? 0 : codeObject.hashCode());
-		result = prime * result
-				+ ((parameterName == null) ? 0 : parameterName.hashCode());
+				+ ((parameter == null) ? 0 : parameter.hashCode());
 		return result;
 	}
 
@@ -64,23 +55,17 @@ final class ParameterTypeGoal implements TypeGoal {
 		if (getClass() != obj.getClass())
 			return false;
 		ParameterTypeGoal other = (ParameterTypeGoal) obj;
-		if (codeObject == null) {
-			if (other.codeObject != null)
+		if (parameter == null) {
+			if (other.parameter != null)
 				return false;
-		} else if (!codeObject.equals(other.codeObject))
-			return false;
-		if (parameterName == null) {
-			if (other.parameterName != null)
-				return false;
-		} else if (!parameterName.equals(other.parameterName))
+		} else if (!parameter.equals(other.parameter))
 			return false;
 		return true;
 	}
 
 	@Override
 	public String toString() {
-		return "ParameterTypeGoal [codeObject=" + codeObject
-				+ ", parameterName=" + parameterName + "]";
+		return "ParameterTypeGoal [parameter=" + parameter + "]";
 	}
 
 }
@@ -89,16 +74,17 @@ final class ParameterTypeGoalSolver {
 
 	private final Result<Type> solution;
 
-	ParameterTypeGoalSolver(InvokableCodeObject codeObject,
-			String parameterName, SubgoalManager goalManager) {
+	ParameterTypeGoalSolver(FormalParameter parameter,
+			SubgoalManager goalManager) {
 
 		Result<ModelSite<Call>> callSites = goalManager
-				.registerSubgoal(new FunctionSendersGoal(codeObject));
+				.registerSubgoal(new FunctionSendersGoal(
+						(InvokableCodeObject) parameter.site().codeObject()));
 
 		Concentrator<ModelSite<Call>, Type> processor = Concentrator
-				.newInstance(new CallArgumentTyper(parameterName, codeObject,
-						goalManager), TopT.INSTANCE);
-		
+				.newInstance(new CallArgumentTyper(parameter, goalManager),
+						TopT.INSTANCE);
+
 		callSites.actOnResult(processor);
 
 		solution = processor.result();
@@ -111,14 +97,11 @@ final class ParameterTypeGoalSolver {
 
 final class CallArgumentTyper implements DatumProcessor<ModelSite<Call>, Type> {
 
-	private final InvokableCodeObject codeObject;
-	private final String parameterName;
+	private final FormalParameter parameter;
 	private final SubgoalManager goalManager;
 
-	CallArgumentTyper(String parameterName, InvokableCodeObject codeObject,
-			SubgoalManager goalManager) {
-		this.parameterName = parameterName;
-		this.codeObject = codeObject;
+	CallArgumentTyper(FormalParameter parameter, SubgoalManager goalManager) {
+		this.parameter = parameter;
 		this.goalManager = goalManager;
 	}
 
@@ -146,7 +129,7 @@ final class CallArgumentTyper implements DatumProcessor<ModelSite<Call>, Type> {
 		 * object.
 		 */
 		return callableType.transformResult(new CallsiteToParameterTypeMapper(
-				callSite, parameterName, codeObject, goalManager));
+				callSite, parameter, goalManager));
 	}
 };
 
@@ -154,16 +137,13 @@ final class CallsiteToParameterTypeMapper implements
 		Transformer<Type, Result<Type>> {
 
 	private final ModelSite<Call> callSite;
-	private final String parameterName;
-	private final InvokableCodeObject codeObject;
+	private final FormalParameter parameter;
 	private final SubgoalManager goalManager;
 
 	CallsiteToParameterTypeMapper(ModelSite<Call> callSite,
-			String parameterName, InvokableCodeObject codeObject,
-			SubgoalManager goalManager) {
+			FormalParameter parameter, SubgoalManager goalManager) {
 		this.callSite = callSite;
-		this.parameterName = parameterName;
-		this.codeObject = codeObject;
+		this.parameter = parameter;
 		this.goalManager = goalManager;
 	}
 
@@ -190,7 +170,7 @@ final class CallsiteToParameterTypeMapper implements
 
 				if (callingObjectMightInvokeOurCodeObject(callable)) {
 					type.add(((TCallable) typeAtCallSite)
-							.typeOfArgumentAtNamedParameter(parameterName,
+							.typeOfArgumentPassedToParameter(parameter,
 									callSite, goalManager));
 				}
 
@@ -211,7 +191,8 @@ final class CallsiteToParameterTypeMapper implements
 					@Override
 					public Boolean transformFiniteResult(
 							Set<InvokableCodeObject> result) {
-						return result.contains(codeObject);
+
+						return result.contains(parameter.site().codeObject());
 					}
 
 					@Override

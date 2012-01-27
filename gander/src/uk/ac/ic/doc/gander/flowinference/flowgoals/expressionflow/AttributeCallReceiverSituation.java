@@ -77,7 +77,7 @@ final class AttributeCallReceiverSituation implements FlowSituation {
 
 			FormalParameter self = ((TCallable) receiver).selfParameter();
 			if (self != null) {
-				return new ExpressionPosition(self.parameterSite());
+				return new ExpressionPosition(self.site());
 			} else {
 				return null;
 			}

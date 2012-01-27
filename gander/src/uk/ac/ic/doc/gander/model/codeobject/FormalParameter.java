@@ -6,6 +6,6 @@ import uk.ac.ic.doc.gander.model.ModelSite;
 
 public interface FormalParameter {
 
-	ModelSite<? extends exprType> parameterSite();
+	ModelSite<? extends exprType> site();
 
 }

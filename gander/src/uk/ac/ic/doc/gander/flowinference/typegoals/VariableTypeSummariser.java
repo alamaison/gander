@@ -20,13 +20,13 @@ import uk.ac.ic.doc.gander.flowinference.types.TFunction;
 import uk.ac.ic.doc.gander.flowinference.types.Type;
 import uk.ac.ic.doc.gander.importing.ImportSpecification;
 import uk.ac.ic.doc.gander.importing.ImportSpecificationFactory;
-import uk.ac.ic.doc.gander.model.Class;
 import uk.ac.ic.doc.gander.model.ModelSite;
 import uk.ac.ic.doc.gander.model.NamespaceName;
-import uk.ac.ic.doc.gander.model.codeobject.InvokableCodeObject;
 import uk.ac.ic.doc.gander.model.codeobject.ClassCO;
 import uk.ac.ic.doc.gander.model.codeobject.CodeObject;
+import uk.ac.ic.doc.gander.model.codeobject.FormalParameter;
 import uk.ac.ic.doc.gander.model.codeobject.FunctionCO;
+import uk.ac.ic.doc.gander.model.codeobject.InvokableCodeObject;
 import uk.ac.ic.doc.gander.model.name_binding.Variable;
 
 /**
@@ -128,13 +128,17 @@ class BoundTypeVisitor implements BindingDetector.DetectionEvent {
 	private void processParameters(CodeObject codeObject, String name,
 			SubgoalManager goalManager) {
 
-		if (codeObject instanceof InvokableCodeObject
-				&& ((InvokableCodeObject) codeObject).formalParameters()
-						.parameterNames().contains(name)) {
+		if (codeObject instanceof InvokableCodeObject) {
 
-			judgement.add(goalManager
-					.registerSubgoal(new ParameterTypeGoal(
-							(InvokableCodeObject) codeObject, name)));
+			InvokableCodeObject invokable = (InvokableCodeObject) codeObject;
+			if (invokable.formalParameters().parameterNames().contains(name)) {
+
+				FormalParameter parameter = invokable.formalParameters()
+						.namedParameter(name);
+
+				judgement.add(goalManager
+						.registerSubgoal(new ParameterTypeGoal(parameter)));
+			}
 		}
 	}
 

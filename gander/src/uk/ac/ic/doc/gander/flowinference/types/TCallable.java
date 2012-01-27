@@ -21,24 +21,28 @@ public interface TCallable extends Type {
 	Result<Type> returnType(SubgoalManager goalManager);
 
 	/**
-	 * Return the type of argument that is passed to the named parameter of this
-	 * callable when called from the given call-site.
+	 * Return the type of argument that is passed to the given parameter when
+	 * called from the given call-site.
+	 * 
+	 * The parameter must belong to one of the code objects that receives calls
+	 * to this callable.
 	 * 
 	 * The argument may be one of the arguments passed to the call, one of the
 	 * default arguments in the callable's declaration or (in the case of method
 	 * calls) the type of the bound objects whose method is being invoked.
 	 * 
-	 * @param parameterName
-	 *            the name of the parameter declared in the callable
+	 * @param parameter
+	 *            the parameter declared in one of the callable's responding
+	 *            code objects
 	 * @param callSite
 	 *            an expression known to result in a call to this callable
 	 * @param goalManager
 	 *            allows us to solve the argument mapping using type inference
 	 * 
-	 * @return the type of value passed to the named parameter when this
-	 *         callable is invoked from the given call-site
+	 * @return the type of value passed to the parameter when its code object is
+	 *         invoked from the given call-site
 	 */
-	Result<Type> typeOfArgumentAtNamedParameter(String parameterName,
+	Result<Type> typeOfArgumentPassedToParameter(FormalParameter parameter,
 			ModelSite<Call> callSite, SubgoalManager goalManager);
 
 	/**
