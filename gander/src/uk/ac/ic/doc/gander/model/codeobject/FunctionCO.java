@@ -1,5 +1,6 @@
 package uk.ac.ic.doc.gander.model.codeobject;
 
+import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
 
@@ -232,8 +233,7 @@ final class FunctionObjectNamespace implements Namespace {
 	}
 
 	public Set<Variable> variablesWriteableInScope(String name) {
-		// TODO Auto-generated method stub
-		return null;
+		return Collections.emptySet();
 	}
 
 	private static final String ERROR = "External function namespaces are currently non-functional";

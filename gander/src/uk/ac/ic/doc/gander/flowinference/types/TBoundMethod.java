@@ -144,7 +144,14 @@ public final class TBoundMethod implements TCallable {
 
 	@Override
 	public FormalParameter selfParameter() {
-		return unboundMethod.formalParameters().parameterAtIndex(0);
+		try {
+			return unboundMethod.formalParameters().parameterAtIndex(0);
+		} catch (IndexOutOfBoundsException e) {
+			System.err.println("Unable to find self parameter in "
+					+ unboundMethod + ": ");
+			e.printStackTrace();
+			return null;
+		}
 	}
 
 	private ModelSite<exprType> expressionFromArgumentList(

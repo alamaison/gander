@@ -8,6 +8,7 @@ import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
 import uk.ac.ic.doc.gander.flowinference.flowgoals.FlowPosition;
 import uk.ac.ic.doc.gander.flowinference.flowgoals.TopFp;
 import uk.ac.ic.doc.gander.flowinference.result.Concentrator;
+import uk.ac.ic.doc.gander.flowinference.result.FiniteResult;
 import uk.ac.ic.doc.gander.flowinference.result.Result;
 import uk.ac.ic.doc.gander.flowinference.result.Concentrator.DatumProcessor;
 import uk.ac.ic.doc.gander.flowinference.typegoals.ExpressionTypeGoal;
@@ -110,10 +111,9 @@ final class CallResultFlower implements DatumProcessor<Type, FlowPosition> {
 			return ((TCallable) callable)
 					.flowPositionsCausedByCalling(goalManager);
 		} else {
-			throw new RuntimeException(new TypeError(
-					"May call uncallable object", callable));
+			System.err.println("May call uncallable object:" + callable);
+			return FiniteResult.bottom();
 		}
 
 	}
-
 }

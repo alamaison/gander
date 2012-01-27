@@ -143,7 +143,7 @@ public class TUnresolvedImport implements TCodeObject {
 			}
 
 			public Set<Variable> variablesWriteableInScope(String name) {
-				return null;
+				return Collections.emptySet();
 			}
 		};
 	}

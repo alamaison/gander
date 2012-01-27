@@ -52,7 +52,7 @@ public final class FormalParameters {
 					"Parameter out of bounds: Index: " + i + " Parameters: "
 							+ argsNode);
 		}
-		
+
 		ModelSite<exprType> p = parameters.get(i);
 		try {
 			return (FormalParameter) p.astNode()
@@ -86,15 +86,16 @@ public final class FormalParameters {
 
 		@Override
 		public Object visitName(Name node) throws Exception {
-			return makeNamedParameter(index,
-					new ModelSite<Name>(node, argsNode.codeObject()));
+			return makeNamedParameter(index, new ModelSite<Name>(node, argsNode
+					.codeObject()));
 		}
 
 		@Override
-		protected Object unhandled_node(SimpleNode node) throws Exception {
+		protected Object unhandled_node(final SimpleNode node) throws Exception {
 			System.err.println("Unknown parameter type: " + node + " in "
 					+ argsNode);
-			return null;
+			return new UnrecognisedParameter(new ModelSite<exprType>(
+					(exprType) node, argsNode.codeObject()));
 		}
 
 		@Override
