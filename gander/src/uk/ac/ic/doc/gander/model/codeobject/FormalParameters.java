@@ -30,19 +30,19 @@ public final class FormalParameters {
 		return parameters;
 	}
 
+	public boolean hasParameterName(String parameterName) {
+		return findNamedParameter(parameterName) != null;
+	}
+
 	public NamedParameter namedParameter(String parameterName) {
 
-		for (int i = 0; i < parameters.size(); ++i) {
-
-			FormalParameter p = parameterAtIndex(i);
-
-			if (p instanceof NamedParameter
-					&& ((NamedParameter) p).name().equals(parameterName)) {
-				return (NamedParameter) p;
-			}
+		NamedParameter p = findNamedParameter(parameterName);
+		if (p != null) {
+			return p;
+		} else {
+			throw new IllegalArgumentException("Parameter '" + parameterName
+					+ "' doesn't exist in " + argsNode.codeObject());
 		}
-
-		return null;
 	}
 
 	public FormalParameter parameterAtIndex(int i) {
@@ -60,6 +60,21 @@ public final class FormalParameters {
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}
+	}
+
+	private NamedParameter findNamedParameter(String parameterName) {
+
+		for (int i = 0; i < parameters.size(); ++i) {
+
+			FormalParameter p = parameterAtIndex(i);
+
+			if (p instanceof NamedParameter
+					&& ((NamedParameter) p).name().equals(parameterName)) {
+				return (NamedParameter) p;
+			}
+		}
+
+		return null;
 	}
 
 	private NamedParameter makeNamedParameter(int i, ModelSite<Name> p) {

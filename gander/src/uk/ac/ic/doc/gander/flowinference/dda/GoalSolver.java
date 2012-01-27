@@ -28,8 +28,7 @@ public final class GoalSolver<T> {
 		return new GoalSolver<R>(goal, knowledgebase);
 	}
 
-	@Deprecated
-	public GoalSolver(Goal<T> goal, KnowledgeBase knowledgebase) {
+	private GoalSolver(Goal<T> goal, KnowledgeBase knowledgebase) {
 		rootGoal = goal;
 		this.knowledgebase = knowledgebase;
 		workList.add(goal);

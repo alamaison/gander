@@ -21,6 +21,7 @@ import uk.ac.ic.doc.gander.model.NamespaceName;
 import uk.ac.ic.doc.gander.model.OrdinalArgument;
 import uk.ac.ic.doc.gander.model.codeobject.FormalParameter;
 import uk.ac.ic.doc.gander.model.codeobject.FunctionCO;
+import uk.ac.ic.doc.gander.model.codeobject.InvokableCodeObject;
 import uk.ac.ic.doc.gander.model.codeobject.NamedParameter;
 
 public final class TBoundMethod implements TCallable {
@@ -93,30 +94,21 @@ public final class TBoundMethod implements TCallable {
 		NamedParameter parameter = unboundMethod.formalParameters()
 				.namedParameter(parameterName);
 
-		if (parameter != null) {
-			if (parameter.index() == 0) {
-				/*
-				 * When a bound method is called the argument passed to the
-				 * first parameter is the bound instance.
-				 */
-				return new FiniteResult<Type>(Collections.singleton(instance));
-			} else {
-				ModelSite<exprType> passedArgument = expressionFromArgumentList(
-						callSite, parameter.index() - 1, parameter);
-				if (passedArgument != null) {
-					return goalManager.registerSubgoal(new ExpressionTypeGoal(
-							passedArgument));
-				} else {
-					return TopT.INSTANCE;
-				}
-			}
-		} else {
+		if (parameter.index() == 0) {
 			/*
-			 * We couldn't find the named parameter. The program is wrong.
+			 * When a bound method is called the argument passed to the first
+			 * parameter is the bound instance.
 			 */
-			System.err.println("PROGRAM ERROR: Could not find parameter '"
-					+ parameterName + "' in " + unboundMethod);
-			return TopT.INSTANCE;
+			return new FiniteResult<Type>(Collections.singleton(instance));
+		} else {
+			ModelSite<exprType> passedArgument = expressionFromArgumentList(
+					callSite, parameter.index() - 1, parameter);
+			if (passedArgument != null) {
+				return goalManager.registerSubgoal(new ExpressionTypeGoal(
+						passedArgument));
+			} else {
+				return TopT.INSTANCE;
+			}
 		}
 	}
 
@@ -178,6 +170,13 @@ public final class TBoundMethod implements TCallable {
 				return null;
 			}
 		}
+	}
+
+	@Override
+	public Result<InvokableCodeObject> codeObjectsInvokedByCall(
+			SubgoalManager goalManager) {
+		return new FiniteResult<InvokableCodeObject>(
+				Collections.singleton(unboundMethod));
 	}
 
 	public Result<FlowPosition> flowPositionsCausedByCalling(

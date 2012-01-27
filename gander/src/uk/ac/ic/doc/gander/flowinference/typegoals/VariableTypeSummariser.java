@@ -133,7 +133,7 @@ class BoundTypeVisitor implements BindingDetector.DetectionEvent {
 						.parameterNames().contains(name)) {
 
 			judgement.add(goalManager
-					.registerSubgoal(new CallableParameterTypeGoal(
+					.registerSubgoal(new ParameterTypeGoal(
 							(InvokableCodeObject) codeObject, name)));
 		}
 	}

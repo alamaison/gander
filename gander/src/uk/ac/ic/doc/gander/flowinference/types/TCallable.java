@@ -8,6 +8,7 @@ import uk.ac.ic.doc.gander.flowinference.result.Result;
 import uk.ac.ic.doc.gander.model.Argument;
 import uk.ac.ic.doc.gander.model.ModelSite;
 import uk.ac.ic.doc.gander.model.codeobject.FormalParameter;
+import uk.ac.ic.doc.gander.model.codeobject.InvokableCodeObject;
 
 public interface TCallable extends Type {
 
@@ -60,6 +61,13 @@ public interface TCallable extends Type {
 	 * @return the parameter or {@code null} if no such parameter exists
 	 */
 	FormalParameter selfParameter();
+
+	/**
+	 * Returns the codeObjects that might be invoked when this type of callable
+	 * object is called.
+	 */
+	Result<InvokableCodeObject> codeObjectsInvokedByCall(
+			SubgoalManager goalManager);
 
 	/**
 	 * Returns the flow positions that the result of calling an object of this

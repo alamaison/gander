@@ -22,6 +22,7 @@ import uk.ac.ic.doc.gander.model.NamespaceName;
 import uk.ac.ic.doc.gander.model.OrdinalArgument;
 import uk.ac.ic.doc.gander.model.codeobject.FormalParameter;
 import uk.ac.ic.doc.gander.model.codeobject.FunctionCO;
+import uk.ac.ic.doc.gander.model.codeobject.InvokableCodeObject;
 import uk.ac.ic.doc.gander.model.codeobject.NamedParameter;
 
 public class TFunction implements TCodeObject, TCallable {
@@ -93,21 +94,12 @@ public class TFunction implements TCodeObject, TCallable {
 		NamedParameter parameter = functionObject.formalParameters()
 				.namedParameter(parameterName);
 
-		if (parameter != null) {
-			ModelSite<exprType> passedArgument = expressionFromArgumentList(
-					callSite, parameter.index(), parameter);
-			if (passedArgument != null) {
-				return goalManager.registerSubgoal(new ExpressionTypeGoal(
-						passedArgument));
-			} else {
-				return TopT.INSTANCE;
-			}
+		ModelSite<exprType> passedArgument = expressionFromArgumentList(
+				callSite, parameter.index(), parameter);
+		if (passedArgument != null) {
+			return goalManager.registerSubgoal(new ExpressionTypeGoal(
+					passedArgument));
 		} else {
-			/*
-			 * We couldn't find the named parameter. The program is wrong.
-			 */
-			System.err.println("PROGRAM ERROR: Could not find parameter '"
-					+ parameterName + "' in " + functionObject);
 			return TopT.INSTANCE;
 		}
 	}
@@ -179,6 +171,13 @@ public class TFunction implements TCodeObject, TCallable {
 	@Override
 	public FormalParameter selfParameter() {
 		return null;
+	}
+
+	@Override
+	public Result<InvokableCodeObject> codeObjectsInvokedByCall(
+			SubgoalManager goalManager) {
+		return new FiniteResult<InvokableCodeObject>(
+				Collections.singleton(functionObject));
 	}
 
 	public Result<FlowPosition> flowPositionsCausedByCalling(

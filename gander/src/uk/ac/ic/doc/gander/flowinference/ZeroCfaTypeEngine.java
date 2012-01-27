@@ -15,11 +15,12 @@ interface TypeEngine {
 
 	/**
 	 * Infer the type of the expression.
-	 * 
-	 * TODO: Can we get rid of the scope parameter? It shouldn't strictly be
-	 * necessary.
 	 */
+	public Result<Type> typeOf(ModelSite<? extends exprType> expression);
+
+	@Deprecated
 	public Result<Type> typeOf(exprType expression, CodeObject scope);
+
 }
 
 /**
@@ -32,14 +33,17 @@ public final class ZeroCfaTypeEngine implements TypeEngine {
 	public ZeroCfaTypeEngine() {
 	}
 
-	public Result<Type> typeOf(exprType expression, CodeObject scope) {
-		Goal<Result<Type>> rootGoal = new ExpressionTypeGoal(
-				new ModelSite<exprType>(expression, scope));
-		System.out.print("Inferring type of " + expression + " in " + scope);
-		GoalSolver<Result<Type>> solver = new GoalSolver<Result<Type>>(
-				rootGoal, blackboard);
+	public Result<Type> typeOf(ModelSite<? extends exprType> expression) {
+		Goal<Result<Type>> rootGoal = new ExpressionTypeGoal(expression);
+		System.out.print("Inferring type of " + expression);
+		GoalSolver<Result<Type>> solver = GoalSolver.newInstance(rootGoal,
+				blackboard);
 		Result<Type> j = solver.solve();
 		System.out.println(" as " + j);
 		return j;
+	}
+
+	public Result<Type> typeOf(exprType expression, CodeObject scope) {
+		return typeOf(new ModelSite<exprType>(expression, scope));
 	}
 }

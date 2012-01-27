@@ -9,6 +9,7 @@ import java.util.Set;
 import org.python.pydev.parser.jython.ast.Call;
 import org.python.pydev.parser.jython.ast.exprType;
 
+import uk.ac.ic.doc.gander.flowinference.TopI;
 import uk.ac.ic.doc.gander.flowinference.TypeError;
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
 import uk.ac.ic.doc.gander.flowinference.flowgoals.FlowPosition;
@@ -257,6 +258,56 @@ public class TClass implements TCodeObject, TCallable {
 	@Override
 	public FormalParameter selfParameter() {
 		return null;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 * 
+	 * The code object answering a call made on a class object may be any of the
+	 * code objects assigned to the {@code __init__} member of the code object's
+	 * namespace.
+	 */
+	@Override
+	public Result<InvokableCodeObject> codeObjectsInvokedByCall(
+			SubgoalManager goalManager) {
+		Result<Type> initObjects = initMethodTypes(goalManager);
+
+		return initObjects.transformResult(new InitCodeObjectFinder());
+	}
+
+	private static final class InitCodeObjectFinder implements
+			Transformer<Type, Result<InvokableCodeObject>> {
+
+		@Override
+		public Result<InvokableCodeObject> transformFiniteResult(
+				Set<Type> initImplementations) {
+
+			Set<InvokableCodeObject> codeObjects = new HashSet<InvokableCodeObject>();
+
+			for (Type initType : initImplementations) {
+				if (initType instanceof TCodeObject) {
+					CodeObject codeObject = ((TCodeObject) initType)
+							.codeObject();
+					if (codeObject instanceof InvokableCodeObject) {
+						codeObjects.add((InvokableCodeObject) codeObject);
+					} else {
+						// XXX: init might not be a callable?!
+						return TopI.INSTANCE;
+					}
+				} else {
+					// TODO: init might be a callable object
+					return TopI.INSTANCE;
+				}
+			}
+
+			return new FiniteResult<InvokableCodeObject>(codeObjects);
+		}
+
+		@Override
+		public Result<InvokableCodeObject> transformInfiniteResult() {
+			return TopI.INSTANCE;
+		}
+
 	}
 
 	/**

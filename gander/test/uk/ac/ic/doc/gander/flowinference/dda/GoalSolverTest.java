@@ -88,7 +88,7 @@ public final class GoalSolverTest {
 	}
 
 	private GoalSolver<Integer> newSumSolver(List<Integer> nums) {
-		return new GoalSolver<Integer>(new SumGoal(nums), new KnowledgeBase());
+		return GoalSolver.newInstance(new SumGoal(nums), new KnowledgeBase());
 	}
 
 	@Test
@@ -129,16 +129,16 @@ public final class GoalSolverTest {
 
 		KnowledgeBase blackboard = new KnowledgeBase();
 
-		GoalSolver<Integer> solver = new GoalSolver<Integer>(new SumGoal(nums),
+		GoalSolver<Integer> solver = GoalSolver.newInstance(new SumGoal(nums),
 				blackboard);
 		Integer solution = solver.solve();
 		assertEquals(new Integer(6000), solution);
 
-		solver = new GoalSolver<Integer>(new SumGoal(nums), blackboard);
+		solver = GoalSolver.newInstance(new SumGoal(nums), blackboard);
 		solution = solver.solve();
 		assertEquals(new Integer(6000), solution);
 
-		solver = new GoalSolver<Integer>(new SumGoal(new ArrayList<Integer>()),
+		solver = GoalSolver.newInstance(new SumGoal(new ArrayList<Integer>()),
 				blackboard);
 		solution = solver.solve();
 		assertEquals(new Integer(0), solution);
@@ -146,7 +146,7 @@ public final class GoalSolverTest {
 		nums.add(1);
 		nums.add(5);
 
-		solver = new GoalSolver<Integer>(new SumGoal(nums), blackboard);
+		solver = GoalSolver.newInstance(new SumGoal(nums), blackboard);
 		solution = solver.solve();
 		assertEquals(new Integer(6006), solution);
 	}
@@ -254,7 +254,7 @@ public final class GoalSolverTest {
 		graph.addEdge(e, b);
 		graph.addEdge(e, f);
 
-		GoalSolver<Set<Vertex>> solver = new GoalSolver<Set<Vertex>>(
+		GoalSolver<Set<Vertex>> solver = GoalSolver.newInstance(
 				new DependencyGoal(graph, c), new KnowledgeBase());
 		Set<Vertex> dependencies = solver.solve();
 
@@ -360,7 +360,7 @@ public final class GoalSolverTest {
 		graph.addEdge(e, b);
 		graph.addEdge(e, f);
 
-		GoalSolver<Set<Vertex>> solver = new GoalSolver<Set<Vertex>>(
+		GoalSolver<Set<Vertex>> solver = GoalSolver.newInstance(
 				new DependencyGoalNullInitialSolution(graph, c),
 				new KnowledgeBase());
 		Set<Vertex> dependencies = solver.solve();
