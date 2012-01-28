@@ -32,6 +32,13 @@ public final class ObjectInstanceNamespace implements Namespace {
 				new InstanceCreationPosition(classObject)));
 	}
 
+	public Result<ModelSite<exprType>> writeableReferences(
+			SubgoalManager goalManager) {
+
+		return goalManager.registerSubgoal(new FlowGoal(
+				new InstanceCreationPosition(classObject)));
+	}
+
 	/**
 	 * {@inheritDoc}
 	 * 

@@ -1498,6 +1498,13 @@ public class ZeroCfaTypeEngineTest {
 		TestModule test = newTestModule("object_attribute_sharing_one_way_function");
 
 		ClassCO classA = test.moduleLevelClass("A");
+
+		/*
+		 * Really functionF should be an unbound method type but we don't model
+		 * them seperately from functions as they seems to have almost the same
+		 * behaviour.
+		 */
+		Type functionF = new TFunction(nestedFunction(classA, "f"));
 		Type methodF = new TBoundMethod(nestedFunction(classA, "f"),
 				new TObject(classA));
 		Type functionG = new TFunction(test.moduleLevelFunction("g"));
@@ -1505,7 +1512,7 @@ public class ZeroCfaTypeEngineTest {
 		Result<Type> type = engine.typeOf(test.printNode("what_am_i_class")
 				.site());
 
-		Set<Type> expectedType = Collections.singleton(methodF);
+		Set<Type> expectedType = Collections.singleton(functionF);
 
 		assertEquals("Class's method type not inferred correctly. It "
 				+ "probably got confused by the method being assigned "

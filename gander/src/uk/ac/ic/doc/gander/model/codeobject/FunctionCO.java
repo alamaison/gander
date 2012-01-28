@@ -227,6 +227,16 @@ final class FunctionObjectNamespace implements Namespace {
 				new CodeObjectDefinitionPosition(codeObject)));
 	}
 
+	/**
+	 * {@inheritDoc}
+	 * 
+	 * All function object's namespace is writable everywhere it is readable.
+	 */
+	public Result<ModelSite<exprType>> writeableReferences(
+			SubgoalManager goalManager) {
+		return references(goalManager);
+	}
+
 	public Set<Variable> variablesInScope(String name) {
 		// TODO Auto-generated method stub
 		return null;

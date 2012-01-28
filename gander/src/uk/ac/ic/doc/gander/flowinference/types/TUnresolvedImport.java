@@ -138,6 +138,11 @@ public class TUnresolvedImport implements TCodeObject {
 				return null;
 			}
 
+			public Result<ModelSite<exprType>> writeableReferences(
+					SubgoalManager goalManager) {
+				return null;
+			}
+
 			public Set<Variable> variablesInScope(String name) {
 				return null;
 			}

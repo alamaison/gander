@@ -38,7 +38,7 @@ final class QualifiedNameDefinitionsPartialSolution implements
 		 */
 
 		Result<ModelSite<exprType>> namespaceReferences = name
-				.namespace().references(goalManager);
+				.namespace().writeableReferences(goalManager);
 
 		inferredType = new AttributeTypeSummariser(namespaceReferences, name
 				.name(), goalManager).type();

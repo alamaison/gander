@@ -25,6 +25,13 @@ import uk.ac.ic.doc.gander.model.codeobject.FunctionCO;
 import uk.ac.ic.doc.gander.model.codeobject.InvokableCodeObject;
 import uk.ac.ic.doc.gander.model.codeobject.NamedParameter;
 
+/**
+ * Model of Python function object types.
+ * 
+ * This also models unbound method types as they seem to behave basically the
+ * same way except the type of object passed to their first parameter is
+ * enforced.
+ */
 public class TFunction implements TCodeObject, TCallable {
 
 	private final FunctionCO functionObject;

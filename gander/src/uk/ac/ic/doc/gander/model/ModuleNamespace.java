@@ -78,6 +78,16 @@ public final class ModuleNamespace implements Module {
 				new CodeObjectDefinitionPosition(codeObject)));
 	}
 
+	/**
+	 * {@inheritDoc}
+	 * 
+	 * A module's execution namespace is writeable everywhere it is readable.
+	 */
+	public Result<ModelSite<exprType>> writeableReferences(
+			SubgoalManager goalManager) {
+		return references(goalManager);
+	}
+
 	public Set<Variable> variablesInScope(String name) {
 		return new InScopeVariableFinder(codeObject, name).variables();
 	}

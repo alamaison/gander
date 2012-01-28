@@ -50,13 +50,9 @@ public final class Class implements Namespace {
 	/**
 	 * {@inheritDoc}
 	 * 
-	 * A class's execution namespace is accessible by attribute access on any
+	 * A class's execution namespace is readable by attribute access on any
 	 * expression that the class code object can reach as well as any expression
 	 * that can result in an instance of the class.
-	 * 
-	 * TODO: The accessibility is different depending on whether the attribute
-	 * is being read or written. Class namespaces members are readable via
-	 * instances but not writable via them.
 	 */
 	public Result<ModelSite<exprType>> references(SubgoalManager goalManager) {
 
@@ -66,6 +62,23 @@ public final class Class implements Namespace {
 				new CodeObjectDefinitionPosition(codeObject))));
 		references.add(goalManager.registerSubgoal(new FlowGoal(
 				new InstanceCreationPosition(codeObject))));
+
+		return references.result();
+	}
+
+	/**
+	 * {@inheritDoc}
+	 * 
+	 * Only attribute accesses on the class object itself can modify the class
+	 * object's namespace.
+	 */
+	public Result<ModelSite<exprType>> writeableReferences(
+			SubgoalManager goalManager) {
+
+		RedundancyEliminator<ModelSite<exprType>> references = new RedundancyEliminator<ModelSite<exprType>>();
+
+		references.add(goalManager.registerSubgoal(new FlowGoal(
+				new CodeObjectDefinitionPosition(codeObject))));
 
 		return references.result();
 	}
