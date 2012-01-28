@@ -70,7 +70,7 @@ public class FlowGoalCodeObjectTest {
 				test.printables("only this parameter is f"), result);
 	}
 
-	private TestModule newTestModule(String testName) {
+	private TestModule newTestModule(String testName) throws Throwable {
 		return new TestModule(testName, model);
 	}
 

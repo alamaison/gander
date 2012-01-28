@@ -100,7 +100,7 @@ public class FlowGoalExpressionTest {
 				test.printables("not self in B", "nor p in B"), result);
 	}
 
-	private TestModule newTestModule(String testName) {
+	private TestModule newTestModule(String testName) throws Throwable {
 		return new TestModule(testName, model);
 	}
 

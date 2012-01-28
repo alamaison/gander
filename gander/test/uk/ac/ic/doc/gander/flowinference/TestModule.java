@@ -17,6 +17,7 @@ import uk.ac.ic.doc.gander.flowinference.result.Result;
 import uk.ac.ic.doc.gander.flowinference.result.Result.Processor;
 import uk.ac.ic.doc.gander.flowinference.result.Result.Transformer;
 import uk.ac.ic.doc.gander.model.ModelSite;
+import uk.ac.ic.doc.gander.model.Module;
 import uk.ac.ic.doc.gander.model.MutableModel;
 import uk.ac.ic.doc.gander.model.codeobject.ClassCO;
 import uk.ac.ic.doc.gander.model.codeobject.CodeObject;
@@ -29,10 +30,18 @@ final class TestModule {
 
 	private final String moduleName;
 	private final MutableModel model;
+	private final ModuleCO module;
 
-	TestModule(String name, MutableModel model) {
+	TestModule(String name, MutableModel model) throws Throwable {
 		this.moduleName = name;
 		this.model = model;
+
+		Module module = model.load(moduleName);
+		if (module == null) {
+			throw new RuntimeException("Test module not found: " + moduleName);
+		} else {
+			this.module = module.codeObject();
+		}
 	}
 
 	ScopedPrintNode printNode(String tag) throws Throwable {
@@ -142,7 +151,7 @@ final class TestModule {
 	}
 
 	private ModuleCO codeObject() throws Throwable {
-		return model.loadModule(moduleName).codeObject();
+		return module;
 	}
 
 	private static FunctionCO nestedFunction(CodeObject parent, String name) {

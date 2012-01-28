@@ -67,7 +67,7 @@ public class SendersGoalTest {
 				test.printables("this calls f"), result);
 	}
 
-	private TestModule newTestModule(String testName) {
+	private TestModule newTestModule(String testName) throws Throwable {
 		return new TestModule(testName, model);
 	}
 

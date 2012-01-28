@@ -1442,6 +1442,86 @@ public class ZeroCfaTypeEngineTest {
 	}
 
 	@Test
+	public void objectAttributeIndependent() throws Throwable {
+		TestModule test = newTestModule("object_attribute_independent");
+
+		Set<Type> expectedType = Collections.emptySet();
+
+		Result<Type> type = engine.typeOf(test.printNode("what_am_i").site());
+
+		assertEquals("Attribute's type not BOTTOM. This "
+				+ "probably means the assignment to the object instance "
+				+ "polluted the inferred type of the member in "
+				+ "the class object.", expectedType, type);
+	}
+
+	@Test
+	public void objectAttributeIndependentSelf() throws Throwable {
+		TestModule test = newTestModule("object_attribute_independent_self");
+
+		Set<Type> expectedType = Collections.emptySet();
+
+		Result<Type> type = engine.typeOf(test.printNode("what_am_i").site());
+
+		assertEquals("Attribute's type not BOTTOM. This "
+				+ "probably means the assignment to the object instance "
+				+ "polluted the inferred type of the member in "
+				+ "the class object.", expectedType, type);
+	}
+
+	@Test
+	public void objectAttributeSharingOneWay() throws Throwable {
+		TestModule test = newTestModule("object_attribute_sharing_one_way");
+
+		Set<Type> expectedType = Collections.singleton(stringType);
+
+		Result<Type> type = engine.typeOf(test.printNode("what_am_i_class")
+				.site());
+
+		assertEquals("Attribute's type not inferred correctly. This "
+				+ "probably means the assignment to the object instance "
+				+ "polluted the inferred type of the member in "
+				+ "the class object.", expectedType, type);
+
+		type = engine.typeOf(test.printNode("what_am_i_instance").site());
+
+		expectedType = new HashSet<Type>();
+		expectedType.add(stringType);
+		expectedType.add(listType);
+
+		assertEquals("Attribute's type not inferred correctly.", expectedType,
+				type);
+	}
+
+	@Test
+	public void objectAttributeSharingOneWayFunction() throws Throwable {
+		TestModule test = newTestModule("object_attribute_sharing_one_way_function");
+
+		ClassCO classA = test.moduleLevelClass("A");
+		Type methodF = new TBoundMethod(nestedFunction(classA, "f"),
+				new TObject(classA));
+		Type functionG = new TFunction(test.moduleLevelFunction("g"));
+
+		Result<Type> type = engine.typeOf(test.printNode("what_am_i_class")
+				.site());
+
+		Set<Type> expectedType = Collections.singleton(methodF);
+
+		assertEquals("Class's method type not inferred correctly. It "
+				+ "probably got confused by the method being assigned "
+				+ "to an instance of the class", expectedType, type);
+
+		type = engine.typeOf(test.printNode("what_am_i_instance").site());
+
+		expectedType = new HashSet<Type>();
+		expectedType.add(methodF);
+		expectedType.add(functionG);
+
+		assertEquals("Instance method's type not inferred correctly",
+				expectedType, type);
+	}
+
+	@Test
 	public void importModule() throws Throwable {
 		String testName = "import_module";
 
@@ -1752,7 +1832,7 @@ public class ZeroCfaTypeEngineTest {
 		return codeObjects.iterator().next();
 	}
 
-	private TestModule newTestModule(String testName) {
+	private TestModule newTestModule(String testName) throws Throwable {
 		return new TestModule(testName, model);
 	}
 }
