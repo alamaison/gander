@@ -5,6 +5,7 @@ import java.util.Collections;
 import org.python.pydev.parser.jython.SimpleNode;
 import org.python.pydev.parser.jython.ast.ClassDef;
 import org.python.pydev.parser.jython.ast.FunctionDef;
+import org.python.pydev.parser.jython.ast.List;
 import org.python.pydev.parser.jython.ast.Name;
 import org.python.pydev.parser.jython.ast.Tuple;
 import org.python.pydev.parser.jython.ast.exprType;
@@ -146,27 +147,54 @@ class BoundTypeVisitor implements BindingDetector.DetectionEvent {
 		return judgement.result();
 	}
 
-	public boolean assignment(exprType lhs, exprType rhs) {
+	@Override
+	public void assignment(exprType[] lhs, exprType rhs) {
 
-		/* We compute rhs type on demand, once */
-		Result<Type> rhsType = null;
+		if (lhs.length == 1) {
 
-		if (lhs instanceof Name && isMatch(((Name) lhs).id)) {
-			if (rhsType == null) {
+			exprType target = lhs[0];
+
+			if (target instanceof Name && isMatch(((Name) target).id)) {
 
 				ModelSite<exprType> rhsSite = new ModelSite<exprType>(rhs,
 						variable.codeObject());
-				rhsType = goalManager.registerSubgoal(new ExpressionTypeGoal(
-						rhsSite));
-				assert rhsType != null;
+				Result<Type> rhsType = goalManager
+						.registerSubgoal(new ExpressionTypeGoal(rhsSite));
+
+				judgement.add(rhsType);
+
+			} else {
+				unpackNestedTargetsAndTopifyIfMatch(lhs);
 			}
 
-			judgement.add(rhsType);
+		} else {
+			unpackNestedTargetsAndTopifyIfMatch(lhs);
 		}
-
-		return judgement.isFinished();
 	}
 
+	private void unpackNestedTargetsAndTopifyIfMatch(exprType[] lhs) {
+		for (exprType target : lhs) {
+			unpackNestedTargetsAndTopifyIfMatch(target);
+		}
+	}
+
+	/**
+	 * Digs into the target assigning Top to our judgement if our variable is
+	 * nested anywhere within in.
+	 */
+	private void unpackNestedTargetsAndTopifyIfMatch(exprType target) {
+		if (target instanceof Name && isMatch(((Name) target).id)) {
+			judgement.add(TopT.INSTANCE);
+		} else if (target instanceof Tuple) {
+			unpackNestedTargetsAndTopifyIfMatch(((Tuple) target).elts);
+		} else if (target instanceof List) {
+			unpackNestedTargetsAndTopifyIfMatch(((List) target).elts);
+		} else {
+			// Nothing else can lead to a variable binding so we don't care
+		}
+	}
+
+	@Override
 	public void classDefiniton(String name, ClassDef node) {
 
 		if (isMatch(name)) {
@@ -186,6 +214,7 @@ class BoundTypeVisitor implements BindingDetector.DetectionEvent {
 		 */
 	}
 
+	@Override
 	public void function(String name, FunctionDef node) {
 
 		if (isMatch(name)) {
@@ -206,6 +235,7 @@ class BoundTypeVisitor implements BindingDetector.DetectionEvent {
 
 	}
 
+	@Override
 	public void forLoop(exprType target, exprType iterable) {
 
 		if (target instanceof Name) {
@@ -225,6 +255,7 @@ class BoundTypeVisitor implements BindingDetector.DetectionEvent {
 		}
 	}
 
+	@Override
 	public boolean moduleImport(String moduleName) {
 		ImportSpecification info = ImportSpecificationFactory
 				.newImport(moduleName);
@@ -236,6 +267,7 @@ class BoundTypeVisitor implements BindingDetector.DetectionEvent {
 		return judgement.isFinished();
 	}
 
+	@Override
 	public boolean moduleImportAs(String moduleName, String as) {
 		ImportSpecification info = ImportSpecificationFactory.newImportAs(
 				moduleName, as);
@@ -247,6 +279,7 @@ class BoundTypeVisitor implements BindingDetector.DetectionEvent {
 		return judgement.isFinished();
 	}
 
+	@Override
 	public boolean fromModuleImport(String moduleName, String itemName) {
 		ImportSpecification info = ImportSpecificationFactory.newFromImport(
 				moduleName, itemName);
@@ -258,6 +291,7 @@ class BoundTypeVisitor implements BindingDetector.DetectionEvent {
 		return judgement.isFinished();
 	}
 
+	@Override
 	public boolean fromModuleImportAs(String moduleName, String itemName,
 			String as) {
 		ImportSpecification info = ImportSpecificationFactory.newFromImportAs(
@@ -270,6 +304,7 @@ class BoundTypeVisitor implements BindingDetector.DetectionEvent {
 		return judgement.isFinished();
 	}
 
+	@Override
 	public boolean exception(exprType name, exprType type) {
 		if (name instanceof Name) {
 			if (isMatch(((Name) name).id)) {

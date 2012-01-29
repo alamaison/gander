@@ -27,7 +27,8 @@ public final class BindingDetector extends BindingStatementVisitor {
 	private final DetectionEvent eventHandler;
 
 	public interface DetectionEvent {
-		boolean assignment(exprType lhs, exprType rhs);
+
+		void assignment(exprType[] lhs, exprType rhs);
 
 		void function(String name, FunctionDef node);
 
@@ -52,12 +53,7 @@ public final class BindingDetector extends BindingStatementVisitor {
 
 	@Override
 	public Object visitAssign(Assign node) throws Exception {
-		for (exprType lhs : node.targets) {
-
-			if (eventHandler.assignment(lhs, node.value))
-				break;
-		}
-
+		eventHandler.assignment(node.targets, node.value);
 		return null;
 	}
 

@@ -498,7 +498,7 @@ public class ZeroCfaTypeEngineTest {
 		assertEquals("Inferred type should be monomorphic", 1,
 				((FiniteResult<Type>) type).size());
 		assertEquals("Function return's type not inferred correctly", noneType,
-				(TObject) ((FiniteResult<Type>) type).iterator().next());
+				((FiniteResult<Type>) type).iterator().next());
 	}
 
 	@Test
@@ -508,7 +508,7 @@ public class ZeroCfaTypeEngineTest {
 		Result<Type> type = engine.typeOf(node.site());
 
 		assertEquals("Function return's type not inferred correctly", noneType,
-				(TObject) ((FiniteResult<Type>) type).iterator().next());
+				((FiniteResult<Type>) type).iterator().next());
 	}
 
 	@Test
@@ -1769,16 +1769,25 @@ public class ZeroCfaTypeEngineTest {
 	}
 
 	@Test
-	public void virtualMethodCall() throws Throwable {
-		String testName = "virtual_method_call";
+	public void assignmentMultiTarget() throws Throwable {
+		TestModule test = newTestModule("assignment_multi_target");
 
-		ScopedPrintNode node = findPrintNode(testName, "what_am_i");
-		Result<Type> type = engine.typeOf(node.site());
-		Set<Type> expectedType = Collections.<Type> singleton(new TObject(
-				moduleLevelClass(node, "S")));
+		Result<Type> type = engine.typeOf(test.printNode("what_am_i").site());
 
-		assertEquals("'self' probably not tracked properly as it arrives "
-				+ "through a 'virtual' call.", expectedType, type);
+		assertEquals("Multiple targets should be inferred "
+				+ "as Top type because we can't track inside an iterable.",
+				TopT.INSTANCE, type);
+	}
+
+	@Test
+	public void assignmentNestedMultiTarget() throws Throwable {
+		TestModule test = newTestModule("assignment_nested_multi_target");
+
+		Result<Type> type = engine.typeOf(test.printNode("what_am_i").site());
+
+		assertEquals("Multiple targets should be inferred "
+				+ "as Top type because we can't track inside an iterable.",
+				TopT.INSTANCE, type);
 	}
 
 	private ScopedAstNode findNode(String moduleName, String tag)
