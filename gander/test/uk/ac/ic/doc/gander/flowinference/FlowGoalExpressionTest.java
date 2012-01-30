@@ -100,6 +100,150 @@ public class FlowGoalExpressionTest {
 				test.printables("not self in B", "nor p in B"), result);
 	}
 
+	@Test
+	public void tuple() throws Throwable {
+
+		TestModule test = newTestModule("tuple");
+
+		Result<ModelSite<exprType>> result = solveBlastoff(test);
+
+		TestModule.assertResultIsTop(
+				"Flow should have escaped on entering tuple", result);
+	}
+
+	@Test
+	public void list() throws Throwable {
+
+		TestModule test = newTestModule("list");
+
+		Result<ModelSite<exprType>> result = solveBlastoff(test);
+
+		TestModule.assertResultIsTop(
+				"Flow should have escaped on entering list", result);
+	}
+
+	// Only Python 2.7+ @Test
+	public void set() throws Throwable {
+
+		TestModule test = newTestModule("set");
+
+		Result<ModelSite<exprType>> result = solveBlastoff(test);
+
+		TestModule.assertResultIsTop(
+				"Flow should have escaped on entering set", result);
+	}
+
+	@Test
+	public void dictKey() throws Throwable {
+
+		TestModule test = newTestModule("dict_key");
+
+		Result<ModelSite<exprType>> result = solveBlastoff(test);
+
+		TestModule.assertResultIsTop(
+				"Flow should have escaped on entering dictionary", result);
+	}
+
+	@Test
+	public void dictValue() throws Throwable {
+
+		TestModule test = newTestModule("dict_value");
+
+		Result<ModelSite<exprType>> result = solveBlastoff(test);
+
+		TestModule.assertResultIsTop(
+				"Flow should have escaped on entering dictionary", result);
+	}
+
+	@Test
+	public void listComp() throws Throwable {
+
+		TestModule test = newTestModule("list_comp");
+
+		Result<ModelSite<exprType>> result = solveBlastoff(test);
+
+		TestModule.assertResultIsTop(
+				"Flow should have escaped on entering list comprehension",
+				result);
+	}
+
+	@Test
+	public void listCompNakedTuple() throws Throwable {
+
+		TestModule test = newTestModule("list_comp_naked_tuple");
+
+		Result<ModelSite<exprType>> result = solveBlastoff(test);
+
+		TestModule.assertResultIsTop(
+				"Flow should have escaped on entering list comprehension",
+				result);
+	}
+
+	@Test
+	public void listCompNakedTuple2() throws Throwable {
+
+		TestModule test = newTestModule("list_comp_naked_tuple2");
+
+		Result<ModelSite<exprType>> result = solveBlastoff(test);
+
+		TestModule.assertResultIsTop(
+				"Flow should have escaped on entering list comprehension",
+				result);
+	}
+
+	@Test
+	public void listCompIf() throws Throwable {
+
+		/*
+		 * This test will fail until we find a better AST generator without the
+		 * listcomp bug that mistreats naked tuples.
+		 */
+
+		TestModule test = newTestModule("list_comp_if");
+
+		Result<ModelSite<exprType>> result = solveBlastoff(test);
+
+		TestModule.assertResultIsNotTop(
+				"Flow should not have escaped.  x was only used in the "
+						+ "if-condition.  It never enters the list", result);
+	}
+
+	@Test
+	public void forLoop() throws Throwable {
+
+		TestModule test = newTestModule("for_loop");
+
+		Result<ModelSite<exprType>> result = solveBlastoff(test);
+
+		TestModule
+				.assertResultIsTop(
+						"Flow should have escaped on entering for-loop's tuple",
+						result);
+	}
+
+	@Test
+	public void ifExpression() throws Throwable {
+
+		TestModule test = newTestModule("if_expression");
+
+		Result<ModelSite<exprType>> result = solveBlastoff(test);
+
+		TestModule.assertResultIncludes("Expression did not flow through "
+				+ "ternary if operator.", test.printables("x flows here"),
+				result);
+	}
+
+	@Test
+	public void raiseException() throws Throwable {
+
+		TestModule test = newTestModule("raise_exception");
+
+		Result<ModelSite<exprType>> result = solveBlastoff(test);
+
+		TestModule.assertResultIsTop("Flow should have escaped when raised",
+				result);
+	}
+
 	private TestModule newTestModule(String testName) throws Throwable {
 		return new TestModule(testName, model);
 	}

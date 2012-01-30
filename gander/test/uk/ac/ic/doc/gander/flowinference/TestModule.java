@@ -101,6 +101,38 @@ final class TestModule {
 		return nestedFunction(codeObject(), name);
 	}
 
+	static <U extends exprType> void assertResultIsTop(final String message,
+			Result<ModelSite<U>> result) {
+
+		result.actOnResult(new Processor<ModelSite<U>>() {
+
+			@Override
+			public void processInfiniteResult() {
+			}
+
+			@Override
+			public void processFiniteResult(Set<ModelSite<U>> result) {
+				fail(message + ". Result is not Top: " + result);
+			}
+		});
+	}
+
+	static <U extends exprType> void assertResultIsNotTop(final String message,
+			Result<ModelSite<U>> result) {
+
+		result.actOnResult(new Processor<ModelSite<U>>() {
+
+			@Override
+			public void processInfiniteResult() {
+				fail(message + ". Result is Top.");
+			}
+
+			@Override
+			public void processFiniteResult(Set<ModelSite<U>> result) {
+			}
+		});
+	}
+
 	static <T extends exprType, U extends exprType> void assertResultIncludes(
 			final String message, final Set<ModelSite<T>> expressions,
 			Result<ModelSite<U>> result) {

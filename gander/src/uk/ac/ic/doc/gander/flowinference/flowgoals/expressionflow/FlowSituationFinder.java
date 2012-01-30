@@ -64,6 +64,7 @@ import org.python.pydev.parser.jython.ast.While;
 import org.python.pydev.parser.jython.ast.With;
 import org.python.pydev.parser.jython.ast.WithItem;
 import org.python.pydev.parser.jython.ast.Yield;
+import org.python.pydev.parser.jython.ast.comprehensionType;
 import org.python.pydev.parser.jython.ast.exprType;
 
 import uk.ac.ic.doc.gander.model.ModelSite;
@@ -110,7 +111,7 @@ final class SituationFinder extends VisitorBase {
 
 	private final SituationMapper mapper;
 
-	private Set<FlowSituation> situations = new HashSet<FlowSituation>();
+	private final Set<FlowSituation> situations = new HashSet<FlowSituation>();
 
 	public SituationFinder(ModelSite<? extends exprType> expressionSite) {
 		this.mapper = new SituationMapper(expressionSite);
@@ -155,11 +156,13 @@ final class SituationMapper implements VisitorIF {
 		this.expression = expression;
 	}
 
+	@Override
 	public Object visitAssert(Assert node) throws Exception {
 		/* Nothing flows out of an assertion */
 		return notInAFlowSituation();
 	}
 
+	@Override
 	public Object visitAssign(Assign node) throws Exception {
 		if (isMatch(node.value))
 			return new AssignmentSituation(node, expression);
@@ -167,6 +170,7 @@ final class SituationMapper implements VisitorIF {
 			return notInAFlowSituation();
 	}
 
+	@Override
 	public Object visitAttribute(Attribute node) throws Exception {
 		if (isMatch(node)) {
 			return new AttributeSituation(nodeToSite(node));
@@ -186,6 +190,7 @@ final class SituationMapper implements VisitorIF {
 		}
 	}
 
+	@Override
 	public Object visitAugAssign(AugAssign node) throws Exception {
 		// TODO Can this flow the value? For instance does it add
 		// a value to a list?
@@ -198,6 +203,7 @@ final class SituationMapper implements VisitorIF {
 		}
 	}
 
+	@Override
 	public Object visitBinOp(BinOp node) throws Exception {
 		// TODO Can this flow the value? For instance does it add
 		// a value to a list?
@@ -210,6 +216,7 @@ final class SituationMapper implements VisitorIF {
 		}
 	}
 
+	@Override
 	public Object visitBoolOp(BoolOp node) throws Exception {
 		for (exprType value : node.values) {
 			if (isMatch(value)) {
@@ -219,10 +226,12 @@ final class SituationMapper implements VisitorIF {
 		return notInAFlowSituation();
 	}
 
+	@Override
 	public Object visitBreak(Break node) throws Exception {
 		return notInAFlowSituation();
 	}
 
+	@Override
 	public Object visitCall(Call node) throws Exception {
 		/*
 		 * An expression appearing in a call node can flow further depending on
@@ -276,8 +285,7 @@ final class SituationMapper implements VisitorIF {
 			 * for those that are bound methods.
 			 */
 			ModelSite<Attribute> receiver = new ModelSite<Attribute>(
-					(Attribute) node.func,
-					expression.codeObject());
+					(Attribute) node.func, expression.codeObject());
 			return new AttributeCallReceiverSituation(receiver);
 		} else if (isMatch(node.starargs) || isMatch(node.kwargs)) {
 			/*
@@ -304,7 +312,7 @@ final class SituationMapper implements VisitorIF {
 				if (isMatch(node.keywords[i].value)) {
 					// TODO: flow keyword argument to parameter
 					// return new KeywordArgumentSituation(nodeToSite(node), i);
-					return new EscapeSituation();
+					return EscapeSituation.INSTANCE;
 				}
 			}
 
@@ -312,11 +320,13 @@ final class SituationMapper implements VisitorIF {
 		}
 	}
 
+	@Override
 	public Object visitClassDef(ClassDef node) throws Exception {
 		// TODO Auto-generated method stub
 		return notInAFlowSituation();
 	}
 
+	@Override
 	public Object visitCompare(Compare node) throws Exception {
 		if (isMatch(node.left)) {
 			return notInAFlowSituation(); // TODO
@@ -330,6 +340,7 @@ final class SituationMapper implements VisitorIF {
 		}
 	}
 
+	@Override
 	public Object visitComprehension(Comprehension node) throws Exception {
 		if (isMatch(node.target)) {
 			return notInAFlowSituation(); // TODO
@@ -345,10 +356,12 @@ final class SituationMapper implements VisitorIF {
 		}
 	}
 
+	@Override
 	public Object visitContinue(Continue node) throws Exception {
 		return notInAFlowSituation();
 	}
 
+	@Override
 	public Object visitDelete(Delete node) throws Exception {
 		for (exprType target : node.targets) {
 			if (isMatch(target)) {
@@ -358,129 +371,140 @@ final class SituationMapper implements VisitorIF {
 		return notInAFlowSituation();
 	}
 
+	@Override
 	public Object visitDict(Dict node) throws Exception {
+
+		/*
+		 * Using an expression in a dictionary literal flows that expression's
+		 * value into the dictionary. Unfortunately we can't track this flow so
+		 * we model it as escaping to all possible flow positions.
+		 */
+
 		for (exprType key : node.keys) {
 			if (isMatch(key)) {
-				return notInAFlowSituation(); // TODO
+				return EscapeSituation.INSTANCE;
 			}
 		}
 		for (exprType value : node.values) {
 			if (isMatch(value)) {
-				/*
-				 * Using an expression in a dictionary literal flows that
-				 * expression's value into the dictionary. Unfortunately we
-				 * can't track this flow so we model it as escaping to all
-				 * possible flow positions.
-				 */
-				return new EscapeSituation();
+				return EscapeSituation.INSTANCE;
 			}
 		}
 		return notInAFlowSituation();
 	}
 
+	@Override
 	public Object visitDictComp(DictComp node) throws Exception {
-		if (isMatch(node.key)) {
-			return notInAFlowSituation(); // TODO
-		} else if (isMatch(node.value)) {
-			return notInAFlowSituation(); // TODO
-		} else {
-			// XXX: not sure how to handle comprehensions here
-			// for (comprehensionType arg : node.generators) {
-			return notInAFlowSituation();
-		}
+		/* TODO: only in Python 2.7+ */
+		return notInAFlowSituation();
 	}
 
+	@Override
 	public Object visitEllipsis(Ellipsis node) throws Exception {
 		return notInAFlowSituation();
 	}
 
+	@Override
 	public Object visitExec(Exec node) throws Exception {
 		// TODO Auto-generated method stub
 		return notInAFlowSituation();
 	}
 
+	@Override
 	public Object visitExpr(Expr node) throws Exception {
 		// TODO Auto-generated method stub
 		return notInAFlowSituation();
 	}
 
+	@Override
 	public Object visitExpression(Expression node) throws Exception {
 		// TODO Auto-generated method stub
 		return notInAFlowSituation();
 	}
 
+	@Override
 	public Object visitExtSlice(ExtSlice node) throws Exception {
 		// TODO Auto-generated method stub
 		return notInAFlowSituation();
 	}
 
+	@Override
 	public Object visitFor(For node) throws Exception {
-		// TODO Auto-generated method stub
+		/*
+		 * If the for loop is passed an iterable the escape is handled by the
+		 * node wherever that iterable is created. If it is passed a
+		 * comma-delimited list, they appear as a tuple in the AST so the escape
+		 * is handled when traversing into that.
+		 */
 		return notInAFlowSituation();
 	}
 
+	@Override
 	public Object visitFunctionDef(FunctionDef node) throws Exception {
 		// TODO Auto-generated method stub
 		return notInAFlowSituation();
 	}
 
+	@Override
 	public Object visitGeneratorExp(GeneratorExp node) throws Exception {
 		// TODO Auto-generated method stub
 		return notInAFlowSituation();
 	}
 
+	@Override
 	public Object visitGlobal(Global node) throws Exception {
-		// TODO Auto-generated method stub
 		return notInAFlowSituation();
 	}
 
+	@Override
 	public Object visitIf(If node) throws Exception {
-		// TODO Auto-generated method stub
 		return notInAFlowSituation();
 	}
 
+	@Override
 	public Object visitIfExp(IfExp node) throws Exception {
 		if (isMatch(node.test)) {
-			return notInAFlowSituation(); // TODO
+			return notInAFlowSituation();
 		} else if (isMatch(node.body)) {
-			return notInAFlowSituation(); // TODO
+			return new ExpressionSituation(nodeToSite(node));
 		} else if (isMatch(node.orelse)) {
-			return notInAFlowSituation(); // TODO
+			return new ExpressionSituation(nodeToSite(node));
 		} else {
 			return notInAFlowSituation();
 		}
-
-		// situations[0] = new ExpressionSituation(new ModelSite<IfExp>(node,
-		// site
-		// .getEnclosingScope(), model));
-
 	}
 
+	@Override
 	public Object visitImport(Import node) throws Exception {
 		// TODO Auto-generated method stub
 		return notInAFlowSituation();
 	}
 
+	@Override
 	public Object visitImportFrom(ImportFrom node) throws Exception {
 		// TODO Auto-generated method stub
 		return notInAFlowSituation();
 	}
 
+	@Override
 	public Object visitIndex(Index node) throws Exception {
 		// TODO Auto-generated method stub
 		return notInAFlowSituation();
 	}
 
+	@Override
 	public Object visitInteractive(Interactive node) throws Exception {
 		// TODO Auto-generated method stub
 		return notInAFlowSituation();
 	}
 
+	@Override
 	public Object visitLambda(Lambda node) throws Exception {
 		// TODO Auto-generated method stub
 		return notInAFlowSituation();
 	}
 
+	@Override
 	public Object visitList(List node) throws Exception {
 		for (exprType value : node.elts) {
 			if (isMatch(value)) {
@@ -489,22 +513,52 @@ final class SituationMapper implements VisitorIF {
 				 * value into the list. Unfortunately we can't track this flow
 				 * so we model it as escaping to all possible flow positions.
 				 */
-				return new EscapeSituation();
+				return EscapeSituation.INSTANCE;
 			}
 		}
 		return notInAFlowSituation();
 	}
 
+	@Override
 	public Object visitListComp(ListComp node) throws Exception {
-		// TODO Auto-generated method stub
+		for (comprehensionType gen : node.generators) {
+			/*
+			 * FIXME: BUGBUGBUG
+			 * 
+			 * There is a bug in the generated AST that makes the following list
+			 * comprehensions indistinguishable:
+			 * 
+			 * [i for i in x, y]
+			 * 
+			 * [i for i in x if y]
+			 * 
+			 * Both appear with y in the ifs member of the comprehension but
+			 * they have very different meanings when executed. To be on the
+			 * safe side, we must assume the first case is what we're seeing and
+			 * infer Top if our expression appears anywhere within the ifs list
+			 * or if it appears as the iterable (despite being *in* the
+			 * iterable).
+			 */
+			Comprehension comprehension = (Comprehension) gen;
+			if (isMatch(comprehension.iter)) {
+				return EscapeSituation.INSTANCE;
+			} else {
+				for (exprType ifexpr : comprehension.ifs) {
+					if (isMatch(ifexpr)) {
+						return EscapeSituation.INSTANCE;
+					}
+				}
+			}
+		}
 		return notInAFlowSituation();
 	}
 
+	@Override
 	public Object visitModule(Module node) throws Exception {
-		// TODO Auto-generated method stub
 		return notInAFlowSituation();
 	}
 
+	@Override
 	public Object visitName(Name node) throws Exception {
 		if (isMatch(node)) {
 			return new NameSituation(node, expression);
@@ -513,40 +567,68 @@ final class SituationMapper implements VisitorIF {
 		}
 	}
 
+	@Override
 	public Object visitNameTok(NameTok node) throws Exception {
 		// TODO Auto-generated method stub
 		return notInAFlowSituation();
 	}
 
+	@Override
 	public Object visitNonLocal(NonLocal node) throws Exception {
-		// TODO Auto-generated method stub
 		return notInAFlowSituation();
 	}
 
+	@Override
 	public Object visitNum(Num node) throws Exception {
-		// TODO Auto-generated method stub
 		return notInAFlowSituation();
 	}
 
+	@Override
 	public Object visitPass(Pass node) throws Exception {
 		return notInAFlowSituation();
 	}
 
+	@Override
 	public Object visitPrint(Print node) throws Exception {
-		// TODO Auto-generated method stub
 		return notInAFlowSituation();
 	}
 
+	@Override
 	public Object visitRaise(Raise node) throws Exception {
-		// TODO Auto-generated method stub
+		/*
+		 * Raising an exception flows the exception object to almost anywhere.
+		 * Give up and return Top.
+		 */
+
+		/*
+		 * The object being throw is the first expression if that is the only
+		 * expression or the second expression if not ... roughly.
+		 */
+		if (node.cause == null && node.tback == null) {
+			if (node.inst == null) {
+
+				if (isMatch(node.type)) {
+					return EscapeSituation.INSTANCE;
+				}
+
+			} else {
+
+				if (isMatch(node.inst)) {
+					return EscapeSituation.INSTANCE;
+				}
+
+			}
+		}
+
 		return notInAFlowSituation();
 	}
 
+	@Override
 	public Object visitRepr(Repr node) throws Exception {
-		// TODO Auto-generated method stub
 		return notInAFlowSituation();
 	}
 
+	@Override
 	public Object visitReturn(Return node) throws Exception {
 		if (isMatch(node.value)) {
 			return new ReturnSituation(expression);
@@ -555,82 +637,115 @@ final class SituationMapper implements VisitorIF {
 		}
 	}
 
+	@Override
 	public Object visitSet(org.python.pydev.parser.jython.ast.Set node)
 			throws Exception {
-		// TODO Auto-generated method stub
+		for (exprType value : node.elts) {
+			if (isMatch(value)) {
+				/*
+				 * Using an expression in a set literal flows that expression's
+				 * value into the set. Unfortunately we can't track this flow so
+				 * we model it as escaping to all possible flow positions.
+				 */
+				return EscapeSituation.INSTANCE;
+			}
+		}
 		return notInAFlowSituation();
 	}
 
+	@Override
 	public Object visitSetComp(SetComp node) throws Exception {
-		// TODO Auto-generated method stub
+		/* TODO: only in Python 2.7+ */
 		return notInAFlowSituation();
 	}
 
+	@Override
 	public Object visitSlice(Slice node) throws Exception {
 		// TODO Auto-generated method stub
 		return notInAFlowSituation();
 	}
 
+	@Override
 	public Object visitStarred(Starred node) throws Exception {
 		// TODO Auto-generated method stub
 		return notInAFlowSituation();
 	}
 
+	@Override
 	public Object visitStr(Str node) throws Exception {
-		// TODO Auto-generated method stub
 		return notInAFlowSituation();
 	}
 
+	@Override
 	public Object visitStrJoin(StrJoin node) throws Exception {
 		// TODO Auto-generated method stub
 		return notInAFlowSituation();
 	}
 
+	@Override
 	public Object visitSubscript(Subscript node) throws Exception {
 		// TODO Auto-generated method stub
 		return notInAFlowSituation();
 	}
 
+	@Override
 	public Object visitSuite(Suite node) throws Exception {
 		// TODO Auto-generated method stub
 		return notInAFlowSituation();
 	}
 
+	@Override
 	public Object visitTryExcept(TryExcept node) throws Exception {
 		// TODO Auto-generated method stub
 		return notInAFlowSituation();
 	}
 
+	@Override
 	public Object visitTryFinally(TryFinally node) throws Exception {
 		// TODO Auto-generated method stub
 		return notInAFlowSituation();
 	}
 
+	@Override
 	public Object visitTuple(Tuple node) throws Exception {
-		// TODO Auto-generated method stub
+		for (exprType value : node.elts) {
+			if (isMatch(value)) {
+				/*
+				 * Using an expression in a tuple literal flows that
+				 * expression's value into the tuple. Unfortunately we can't
+				 * track this flow so we model it as escaping to all possible
+				 * flow positions.
+				 */
+				return EscapeSituation.INSTANCE;
+			}
+		}
 		return notInAFlowSituation();
 	}
 
+	@Override
 	public Object visitUnaryOp(UnaryOp node) throws Exception {
 		// TODO Auto-generated method stub
 		return notInAFlowSituation();
 	}
 
+	@Override
 	public Object visitWhile(While node) throws Exception {
-		// TODO Auto-generated method stub
 		return notInAFlowSituation();
 	}
 
+	@Override
 	public Object visitWith(With node) throws Exception {
 		// TODO Auto-generated method stub
 		return notInAFlowSituation();
 	}
 
+	@Override
 	public Object visitWithItem(WithItem node) throws Exception {
 		// TODO Auto-generated method stub
 		return notInAFlowSituation();
 	}
 
+	@Override
 	public Object visitYield(Yield node) throws Exception {
 		// TODO Auto-generated method stub
 		return notInAFlowSituation();
@@ -641,7 +756,6 @@ final class SituationMapper implements VisitorIF {
 	}
 
 	private <T extends exprType> ModelSite<T> nodeToSite(T node) {
-		assert isMatch(node);
 		return new ModelSite<T>(node, expression.codeObject());
 	}
 
