@@ -272,7 +272,15 @@ public final class ExpressionTypeGoal implements TypeGoal {
 
 		@Override
 		public Object visitTuple(Tuple node) throws Exception {
-			return tupleType;
+			/*
+			 * A Tuple with just one item that doesn't end in a comma is not a
+			 * Tuple; it's just brackets! Recurse to find the real type.
+			 */
+			if (node.elts.length == 1 && !node.endsWithComma) {
+				return node.elts[0].accept(this);
+			} else {
+				return tupleType;
+			}
 		}
 
 		@Override

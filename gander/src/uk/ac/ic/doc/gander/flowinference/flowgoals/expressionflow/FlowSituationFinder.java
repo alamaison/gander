@@ -708,17 +708,29 @@ final class SituationMapper implements VisitorIF {
 
 	@Override
 	public Object visitTuple(Tuple node) throws Exception {
-		for (exprType value : node.elts) {
-			if (isMatch(value)) {
-				/*
-				 * Using an expression in a tuple literal flows that
-				 * expression's value into the tuple. Unfortunately we can't
-				 * track this flow so we model it as escaping to all possible
-				 * flow positions.
-				 */
-				return EscapeSituation.INSTANCE;
+		/*
+		 * A single-element tuple without a trailing comma is not a tuple; it's
+		 * just a pair of brackets! so whatever expression flowed into the
+		 * tuple, flows straight back out.
+		 */
+		if (node.elts.length == 1 && !node.endsWithComma) {
+			if (isMatch(node.elts[0])) {
+				return new ExpressionSituation(nodeToSite(node));
+			}
+		} else {
+			for (exprType value : node.elts) {
+				if (isMatch(value)) {
+					/*
+					 * Using an expression in a tuple literal flows that
+					 * expression's value into the tuple. Unfortunately we can't
+					 * track this flow so we model it as escaping to all
+					 * possible flow positions.
+					 */
+					return EscapeSituation.INSTANCE;
+				}
 			}
 		}
+
 		return notInAFlowSituation();
 	}
 

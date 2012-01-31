@@ -244,6 +244,30 @@ public class FlowGoalExpressionTest {
 				result);
 	}
 
+	@Test
+	public void tupleSingleElement() throws Throwable {
+
+		TestModule test = newTestModule("tuple_single_element");
+
+		Result<ModelSite<exprType>> result = solveBlastoff(test);
+
+		TestModule.assertResultIncludes(
+				"Expression did not ignore tuple brackets.", test
+						.printables("x flows through single-element tuple"),
+				result);
+	}
+
+	@Test
+	public void tupleSingleElementTrailingComma() throws Throwable {
+
+		TestModule test = newTestModule("tuple_single_element_trailing_comma");
+
+		Result<ModelSite<exprType>> result = solveBlastoff(test);
+
+		TestModule
+				.assertResultIsTop("Expression ignore trailing comma", result);
+	}
+
 	private TestModule newTestModule(String testName) throws Throwable {
 		return new TestModule(testName, model);
 	}

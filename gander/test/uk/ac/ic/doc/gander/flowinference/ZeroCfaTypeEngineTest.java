@@ -1790,6 +1790,18 @@ public class ZeroCfaTypeEngineTest {
 				TopT.INSTANCE, type);
 	}
 
+	@Test
+	public void tupleBrackets() throws Throwable {
+		TestModule test = newTestModule("tuple_brackets");
+
+		Result<Type> type = engine.typeOf(test.printNode("what_am_i").site());
+		Set<Type> expectedType = typeJudgement(stringType);
+
+		assertEquals("Tuple with one item should be unpacked "
+				+ "to get the type of its element; it's not really "
+				+ "a tuple at all.", expectedType, type);
+	}
+
 	private ScopedAstNode findNode(String moduleName, String tag)
 			throws Exception {
 		return new TaggedNodeAndScopeFinder(model.loadModule(moduleName)
