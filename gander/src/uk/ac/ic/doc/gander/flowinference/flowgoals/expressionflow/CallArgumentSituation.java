@@ -18,17 +18,16 @@ import uk.ac.ic.doc.gander.flowinference.types.TCallable;
 import uk.ac.ic.doc.gander.flowinference.types.Type;
 import uk.ac.ic.doc.gander.model.Argument;
 import uk.ac.ic.doc.gander.model.ModelSite;
-import uk.ac.ic.doc.gander.model.OrdinalArgument;
 import uk.ac.ic.doc.gander.model.codeobject.FormalParameter;
 
-final class OrdinalArgumentSituation implements FlowSituation {
+final class CallArgumentSituation implements FlowSituation {
 
 	private final ModelSite<Call> callSite;
-	private final int argumentIndex;
+	private final Argument argument;
 
-	public OrdinalArgumentSituation(ModelSite<Call> callSite, int argumentIndex) {
+	public CallArgumentSituation(ModelSite<Call> callSite, Argument argument) {
 		this.callSite = callSite;
-		this.argumentIndex = argumentIndex;
+		this.argument = argument;
 	}
 
 	@Override
@@ -120,14 +119,15 @@ final class OrdinalArgumentSituation implements FlowSituation {
 	}
 
 	private Argument argument() {
-		return new OrdinalArgument(callSite, argumentIndex);
+		return argument;
 	}
 
 	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + argumentIndex;
+		result = prime * result
+				+ ((argument == null) ? 0 : argument.hashCode());
 		result = prime * result
 				+ ((callSite == null) ? 0 : callSite.hashCode());
 		return result;
@@ -141,8 +141,11 @@ final class OrdinalArgumentSituation implements FlowSituation {
 			return false;
 		if (getClass() != obj.getClass())
 			return false;
-		OrdinalArgumentSituation other = (OrdinalArgumentSituation) obj;
-		if (argumentIndex != other.argumentIndex)
+		CallArgumentSituation other = (CallArgumentSituation) obj;
+		if (argument == null) {
+			if (other.argument != null)
+				return false;
+		} else if (!argument.equals(other.argument))
 			return false;
 		if (callSite == null) {
 			if (other.callSite != null)
@@ -154,8 +157,8 @@ final class OrdinalArgumentSituation implements FlowSituation {
 
 	@Override
 	public String toString() {
-		return "OrdinalArgumentSituation [callSite=" + callSite
-				+ ", argumentIndex=" + argumentIndex + "]";
+		return "CallArgumentSituation [argument=" + argument + ", callSite="
+				+ callSite + "]";
 	}
 
 }

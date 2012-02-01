@@ -67,7 +67,10 @@ import org.python.pydev.parser.jython.ast.Yield;
 import org.python.pydev.parser.jython.ast.comprehensionType;
 import org.python.pydev.parser.jython.ast.exprType;
 
+import uk.ac.ic.doc.gander.model.Argument;
+import uk.ac.ic.doc.gander.model.KeywordArgument;
 import uk.ac.ic.doc.gander.model.ModelSite;
+import uk.ac.ic.doc.gander.model.PositionalArgument;
 
 final class FlowSituationFinder {
 
@@ -302,17 +305,21 @@ final class SituationMapper implements VisitorIF {
 
 			for (int i = 0; i < node.args.length; ++i) {
 				if (isMatch(node.args[i])) {
-					ModelSite<Call> site = new ModelSite<Call>(node,
-							expression.codeObject());
-					return new OrdinalArgumentSituation(site, i);
+					
+					ModelSite<Call> callSite = nodeToSite(node);
+					Argument argument = new PositionalArgument(callSite, i);
+					
+					return new CallArgumentSituation(callSite, argument);
 				}
 			}
 
 			for (int i = 0; i < node.keywords.length; ++i) {
 				if (isMatch(node.keywords[i].value)) {
-					// TODO: flow keyword argument to parameter
-					// return new KeywordArgumentSituation(nodeToSite(node), i);
-					return EscapeSituation.INSTANCE;
+					
+					ModelSite<Call> callSite = nodeToSite(node);
+					Argument argument = new KeywordArgument(callSite, i);
+					
+					return new CallArgumentSituation(callSite, argument);
 				}
 			}
 

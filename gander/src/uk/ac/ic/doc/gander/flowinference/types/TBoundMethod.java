@@ -15,10 +15,10 @@ import uk.ac.ic.doc.gander.flowinference.typegoals.ExpressionTypeGoal;
 import uk.ac.ic.doc.gander.flowinference.typegoals.NamespaceNameTypeGoal;
 import uk.ac.ic.doc.gander.flowinference.typegoals.TopT;
 import uk.ac.ic.doc.gander.model.Argument;
+import uk.ac.ic.doc.gander.model.CallArgumentMapper;
 import uk.ac.ic.doc.gander.model.ModelSite;
 import uk.ac.ic.doc.gander.model.Namespace;
 import uk.ac.ic.doc.gander.model.NamespaceName;
-import uk.ac.ic.doc.gander.model.OrdinalArgument;
 import uk.ac.ic.doc.gander.model.codeobject.FormalParameter;
 import uk.ac.ic.doc.gander.model.codeobject.FunctionCO;
 import uk.ac.ic.doc.gander.model.codeobject.InvokableCodeObject;
@@ -124,16 +124,41 @@ public final class TBoundMethod implements TCallable {
 	 * than the ordinal.
 	 */
 	public Result<FormalParameter> formalParametersReceivingArgument(
-			Argument argument, SubgoalManager goalManager) {
+			final Argument argument, SubgoalManager goalManager) {
 
-		if (argument instanceof OrdinalArgument) {
+		if (argument == null) {
+			throw new NullPointerException("Argument is not optional");
+		}
 
-			int ordinal = ((OrdinalArgument) argument).ordinal();
-			return new FiniteResult<FormalParameter>(
-					Collections.singleton(unboundMethod.formalParameters()
-							.parameterAtIndex(ordinal + 1)));
+		FormalParameter parameter = argument
+				.passArgumentAtCall(new CallArgumentMapper() {
+
+					@Override
+					public FormalParameter parameterAtIndex(int argumentIndex) {
+						return unboundMethod.formalParameters()
+								.parameterAtIndex(argumentIndex + 1);
+					}
+
+					@Override
+					public FormalParameter namedParameter(String parameterName) {
+						if (unboundMethod.formalParameters().hasParameterName(
+								parameterName)) {
+							return unboundMethod.formalParameters()
+									.namedParameter(parameterName);
+						} else {
+							System.err.println("No matching parameter in "
+									+ unboundMethod
+									+ " for argument passed by keyword: "
+									+ argument);
+							return null;
+						}
+					}
+				});
+
+		if (parameter != null) {
+			return new FiniteResult<FormalParameter>(Collections
+					.singleton(parameter));
 		} else {
-			// TODO: keywords and starargs
 			return TopP.INSTANCE;
 		}
 	}

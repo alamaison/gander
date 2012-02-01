@@ -52,9 +52,9 @@ public class FlowGoalExpressionTest {
 	}
 
 	@Test
-	public void methodParameter() throws Throwable {
+	public void methodArgument() throws Throwable {
 
-		TestModule test = newTestModule("method_parameter");
+		TestModule test = newTestModule("method_argument");
 
 		Result<ModelSite<exprType>> result = solveBlastoff(test);
 
@@ -72,9 +72,9 @@ public class FlowGoalExpressionTest {
 	}
 
 	@Test
-	public void methodParameterSelf() throws Throwable {
+	public void methodArgumentSelf() throws Throwable {
 
-		TestModule test = newTestModule("method_parameter_self");
+		TestModule test = newTestModule("method_argument_self");
 
 		Result<ModelSite<exprType>> result = solveBlastoff(test);
 
@@ -266,6 +266,152 @@ public class FlowGoalExpressionTest {
 
 		TestModule
 				.assertResultIsTop("Expression ignore trailing comma", result);
+	}
+
+	@Test
+	public void functionArgument() throws Throwable {
+
+		TestModule test = newTestModule("function_argument");
+
+		Result<ModelSite<exprType>> result = solveBlastoff(test);
+
+		TestModule.assertResultIncludes("Call did not flow x to parameter a "
+				+ "of functions f and g", test.printables("a in f", "a in g"),
+				result);
+
+		TestModule.assertResultIncludes("Call did not flow x to parameter b "
+				+ "of function h", test.printables("b in h"), result);
+
+		TestModule.assertResultExcludes("Call shouldn't have flowed x to "
+				+ "parameters it wasn't passed to.", test.printables(
+				"not b in g", "nor a in h"), result);
+	}
+
+	@Test
+	public void functionKeywordArgument() throws Throwable {
+
+		TestModule test = newTestModule("function_keyword_argument");
+
+		Result<ModelSite<exprType>> result = solveBlastoff(test);
+
+		TestModule.assertResultIncludes("Call did not flow x to parameter a "
+				+ "of functions f and g", test.printables("a in f", "a in g"),
+				result);
+
+		TestModule.assertResultIncludes("Call did not flow x to parameter b "
+				+ "of function h", test.printables("b in h"), result);
+
+		TestModule.assertResultExcludes("Call shouldn't have flowed x to "
+				+ "parameters it wasn't passed to.", test.printables(
+				"not b in g", "nor a in h"), result);
+	}
+
+	@Test
+	public void functionStararg() throws Throwable {
+
+		TestModule test = newTestModule("function_stararg");
+
+		Result<ModelSite<exprType>> result = solveBlastoff(test);
+
+		TestModule.assertResultIsTop(
+				"Call loses track of x as it flows into a tuple", result);
+	}
+
+	@Test
+	public void constructorArgument() throws Throwable {
+
+		TestModule test = newTestModule("constructor_argument");
+
+		Result<ModelSite<exprType>> result = solveBlastoff(test);
+
+		TestModule.assertResultIncludes("Call did not flow x to the expected "
+				+ "parameters of the constructors in A, B and C.", test
+				.printables("a in A", "a in B", "b in C"), result);
+
+		TestModule
+				.assertResultIncludes(
+						"Call did not flow x to parameter "
+								+ "of A's second constructor implementation that it aquired by "
+								+ "assignment.",
+						test.printables("also p in f"), result);
+
+		TestModule.assertResultExcludes("Call shouldn't have flowed x to "
+				+ "parameters it wasn't passed to.", test.printables(
+				"not b in B", "nor a in C"), result);
+	}
+
+	@Test
+	public void constructorKeywordArgument() throws Throwable {
+
+		TestModule test = newTestModule("constructor_keyword_argument");
+
+		Result<ModelSite<exprType>> result = solveBlastoff(test);
+
+		TestModule.assertResultIncludes("Call did not flow x to the expected "
+				+ "parameters of the constructors in A, B and C.", test
+				.printables("a in A", "a in B", "b in C"), result);
+
+		TestModule
+				.assertResultIncludes(
+						"Call did not flow x to parameter "
+								+ "of A's second constructor implementation that it aquired by "
+								+ "assignment.",
+						test.printables("also a in f"), result);
+
+		TestModule.assertResultExcludes("Call shouldn't have flowed x to "
+				+ "parameters it wasn't passed to.", test.printables(
+				"not b in B", "nor a in C"), result);
+	}
+
+	@Test
+	public void constructorKeywordArgumentUntypable() throws Throwable {
+
+		TestModule test = newTestModule("constructor_keyword_argument_untypable");
+
+		Result<ModelSite<exprType>> result = solveBlastoff(test);
+
+		TestModule.assertResultIncludes("Call did not flow x to the expected "
+				+ "parameters of the decalred constructor.", test
+				.printables("a in A"), result);
+
+		TestModule
+				.assertResultIncludes(
+						"Call did not flow x to parameter "
+								+ "of A's second constructor implementation that it aquired by "
+								+ "assignment.",
+						test.printables("also p in f"), result);
+	}
+
+	@Test
+	public void constructorArgumentSelf() throws Throwable {
+
+		TestModule test = newTestModule("constructor_argument_self");
+
+		Result<ModelSite<exprType>> result = solveBlastoff(test);
+
+		TestModule.assertResultIncludes("Call did not flow instance to self "
+				+ "parameters of A's constructor.", test
+				.printables("self in A"), result);
+
+		TestModule.assertResultExcludes("Call shouldn't have flowed x to "
+				+ "parameters it wasn't passed to.", test
+				.printables("not a in A"), result);
+	}
+
+	@Test
+	public void constructorArgumentSelfAssigned() throws Throwable {
+
+		TestModule test = newTestModule("constructor_argument_self_assigned");
+
+		Result<ModelSite<exprType>> result = solveBlastoff(test);
+
+		TestModule.assertResultIncludes("Call did not flow instance to self "
+				+ "parameters of A's constructors.", test.printables(
+				"self in A", "also self in f"), result);
+
+		TestModule.assertResultExcludes("Call shouldn't have flowed x to "
+				+ "parameters it wasn't passed to.", test.printables(
+				"not a in A", "nor p in f"), result);
 	}
 
 	private TestModule newTestModule(String testName) throws Throwable {

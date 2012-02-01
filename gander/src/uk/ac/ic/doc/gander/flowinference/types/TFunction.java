@@ -15,11 +15,11 @@ import uk.ac.ic.doc.gander.flowinference.typegoals.ExpressionTypeGoal;
 import uk.ac.ic.doc.gander.flowinference.typegoals.NamespaceNameTypeGoal;
 import uk.ac.ic.doc.gander.flowinference.typegoals.TopT;
 import uk.ac.ic.doc.gander.model.Argument;
+import uk.ac.ic.doc.gander.model.CallArgumentMapper;
 import uk.ac.ic.doc.gander.model.Function;
 import uk.ac.ic.doc.gander.model.ModelSite;
 import uk.ac.ic.doc.gander.model.Namespace;
 import uk.ac.ic.doc.gander.model.NamespaceName;
-import uk.ac.ic.doc.gander.model.OrdinalArgument;
 import uk.ac.ic.doc.gander.model.codeobject.FormalParameter;
 import uk.ac.ic.doc.gander.model.codeobject.FunctionCO;
 import uk.ac.ic.doc.gander.model.codeobject.InvokableCodeObject;
@@ -148,26 +148,41 @@ public class TFunction implements TCodeObject, TCallable {
 	 * directly to the parameter of the receiver with the same index.
 	 */
 	public Result<FormalParameter> formalParametersReceivingArgument(
-			Argument argument, SubgoalManager goalManager) {
+			final Argument argument, SubgoalManager goalManager) {
 
-		if (argument instanceof OrdinalArgument) {
+		if (argument == null) {
+			throw new NullPointerException("Argument is not optional");
+		}
 
-			int ordinal = ((OrdinalArgument) argument).ordinal();
-			FormalParameter parameter;
-			try {
-				parameter = functionObject.formalParameters().parameterAtIndex(
-						ordinal);
-			} catch (IndexOutOfBoundsException e) {
-				System.err
-						.println("Couldn't match argument to parameter: " + e);
-				return TopP.INSTANCE;
-			}
+		FormalParameter parameter = argument
+				.passArgumentAtCall(new CallArgumentMapper() {
 
-			return new FiniteResult<FormalParameter>(
-					Collections.singleton(parameter));
+					@Override
+					public FormalParameter parameterAtIndex(int argumentIndex) {
+						return functionObject.formalParameters()
+								.parameterAtIndex(argumentIndex);
+					}
 
+					@Override
+					public FormalParameter namedParameter(String parameterName) {
+						if (functionObject.formalParameters().hasParameterName(
+								parameterName)) {
+							return functionObject.formalParameters()
+									.namedParameter(parameterName);
+						} else {
+							System.err.println("No matching parameter in "
+									+ functionObject
+									+ " for argument passed by keyword: "
+									+ argument);
+							return null;
+						}
+					}
+				});
+
+		if (parameter != null) {
+			return new FiniteResult<FormalParameter>(Collections
+					.singleton(parameter));
 		} else {
-			// TODO: keywords and starargs
 			return TopP.INSTANCE;
 		}
 	}

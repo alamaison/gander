@@ -25,16 +25,16 @@ import uk.ac.ic.doc.gander.flowinference.typegoals.ExpressionTypeGoal;
 import uk.ac.ic.doc.gander.flowinference.typegoals.NamespaceNameTypeGoal;
 import uk.ac.ic.doc.gander.flowinference.typegoals.TopT;
 import uk.ac.ic.doc.gander.model.Argument;
+import uk.ac.ic.doc.gander.model.CallArgumentMapper;
 import uk.ac.ic.doc.gander.model.Class;
 import uk.ac.ic.doc.gander.model.Function;
 import uk.ac.ic.doc.gander.model.ModelSite;
 import uk.ac.ic.doc.gander.model.Namespace;
 import uk.ac.ic.doc.gander.model.NamespaceName;
-import uk.ac.ic.doc.gander.model.OrdinalArgument;
-import uk.ac.ic.doc.gander.model.codeobject.InvokableCodeObject;
 import uk.ac.ic.doc.gander.model.codeobject.ClassCO;
 import uk.ac.ic.doc.gander.model.codeobject.CodeObject;
 import uk.ac.ic.doc.gander.model.codeobject.FormalParameter;
+import uk.ac.ic.doc.gander.model.codeobject.InvokableCodeObject;
 
 public class TClass implements TCodeObject, TCallable {
 
@@ -58,8 +58,15 @@ public class TClass implements TCodeObject, TCallable {
 					CodeObject codeObject = ((TCodeObject) initType)
 							.codeObject();
 					if (codeObject instanceof InvokableCodeObject) {
-						parameters
-								.add(findParameterInCodeObject((InvokableCodeObject) codeObject));
+
+						FormalParameter parameter = findParameterInCodeObject((InvokableCodeObject) codeObject);
+
+						if (parameter != null) {
+							parameters.add(new FiniteResult<FormalParameter>(
+									Collections.singleton(parameter)));
+						} else {
+							parameters.add(TopP.INSTANCE);
+						}
 					} else {
 						// XXX: init might not be a callable?!
 						parameters.add(TopP.INSTANCE);
@@ -76,29 +83,34 @@ public class TClass implements TCodeObject, TCallable {
 			return parameters.result();
 		}
 
-		private Result<FormalParameter> findParameterInCodeObject(
-				InvokableCodeObject codeObject) {
+		private FormalParameter findParameterInCodeObject(
+				final InvokableCodeObject initCodeObject) {
 
-			if (argument instanceof OrdinalArgument) {
+			return argument.passArgumentAtCall(new CallArgumentMapper() {
 
-				int ordinal = ((OrdinalArgument) argument).ordinal();
-				FormalParameter parameter;
-				try {
-					parameter = codeObject.formalParameters().parameterAtIndex(
-							ordinal + 1);
-				} catch (IndexOutOfBoundsException e) {
-					System.err.println("Couldn't match argument to parameter: "
-							+ e);
-					return TopP.INSTANCE;
+				@Override
+				public FormalParameter parameterAtIndex(int argumentIndex) {
+
+					return initCodeObject.formalParameters().parameterAtIndex(
+							argumentIndex + 1);
 				}
 
-				return new FiniteResult<FormalParameter>(
-						Collections.singleton(parameter));
+				@Override
+				public FormalParameter namedParameter(String parameterName) {
 
-			} else {
-				// TODO: keywords and starargs
-				return TopP.INSTANCE;
-			}
+					if (initCodeObject.formalParameters().hasParameterName(
+							parameterName)) {
+						return initCodeObject.formalParameters()
+								.namedParameter(parameterName);
+					} else {
+						System.err.println("No matching parameter in "
+								+ initCodeObject
+								+ " for argument passed by keyword: "
+								+ argument);
+						return null;
+					}
+				}
+			});
 		}
 
 		@Override
@@ -241,6 +253,7 @@ public class TClass implements TCodeObject, TCallable {
 			throw new NullPointerException(
 					"Goal manager required to resolve constructor");
 		}
+
 		Result<Type> initMethodTypes = initMethodTypes(goalManager);
 
 		return initMethodTypes.transformResult(new ReceivingParameterFinder(

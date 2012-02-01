@@ -87,7 +87,8 @@ final class AttributeCallReceiverSituation implements FlowSituation {
 			 * XXX: just because the analysis thinks this might be happening,
 			 * doesn't mean that it will. Code might be correct in practice.
 			 */
-			throw new RuntimeException("Can't call non-callable code object");
+			System.err.println("Can't call non-callable code object");
+			return null;
 		}
 	}
 

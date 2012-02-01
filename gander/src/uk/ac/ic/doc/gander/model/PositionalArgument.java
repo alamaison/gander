@@ -2,15 +2,22 @@ package uk.ac.ic.doc.gander.model;
 
 import org.python.pydev.parser.jython.ast.Call;
 
+import uk.ac.ic.doc.gander.model.codeobject.FormalParameter;
 
-public final class OrdinalArgument implements Argument {
+public final class PositionalArgument implements Argument {
 
 	private final ModelSite<Call> callSite;
 	private final int argumentIndex;
 
-	public OrdinalArgument(ModelSite<Call> callSite, int argumentIndex) {
+	public PositionalArgument(ModelSite<Call> callSite, int argumentIndex) {
 		this.callSite = callSite;
 		this.argumentIndex = argumentIndex;
+	}
+
+	@Override
+	public FormalParameter passArgumentAtCall(CallArgumentMapper argumentMapper) {
+
+		return argumentMapper.parameterAtIndex(argumentIndex);
 	}
 
 	public int ordinal() {
@@ -35,7 +42,7 @@ public final class OrdinalArgument implements Argument {
 			return false;
 		if (getClass() != obj.getClass())
 			return false;
-		OrdinalArgument other = (OrdinalArgument) obj;
+		PositionalArgument other = (PositionalArgument) obj;
 		if (argumentIndex != other.argumentIndex)
 			return false;
 		if (callSite == null) {
@@ -48,7 +55,7 @@ public final class OrdinalArgument implements Argument {
 
 	@Override
 	public String toString() {
-		return "OrdinalArgument [callSite=" + callSite + ", argumentIndex="
+		return "PositionalArgument [callSite=" + callSite + ", argumentIndex="
 				+ argumentIndex + "]";
 	}
 
