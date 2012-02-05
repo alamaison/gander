@@ -101,6 +101,48 @@ public class FlowGoalExpressionTest {
 	}
 
 	@Test
+	public void methodClosureArgument() throws Throwable {
+
+		TestModule test = newTestModule("method_closure_argument");
+
+		Result<ModelSite<exprType>> result = solveBlastoff(test);
+
+		TestModule.assertResultIncludes("Call did not flow x to parameter a "
+				+ "of method m in class A.", test.printables("a in A::m"),
+				result);
+
+		TestModule.assertResultExcludes("Call shouldn't have flowed x to a "
+				+ "in other methods.", test.printables("nor a in B"), result);
+
+		TestModule.assertResultExcludes("Call shouldn't have flowed x "
+				+ "to self anywhere.",
+				test.printables("not self in A::m", "nor self in B"), result);
+	}
+
+	@Test
+	public void methodArgumentClosureSelf() throws Throwable {
+
+		TestModule test = newTestModule("method_closure_argument_self");
+
+		Result<ModelSite<exprType>> result = solveBlastoff(test);
+
+		TestModule.assertResultIncludes(
+				"Call did not flow instance of A to self "
+						+ "parameter of its method m.",
+				test.printables("self in A::m"), result);
+
+		TestModule.assertResultExcludes(
+				"Assignment shouldn't have flowed instance of "
+						+ "A to p in A::m.", test.printables("not p in A::m"),
+				result);
+
+		TestModule.assertResultExcludes(
+				"Assignment shouldn't have flowed instance of A "
+						+ "to anywhere in B.",
+				test.printables("not self in B", "nor p in B"), result);
+	}
+
+	@Test
 	public void tuple() throws Throwable {
 
 		TestModule test = newTestModule("tuple");
@@ -251,10 +293,11 @@ public class FlowGoalExpressionTest {
 
 		Result<ModelSite<exprType>> result = solveBlastoff(test);
 
-		TestModule.assertResultIncludes(
-				"Expression did not ignore tuple brackets.", test
-						.printables("x flows through single-element tuple"),
-				result);
+		TestModule
+				.assertResultIncludes(
+						"Expression did not ignore tuple brackets.",
+						test.printables("x flows through single-element tuple"),
+						result);
 	}
 
 	@Test
@@ -283,8 +326,24 @@ public class FlowGoalExpressionTest {
 				+ "of function h", test.printables("b in h"), result);
 
 		TestModule.assertResultExcludes("Call shouldn't have flowed x to "
-				+ "parameters it wasn't passed to.", test.printables(
-				"not b in g", "nor a in h"), result);
+				+ "parameters it wasn't passed to.",
+				test.printables("not b in g", "nor a in h"), result);
+	}
+
+	@Test
+	public void functionAsAttributeArgument() throws Throwable {
+
+		TestModule test = newTestModule("function_as_attribute_argument");
+
+		Result<ModelSite<exprType>> result = solveBlastoff(test);
+
+		TestModule.assertResultIncludes("Call did not flow x to parameter a "
+				+ "of function f", test.printables("a in f"), result);
+
+		TestModule.assertResultExcludes("Call shouldn't have flowed x to "
+				+ "parameters it wasn't passed to.",
+				test.printables("not a in g", "this method is a distraction"),
+				result);
 	}
 
 	@Test
@@ -302,8 +361,8 @@ public class FlowGoalExpressionTest {
 				+ "of function h", test.printables("b in h"), result);
 
 		TestModule.assertResultExcludes("Call shouldn't have flowed x to "
-				+ "parameters it wasn't passed to.", test.printables(
-				"not b in g", "nor a in h"), result);
+				+ "parameters it wasn't passed to.",
+				test.printables("not b in g", "nor a in h"), result);
 	}
 
 	@Test
@@ -325,8 +384,8 @@ public class FlowGoalExpressionTest {
 		Result<ModelSite<exprType>> result = solveBlastoff(test);
 
 		TestModule.assertResultIncludes("Call did not flow x to the expected "
-				+ "parameters of the constructors in A, B and C.", test
-				.printables("a in A", "a in B", "b in C"), result);
+				+ "parameters of the constructors in A, B and C.",
+				test.printables("a in A", "a in B", "b in C"), result);
 
 		TestModule
 				.assertResultIncludes(
@@ -336,8 +395,8 @@ public class FlowGoalExpressionTest {
 						test.printables("also p in f"), result);
 
 		TestModule.assertResultExcludes("Call shouldn't have flowed x to "
-				+ "parameters it wasn't passed to.", test.printables(
-				"not b in B", "nor a in C"), result);
+				+ "parameters it wasn't passed to.",
+				test.printables("not b in B", "nor a in C"), result);
 	}
 
 	@Test
@@ -348,8 +407,8 @@ public class FlowGoalExpressionTest {
 		Result<ModelSite<exprType>> result = solveBlastoff(test);
 
 		TestModule.assertResultIncludes("Call did not flow x to the expected "
-				+ "parameters of the constructors in A, B and C.", test
-				.printables("a in A", "a in B", "b in C"), result);
+				+ "parameters of the constructors in A, B and C.",
+				test.printables("a in A", "a in B", "b in C"), result);
 
 		TestModule
 				.assertResultIncludes(
@@ -359,8 +418,8 @@ public class FlowGoalExpressionTest {
 						test.printables("also a in f"), result);
 
 		TestModule.assertResultExcludes("Call shouldn't have flowed x to "
-				+ "parameters it wasn't passed to.", test.printables(
-				"not b in B", "nor a in C"), result);
+				+ "parameters it wasn't passed to.",
+				test.printables("not b in B", "nor a in C"), result);
 	}
 
 	@Test
@@ -371,8 +430,8 @@ public class FlowGoalExpressionTest {
 		Result<ModelSite<exprType>> result = solveBlastoff(test);
 
 		TestModule.assertResultIncludes("Call did not flow x to the expected "
-				+ "parameters of the decalred constructor.", test
-				.printables("a in A"), result);
+				+ "parameters of the decalred constructor.",
+				test.printables("a in A"), result);
 
 		TestModule
 				.assertResultIncludes(
@@ -390,12 +449,12 @@ public class FlowGoalExpressionTest {
 		Result<ModelSite<exprType>> result = solveBlastoff(test);
 
 		TestModule.assertResultIncludes("Call did not flow instance to self "
-				+ "parameters of A's constructor.", test
-				.printables("self in A"), result);
+				+ "parameters of A's constructor.",
+				test.printables("self in A"), result);
 
 		TestModule.assertResultExcludes("Call shouldn't have flowed x to "
-				+ "parameters it wasn't passed to.", test
-				.printables("not a in A"), result);
+				+ "parameters it wasn't passed to.",
+				test.printables("not a in A"), result);
 	}
 
 	@Test
@@ -406,12 +465,39 @@ public class FlowGoalExpressionTest {
 		Result<ModelSite<exprType>> result = solveBlastoff(test);
 
 		TestModule.assertResultIncludes("Call did not flow instance to self "
-				+ "parameters of A's constructors.", test.printables(
-				"self in A", "also self in f"), result);
+				+ "parameters of A's constructors.",
+				test.printables("self in A", "also self in f"), result);
 
 		TestModule.assertResultExcludes("Call shouldn't have flowed x to "
-				+ "parameters it wasn't passed to.", test.printables(
-				"not a in A", "nor p in f"), result);
+				+ "parameters it wasn't passed to.",
+				test.printables("not a in A", "nor p in f"), result);
+	}
+
+	@Test
+	public void objectWithFunctionMember() throws Throwable {
+
+		TestModule test = newTestModule("object_with_function_member");
+
+		Result<ModelSite<exprType>> result = solveBlastoff(test);
+
+		TestModule.assertResultExcludes("Call must not flow the object into "
+				+ "function f", test.printables("a in f"), result);
+	}
+
+	@Test
+	public void objectWithClassMember() throws Throwable {
+
+		TestModule test = newTestModule("object_with_class_member");
+
+		Result<ModelSite<exprType>> result = solveBlastoff(test);
+
+		TestModule.assertResultExcludes("Call must not flow the object into "
+				+ "the member class's constructor",
+				test.printables("self in B::A", "a in B::A"), result);
+
+		TestModule.assertResultExcludes("Call must not flow the object into "
+				+ "an unrelated class",
+				test.printables("self in A", "a in A"), result);
 	}
 
 	private TestModule newTestModule(String testName) throws Throwable {

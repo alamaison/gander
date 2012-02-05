@@ -9,6 +9,9 @@ import java.util.Set;
 import org.python.pydev.parser.jython.ast.Call;
 import org.python.pydev.parser.jython.ast.exprType;
 
+import uk.ac.ic.doc.gander.flowinference.Argument;
+import uk.ac.ic.doc.gander.flowinference.ArgumentPassage;
+import uk.ac.ic.doc.gander.flowinference.ArgumentPassingStrategy;
 import uk.ac.ic.doc.gander.flowinference.TopI;
 import uk.ac.ic.doc.gander.flowinference.TypeError;
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
@@ -24,8 +27,6 @@ import uk.ac.ic.doc.gander.flowinference.result.Result.Transformer;
 import uk.ac.ic.doc.gander.flowinference.typegoals.ExpressionTypeGoal;
 import uk.ac.ic.doc.gander.flowinference.typegoals.NamespaceNameTypeGoal;
 import uk.ac.ic.doc.gander.flowinference.typegoals.TopT;
-import uk.ac.ic.doc.gander.model.Argument;
-import uk.ac.ic.doc.gander.model.CallArgumentMapper;
 import uk.ac.ic.doc.gander.model.Class;
 import uk.ac.ic.doc.gander.model.Function;
 import uk.ac.ic.doc.gander.model.ModelSite;
@@ -39,7 +40,7 @@ import uk.ac.ic.doc.gander.model.codeobject.InvokableCodeObject;
 public class TClass implements TCodeObject, TCallable {
 
 	private final class ReceivingParameterFinder implements
-			Transformer<Type, Result<FormalParameter>> {
+			Transformer<Type, Result<ArgumentPassage>> {
 
 		private final Argument argument;
 
@@ -48,73 +49,40 @@ public class TClass implements TCodeObject, TCallable {
 		}
 
 		@Override
-		public Result<FormalParameter> transformFiniteResult(
+		public Result<ArgumentPassage> transformFiniteResult(
 				Set<Type> initImplementations) {
 
-			RedundancyEliminator<FormalParameter> parameters = new RedundancyEliminator<FormalParameter>();
+			Set<ArgumentPassage> parameters = new HashSet<ArgumentPassage>();
 
 			for (Type initType : initImplementations) {
 				if (initType instanceof TCodeObject) {
 					CodeObject codeObject = ((TCodeObject) initType)
 							.codeObject();
+
 					if (codeObject instanceof InvokableCodeObject) {
 
-						FormalParameter parameter = findParameterInCodeObject((InvokableCodeObject) codeObject);
+						parameters
+								.add(argument.passArgumentAtCall((InvokableCodeObject) codeObject,
+								passingStrategy()));
 
-						if (parameter != null) {
-							parameters.add(new FiniteResult<FormalParameter>(
-									Collections.singleton(parameter)));
-						} else {
-							parameters.add(TopP.INSTANCE);
-						}
 					} else {
-						// XXX: init might not be a callable?!
-						parameters.add(TopP.INSTANCE);
+						System.err.println("UNTYPABLE: __init__ "
+								+ "implementation not invokable. class: "
+								+ classObject + " init implementation: "
+								+ initType);
+						return TopP.INSTANCE;
 					}
 				} else {
 					// TODO: init might be a callable object
-					parameters.add(TopP.INSTANCE);
+					return TopP.INSTANCE;
 				}
-
-				if (parameters.isFinished())
-					break;
 			}
 
-			return parameters.result();
-		}
-
-		private FormalParameter findParameterInCodeObject(
-				final InvokableCodeObject initCodeObject) {
-
-			return argument.passArgumentAtCall(new CallArgumentMapper() {
-
-				@Override
-				public FormalParameter parameterAtIndex(int argumentIndex) {
-
-					return initCodeObject.formalParameters().parameterAtIndex(
-							argumentIndex + 1);
-				}
-
-				@Override
-				public FormalParameter namedParameter(String parameterName) {
-
-					if (initCodeObject.formalParameters().hasParameterName(
-							parameterName)) {
-						return initCodeObject.formalParameters()
-								.namedParameter(parameterName);
-					} else {
-						System.err.println("No matching parameter in "
-								+ initCodeObject
-								+ " for argument passed by keyword: "
-								+ argument);
-						return null;
-					}
-				}
-			});
+			return new FiniteResult<ArgumentPassage>(parameters);
 		}
 
 		@Override
-		public Result<FormalParameter> transformInfiniteResult() {
+		public Result<ArgumentPassage> transformInfiniteResult() {
 			return TopP.INSTANCE;
 		}
 
@@ -244,7 +212,7 @@ public class TClass implements TCodeObject, TCallable {
 	 * parameter of the receiver that is one further along the parameter list
 	 * than the ordinal.
 	 */
-	public Result<FormalParameter> formalParametersReceivingArgument(
+	public Result<ArgumentPassage> destinationsReceivingArgument(
 			Argument argument, SubgoalManager goalManager) {
 		if (argument == null) {
 			throw new NullPointerException("Argument is not optional");
@@ -355,6 +323,30 @@ public class TClass implements TCodeObject, TCallable {
 		return positions.result();
 	}
 
+	/**
+	 * {@inheritDoc}
+	 * 
+	 * When a class object is called as an attribute of another object,
+	 * nothing special happens.  That object doesn't flow anywhere.
+	 */
+	@Override
+	public Result<FlowPosition> flowPositionsOfHiddenSelfArgument(
+			SubgoalManager goalManager) {
+		
+		return FiniteResult.bottom();
+	}
+
+	/**
+	 * {@inheritDoc}
+	 * 
+	 * Arguments are passed to the functions implementing the class's
+	 * constructor as though they were methods.
+	 */
+	@Override
+	public ArgumentPassingStrategy passingStrategy() {
+		return new MethodStylePassingStrategy();
+	}
+
 	private void flowToMethodsOfClass(ClassCO classObject,
 			Set<String> doneMethods, SubgoalManager goalManager,
 			RedundancyEliminator<FlowPosition> positions) {
@@ -455,4 +447,5 @@ public class TClass implements TCodeObject, TCallable {
 	public String toString() {
 		return "TClass [" + getName() + "]";
 	}
+
 }

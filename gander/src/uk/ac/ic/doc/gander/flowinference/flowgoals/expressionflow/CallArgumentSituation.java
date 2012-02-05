@@ -1,24 +1,22 @@
 package uk.ac.ic.doc.gander.flowinference.flowgoals.expressionflow;
 
-import java.util.HashSet;
 import java.util.Set;
 
 import org.python.pydev.parser.jython.ast.Call;
 import org.python.pydev.parser.jython.ast.exprType;
 
+import uk.ac.ic.doc.gander.flowinference.Argument;
+import uk.ac.ic.doc.gander.flowinference.ArgumentPassage;
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
 import uk.ac.ic.doc.gander.flowinference.flowgoals.FlowPosition;
 import uk.ac.ic.doc.gander.flowinference.flowgoals.TopFp;
-import uk.ac.ic.doc.gander.flowinference.result.FiniteResult;
 import uk.ac.ic.doc.gander.flowinference.result.RedundancyEliminator;
 import uk.ac.ic.doc.gander.flowinference.result.Result;
 import uk.ac.ic.doc.gander.flowinference.result.Result.Transformer;
 import uk.ac.ic.doc.gander.flowinference.typegoals.ExpressionTypeGoal;
 import uk.ac.ic.doc.gander.flowinference.types.TCallable;
 import uk.ac.ic.doc.gander.flowinference.types.Type;
-import uk.ac.ic.doc.gander.model.Argument;
 import uk.ac.ic.doc.gander.model.ModelSite;
-import uk.ac.ic.doc.gander.model.codeobject.FormalParameter;
 
 final class CallArgumentSituation implements FlowSituation {
 
@@ -31,7 +29,8 @@ final class CallArgumentSituation implements FlowSituation {
 	}
 
 	@Override
-	public Result<FlowPosition> nextFlowPositions(final SubgoalManager goalManager) {
+	public Result<FlowPosition> nextFlowPositions(
+			final SubgoalManager goalManager) {
 		Result<Type> receivers = goalManager
 				.registerSubgoal(new ExpressionTypeGoal(
 						new ModelSite<exprType>(callSite.astNode().func,
@@ -57,7 +56,8 @@ final class CallArgumentSituation implements FlowSituation {
 				});
 	}
 
-	private Result<FlowPosition> nextPositions(Set<Type> receiverTypes, SubgoalManager goalManager) {
+	private Result<FlowPosition> nextPositions(Set<Type> receiverTypes,
+			SubgoalManager goalManager) {
 		RedundancyEliminator<FlowPosition> nextPositions = new RedundancyEliminator<FlowPosition>();
 
 		for (Type receiver : receiverTypes) {
@@ -78,8 +78,8 @@ final class CallArgumentSituation implements FlowSituation {
 
 		if (receiver instanceof TCallable) {
 
-			Result<FormalParameter> receivingParameters = ((TCallable) receiver)
-					.formalParametersReceivingArgument(argument(), goalManager);
+			Result<ArgumentPassage> receivingParameters = ((TCallable) receiver)
+					.destinationsReceivingArgument(argument(), goalManager);
 
 			return receivingParameters
 					.transformResult(new ReceivingParameterPositioner());
@@ -89,32 +89,6 @@ final class CallArgumentSituation implements FlowSituation {
 			 * doesn't mean that it will. Code might be correct in practice.
 			 */
 			throw new RuntimeException("Can't call non-callable code object");
-		}
-	}
-
-	/**
-	 * Turns formal parameters into flow positions.
-	 */
-	private final class ReceivingParameterPositioner implements
-			Transformer<FormalParameter, Result<FlowPosition>> {
-
-		@Override
-		public Result<FlowPosition> transformFiniteResult(
-				Set<FormalParameter> receivingParameters) {
-
-			Set<FlowPosition> parameterPositions = new HashSet<FlowPosition>();
-
-			for (FormalParameter parameter : receivingParameters) {
-				parameterPositions.add(new ExpressionPosition(parameter
-						.site()));
-			}
-
-			return new FiniteResult<FlowPosition>(parameterPositions);
-		}
-
-		@Override
-		public Result<FlowPosition> transformInfiniteResult() {
-			return TopFp.INSTANCE;
 		}
 	}
 

@@ -67,10 +67,10 @@ import org.python.pydev.parser.jython.ast.Yield;
 import org.python.pydev.parser.jython.ast.comprehensionType;
 import org.python.pydev.parser.jython.ast.exprType;
 
-import uk.ac.ic.doc.gander.model.Argument;
-import uk.ac.ic.doc.gander.model.KeywordArgument;
+import uk.ac.ic.doc.gander.flowinference.Argument;
+import uk.ac.ic.doc.gander.flowinference.ExplicitKeywordArgument;
+import uk.ac.ic.doc.gander.flowinference.ExplicitPositionalArgument;
 import uk.ac.ic.doc.gander.model.ModelSite;
-import uk.ac.ic.doc.gander.model.PositionalArgument;
 
 final class FlowSituationFinder {
 
@@ -307,7 +307,7 @@ final class SituationMapper implements VisitorIF {
 				if (isMatch(node.args[i])) {
 					
 					ModelSite<Call> callSite = nodeToSite(node);
-					Argument argument = new PositionalArgument(callSite, i);
+					Argument argument = new ExplicitPositionalArgument(callSite, i);
 					
 					return new CallArgumentSituation(callSite, argument);
 				}
@@ -317,7 +317,7 @@ final class SituationMapper implements VisitorIF {
 				if (isMatch(node.keywords[i].value)) {
 					
 					ModelSite<Call> callSite = nodeToSite(node);
-					Argument argument = new KeywordArgument(callSite, i);
+					Argument argument = new ExplicitKeywordArgument(callSite, i);
 					
 					return new CallArgumentSituation(callSite, argument);
 				}

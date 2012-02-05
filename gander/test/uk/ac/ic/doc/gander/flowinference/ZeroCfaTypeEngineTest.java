@@ -1802,6 +1802,38 @@ public class ZeroCfaTypeEngineTest {
 				+ "a tuple at all.", expectedType, type);
 	}
 
+	@Test
+	public void objectWithFunctionMember() throws Throwable {
+		TestModule test = newTestModule("object_with_function_member");
+
+		Result<Type> type = engine.typeOf(test.printNode("what_am_i").site());
+		Set<Type> expectedType = typeJudgement(integerType);
+
+		assertEquals("The function call looks like a method call but "
+				+ "isn't so only the integer will flow to the function's "
+				+ "argument.", expectedType, type);
+	}
+
+	@Test
+	public void objectWithClassMember() throws Throwable {
+		TestModule test = newTestModule("object_with_class_member");
+
+		Result<Type> type = engine.typeOf(test.printNode("a in B::A").site());
+		Set<Type> expectedType = typeJudgement(integerType);
+
+		assertEquals("The call looks like a method call but "
+				+ "isn't so only the integer will flow to A's constructor 2nd "
+				+ "argument.", expectedType, type);
+
+		type = engine.typeOf(test.printNode("self in B::A").site());
+		expectedType = typeJudgement(new TObject(nestedClass(
+				test.moduleLevelClass("B"), "A")));
+
+		assertEquals("The call looks like a method call but "
+				+ "isn't so only the integer will flow to A's constructor 2nd "
+				+ "argument.", expectedType, type);
+	}
+
 	private ScopedAstNode findNode(String moduleName, String tag)
 			throws Exception {
 		return new TaggedNodeAndScopeFinder(model.loadModule(moduleName)

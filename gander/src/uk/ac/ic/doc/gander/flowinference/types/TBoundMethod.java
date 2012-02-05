@@ -6,16 +6,18 @@ import java.util.Set;
 import org.python.pydev.parser.jython.ast.Call;
 import org.python.pydev.parser.jython.ast.exprType;
 
+import uk.ac.ic.doc.gander.flowinference.Argument;
+import uk.ac.ic.doc.gander.flowinference.ArgumentPassage;
+import uk.ac.ic.doc.gander.flowinference.ArgumentPassingStrategy;
+import uk.ac.ic.doc.gander.flowinference.SelfArgument;
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
 import uk.ac.ic.doc.gander.flowinference.flowgoals.FlowPosition;
-import uk.ac.ic.doc.gander.flowinference.flowgoals.TopP;
+import uk.ac.ic.doc.gander.flowinference.flowgoals.expressionflow.ReceivingParameterPositioner;
 import uk.ac.ic.doc.gander.flowinference.result.FiniteResult;
 import uk.ac.ic.doc.gander.flowinference.result.Result;
 import uk.ac.ic.doc.gander.flowinference.typegoals.ExpressionTypeGoal;
 import uk.ac.ic.doc.gander.flowinference.typegoals.NamespaceNameTypeGoal;
 import uk.ac.ic.doc.gander.flowinference.typegoals.TopT;
-import uk.ac.ic.doc.gander.model.Argument;
-import uk.ac.ic.doc.gander.model.CallArgumentMapper;
 import uk.ac.ic.doc.gander.model.ModelSite;
 import uk.ac.ic.doc.gander.model.Namespace;
 import uk.ac.ic.doc.gander.model.NamespaceName;
@@ -119,56 +121,33 @@ public final class TBoundMethod implements TCallable {
 	/**
 	 * {@inheritDoc}
 	 * 
-	 * Ordinal arguments passed to a call to a bound method are passed to the
+	 * Positional arguments passed to a call to a bound method are passed to the
 	 * parameter of the receiver that is one further along the parameter list
 	 * than the ordinal.
 	 */
-	public Result<FormalParameter> formalParametersReceivingArgument(
-			final Argument argument, SubgoalManager goalManager) {
+	public Result<ArgumentPassage> destinationsReceivingArgument(
+			Argument argument, SubgoalManager goalManager) {
 
 		if (argument == null) {
 			throw new NullPointerException("Argument is not optional");
 		}
 
-		FormalParameter parameter = argument
-				.passArgumentAtCall(new CallArgumentMapper() {
-
-					@Override
-					public FormalParameter parameterAtIndex(int argumentIndex) {
-						return unboundMethod.formalParameters()
-								.parameterAtIndex(argumentIndex + 1);
-					}
-
-					@Override
-					public FormalParameter namedParameter(String parameterName) {
-						if (unboundMethod.formalParameters().hasParameterName(
-								parameterName)) {
-							return unboundMethod.formalParameters()
-									.namedParameter(parameterName);
-						} else {
-							System.err.println("No matching parameter in "
-									+ unboundMethod
-									+ " for argument passed by keyword: "
-									+ argument);
-							return null;
-						}
-					}
-				});
-
+		ArgumentPassage parameter = argument.passArgumentAtCall(unboundMethod,
+				new MethodStylePassingStrategy());
 		if (parameter != null) {
-			return new FiniteResult<FormalParameter>(Collections
-					.singleton(parameter));
+			return new FiniteResult<ArgumentPassage>(
+					Collections.singleton(parameter));
 		} else {
-			return TopP.INSTANCE;
+			return FiniteResult.bottom();
 		}
 	}
 
 	@Override
 	public FormalParameter selfParameter() {
 		try {
-			return unboundMethod.formalParameters().parameterAtIndex(0);
+			return unboundMethod.formalParameters().passByPosition(0);
 		} catch (IndexOutOfBoundsException e) {
-			System.err.println("Unable to find self parameter in "
+			System.err.println("UNTYPABLE: Unable to find self parameter in "
 					+ unboundMethod + ": ");
 			e.printStackTrace();
 			return null;
@@ -213,6 +192,34 @@ public final class TBoundMethod implements TCallable {
 		return FiniteResult.bottom();
 	}
 
+	/**
+	 * {@inheritDoc}
+	 * 
+	 * When this method is called as an attribute of another object,
+	 * that object flows to its code object's self parameter.
+	 */
+	@Override
+	public Result<FlowPosition> flowPositionsOfHiddenSelfArgument(
+			SubgoalManager goalManager) {
+
+		Result<ArgumentPassage> selfDestinations = destinationsReceivingArgument(
+				new SelfArgument(), goalManager);
+
+		return selfDestinations
+				.transformResult(new ReceivingParameterPositioner());
+	}
+
+	/**
+	 * {@inheritDoc}
+	 * 
+	 * Arguments are passed to the functions implementing a method as though
+	 * they were methods, obviously.
+	 */
+	@Override
+	public ArgumentPassingStrategy passingStrategy() {
+		return new MethodStylePassingStrategy();
+	}
+
 	@Override
 	public int hashCode() {
 		final int prime = 31;
@@ -250,5 +257,4 @@ public final class TBoundMethod implements TCallable {
 	public String toString() {
 		return "TBoundMethod [" + getName() + "]";
 	}
-
 }

@@ -1,6 +1,5 @@
 package uk.ac.ic.doc.gander.flowinference.flowgoals.expressionflow;
 
-import java.util.HashSet;
 import java.util.Set;
 
 import org.python.pydev.parser.jython.ast.Attribute;
@@ -9,13 +8,13 @@ import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
 import uk.ac.ic.doc.gander.flowinference.flowgoals.FlowPosition;
 import uk.ac.ic.doc.gander.flowinference.flowgoals.TopFp;
 import uk.ac.ic.doc.gander.flowinference.result.FiniteResult;
+import uk.ac.ic.doc.gander.flowinference.result.RedundancyEliminator;
 import uk.ac.ic.doc.gander.flowinference.result.Result;
 import uk.ac.ic.doc.gander.flowinference.result.Result.Transformer;
 import uk.ac.ic.doc.gander.flowinference.typegoals.ExpressionTypeGoal;
 import uk.ac.ic.doc.gander.flowinference.types.TCallable;
 import uk.ac.ic.doc.gander.flowinference.types.Type;
 import uk.ac.ic.doc.gander.model.ModelSite;
-import uk.ac.ic.doc.gander.model.codeobject.FormalParameter;
 
 final class AttributeCallReceiverSituation implements FlowSituation {
 
@@ -54,41 +53,33 @@ final class AttributeCallReceiverSituation implements FlowSituation {
 
 	private Result<FlowPosition> nextPositions(Set<Type> receiverTypes,
 			SubgoalManager goalManager) {
-		Set<FlowPosition> nextPositions = new HashSet<FlowPosition>();
+		RedundancyEliminator<FlowPosition> nextPositions = new RedundancyEliminator<FlowPosition>();
 
 		for (Type receiver : receiverTypes) {
-			FlowPosition self = selfParameterOf(receiver, goalManager);
-			if (self != null) {
-				nextPositions.add(self);
-			}
+			nextPositions.add(selfParameterOf(receiver, goalManager));
 		}
 
-		return new FiniteResult<FlowPosition>(nextPositions);
+		return nextPositions.result();
 	}
 
 	/**
 	 * Finds the flow position that the attribute LHS might flow when the
 	 * attribute is the receiver of a call.
 	 */
-	private FlowPosition selfParameterOf(Type receiver,
+	private Result<FlowPosition> selfParameterOf(Type receiver,
 			SubgoalManager goalManager) {
 
 		if (receiver instanceof TCallable) {
-
-			FormalParameter self = ((TCallable) receiver).selfParameter();
-			if (self != null) {
-				return new ExpressionPosition(self.site());
-			} else {
-				return null;
-			}
-
+			return ((TCallable) receiver)
+					.flowPositionsOfHiddenSelfArgument(goalManager);
 		} else {
 			/*
 			 * XXX: just because the analysis thinks this might be happening,
 			 * doesn't mean that it will. Code might be correct in practice.
 			 */
-			System.err.println("Can't call non-callable code object");
-			return null;
+			System.err
+					.println("UNTYPABLE: Can't call non-callable code object");
+			return FiniteResult.bottom();
 		}
 	}
 

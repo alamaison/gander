@@ -6,16 +6,16 @@ import java.util.Set;
 import org.python.pydev.parser.jython.ast.Call;
 import org.python.pydev.parser.jython.ast.exprType;
 
+import uk.ac.ic.doc.gander.flowinference.Argument;
+import uk.ac.ic.doc.gander.flowinference.ArgumentPassage;
+import uk.ac.ic.doc.gander.flowinference.ArgumentPassingStrategy;
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
 import uk.ac.ic.doc.gander.flowinference.flowgoals.FlowPosition;
-import uk.ac.ic.doc.gander.flowinference.flowgoals.TopP;
 import uk.ac.ic.doc.gander.flowinference.result.FiniteResult;
 import uk.ac.ic.doc.gander.flowinference.result.Result;
 import uk.ac.ic.doc.gander.flowinference.typegoals.ExpressionTypeGoal;
 import uk.ac.ic.doc.gander.flowinference.typegoals.NamespaceNameTypeGoal;
 import uk.ac.ic.doc.gander.flowinference.typegoals.TopT;
-import uk.ac.ic.doc.gander.model.Argument;
-import uk.ac.ic.doc.gander.model.CallArgumentMapper;
 import uk.ac.ic.doc.gander.model.Function;
 import uk.ac.ic.doc.gander.model.ModelSite;
 import uk.ac.ic.doc.gander.model.Namespace;
@@ -144,47 +144,22 @@ public class TFunction implements TCodeObject, TCallable {
 	/**
 	 * {@inheritDoc}
 	 * 
-	 * Ordinal arguments passed to a call to an unbound method are passed
-	 * directly to the parameter of the receiver with the same index.
+	 * Positional arguments passed to a call to a plain function or an unbound
+	 * method are passed directly to the parameter of the receiver with the same
+	 * index.
 	 */
-	public Result<FormalParameter> formalParametersReceivingArgument(
-			final Argument argument, SubgoalManager goalManager) {
+	public Result<ArgumentPassage> destinationsReceivingArgument(
+			Argument argument, SubgoalManager goalManager) {
 
 		if (argument == null) {
 			throw new NullPointerException("Argument is not optional");
 		}
 
-		FormalParameter parameter = argument
-				.passArgumentAtCall(new CallArgumentMapper() {
+		ArgumentPassage parameter = argument.passArgumentAtCall(functionObject,
+				passingStrategy());
 
-					@Override
-					public FormalParameter parameterAtIndex(int argumentIndex) {
-						return functionObject.formalParameters()
-								.parameterAtIndex(argumentIndex);
-					}
-
-					@Override
-					public FormalParameter namedParameter(String parameterName) {
-						if (functionObject.formalParameters().hasParameterName(
-								parameterName)) {
-							return functionObject.formalParameters()
-									.namedParameter(parameterName);
-						} else {
-							System.err.println("No matching parameter in "
-									+ functionObject
-									+ " for argument passed by keyword: "
-									+ argument);
-							return null;
-						}
-					}
-				});
-
-		if (parameter != null) {
-			return new FiniteResult<FormalParameter>(Collections
-					.singleton(parameter));
-		} else {
-			return TopP.INSTANCE;
-		}
+		return new FiniteResult<ArgumentPassage>(
+				Collections.singleton(parameter));
 	}
 
 	/**
@@ -209,6 +184,30 @@ public class TFunction implements TCodeObject, TCallable {
 	public Result<FlowPosition> flowPositionsCausedByCalling(
 			SubgoalManager goalManager) {
 		return FiniteResult.bottom();
+	}
+
+	/**
+	 * {@inheritDoc}
+	 * 
+	 * When an unbound function is called as an attribute of another object,
+	 * nothing special happens.  That object doesn't flow anywhere.
+	 */
+	@Override
+	public Result<FlowPosition> flowPositionsOfHiddenSelfArgument(
+			SubgoalManager goalManager) {
+		
+		return FiniteResult.bottom();
+	}
+
+	/**
+	 * {@inheritDoc}
+	 * 
+	 * Arguments are passed to the plain functions implementing the class's
+	 * constructor as though they were functions, obviously.
+	 */
+	@Override
+	public ArgumentPassingStrategy passingStrategy() {
+		return new FunctionStylePassingStrategy();
 	}
 
 	@Override

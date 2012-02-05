@@ -1,8 +1,17 @@
 package uk.ac.ic.doc.gander.model.codeobject;
 
+import java.util.Collections;
+
 import org.python.pydev.parser.jython.ast.Name;
 import org.python.pydev.parser.jython.ast.exprType;
 
+import uk.ac.ic.doc.gander.flowinference.ArgumentPassage;
+import uk.ac.ic.doc.gander.flowinference.KeywordArgument;
+import uk.ac.ic.doc.gander.flowinference.PositionalArgument;
+import uk.ac.ic.doc.gander.flowinference.flowgoals.FlowPosition;
+import uk.ac.ic.doc.gander.flowinference.flowgoals.expressionflow.ExpressionPosition;
+import uk.ac.ic.doc.gander.flowinference.result.FiniteResult;
+import uk.ac.ic.doc.gander.flowinference.result.Result;
 import uk.ac.ic.doc.gander.model.ModelSite;
 
 public final class NamedParameter implements FormalParameter {
@@ -44,6 +53,34 @@ public final class NamedParameter implements FormalParameter {
 	@Override
 	public ModelSite<Name> site() {
 		return parameter;
+	}
+
+	@Override
+	public ArgumentPassage passage(PositionalArgument argument) {
+		return passage();
+	}
+
+	@Override
+	public ArgumentPassage passage(KeywordArgument argument) {
+		return passage();
+	}
+
+	/**
+	 * All arguments passed to named parameters flow in the same way; to the
+	 * named parameter.
+	 */
+	private ArgumentPassage passage() {
+
+		return new ArgumentPassage() {
+
+			@Override
+			public Result<FlowPosition> nextFlowPositions() {
+				return new FiniteResult<FlowPosition>(
+						Collections
+								.<FlowPosition> singleton(new ExpressionPosition(
+										parameter)));
+			}
+		};
 	}
 
 	@Override

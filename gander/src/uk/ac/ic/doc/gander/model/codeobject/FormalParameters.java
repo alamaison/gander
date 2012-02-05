@@ -45,20 +45,44 @@ public final class FormalParameters {
 		}
 	}
 
-	public FormalParameter parameterAtIndex(int i) {
+	public boolean hasParameterForPosition(int position) {
+		return findParameterForPosition(position) != null;
+	}
 
-		if (i >= parameters.size()) {
+	public FormalParameter passByPosition(int position) {
+
+		FormalParameter p = findParameterForPosition(position);
+		if (p != null) {
+			return p;
+		} else {
 			throw new IndexOutOfBoundsException(
-					"Parameter out of bounds: Index: " + i + " Parameters: "
-							+ argsNode);
+					"Parameter out of bounds: Position: " + position
+							+ " Parameters: " + argsNode);
 		}
+	}
 
-		ModelSite<exprType> p = parameters.get(i);
-		try {
-			return (FormalParameter) p.astNode()
-					.accept(new ParameterBuilder(i));
-		} catch (Exception e) {
-			throw new RuntimeException(e);
+	private FormalParameter findParameterForPosition(int position) {
+
+		if (position < parameters.size()) {
+
+			ModelSite<exprType> p = parameters.get(position);
+			try {
+				return (FormalParameter) p.astNode().accept(
+						new ParameterBuilder(position));
+			} catch (Exception e) {
+				throw new RuntimeException(e);
+			}
+
+		} else {
+
+			if (argsNode.astNode().vararg != null) {
+				int starargIndex = position = parameters.size();
+				assert starargIndex >= 0;
+
+				return new StarargParameter(argsNode, starargIndex);
+			} else {
+				return null;
+			}
 		}
 	}
 
@@ -66,7 +90,7 @@ public final class FormalParameters {
 
 		for (int i = 0; i < parameters.size(); ++i) {
 
-			FormalParameter p = parameterAtIndex(i);
+			FormalParameter p = passByPosition(i);
 
 			if (p instanceof NamedParameter
 					&& ((NamedParameter) p).name().equals(parameterName)) {
@@ -101,8 +125,8 @@ public final class FormalParameters {
 
 		@Override
 		public Object visitName(Name node) throws Exception {
-			return makeNamedParameter(index, new ModelSite<Name>(node, argsNode
-					.codeObject()));
+			return makeNamedParameter(index,
+					new ModelSite<Name>(node, argsNode.codeObject()));
 		}
 
 		@Override

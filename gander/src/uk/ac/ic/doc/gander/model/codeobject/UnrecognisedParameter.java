@@ -2,6 +2,12 @@ package uk.ac.ic.doc.gander.model.codeobject;
 
 import org.python.pydev.parser.jython.ast.exprType;
 
+import uk.ac.ic.doc.gander.flowinference.ArgumentPassage;
+import uk.ac.ic.doc.gander.flowinference.KeywordArgument;
+import uk.ac.ic.doc.gander.flowinference.PositionalArgument;
+import uk.ac.ic.doc.gander.flowinference.flowgoals.FlowPosition;
+import uk.ac.ic.doc.gander.flowinference.flowgoals.TopFp;
+import uk.ac.ic.doc.gander.flowinference.result.Result;
 import uk.ac.ic.doc.gander.model.ModelSite;
 
 final class UnrecognisedParameter implements FormalParameter {
@@ -15,6 +21,27 @@ final class UnrecognisedParameter implements FormalParameter {
 	@Override
 	public ModelSite<? extends exprType> site() {
 		return parameter;
+	}
+
+	@Override
+	public ArgumentPassage passage(PositionalArgument argument) {
+		return passage();
+	}
+
+	@Override
+	public ArgumentPassage passage(KeywordArgument argument) {
+		return passage();
+	}
+	
+	private ArgumentPassage passage() {
+
+		return new ArgumentPassage() {
+
+			@Override
+			public Result<FlowPosition> nextFlowPositions() {
+				return TopFp.INSTANCE;
+			}
+		};
 	}
 
 	@Override

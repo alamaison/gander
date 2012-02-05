@@ -2,10 +2,12 @@ package uk.ac.ic.doc.gander.flowinference.types;
 
 import org.python.pydev.parser.jython.ast.Call;
 
+import uk.ac.ic.doc.gander.flowinference.Argument;
+import uk.ac.ic.doc.gander.flowinference.ArgumentPassage;
+import uk.ac.ic.doc.gander.flowinference.ArgumentPassingStrategy;
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
 import uk.ac.ic.doc.gander.flowinference.flowgoals.FlowPosition;
 import uk.ac.ic.doc.gander.flowinference.result.Result;
-import uk.ac.ic.doc.gander.model.Argument;
 import uk.ac.ic.doc.gander.model.ModelSite;
 import uk.ac.ic.doc.gander.model.codeobject.FormalParameter;
 import uk.ac.ic.doc.gander.model.codeobject.InvokableCodeObject;
@@ -46,15 +48,15 @@ public interface TCallable extends Type {
 			ModelSite<Call> callSite, SubgoalManager goalManager);
 
 	/**
-	 * Returns the parameters to which the given argument is passed when calling
-	 * this type of callable.
+	 * Returns the destinations to which the given argument is passed when
+	 * calling this type of callable.
 	 * 
-	 * This will almost always be a single parameter but very rarely, such as in
-	 * the case of calling a class constructor where the constructor has been
+	 * This will almost always be a single destination but very rarely, such as
+	 * in the case of calling a class constructor where the constructor has been
 	 * multiply defined, there may be more than one receiving parameter.
 	 */
-	Result<FormalParameter> formalParametersReceivingArgument(
-			Argument argument, SubgoalManager goalManager);
+	Result<ArgumentPassage> destinationsReceivingArgument(Argument argument,
+			SubgoalManager goalManager);
 
 	/**
 	 * Returns the parameter that magically receives the LHS of a call on an
@@ -88,4 +90,20 @@ public interface TCallable extends Type {
 	 *            allows us to determine the flow positions using type inference
 	 */
 	Result<FlowPosition> flowPositionsCausedByCalling(SubgoalManager goalManager);
+
+
+	/**
+	 * Returns the flow positions that the LHS of an attribute might flow to
+	 * when this callable is called as that attribute.
+	 * 
+	 * In other words, where does the magically-inserted self argument flow.
+	 */
+	Result<FlowPosition> flowPositionsOfHiddenSelfArgument(
+			SubgoalManager goalManager);
+
+	/**
+	 * Returns object embodying the way arguments are passed to their receivers
+	 * when this object is called.
+	 */
+	ArgumentPassingStrategy passingStrategy();
 }
