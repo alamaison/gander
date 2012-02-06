@@ -100,10 +100,4 @@ public interface TCallable extends Type {
 	 */
 	Result<FlowPosition> flowPositionsOfHiddenSelfArgument(
 			SubgoalManager goalManager);
-
-	/**
-	 * Returns object embodying the way arguments are passed to their receivers
-	 * when this object is called.
-	 */
-	ArgumentPassingStrategy passingStrategy();
 }

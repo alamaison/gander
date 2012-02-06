@@ -21,7 +21,7 @@ public interface ArgumentPassingStrategy {
 	 * The position at which an instance of another
 	 * object is inserted and dispatched to the receiving procedure?
 	 * 
-	 * @throws AssertionError if {@code !passesHiddenSelf}.
+	 * @throws {@link AssertionError} if {@code !passesHiddenSelf}.
 	 */
 	int selfPosition();
 

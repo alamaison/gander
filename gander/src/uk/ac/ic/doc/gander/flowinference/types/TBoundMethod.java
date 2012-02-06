@@ -8,7 +8,6 @@ import org.python.pydev.parser.jython.ast.exprType;
 
 import uk.ac.ic.doc.gander.flowinference.Argument;
 import uk.ac.ic.doc.gander.flowinference.ArgumentPassage;
-import uk.ac.ic.doc.gander.flowinference.ArgumentPassingStrategy;
 import uk.ac.ic.doc.gander.flowinference.SelfArgument;
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
 import uk.ac.ic.doc.gander.flowinference.flowgoals.FlowPosition;
@@ -123,7 +122,7 @@ public final class TBoundMethod implements TCallable {
 	 * 
 	 * Positional arguments passed to a call to a bound method are passed to the
 	 * parameter of the receiver that is one further along the parameter list
-	 * than the ordinal.
+	 * than the argument's position.
 	 */
 	public Result<ArgumentPassage> destinationsReceivingArgument(
 			Argument argument, SubgoalManager goalManager) {
@@ -207,17 +206,6 @@ public final class TBoundMethod implements TCallable {
 
 		return selfDestinations
 				.transformResult(new ReceivingParameterPositioner());
-	}
-
-	/**
-	 * {@inheritDoc}
-	 * 
-	 * Arguments are passed to the functions implementing a method as though
-	 * they were methods, obviously.
-	 */
-	@Override
-	public ArgumentPassingStrategy passingStrategy() {
-		return new MethodStylePassingStrategy();
 	}
 
 	@Override

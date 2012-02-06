@@ -156,7 +156,7 @@ public class TFunction implements TCodeObject, TCallable {
 		}
 
 		ArgumentPassage parameter = argument.passArgumentAtCall(functionObject,
-				passingStrategy());
+				new FunctionStylePassingStrategy());
 
 		return new FiniteResult<ArgumentPassage>(
 				Collections.singleton(parameter));
@@ -197,17 +197,6 @@ public class TFunction implements TCodeObject, TCallable {
 			SubgoalManager goalManager) {
 		
 		return FiniteResult.bottom();
-	}
-
-	/**
-	 * {@inheritDoc}
-	 * 
-	 * Arguments are passed to the plain functions implementing the class's
-	 * constructor as though they were functions, obviously.
-	 */
-	@Override
-	public ArgumentPassingStrategy passingStrategy() {
-		return new FunctionStylePassingStrategy();
 	}
 
 	@Override

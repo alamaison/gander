@@ -11,7 +11,6 @@ import org.python.pydev.parser.jython.ast.exprType;
 
 import uk.ac.ic.doc.gander.flowinference.Argument;
 import uk.ac.ic.doc.gander.flowinference.ArgumentPassage;
-import uk.ac.ic.doc.gander.flowinference.ArgumentPassingStrategy;
 import uk.ac.ic.doc.gander.flowinference.TopI;
 import uk.ac.ic.doc.gander.flowinference.TypeError;
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
@@ -61,9 +60,9 @@ public class TClass implements TCodeObject, TCallable {
 
 					if (codeObject instanceof InvokableCodeObject) {
 
-						parameters
-								.add(argument.passArgumentAtCall((InvokableCodeObject) codeObject,
-								passingStrategy()));
+						parameters.add(argument.passArgumentAtCall(
+								(InvokableCodeObject) codeObject,
+								new MethodStylePassingStrategy()));
 
 					} else {
 						System.err.println("UNTYPABLE: __init__ "
@@ -326,25 +325,14 @@ public class TClass implements TCodeObject, TCallable {
 	/**
 	 * {@inheritDoc}
 	 * 
-	 * When a class object is called as an attribute of another object,
-	 * nothing special happens.  That object doesn't flow anywhere.
+	 * When a class object is called as an attribute of another object, nothing
+	 * special happens. That object doesn't flow anywhere.
 	 */
 	@Override
 	public Result<FlowPosition> flowPositionsOfHiddenSelfArgument(
 			SubgoalManager goalManager) {
-		
-		return FiniteResult.bottom();
-	}
 
-	/**
-	 * {@inheritDoc}
-	 * 
-	 * Arguments are passed to the functions implementing the class's
-	 * constructor as though they were methods.
-	 */
-	@Override
-	public ArgumentPassingStrategy passingStrategy() {
-		return new MethodStylePassingStrategy();
+		return FiniteResult.bottom();
 	}
 
 	private void flowToMethodsOfClass(ClassCO classObject,
