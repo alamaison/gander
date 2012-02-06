@@ -141,6 +141,7 @@ public final class TBoundMethod implements TCallable {
 		}
 	}
 
+	@Deprecated
 	@Override
 	public FormalParameter selfParameter() {
 		try {

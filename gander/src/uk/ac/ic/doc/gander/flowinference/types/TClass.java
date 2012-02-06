@@ -236,6 +236,7 @@ public class TClass implements TCodeObject, TCallable {
 	 * that is not the same thing; this method is about flowing the object on
 	 * the LHS of the attribute.
 	 */
+	@Deprecated
 	@Override
 	public FormalParameter selfParameter() {
 		return null;

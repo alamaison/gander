@@ -66,6 +66,7 @@ public interface TCallable extends Type {
 	 * 
 	 * @return the parameter or {@code null} if no such parameter exists
 	 */
+	@Deprecated
 	FormalParameter selfParameter();
 
 	/**

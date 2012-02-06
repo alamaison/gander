@@ -169,6 +169,7 @@ public class TFunction implements TCodeObject, TCallable {
 	 * another object and called, that other object doesn't flow anywhere. In
 	 * other words, an unbound function object has no self parameter.
 	 */
+	@Deprecated
 	@Override
 	public FormalParameter selfParameter() {
 		return null;
