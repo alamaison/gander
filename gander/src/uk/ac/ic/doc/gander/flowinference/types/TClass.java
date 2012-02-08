@@ -12,7 +12,6 @@ import org.python.pydev.parser.jython.ast.exprType;
 import uk.ac.ic.doc.gander.flowinference.Argument;
 import uk.ac.ic.doc.gander.flowinference.ArgumentPassage;
 import uk.ac.ic.doc.gander.flowinference.TopI;
-import uk.ac.ic.doc.gander.flowinference.TypeError;
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
 import uk.ac.ic.doc.gander.flowinference.flowgoals.FlowPosition;
 import uk.ac.ic.doc.gander.flowinference.flowgoals.TopFp;
@@ -388,14 +387,22 @@ public class TClass implements TCodeObject, TCallable {
 			}
 
 			public void processFiniteResult(Set<Type> possibleSuperclassTypes) {
+
 				for (Type supertype : possibleSuperclassTypes) {
+
 					if (supertype instanceof TClass) {
-						TClass superclass = (TClass) supertype;
-						flowToMethodsOfClass(superclass.codeObject(),
-								doneMethods, goalManager, positions);
+						if (!supertype.equals(TClass.this)) {
+							TClass superclass = (TClass) supertype;
+							flowToMethodsOfClass(superclass.codeObject(),
+									doneMethods, goalManager, positions);
+						} else {
+							System.err.println("UNTYPABLE: " + classObject
+									+ " appears to inherit from itself");
+						}
 					} else {
-						throw new RuntimeException(new TypeError(
-								"Inheriting from non-class", superclass));
+						System.err.println("UNTYPABLE: " + classObject
+								+ " appears to inherit from non-class "
+								+ superclass);
 					}
 				}
 			}

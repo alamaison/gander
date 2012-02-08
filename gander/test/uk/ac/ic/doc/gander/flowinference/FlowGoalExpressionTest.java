@@ -120,7 +120,7 @@ public class FlowGoalExpressionTest {
 	}
 
 	@Test
-	public void methodArgumentClosureSelf() throws Throwable {
+	public void methodClosureArgumentSelf() throws Throwable {
 
 		TestModule test = newTestModule("method_closure_argument_self");
 
@@ -140,6 +140,55 @@ public class FlowGoalExpressionTest {
 				"Assignment shouldn't have flowed instance of A "
 						+ "to anywhere in B.",
 				test.printables("not self in B", "nor p in B"), result);
+	}
+
+	@Test
+	public void methodInheritedArgument() throws Throwable {
+
+		TestModule test = newTestModule("method_inherited_argument");
+
+		Result<ModelSite<exprType>> result = solveBlastoff(test);
+
+		TestModule.assertResultIncludes("Call did not flow x to parameter a "
+				+ "of method m in inherited class A.",
+				test.printables("a in A::m"), result);
+
+		TestModule.assertResultExcludes(
+				"Call shouldn't have flowed x to self.",
+				test.printables("not self in A::m"), result);
+	}
+
+	@Test
+	public void methodInheritedArgumentSelf() throws Throwable {
+
+		TestModule test = newTestModule("method_inherited_argument_self");
+
+		Result<ModelSite<exprType>> result = solveBlastoff(test);
+
+		TestModule.assertResultIncludes(
+				"Call did not flow instance of B to self "
+						+ "parameter of A's method m.",
+				test.printables("self in A::m"), result);
+
+		TestModule.assertResultExcludes(
+				"Shouldn't have flowed instance to a in A::m.",
+				test.printables("not a in A::m"), result);
+	}
+
+	@Test
+	public void methodInheritedArgumentRecursiveSuperName() throws Throwable {
+
+		TestModule test = newTestModule("method_inherited_argument_recursive_super_name");
+
+		Result<ModelSite<exprType>> result = solveBlastoff(test);
+
+		TestModule.assertResultIncludes("Call did not flow x to parameter a "
+				+ "of method m in inherited class A.",
+				test.printables("a in A::m"), result);
+
+		TestModule.assertResultExcludes(
+				"Call shouldn't have flowed x to self.",
+				test.printables("not self in A::m"), result);
 	}
 
 	@Test
@@ -496,8 +545,8 @@ public class FlowGoalExpressionTest {
 				test.printables("self in B::A", "a in B::A"), result);
 
 		TestModule.assertResultExcludes("Call must not flow the object into "
-				+ "an unrelated class",
-				test.printables("self in A", "a in A"), result);
+				+ "an unrelated class", test.printables("self in A", "a in A"),
+				result);
 	}
 
 	private TestModule newTestModule(String testName) throws Throwable {

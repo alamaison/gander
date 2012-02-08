@@ -1681,6 +1681,32 @@ public class ZeroCfaTypeEngineTest {
 	}
 
 	@Test
+	public void inheritedMethodRecursive() throws Throwable {
+
+		TestModule test = newTestModule("inherited_method_recursive");
+
+		FunctionCO m = (FunctionCO) test.printNode("first A's m").getScope();
+		Set<Type> expectedUnboundType = typeJudgement(new TFunction(m));
+
+		Result<Type> unboundType = engine.typeOf(test.printNode(
+				"what_am_i_unbound").site());
+
+		assertEquals("Didn't infer inherited unbound method type correctly.",
+				expectedUnboundType, unboundType);
+
+		ClassCO oldA = (ClassCO) test.printNode("first A").getScope();
+		ClassCO newA = (ClassCO) test.printNode("second A").getScope();
+		Set<Type> expectedBoundType = typeJudgement(new TBoundMethod(m,
+				new TObject(newA)), new TBoundMethod(m, new TObject(oldA)));
+
+		Result<Type> boundType = engine.typeOf(test
+				.printNode("what_am_i_bound").site());
+
+		assertEquals("Didn't infer inherited bound method type correctly.",
+				expectedBoundType, boundType);
+	}
+
+	@Test
 	public void listTypeEscape() throws Throwable {
 		String testName = "list_type_escape";
 
