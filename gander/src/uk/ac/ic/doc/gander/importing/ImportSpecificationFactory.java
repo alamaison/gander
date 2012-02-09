@@ -14,25 +14,25 @@ public final class ImportSpecificationFactory {
 		return StandardImportSpecification.newInstance(moduleImportName);
 	}
 
-	public static ImportSpecification newImportAs(String moduleImportName,
+	public static StaticImportSpecification newImportAs(String moduleImportName,
 			String alias) {
 		return StandardImportAsSpecification.newInstance(moduleImportName,
 				alias);
 	}
 
-	public static ImportSpecification newFromImport(String moduleImportName,
+	public static StaticImportSpecification newFromImport(String moduleImportName,
 			String itemName) {
 		return FromImportSpecification.newInstance(moduleImportName, itemName);
 	}
 
-	public static ImportSpecification newFromImportAs(String moduleImportName,
+	public static StaticImportSpecification newFromImportAs(String moduleImportName,
 			String itemName, String alias) {
 		return FromImportAsSpecification.newInstance(moduleImportName,
 				itemName, alias);
 	}
 
-	public static Iterable<ImportSpecification> fromAstNode(Import node) {
-		List<ImportSpecification> specs = new ArrayList<ImportSpecification>();
+	public static Iterable<StaticImportSpecification> fromAstNode(Import node) {
+		List<StaticImportSpecification> specs = new ArrayList<StaticImportSpecification>();
 
 		for (aliasType alias : node.names) {
 			if (alias.asname != null) {
@@ -46,8 +46,8 @@ public final class ImportSpecificationFactory {
 		return specs;
 	}
 
-	public static Iterable<ImportSpecification> fromAstNode(ImportFrom node) {
-		List<ImportSpecification> specs = new ArrayList<ImportSpecification>();
+	public static Iterable<StaticImportSpecification> fromAstNode(ImportFrom node) {
+		List<StaticImportSpecification> specs = new ArrayList<StaticImportSpecification>();
 
 		for (aliasType alias : node.names) {
 			if (alias.asname != null) {

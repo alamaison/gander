@@ -1,11 +1,11 @@
 package uk.ac.ic.doc.gander.importing;
 
-final class FromImportSpecification implements ImportSpecification {
+final class FromImportSpecification implements StaticImportSpecification {
 
 	/**
 	 * Creates new from-style import.
 	 * 
-	 * @param moduleImportName
+	 * @param moduleImportPath
 	 *            the relative path of the module whose namespace item is being
 	 *            imported
 	 * @param itemName
@@ -13,49 +13,61 @@ final class FromImportSpecification implements ImportSpecification {
 	 */
 	static FromImportSpecification newInstance(String moduleImportName,
 			String itemName) {
-		return new FromImportSpecification(moduleImportName, itemName);
+		return new FromImportSpecification(
+				ImportPath.fromDottedName(moduleImportName), itemName);
 	}
 
-	private final String moduleImportName;
+	private final ImportPath moduleImportPath;
 	private final String itemName;
 
+	@Override
 	public String bindingName() {
-		return LocallyBoundImportNameResolver.resolveFromImport(
-				moduleImportName, itemName);
+		return itemName;
 	}
 
-	public String bindingObject() {
-		return LocallyBoundImportObjectResolver.resolveFromImport(
-				moduleImportName, itemName);
+	@Override
+	public ImportPath loadedPath() {
+		return moduleImportPath.append(itemName);
 	}
 
-	public ImportPath objectPath() {
-		return ImportPath.fromDottedName(moduleImportName + "." + itemName);
+	@Override
+	public ImportPath boundObjectParentPath() {
+		return moduleImportPath;
+	}
+
+	@Override
+	public String boundObjectName() {
+		return itemName;
+	}
+
+	@Override
+	public boolean importsAreLimitedToModules() {
+		return false;
 	}
 
 	/**
 	 * Creates new from-style import.
 	 * 
-	 * @param moduleImportName
+	 * @param moduleImportPath
 	 *            the relative path of the module whose namespace item is being
 	 *            imported
 	 * @param itemName
 	 *            the name of the item being imported
 	 */
-	private FromImportSpecification(String moduleImportName, String itemName) {
-		if (moduleImportName == null)
+	private FromImportSpecification(ImportPath moduleImportPath, String itemName) {
+		if (moduleImportPath == null)
 			throw new NullPointerException("Module path is not optional");
-		if (moduleImportName.isEmpty())
+		if (moduleImportPath.isEmpty())
 			throw new IllegalArgumentException("Module path cannot be empty");
 		if (itemName == null)
 			throw new NullPointerException("Item name is not optional");
 		if (itemName.isEmpty())
 			throw new IllegalArgumentException("Item name cannot be empty");
 
-		this.moduleImportName = moduleImportName;
+		this.moduleImportPath = moduleImportPath;
 		this.itemName = itemName;
 	}
-
+	
 	@Override
 	public int hashCode() {
 		final int prime = 31;
@@ -64,7 +76,7 @@ final class FromImportSpecification implements ImportSpecification {
 				+ ((itemName == null) ? 0 : itemName.hashCode());
 		result = prime
 				* result
-				+ ((moduleImportName == null) ? 0 : moduleImportName.hashCode());
+				+ ((moduleImportPath == null) ? 0 : moduleImportPath.hashCode());
 		return result;
 	}
 
@@ -82,17 +94,17 @@ final class FromImportSpecification implements ImportSpecification {
 				return false;
 		} else if (!itemName.equals(other.itemName))
 			return false;
-		if (moduleImportName == null) {
-			if (other.moduleImportName != null)
+		if (moduleImportPath == null) {
+			if (other.moduleImportPath != null)
 				return false;
-		} else if (!moduleImportName.equals(other.moduleImportName))
+		} else if (!moduleImportPath.equals(other.moduleImportPath))
 			return false;
 		return true;
 	}
 
 	@Override
 	public String toString() {
-		return "from " + moduleImportName + " import " + itemName;
+		return "from " + moduleImportPath + " import " + itemName;
 	}
 
 }

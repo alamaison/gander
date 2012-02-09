@@ -18,7 +18,7 @@ import uk.ac.ic.doc.gander.importing.ImportSimulator.Loader;
  */
 final class FromImportAs<O, C, M> implements Import<O, C, M> {
 
-	private final ImportSpecification specification;
+	private final StaticImportSpecification specification;
 	private final M relativeTo;
 	private final C container;
 
@@ -54,7 +54,7 @@ final class FromImportAs<O, C, M> implements Import<O, C, M> {
 		this.container = container;
 	}
 
-	public ImportSpecification specification() {
+	public StaticImportSpecification specification() {
 		return specification;
 	}
 

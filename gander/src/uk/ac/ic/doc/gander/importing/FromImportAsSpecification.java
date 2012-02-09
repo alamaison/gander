@@ -1,11 +1,11 @@
 package uk.ac.ic.doc.gander.importing;
 
-final class FromImportAsSpecification implements ImportSpecification {
+final class FromImportAsSpecification implements StaticImportSpecification {
 
 	/**
 	 * Creates new from-style import with alias.
 	 * 
-	 * @param moduleImportName
+	 * @param moduleImportPath
 	 *            the relative path of the module whose namespace item is being
 	 *            imported
 	 * @param itemName
@@ -14,33 +14,45 @@ final class FromImportAsSpecification implements ImportSpecification {
 	 *            the name that imported item is bound to with respect to the
 	 *            container
 	 */
-	static FromImportAsSpecification newInstance(String moduleImportName,
+	static FromImportAsSpecification newInstance(String moduleImportPath,
 			String itemName, String alias) {
-		return new FromImportAsSpecification(moduleImportName, itemName, alias);
+		return new FromImportAsSpecification(
+				ImportPath.fromDottedName(moduleImportPath), itemName, alias);
 	}
 
-	private final String moduleImportName;
+	private final ImportPath moduleImportPath;
 	private final String itemName;
 	private final String alias;
 
+	@Override
 	public String bindingName() {
-		return LocallyBoundImportNameResolver.resolveFromImportAs(
-				moduleImportName, itemName, alias);
+		return alias;
 	}
 
-	public String bindingObject() {
-		return LocallyBoundImportObjectResolver.resolveFromImportAs(
-				moduleImportName, itemName, alias);
+	@Override
+	public ImportPath loadedPath() {
+		return moduleImportPath.append(itemName);
 	}
 
-	public ImportPath objectPath() {
-		return ImportPath.fromDottedName(moduleImportName + "." + itemName);
+	@Override
+	public ImportPath boundObjectParentPath() {
+		return moduleImportPath;
+	}
+
+	@Override
+	public String boundObjectName() {
+		return itemName;
+	}
+
+	@Override
+	public boolean importsAreLimitedToModules() {
+		return false;
 	}
 
 	/**
 	 * Creates new from-style import with alias.
 	 * 
-	 * @param moduleImportName
+	 * @param moduleImportPath
 	 *            the relative path of the module whose namespace item is being
 	 *            imported
 	 * @param itemName
@@ -49,11 +61,11 @@ final class FromImportAsSpecification implements ImportSpecification {
 	 *            the name that imported item is bound to with respect to the
 	 *            container
 	 */
-	private FromImportAsSpecification(String moduleImportName, String itemName,
-			String alias) {
-		if (moduleImportName == null)
+	private FromImportAsSpecification(ImportPath moduleImportPath,
+			String itemName, String alias) {
+		if (moduleImportPath == null)
 			throw new NullPointerException("Module path is not optional");
-		if (moduleImportName.isEmpty())
+		if (moduleImportPath.isEmpty())
 			throw new IllegalArgumentException("Module path cannot be empty");
 		if (itemName == null)
 			throw new NullPointerException("Item name is not optional");
@@ -64,7 +76,7 @@ final class FromImportAsSpecification implements ImportSpecification {
 		if (alias.isEmpty())
 			throw new IllegalArgumentException("Alias name cannot be empty");
 
-		this.moduleImportName = moduleImportName;
+		this.moduleImportPath = moduleImportPath;
 		this.itemName = itemName;
 		this.alias = alias;
 	}
@@ -78,7 +90,7 @@ final class FromImportAsSpecification implements ImportSpecification {
 				+ ((itemName == null) ? 0 : itemName.hashCode());
 		result = prime
 				* result
-				+ ((moduleImportName == null) ? 0 : moduleImportName.hashCode());
+				+ ((moduleImportPath == null) ? 0 : moduleImportPath.hashCode());
 		return result;
 	}
 
@@ -101,17 +113,17 @@ final class FromImportAsSpecification implements ImportSpecification {
 				return false;
 		} else if (!itemName.equals(other.itemName))
 			return false;
-		if (moduleImportName == null) {
-			if (other.moduleImportName != null)
+		if (moduleImportPath == null) {
+			if (other.moduleImportPath != null)
 				return false;
-		} else if (!moduleImportName.equals(other.moduleImportName))
+		} else if (!moduleImportPath.equals(other.moduleImportPath))
 			return false;
 		return true;
 	}
 
 	@Override
 	public String toString() {
-		return "from " + moduleImportName + " import " + itemName + " as "
+		return "from " + moduleImportPath + " import " + itemName + " as "
 				+ alias;
 	}
 

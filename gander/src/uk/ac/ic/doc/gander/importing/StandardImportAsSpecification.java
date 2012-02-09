@@ -1,58 +1,71 @@
 package uk.ac.ic.doc.gander.importing;
 
-final class StandardImportAsSpecification implements ImportSpecification {
+final class StandardImportAsSpecification implements StaticImportSpecification {
 
-	private final String moduleImportName;
+	private final ImportPath moduleImportPath;
 	private final String alias;
 
 	/**
 	 * Creates new standard (non-from) import with alias.
 	 * 
-	 * @param moduleImportName
+	 * @param moduleImportPath
 	 *            the relative path of the module being imported
 	 * @param alias
 	 *            the name that the first segment of the path is bound to with
 	 *            respect to the container
 	 */
-	static StandardImportAsSpecification newInstance(String moduleImportName,
+	static StandardImportAsSpecification newInstance(String moduleImportPath,
 			String alias) {
-		return new StandardImportAsSpecification(moduleImportName, alias);
+		return new StandardImportAsSpecification(
+				ImportPath.fromDottedName(moduleImportPath), alias);
 	}
 
+	@Override
+	public ImportPath boundObjectParentPath() {
+		return moduleImportPath.subPath(0, moduleImportPath.size() - 1);
+	}
+
+	@Override
+	public String boundObjectName() {
+		return moduleImportPath.get(moduleImportPath.size() - 1);
+	}
+
+	@Override
 	public String bindingName() {
-		return LocallyBoundImportNameResolver.resolveImportAs(moduleImportName,
-				alias);
+		return alias;
 	}
 
-	public String bindingObject() {
-		return LocallyBoundImportObjectResolver.resolveImportAs(
-				moduleImportName, alias);
+	@Override
+	public ImportPath loadedPath() {
+		return moduleImportPath;
 	}
 
-	public ImportPath objectPath() {
-		return ImportPath.fromDottedName(moduleImportName);
+	@Override
+	public boolean importsAreLimitedToModules() {
+		return true;
 	}
 
 	/**
 	 * Creates new standard (non-from) import with alias.
 	 * 
-	 * @param moduleImportName
+	 * @param moduleImportPath
 	 *            the relative path of the module being imported
 	 * @param alias
 	 *            the name that the first segment of the path is bound to with
 	 *            respect to the container
 	 */
-	private StandardImportAsSpecification(String moduleImportName, String alias) {
-		if (moduleImportName == null)
+	private StandardImportAsSpecification(ImportPath moduleImportPath,
+			String alias) {
+		if (moduleImportPath == null)
 			throw new NullPointerException("Module path is not optional");
-		if (moduleImportName.isEmpty())
+		if (moduleImportPath.isEmpty())
 			throw new IllegalArgumentException("Module path cannot be empty");
 		if (alias == null)
 			throw new NullPointerException("Alias is not optional");
 		if (alias.isEmpty())
 			throw new IllegalArgumentException("Alias name cannot be empty");
 
-		this.moduleImportName = moduleImportName;
+		this.moduleImportPath = moduleImportPath;
 		this.alias = alias;
 	}
 
@@ -63,7 +76,7 @@ final class StandardImportAsSpecification implements ImportSpecification {
 		result = prime * result + ((alias == null) ? 0 : alias.hashCode());
 		result = prime
 				* result
-				+ ((moduleImportName == null) ? 0 : moduleImportName.hashCode());
+				+ ((moduleImportPath == null) ? 0 : moduleImportPath.hashCode());
 		return result;
 	}
 
@@ -81,17 +94,17 @@ final class StandardImportAsSpecification implements ImportSpecification {
 				return false;
 		} else if (!alias.equals(other.alias))
 			return false;
-		if (moduleImportName == null) {
-			if (other.moduleImportName != null)
+		if (moduleImportPath == null) {
+			if (other.moduleImportPath != null)
 				return false;
-		} else if (!moduleImportName.equals(other.moduleImportName))
+		} else if (!moduleImportPath.equals(other.moduleImportPath))
 			return false;
 		return true;
 	}
 
 	@Override
 	public String toString() {
-		return "import " + moduleImportName + " as " + alias;
+		return "import " + moduleImportPath + " as " + alias;
 	}
 
 }

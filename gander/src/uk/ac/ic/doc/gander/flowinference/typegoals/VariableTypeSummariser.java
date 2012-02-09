@@ -19,7 +19,7 @@ import uk.ac.ic.doc.gander.flowinference.result.Result;
 import uk.ac.ic.doc.gander.flowinference.types.TClass;
 import uk.ac.ic.doc.gander.flowinference.types.TFunction;
 import uk.ac.ic.doc.gander.flowinference.types.Type;
-import uk.ac.ic.doc.gander.importing.ImportSpecification;
+import uk.ac.ic.doc.gander.importing.StaticImportSpecification;
 import uk.ac.ic.doc.gander.importing.ImportSpecificationFactory;
 import uk.ac.ic.doc.gander.model.ModelSite;
 import uk.ac.ic.doc.gander.model.NamespaceName;
@@ -257,36 +257,27 @@ class BoundTypeVisitor implements BindingDetector.DetectionEvent {
 
 	@Override
 	public boolean moduleImport(String moduleName) {
-		ImportSpecification info = ImportSpecificationFactory
+		StaticImportSpecification info = ImportSpecificationFactory
 				.newImport(moduleName);
-		if (isMatch(info.bindingName())) {
-			judgement.add(new ImportTypeMapper(goalManager).typeImport(
-					variable.model(), info.bindingObject()));
-		}
+		addImportBindings(info);
 
 		return judgement.isFinished();
 	}
 
 	@Override
 	public boolean moduleImportAs(String moduleName, String as) {
-		ImportSpecification info = ImportSpecificationFactory.newImportAs(
+		StaticImportSpecification info = ImportSpecificationFactory.newImportAs(
 				moduleName, as);
-		if (isMatch(info.bindingName())) {
-			judgement.add(new ImportTypeMapper(goalManager).typeImport(
-					variable.model(), info.bindingObject()));
-		}
+		addImportBindings(info);
 
 		return judgement.isFinished();
 	}
 
 	@Override
 	public boolean fromModuleImport(String moduleName, String itemName) {
-		ImportSpecification info = ImportSpecificationFactory.newFromImport(
+		StaticImportSpecification info = ImportSpecificationFactory.newFromImport(
 				moduleName, itemName);
-		if (isMatch(info.bindingName())) {
-			judgement.add(new ImportTypeMapper(goalManager).typeFromImport(
-					variable.model(), info.bindingObject()));
-		}
+		addImportBindings(info);
 
 		return judgement.isFinished();
 	}
@@ -294,14 +285,16 @@ class BoundTypeVisitor implements BindingDetector.DetectionEvent {
 	@Override
 	public boolean fromModuleImportAs(String moduleName, String itemName,
 			String as) {
-		ImportSpecification info = ImportSpecificationFactory.newFromImportAs(
+		StaticImportSpecification info = ImportSpecificationFactory.newFromImportAs(
 				moduleName, itemName, as);
-		if (isMatch(info.bindingName())) {
-			judgement.add(new ImportTypeMapper(goalManager).typeFromImport(
-					variable.model(), info.bindingObject()));
-		}
+		addImportBindings(info);
 
 		return judgement.isFinished();
+	}
+
+	private void addImportBindings(StaticImportSpecification info) {
+			judgement.add(new ImportTypeMapper(goalManager).typeImport(
+					variable, info));
 	}
 
 	@Override

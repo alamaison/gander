@@ -1,6 +1,7 @@
 package uk.ac.ic.doc.gander.importing;
 
 import java.util.AbstractList;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -21,8 +22,6 @@ public final class ImportPath extends AbstractList<String> {
 	public static ImportPath fromDottedName(String dottedName) {
 		if (dottedName == null)
 			throw new NullPointerException("Path not optional");
-		if (dottedName.isEmpty())
-			throw new IllegalArgumentException("Empty path is not valid");
 
 		return fromTokens(DottedName.toImportTokens(dottedName));
 	}
@@ -30,10 +29,22 @@ public final class ImportPath extends AbstractList<String> {
 	public static ImportPath fromTokens(List<String> tokens) {
 		if (tokens == null)
 			throw new NullPointerException("Path not optional");
-		if (tokens.isEmpty())
-			throw new IllegalArgumentException("Empty path is not valid");
 
 		return new ImportPath(tokens);
+	}
+
+	public static final ImportPath EMPTY_PATH = fromTokens(Collections
+			.<String> emptyList());
+
+	public ImportPath append(String itemName) {
+		List<String> newTokens = new ArrayList<String>(this);
+		newTokens.add(itemName);
+		return fromTokens(newTokens);
+	}
+
+	public ImportPath subPath(int fromIndex, int toIndex) {
+		List<String> subList = subList(fromIndex, toIndex);
+		return fromTokens(subList);
 	}
 
 	public String dottedName() {
@@ -56,7 +67,7 @@ public final class ImportPath extends AbstractList<String> {
 
 	@Override
 	public String toString() {
-		return "ImportPath [path=" + path + "]";
+		return dottedName();
 	}
 
 }

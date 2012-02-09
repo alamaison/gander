@@ -152,7 +152,7 @@ public final class ImportSimulator<O, C, M> {
 	 *            the kind of import being simulated
 	 */
 	public void simulateImport(Import<O, C, M> importInstance) {
-		List<String> importPath = importInstance.specification().objectPath();
+		List<String> importPath = importInstance.specification().loadedPath();
 		BindingScheme<M> binder = importInstance.newBindingScheme(eventHandler,
 				loader);
 

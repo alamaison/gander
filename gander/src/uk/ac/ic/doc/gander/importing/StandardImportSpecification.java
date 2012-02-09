@@ -1,44 +1,58 @@
 package uk.ac.ic.doc.gander.importing;
 
-final class StandardImportSpecification implements ImportSpecification {
+final class StandardImportSpecification implements StaticImportSpecification {
 
-	private final String moduleImportName;
+	private final ImportPath moduleImportPath;
 
 	/**
 	 * Creates new standard (non-from) import.
 	 * 
-	 * @param moduleImportName
+	 * @param moduleImportPath
 	 *            the relative path of the module being imported
 	 */
-	static StandardImportSpecification newInstance(String moduleImportName) {
-		return new StandardImportSpecification(moduleImportName);
+	static StandardImportSpecification newInstance(String moduleImportPath) {
+		return new StandardImportSpecification(
+				ImportPath.fromDottedName(moduleImportPath));
 	}
 
+	@Override
 	public String bindingName() {
-		return LocallyBoundImportNameResolver.resolveImport(moduleImportName);
+		return moduleImportPath.get(0);
 	}
 
-	public String bindingObject() {
-		return LocallyBoundImportObjectResolver.resolveImport(moduleImportName);
+	@Override
+	public String boundObjectName() {
+		return moduleImportPath.get(0);
 	}
 
-	public ImportPath objectPath() {
-		return ImportPath.fromDottedName(moduleImportName);
+	@Override
+	public ImportPath loadedPath() {
+		return moduleImportPath;
+	}
+
+	@Override
+	public ImportPath boundObjectParentPath() {
+		return ImportPath.EMPTY_PATH;
+	}
+
+	@Override
+	public boolean importsAreLimitedToModules() {
+		return true;
 	}
 
 	/**
 	 * Creates new standard (non-from) import.
 	 * 
-	 * @param moduleImportName
+	 * @param moduleImportPath
 	 *            the relative path of the module being imported
 	 */
-	private StandardImportSpecification(String moduleImportName) {
-		if (moduleImportName == null)
+	private StandardImportSpecification(ImportPath moduleImportPath) {
+		if (moduleImportPath == null)
 			throw new NullPointerException("Module path is not optional");
-		if (moduleImportName.isEmpty())
+		if (moduleImportPath.isEmpty())
 			throw new IllegalArgumentException("Module path cannot be empty");
 
-		this.moduleImportName = moduleImportName;
+		this.moduleImportPath = moduleImportPath;
 	}
 
 	@Override
@@ -47,7 +61,7 @@ final class StandardImportSpecification implements ImportSpecification {
 		int result = 1;
 		result = prime
 				* result
-				+ ((moduleImportName == null) ? 0 : moduleImportName.hashCode());
+				+ ((moduleImportPath == null) ? 0 : moduleImportPath.hashCode());
 		return result;
 	}
 
@@ -60,17 +74,17 @@ final class StandardImportSpecification implements ImportSpecification {
 		if (getClass() != obj.getClass())
 			return false;
 		StandardImportSpecification other = (StandardImportSpecification) obj;
-		if (moduleImportName == null) {
-			if (other.moduleImportName != null)
+		if (moduleImportPath == null) {
+			if (other.moduleImportPath != null)
 				return false;
-		} else if (!moduleImportName.equals(other.moduleImportName))
+		} else if (!moduleImportPath.equals(other.moduleImportPath))
 			return false;
 		return true;
 	}
 
 	@Override
 	public String toString() {
-		return "import " + moduleImportName;
+		return "import " + moduleImportPath;
 	}
 
 }
