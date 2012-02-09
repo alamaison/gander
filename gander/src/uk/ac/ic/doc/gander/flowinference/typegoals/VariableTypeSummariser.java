@@ -20,7 +20,6 @@ import uk.ac.ic.doc.gander.flowinference.types.TClass;
 import uk.ac.ic.doc.gander.flowinference.types.TFunction;
 import uk.ac.ic.doc.gander.flowinference.types.Type;
 import uk.ac.ic.doc.gander.importing.StaticImportSpecification;
-import uk.ac.ic.doc.gander.importing.ImportSpecificationFactory;
 import uk.ac.ic.doc.gander.model.ModelSite;
 import uk.ac.ic.doc.gander.model.NamespaceName;
 import uk.ac.ic.doc.gander.model.codeobject.ClassCO;
@@ -215,7 +214,7 @@ class BoundTypeVisitor implements BindingDetector.DetectionEvent {
 	}
 
 	@Override
-	public void function(String name, FunctionDef node) {
+	public void functionDefinition(String name, FunctionDef node) {
 
 		if (isMatch(name)) {
 			FunctionCO function = (FunctionCO) variable.codeObject()
@@ -256,49 +255,16 @@ class BoundTypeVisitor implements BindingDetector.DetectionEvent {
 	}
 
 	@Override
-	public boolean moduleImport(String moduleName) {
-		StaticImportSpecification info = ImportSpecificationFactory
-				.newImport(moduleName);
-		addImportBindings(info);
+	public boolean importStatement(StaticImportSpecification spec) {
+		
+		judgement.add(new ImportTypeMapper(goalManager).typeImport(variable,
+				spec));
 
 		return judgement.isFinished();
 	}
 
 	@Override
-	public boolean moduleImportAs(String moduleName, String as) {
-		StaticImportSpecification info = ImportSpecificationFactory.newImportAs(
-				moduleName, as);
-		addImportBindings(info);
-
-		return judgement.isFinished();
-	}
-
-	@Override
-	public boolean fromModuleImport(String moduleName, String itemName) {
-		StaticImportSpecification info = ImportSpecificationFactory.newFromImport(
-				moduleName, itemName);
-		addImportBindings(info);
-
-		return judgement.isFinished();
-	}
-
-	@Override
-	public boolean fromModuleImportAs(String moduleName, String itemName,
-			String as) {
-		StaticImportSpecification info = ImportSpecificationFactory.newFromImportAs(
-				moduleName, itemName, as);
-		addImportBindings(info);
-
-		return judgement.isFinished();
-	}
-
-	private void addImportBindings(StaticImportSpecification info) {
-			judgement.add(new ImportTypeMapper(goalManager).typeImport(
-					variable, info));
-	}
-
-	@Override
-	public boolean exception(exprType name, exprType type) {
+	public boolean exceptionHandler(exprType name, exprType type) {
 		if (name instanceof Name) {
 			if (isMatch(((Name) name).id)) {
 

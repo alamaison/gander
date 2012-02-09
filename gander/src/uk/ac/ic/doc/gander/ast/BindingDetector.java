@@ -16,6 +16,9 @@ import org.python.pydev.parser.jython.ast.comprehensionType;
 import org.python.pydev.parser.jython.ast.excepthandlerType;
 import org.python.pydev.parser.jython.ast.exprType;
 
+import uk.ac.ic.doc.gander.importing.ImportSpecificationFactory;
+import uk.ac.ic.doc.gander.importing.StaticImportSpecification;
+
 /**
  * Detector of statements able to bind a value.
  * 
@@ -30,21 +33,15 @@ public final class BindingDetector extends BindingStatementVisitor {
 
 		void assignment(exprType[] lhs, exprType rhs);
 
-		void function(String name, FunctionDef node);
+		void functionDefinition(String name, FunctionDef node);
 
 		void classDefiniton(String name, ClassDef node);
 
 		void forLoop(exprType target, exprType iterable);
 
-		boolean moduleImport(String moduleName);
+		boolean importStatement(StaticImportSpecification importation);
 
-		boolean moduleImportAs(String moduleName, String as);
-
-		boolean fromModuleImport(String moduleName, String itemName);
-
-		boolean fromModuleImportAs(String moduleName, String itemName, String as);
-
-		boolean exception(exprType name, exprType type);
+		boolean exceptionHandler(exprType name, exprType type);
 	}
 
 	public BindingDetector(DetectionEvent eventHandler) {
@@ -59,7 +56,7 @@ public final class BindingDetector extends BindingStatementVisitor {
 
 	@Override
 	public Object visitFunctionDef(FunctionDef node) throws Exception {
-		eventHandler.function(((NameTok) node.name).id, node);
+		eventHandler.functionDefinition(((NameTok) node.name).id, node);
 		return null;
 	}
 
@@ -92,44 +89,32 @@ public final class BindingDetector extends BindingStatementVisitor {
 
 	@Override
 	public Object visitImport(Import node) throws Exception {
-		for (aliasType alias : node.names) {
-
-			String moduleName = ((NameTok) alias.name).id;
-
-			if (alias.asname == null) {
-				if (eventHandler.moduleImport(moduleName)) {
-					break;
-				}
-			} else {
-				String as = ((NameTok) alias.asname).id;
-				if (eventHandler.moduleImportAs(moduleName, as)) {
-					break;
-				}
+		Iterable<StaticImportSpecification> specifications = ImportSpecificationFactory
+				.fromAstNode(node);
+		
+		for (StaticImportSpecification specification : specifications) {
+			
+			if (eventHandler.importStatement(specification)) {
+				break;
 			}
 		}
+		
 		return null;
 	}
 
 	@Override
 	public Object visitImportFrom(ImportFrom node) throws Exception {
-
-		for (aliasType alias : node.names) {
-
-			String moduleName = ((NameTok) node.module).id;
-			String itemName = ((NameTok) alias.name).id;
-
-			if (alias.asname == null) {
-				if (eventHandler.fromModuleImport(moduleName, itemName)) {
-					break;
-				}
-			} else {
-				String as = ((NameTok) alias.asname).id;
-				if (eventHandler.fromModuleImportAs(moduleName, itemName, as)) {
-					break;
-				}
+		
+		Iterable<StaticImportSpecification> specifications = ImportSpecificationFactory
+				.fromAstNode(node);
+		
+		for (StaticImportSpecification specification : specifications) {
+			
+			if (eventHandler.importStatement(specification)) {
+				break;
 			}
 		}
-
+		
 		return null;
 	}
 
@@ -137,7 +122,7 @@ public final class BindingDetector extends BindingStatementVisitor {
 	public Object visitTryExcept(TryExcept node) throws Exception {
 
 		for (excepthandlerType handler : node.handlers) {
-			if (eventHandler.exception(handler.name, handler.type))
+			if (eventHandler.exceptionHandler(handler.name, handler.type))
 				break;
 		}
 		return null;
