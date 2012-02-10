@@ -62,7 +62,7 @@ public final class WholeModelImportSimulation {
 					relativeTo = relativeToPackage.codeObject();
 				}
 
-				Import<NamespaceName, CodeObject, ModuleCO> importInstance = ImportFactory.newImportAs(
+				Import<NamespaceName, CodeObject, ModuleCO> importInstance = ImportFactory.newImport(
 						StandardImportAsSpecification.newInstance(moduleName,
 								asName), relativeTo, importReceiver);
 
@@ -80,7 +80,7 @@ public final class WholeModelImportSimulation {
 				}
 
 				Import<NamespaceName, CodeObject, ModuleCO> importInstance = ImportFactory
-						.newFromImport(FromImportSpecification.newInstance(
+						.newImport(FromImportSpecification.newInstance(
 								moduleName, itemName), relativeTo,
 								importReceiver);
 				newImportSimulator().simulateImport(importInstance);
@@ -97,7 +97,7 @@ public final class WholeModelImportSimulation {
 				}
 
 				Import<NamespaceName, CodeObject, ModuleCO> importInstance = ImportFactory
-						.newFromImportAs(FromImportAsSpecification.newInstance(
+						.newImport(FromImportAsSpecification.newInstance(
 								moduleName, itemName, asName), relativeTo,
 								importReceiver);
 				newImportSimulator().simulateImport(importInstance);

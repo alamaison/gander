@@ -7,7 +7,7 @@ final class StandardImportAsBindingScheme<O, C, M> implements BindingScheme<M> {
 	private final Import<O, C, M> importInstance;
 	private final ImportSimulator.Binder<O, C, M> bindingHandler;
 
-	StandardImportAsBindingScheme(StandardImportAs<O, C, M> importInstance,
+	StandardImportAsBindingScheme(Import<O, C, M> importInstance,
 			Binder<O, C, M> bindingHandler) {
 		assert importInstance != null;
 		assert bindingHandler != null;

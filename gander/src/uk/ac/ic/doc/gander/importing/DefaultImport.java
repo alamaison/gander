@@ -4,8 +4,7 @@ import uk.ac.ic.doc.gander.importing.ImportSimulator.Binder;
 import uk.ac.ic.doc.gander.importing.ImportSimulator.Loader;
 
 /**
- * Representation of an {@code import module as x} statement at a particular
- * location.
+ * Representation of an import statement at a particular location.
  * 
  * @param <O>
  *            the type of Java objects representing general Python objects that
@@ -16,11 +15,7 @@ import uk.ac.ic.doc.gander.importing.ImportSimulator.Loader;
  * @param <M>
  *            type of object representing modules in the runtime model
  */
-final class StandardImportAs<O, C, M> implements Import<O, C, M> {
-
-	private final StaticImportSpecification specification;
-	private final M relativeTo;
-	private final C container;
+final class DefaultImport<O, C, M> implements Import<O, C, M> {
 
 	/**
 	 * Creates new representation of the import statement.
@@ -36,23 +31,14 @@ final class StandardImportAs<O, C, M> implements Import<O, C, M> {
 	 *            a representation of the code object whose code block contains
 	 *            the import statement
 	 */
-	StandardImportAs(StandardImportAsSpecification specification, M relativeTo,
-			C container) {
-		if (specification == null)
-			throw new NullPointerException("Import specification not optional");
-		if (container == null)
-			throw new NullPointerException(
-					"Imports must have a container; the code object "
-							+ "whose code block they appear in");
-		if (container.equals(relativeTo))
-			throw new IllegalArgumentException(
-					"An import is never relative to the module "
-							+ "in which it appears");
-
-		this.specification = specification;
-		this.relativeTo = relativeTo;
-		this.container = container;
+	public static <O, C, M> DefaultImport<O, C, M> newImport(
+			StaticImportSpecification specification, M relativeTo, C container) {
+		return new DefaultImport<O, C, M>(specification, relativeTo, container);
 	}
+
+	private final StaticImportSpecification specification;
+	private final M relativeTo;
+	private final C container;
 
 	public StaticImportSpecification specification() {
 		return specification;
@@ -68,7 +54,55 @@ final class StandardImportAs<O, C, M> implements Import<O, C, M> {
 
 	public BindingScheme<M> newBindingScheme(Binder<O, C, M> bindingHandler,
 			Loader<O, M> loader) {
-		return new StandardImportAsBindingScheme<O, C, M>(this, bindingHandler);
+		if (specification instanceof StandardImportSpecification) {
+			return new StandardImportBindingScheme<O, C, M>(this,
+					bindingHandler);
+		} else if (specification instanceof StandardImportAsSpecification) {
+			return new StandardImportAsBindingScheme<O, C, M>(this,
+					bindingHandler);
+		} else if (specification instanceof FromImportSpecification) {
+			// The non-aliased from-import shares the from-import-as binding
+			// scheme
+			return new FromImportAsBindingScheme<O, C, M>(this, bindingHandler,
+					loader);
+		} else if (specification instanceof FromImportAsSpecification) {
+			return new FromImportAsBindingScheme<O, C, M>(this, bindingHandler,
+					loader);
+		} else {
+			throw new AssertionError("Unrecognised import specification");
+		}
+	}
+
+	/**
+	 * Creates new representation of the import statement.
+	 * 
+	 * @param specification
+	 *            specification of the import being simulated
+	 * @param relativeTo
+	 *            representation of the module that the import statement
+	 *            operates relative to; may be {@code null} as that could be a
+	 *            valid representation of the module object in some model of the
+	 *            system
+	 * @param container
+	 *            a representation of the code object whose code block contains
+	 *            the import statement
+	 */
+	private DefaultImport(StaticImportSpecification specification, M relativeTo,
+			C container) {
+		if (specification == null)
+			throw new NullPointerException("Import specification not optional");
+		if (container == null)
+			throw new NullPointerException(
+					"Imports must have a container; the code object "
+							+ "whose code block they appear in");
+		if (container.equals(relativeTo))
+			throw new IllegalArgumentException(
+					"An import is never relative to the module "
+							+ "in which it appears");
+
+		this.specification = specification;
+		this.relativeTo = relativeTo;
+		this.container = container;
 	}
 
 	@Override
@@ -92,7 +126,7 @@ final class StandardImportAs<O, C, M> implements Import<O, C, M> {
 			return false;
 		if (getClass() != obj.getClass())
 			return false;
-		StandardImportAs<?, ?, ?> other = (StandardImportAs<?, ?, ?>) obj;
+		DefaultImport<?, ?, ?> other = (DefaultImport<?, ?, ?>) obj;
 		if (container == null) {
 			if (other.container != null)
 				return false;
@@ -113,7 +147,7 @@ final class StandardImportAs<O, C, M> implements Import<O, C, M> {
 
 	@Override
 	public String toString() {
-		return "StandardImportAs [specification='" + specification
+		return "DefaultImport [specification='" + specification
 				+ "', relativeTo=" + relativeTo + ", container=" + container
 				+ "]";
 	}
