@@ -2,7 +2,6 @@ package uk.ac.ic.doc.gander.importing;
 
 import uk.ac.ic.doc.gander.importing.ImportSimulator.Binder;
 import uk.ac.ic.doc.gander.model.Model;
-import uk.ac.ic.doc.gander.model.Module;
 import uk.ac.ic.doc.gander.model.NamespaceName;
 import uk.ac.ic.doc.gander.model.NamespaceNameLoader;
 import uk.ac.ic.doc.gander.model.codeobject.CodeObject;
@@ -32,25 +31,17 @@ public final class WholeModelImportSimulation {
 
 	private void walkModel() {
 
-		new WholeModelImportVisitation(model, new ImportHandler<CodeObject>() {
+		ImportHandler<NamespaceName, CodeObject, ModuleCO> handler = new ImportHandler<NamespaceName, CodeObject, ModuleCO>() {
 
 			@Override
-			public void onImport(CodeObject importReceiver,
-					StaticImportSpecification importStatement) {
-
-				ModuleCO relativeTo = null;
-				Module relativeToPackage = importReceiver.enclosingModule()
-						.oldStyleConflatedNamespace().getParent();
-				if (relativeToPackage != null) {
-					relativeTo = relativeToPackage.codeObject();
-				}
-
-				Import<NamespaceName, CodeObject, ModuleCO> importInstance = ImportFactory
-						.newImport(importStatement, relativeTo, importReceiver);
+			public void onImport(
+					Import<NamespaceName, CodeObject, ModuleCO> importInstance) {
 				newImportSimulator().simulateImport(importInstance);
 			}
 
-		});
+		};
+
+		new WholeModelImportVisitation(model, handler);
 
 	}
 
