@@ -54,23 +54,8 @@ final class DefaultImport<O, C, M> implements Import<O, C, M> {
 
 	public BindingScheme<M> newBindingScheme(Binder<O, C, M> bindingHandler,
 			Loader<O, M> loader) {
-		if (specification instanceof StandardImportSpecification) {
-			return new StandardImportBindingScheme<O, C, M>(this,
-					bindingHandler);
-		} else if (specification instanceof StandardImportAsSpecification) {
-			return new StandardImportAsBindingScheme<O, C, M>(this,
-					bindingHandler);
-		} else if (specification instanceof FromImportSpecification) {
-			// The non-aliased from-import shares the from-import-as binding
-			// scheme
-			return new FromImportAsBindingScheme<O, C, M>(this, bindingHandler,
-					loader);
-		} else if (specification instanceof FromImportAsSpecification) {
-			return new FromImportAsBindingScheme<O, C, M>(this, bindingHandler,
-					loader);
-		} else {
-			throw new AssertionError("Unrecognised import specification");
-		}
+		
+		return specification.newBindingScheme(this, bindingHandler, loader);
 	}
 
 	/**
@@ -87,8 +72,8 @@ final class DefaultImport<O, C, M> implements Import<O, C, M> {
 	 *            a representation of the code object whose code block contains
 	 *            the import statement
 	 */
-	private DefaultImport(StaticImportSpecification specification, M relativeTo,
-			C container) {
+	private DefaultImport(StaticImportSpecification specification,
+			M relativeTo, C container) {
 		if (specification == null)
 			throw new NullPointerException("Import specification not optional");
 		if (container == null)

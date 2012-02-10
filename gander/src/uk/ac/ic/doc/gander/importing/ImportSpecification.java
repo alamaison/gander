@@ -27,4 +27,12 @@ public interface ImportSpecification {
 	 * This is true for regular imports and false for from-style imports.
 	 */
 	boolean importsAreLimitedToModules();
+
+	/**
+	 * Returns an object implementing the binding behaviour of this kind of
+	 * import statement.
+	 */
+	<O, C, M> BindingScheme<M> newBindingScheme(Import<O, C, M> importInstance,
+			ImportSimulator.Binder<O, C, M> bindingHandler,
+			ImportSimulator.Loader<O, M> loader);
 }

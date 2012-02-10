@@ -1,5 +1,8 @@
 package uk.ac.ic.doc.gander.importing;
 
+import uk.ac.ic.doc.gander.importing.ImportSimulator.Binder;
+import uk.ac.ic.doc.gander.importing.ImportSimulator.Loader;
+
 /**
  * Model of an import statement of the form {@code from x.y import i as p}.
  */
@@ -52,6 +55,15 @@ final class FromImportAsSpecification implements StaticImportSpecification {
 	@Override
 	public boolean importsAreLimitedToModules() {
 		return false;
+	}
+
+	@Override
+	public <O, C, M> BindingScheme<M> newBindingScheme(
+			Import<O, C, M> importInstance, Binder<O, C, M> bindingHandler,
+			Loader<O, M> loader) {
+
+		return new FromImportAsBindingScheme<O, C, M>(importInstance,
+				bindingHandler, loader);
 	}
 
 	private FromImportAsSpecification(ImportPath moduleImportPath,
