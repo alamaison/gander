@@ -1,13 +1,18 @@
 package uk.ac.ic.doc.gander.importing;
 
+/**
+ * Model of an import statement of the form {@code from x.y import i}.
+ */
 final class FromImportSpecification implements StaticImportSpecification {
 
 	/**
-	 * Creates new from-style import.
+	 * Creates representation of a from-style import statement.
 	 * 
 	 * @param moduleImportPath
-	 *            the relative path of the module whose namespace item is being
-	 *            imported
+	 *            the path of the module with respect to which an item is being
+	 *            imported; relative to code block in which the import statement
+	 *            appeared (really relative to that code block's containing
+	 *            module)
 	 * @param itemName
 	 *            the name of the item being imported
 	 */
@@ -45,15 +50,6 @@ final class FromImportSpecification implements StaticImportSpecification {
 		return false;
 	}
 
-	/**
-	 * Creates new from-style import.
-	 * 
-	 * @param moduleImportPath
-	 *            the relative path of the module whose namespace item is being
-	 *            imported
-	 * @param itemName
-	 *            the name of the item being imported
-	 */
 	private FromImportSpecification(ImportPath moduleImportPath, String itemName) {
 		if (moduleImportPath == null)
 			throw new NullPointerException("Module path is not optional");
@@ -67,7 +63,7 @@ final class FromImportSpecification implements StaticImportSpecification {
 		this.moduleImportPath = moduleImportPath;
 		this.itemName = itemName;
 	}
-	
+
 	@Override
 	public int hashCode() {
 		final int prime = 31;

@@ -34,9 +34,9 @@ public final class WholeModelImportSimulation {
 
 		new WholeModelImportVisitation(model, new ImportHandler<CodeObject>() {
 
-			public void onImport(CodeObject importReceiver, String moduleName) {
-				assert importReceiver != null;
-				assert importReceiver.enclosingModule() != null;
+			@Override
+			public void onImport(CodeObject importReceiver,
+					StaticImportSpecification importStatement) {
 
 				ModuleCO relativeTo = null;
 				Module relativeToPackage = importReceiver.enclosingModule()
@@ -46,60 +46,7 @@ public final class WholeModelImportSimulation {
 				}
 
 				Import<NamespaceName, CodeObject, ModuleCO> importInstance = ImportFactory
-						.newImport(StandardImportSpecification
-								.newInstance(moduleName), relativeTo,
-								importReceiver);
-				newImportSimulator().simulateImport(importInstance);
-			}
-
-			public void onImportAs(CodeObject importReceiver,
-					String moduleName, String asName) {
-
-				ModuleCO relativeTo = null;
-				Module relativeToPackage = importReceiver.enclosingModule()
-						.oldStyleConflatedNamespace().getParent();
-				if (relativeToPackage != null) {
-					relativeTo = relativeToPackage.codeObject();
-				}
-
-				Import<NamespaceName, CodeObject, ModuleCO> importInstance = ImportFactory.newImport(
-						StandardImportAsSpecification.newInstance(moduleName,
-								asName), relativeTo, importReceiver);
-
-				newImportSimulator().simulateImport(importInstance);
-			}
-
-			public void onImportFrom(CodeObject importReceiver,
-					String moduleName, String itemName) {
-
-				ModuleCO relativeTo = null;
-				Module relativeToPackage = importReceiver.enclosingModule()
-						.oldStyleConflatedNamespace().getParent();
-				if (relativeToPackage != null) {
-					relativeTo = relativeToPackage.codeObject();
-				}
-
-				Import<NamespaceName, CodeObject, ModuleCO> importInstance = ImportFactory
-						.newImport(FromImportSpecification.newInstance(
-								moduleName, itemName), relativeTo,
-								importReceiver);
-				newImportSimulator().simulateImport(importInstance);
-			}
-
-			public void onImportFromAs(CodeObject importReceiver,
-					String moduleName, String itemName, String asName) {
-
-				ModuleCO relativeTo = null;
-				Module relativeToPackage = importReceiver.enclosingModule()
-						.oldStyleConflatedNamespace().getParent();
-				if (relativeToPackage != null) {
-					relativeTo = relativeToPackage.codeObject();
-				}
-
-				Import<NamespaceName, CodeObject, ModuleCO> importInstance = ImportFactory
-						.newImport(FromImportAsSpecification.newInstance(
-								moduleName, itemName, asName), relativeTo,
-								importReceiver);
+						.newImport(importStatement, relativeTo, importReceiver);
 				newImportSimulator().simulateImport(importInstance);
 			}
 

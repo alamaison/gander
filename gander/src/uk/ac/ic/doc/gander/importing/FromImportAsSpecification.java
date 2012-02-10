@@ -1,13 +1,18 @@
 package uk.ac.ic.doc.gander.importing;
 
+/**
+ * Model of an import statement of the form {@code from x.y import i as p}.
+ */
 final class FromImportAsSpecification implements StaticImportSpecification {
 
 	/**
-	 * Creates new from-style import with alias.
+	 * Creates representation of a from-style import statement with an alias.
 	 * 
 	 * @param moduleImportPath
-	 *            the relative path of the module whose namespace item is being
-	 *            imported
+	 *            the path of the module with respect to which an item is being
+	 *            imported; relative to code block in which the import statement
+	 *            appeared (really relative to that code block's containing
+	 *            module)
 	 * @param itemName
 	 *            the name of the item being imported
 	 * @param alias
@@ -49,18 +54,6 @@ final class FromImportAsSpecification implements StaticImportSpecification {
 		return false;
 	}
 
-	/**
-	 * Creates new from-style import with alias.
-	 * 
-	 * @param moduleImportPath
-	 *            the relative path of the module whose namespace item is being
-	 *            imported
-	 * @param itemName
-	 *            the name of the item being imported
-	 * @param alias
-	 *            the name that imported item is bound to with respect to the
-	 *            container
-	 */
 	private FromImportAsSpecification(ImportPath moduleImportPath,
 			String itemName, String alias) {
 		if (moduleImportPath == null)

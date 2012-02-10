@@ -1,14 +1,19 @@
 package uk.ac.ic.doc.gander.importing;
 
+/**
+ * Model of an import statement of the form {@code import x.y.z}.
+ */
 final class StandardImportSpecification implements StaticImportSpecification {
 
 	private final ImportPath moduleImportPath;
 
 	/**
-	 * Creates new standard (non-from) import.
+	 * Creates representation of a standard (non-from) import statement.
 	 * 
 	 * @param moduleImportPath
-	 *            the relative path of the module being imported
+	 *            the path of the module being imported relative to the code
+	 *            block in which it appeared (really relative to that code
+	 *            block's containing module)
 	 */
 	static StandardImportSpecification newInstance(String moduleImportPath) {
 		return new StandardImportSpecification(
@@ -40,12 +45,6 @@ final class StandardImportSpecification implements StaticImportSpecification {
 		return true;
 	}
 
-	/**
-	 * Creates new standard (non-from) import.
-	 * 
-	 * @param moduleImportPath
-	 *            the relative path of the module being imported
-	 */
 	private StandardImportSpecification(ImportPath moduleImportPath) {
 		if (moduleImportPath == null)
 			throw new NullPointerException("Module path is not optional");

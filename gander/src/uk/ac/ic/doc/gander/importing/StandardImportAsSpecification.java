@@ -1,15 +1,21 @@
 package uk.ac.ic.doc.gander.importing;
 
+/**
+ * Model of an import statement of the form {@code import x.y.z as bar}.
+ */
 final class StandardImportAsSpecification implements StaticImportSpecification {
 
 	private final ImportPath moduleImportPath;
 	private final String alias;
 
 	/**
-	 * Creates new standard (non-from) import with alias.
+	 * Creates representation of a standard (non-from) import statement with an
+	 * alias.
 	 * 
 	 * @param moduleImportPath
-	 *            the relative path of the module being imported
+	 *            the path of the module being imported relative to the code
+	 *            block in which it appeared (really relative to that code
+	 *            block's containing module)
 	 * @param alias
 	 *            the name that the first segment of the path is bound to with
 	 *            respect to the container
@@ -45,15 +51,6 @@ final class StandardImportAsSpecification implements StaticImportSpecification {
 		return true;
 	}
 
-	/**
-	 * Creates new standard (non-from) import with alias.
-	 * 
-	 * @param moduleImportPath
-	 *            the relative path of the module being imported
-	 * @param alias
-	 *            the name that the first segment of the path is bound to with
-	 *            respect to the container
-	 */
 	private StandardImportAsSpecification(ImportPath moduleImportPath,
 			String alias) {
 		if (moduleImportPath == null)

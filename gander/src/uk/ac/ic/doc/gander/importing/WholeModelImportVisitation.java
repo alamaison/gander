@@ -105,22 +105,9 @@ public final class WholeModelImportVisitation {
 
 		return new ImportVisitor(new ImportVisitor.ImportHandler() {
 
-			public void onImportFrom(String moduleName, String itemName) {
-				callback.onImportFrom(codeObject, moduleName, itemName);
-			}
-
-			public void onImportFromAs(String moduleName, String itemName,
-					String asName) {
-				callback.onImportFromAs(codeObject, moduleName, itemName,
-						asName);
-			}
-
-			public void onImportAs(String moduleName, String asName) {
-				callback.onImportAs(codeObject, moduleName, asName);
-			}
-
-			public void onImport(String moduleName) {
-				callback.onImport(codeObject, moduleName);
+			@Override
+			public void onImport(StaticImportSpecification importStatement) {
+				callback.onImport(codeObject, importStatement);
 			}
 		});
 	}
