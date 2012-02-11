@@ -9,7 +9,7 @@ public final class ImportSpecificationTest {
 	@Test
 	public void importSingle() throws Throwable {
 		StaticImportSpecification info = ImportSpecificationFactory
-				.newImport("x");
+				.newImport(ImportPath.fromDottedName("x"));
 		assertEquals("x", info.bindingName());
 		assertEquals("", info.boundObjectParentPath().dottedName());
 		assertEquals("x", info.boundObjectName());
@@ -18,7 +18,7 @@ public final class ImportSpecificationTest {
 	@Test
 	public void importDouble() throws Throwable {
 		StaticImportSpecification info = ImportSpecificationFactory
-				.newImport("p.q");
+				.newImport(ImportPath.fromDottedName("p.q"));
 		assertEquals("", info.boundObjectParentPath().dottedName());
 		assertEquals("p", info.boundObjectName());
 		assertEquals("p", info.bindingName());
@@ -27,7 +27,7 @@ public final class ImportSpecificationTest {
 	@Test
 	public void importTriple() throws Throwable {
 		StaticImportSpecification info = ImportSpecificationFactory
-				.newImport("a.b.c");
+				.newImport(ImportPath.fromDottedName("a.b.c"));
 		assertEquals("", info.boundObjectParentPath().dottedName());
 		assertEquals("a", info.boundObjectName());
 		assertEquals("a", info.bindingName());
@@ -36,7 +36,7 @@ public final class ImportSpecificationTest {
 	@Test
 	public void importSingleAs() throws Throwable {
 		StaticImportSpecification info = ImportSpecificationFactory
-				.newImportAs("x", "y");
+				.newImportAs(ImportPath.fromDottedName("x"), "y");
 		assertEquals("", info.boundObjectParentPath().dottedName());
 		assertEquals("x", info.boundObjectName());
 		assertEquals("y", info.bindingName());
@@ -45,7 +45,7 @@ public final class ImportSpecificationTest {
 	@Test
 	public void importDoubleAs() throws Throwable {
 		StaticImportSpecification info = ImportSpecificationFactory
-				.newImportAs("p.q", "r");
+				.newImportAs(ImportPath.fromDottedName("p.q"), "r");
 		assertEquals("p", info.boundObjectParentPath().dottedName());
 		assertEquals("q", info.boundObjectName());
 		assertEquals("r", info.bindingName());
@@ -54,7 +54,7 @@ public final class ImportSpecificationTest {
 	@Test
 	public void importTripleAs() throws Throwable {
 		StaticImportSpecification info = ImportSpecificationFactory
-				.newImportAs("a.b.c", "d");
+				.newImportAs(ImportPath.fromDottedName("a.b.c"), "d");
 		assertEquals("a.b", info.boundObjectParentPath().dottedName());
 		assertEquals("c", info.boundObjectName());
 		assertEquals("d", info.bindingName());
@@ -63,7 +63,7 @@ public final class ImportSpecificationTest {
 	@Test
 	public void fromImportSingle() throws Throwable {
 		StaticImportSpecification info = ImportSpecificationFactory
-				.newFromImport("x", "i");
+				.newFromImport(ImportPath.fromDottedName("x"), "i");
 		assertEquals("x", info.boundObjectParentPath().dottedName());
 		assertEquals("i", info.boundObjectName());
 		assertEquals("i", info.bindingName());
@@ -72,7 +72,7 @@ public final class ImportSpecificationTest {
 	@Test
 	public void fromImportDouble() throws Throwable {
 		StaticImportSpecification info = ImportSpecificationFactory
-				.newFromImport("p.q", "s");
+				.newFromImport(ImportPath.fromDottedName("p.q"), "s");
 		assertEquals("p.q", info.boundObjectParentPath().dottedName());
 		assertEquals("s", info.boundObjectName());
 		assertEquals("s", info.bindingName());
@@ -81,7 +81,7 @@ public final class ImportSpecificationTest {
 	@Test
 	public void fromImportTriple() throws Throwable {
 		StaticImportSpecification info = ImportSpecificationFactory
-				.newFromImport("a.b.c", "m");
+				.newFromImport(ImportPath.fromDottedName("a.b.c"), "m");
 		assertEquals("a.b.c", info.boundObjectParentPath().dottedName());
 		assertEquals("m", info.boundObjectName());
 		assertEquals("m", info.bindingName());
@@ -90,7 +90,7 @@ public final class ImportSpecificationTest {
 	@Test
 	public void fromImportSingleAs() throws Throwable {
 		StaticImportSpecification info = ImportSpecificationFactory
-				.newFromImportAs("x", "i", "j");
+				.newFromImportAs(ImportPath.fromDottedName("x"), "i", "j");
 		assertEquals("x", info.boundObjectParentPath().dottedName());
 		assertEquals("i", info.boundObjectName());
 		assertEquals("j", info.bindingName());
@@ -99,7 +99,7 @@ public final class ImportSpecificationTest {
 	@Test
 	public void fromIimportDoubleAs() throws Throwable {
 		StaticImportSpecification info = ImportSpecificationFactory
-				.newFromImportAs("p.q", "s", "t");
+				.newFromImportAs(ImportPath.fromDottedName("p.q"), "s", "t");
 		assertEquals("p.q", info.boundObjectParentPath().dottedName());
 		assertEquals("s", info.boundObjectName());
 		assertEquals("t", info.bindingName());
@@ -108,7 +108,7 @@ public final class ImportSpecificationTest {
 	@Test
 	public void fromImportTripleAs() throws Throwable {
 		StaticImportSpecification info = ImportSpecificationFactory
-				.newFromImportAs("a.b.c", "m", "n");
+				.newFromImportAs(ImportPath.fromDottedName("a.b.c"), "m", "n");
 		assertEquals("a.b.c", info.boundObjectParentPath().dottedName());
 		assertEquals("m", info.boundObjectName());
 		assertEquals("n", info.bindingName());

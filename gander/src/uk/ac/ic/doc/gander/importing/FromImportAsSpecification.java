@@ -22,12 +22,11 @@ final class FromImportAsSpecification implements StaticImportSpecification {
 	 *            the name that imported item is bound to with respect to the
 	 *            container
 	 */
-	static FromImportAsSpecification newInstance(String moduleImportPath,
+	static FromImportAsSpecification newInstance(ImportPath moduleImportPath,
 			String itemName, String alias) {
-		return new FromImportAsSpecification(
-				ImportPath.fromDottedName(moduleImportPath), itemName, alias);
+		return new FromImportAsSpecification(moduleImportPath, itemName, alias);
 	}
-
+	
 	private final ImportPath moduleImportPath;
 	private final String itemName;
 	private final String alias;

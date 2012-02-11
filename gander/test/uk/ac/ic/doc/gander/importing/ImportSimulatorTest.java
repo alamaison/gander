@@ -96,16 +96,16 @@ public final class ImportSimulatorTest {
 	@Test
 	public void importSingle() throws Throwable {
 		simulator().simulateImport(
-				newImport(StandardImportSpecification.newInstance("x"), "[]",
-						"[smurble]"));
+				newImport(StandardImportSpecification.newInstance(ImportPath
+						.fromDottedName("x")), "[]", "[smurble]"));
 		assertBindings(entry("[x]", "x", "[smurble]"));
 	}
 
 	@Test
 	public void importDouble() throws Throwable {
 		simulator().simulateImport(
-				newImport(StandardImportSpecification.newInstance("p.q"), "[]",
-						"[smurble]"));
+				newImport(StandardImportSpecification.newInstance(ImportPath
+						.fromDottedName("p.q")), "[]", "[smurble]"));
 		assertBindings(entry("[p]", "p", "[smurble]"),
 				entry("[p.q]", "q", "[p]"));
 	}
@@ -113,8 +113,8 @@ public final class ImportSimulatorTest {
 	@Test
 	public void importTriple() throws Throwable {
 		simulator().simulateImport(
-				newImport(StandardImportSpecification.newInstance("a.b.c"),
-						"[]", "[smurble]"));
+				newImport(StandardImportSpecification.newInstance(ImportPath
+						.fromDottedName("a.b.c")), "[]", "[smurble]"));
 		assertBindings(entry("[a]", "a", "[smurble]"),
 				entry("[a.b]", "b", "[a]"), entry("[a.b.c]", "c", "[a.b]"));
 	}
@@ -122,8 +122,10 @@ public final class ImportSimulatorTest {
 	@Test
 	public void importSingleAs() throws Throwable {
 		simulator().simulateImport(
-				newImport(StandardImportAsSpecification.newInstance("x", "y"),
-						"[]", "[smurble]"));
+				newImport(
+						StandardImportAsSpecification.newInstance(
+								ImportPath.fromDottedName("x"), "y"), "[]",
+						"[smurble]"));
 		assertBindings(entry("[x]", "y", "[smurble]"));
 	}
 
@@ -131,18 +133,20 @@ public final class ImportSimulatorTest {
 	public void importDoubleAs() throws Throwable {
 		simulator().simulateImport(
 				newImport(
-						StandardImportAsSpecification.newInstance("p.q", "r"),
-						"[]", "[smurble]"));
+						StandardImportAsSpecification.newInstance(
+								ImportPath.fromDottedName("p.q"), "r"), "[]",
+						"[smurble]"));
 		assertBindings(entry("[p.q]", "r", "[smurble]"),
 				entry("[p.q]", "q", "[p]"));
 	}
 
 	@Test
 	public void importTripleAs() throws Throwable {
-		simulator()
-				.simulateImport(
-						newImport(StandardImportAsSpecification.newInstance(
-								"a.b.c", "d"), "[]", "[smurble]"));
+		simulator().simulateImport(
+				newImport(
+						StandardImportAsSpecification.newInstance(
+								ImportPath.fromDottedName("a.b.c"), "d"), "[]",
+						"[smurble]"));
 		assertBindings(entry("[a.b.c]", "d", "[smurble]"),
 				entry("[a.b]", "b", "[a]"), entry("[a.b.c]", "c", "[a.b]"));
 	}
@@ -150,7 +154,9 @@ public final class ImportSimulatorTest {
 	@Test
 	public void fromImportSingle() throws Throwable {
 		simulator().simulateImport(
-				newImport(FromImportSpecification.newInstance("x", "i"), "[]",
+				newImport(
+						FromImportSpecification.newInstance(
+								ImportPath.fromDottedName("x"), "i"), "[]",
 						"[smurble]"));
 		assertBindings(entry("[x]@i", "i", "[smurble]"));
 	}
@@ -158,8 +164,10 @@ public final class ImportSimulatorTest {
 	@Test
 	public void fromImportDouble() throws Throwable {
 		simulator().simulateImport(
-				newImport(FromImportSpecification.newInstance("p.q", "i"),
-						"[]", "[smurble]"));
+				newImport(
+						FromImportSpecification.newInstance(
+								ImportPath.fromDottedName("p.q"), "i"), "[]",
+						"[smurble]"));
 		assertBindings(entry("[p.q]@i", "i", "[smurble]"),
 				entry("[p.q]", "q", "[p]"));
 	}
@@ -167,8 +175,10 @@ public final class ImportSimulatorTest {
 	@Test
 	public void fromImportTriple() throws Throwable {
 		simulator().simulateImport(
-				newImport(FromImportSpecification.newInstance("a.b.c", "i"),
-						"[]", "[smurble]"));
+				newImport(
+						FromImportSpecification.newInstance(
+								ImportPath.fromDottedName("a.b.c"), "i"), "[]",
+						"[smurble]"));
 		assertBindings(entry("[a.b.c]@i", "i", "[smurble]"),
 				entry("[a.b.c]", "c", "[a.b]"), entry("[a.b]", "b", "[a]"));
 	}
@@ -176,7 +186,9 @@ public final class ImportSimulatorTest {
 	@Test
 	public void fromImportSingleAs() throws Throwable {
 		simulator().simulateImport(
-				newImport(FromImportAsSpecification.newInstance("x", "i", "j"),
+				newImport(
+						FromImportAsSpecification.newInstance(
+								ImportPath.fromDottedName("x"), "i", "j"),
 						"[]", "[smurble]"));
 		assertBindings(entry("[x]@i", "j", "[smurble]"));
 	}
@@ -185,7 +197,8 @@ public final class ImportSimulatorTest {
 	public void fromImportDoubleAs() throws Throwable {
 		simulator().simulateImport(
 				newImport(
-						FromImportAsSpecification.newInstance("p.q", "i", "t"),
+						FromImportAsSpecification.newInstance(
+								ImportPath.fromDottedName("p.q"), "i", "t"),
 						"[]", "[smurble]"));
 		assertBindings(entry("[p.q]@i", "t", "[smurble]"),
 				entry("[p.q]", "q", "[p]"));
@@ -194,8 +207,10 @@ public final class ImportSimulatorTest {
 	@Test
 	public void fromImportTripleAs() throws Throwable {
 		simulator().simulateImport(
-				newImport(FromImportAsSpecification.newInstance("a.b.c", "i",
-						"n"), "[]", "[smurble]"));
+				newImport(
+						FromImportAsSpecification.newInstance(
+								ImportPath.fromDottedName("a.b.c"), "i", "n"),
+						"[]", "[smurble]"));
 		assertBindings(entry("[a.b.c]@i", "n", "[smurble]"),
 				entry("[a.b.c]", "c", "[a.b]"), entry("[a.b]", "b", "[a]"));
 	}

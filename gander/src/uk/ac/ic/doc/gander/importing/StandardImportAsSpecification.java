@@ -23,10 +23,9 @@ final class StandardImportAsSpecification implements StaticImportSpecification {
 	 *            the name that the first segment of the path is bound to with
 	 *            respect to the container
 	 */
-	static StandardImportAsSpecification newInstance(String moduleImportPath,
-			String alias) {
-		return new StandardImportAsSpecification(
-				ImportPath.fromDottedName(moduleImportPath), alias);
+	static StandardImportAsSpecification newInstance(
+			ImportPath moduleImportPath, String alias) {
+		return new StandardImportAsSpecification(moduleImportPath, alias);
 	}
 
 	@Override

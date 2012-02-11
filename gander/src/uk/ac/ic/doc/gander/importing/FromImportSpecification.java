@@ -19,10 +19,9 @@ final class FromImportSpecification implements StaticImportSpecification {
 	 * @param itemName
 	 *            the name of the item being imported
 	 */
-	static FromImportSpecification newInstance(String moduleImportName,
+	static FromImportSpecification newInstance(ImportPath moduleImportName,
 			String itemName) {
-		return new FromImportSpecification(
-				ImportPath.fromDottedName(moduleImportName), itemName);
+		return new FromImportSpecification(moduleImportName, itemName);
 	}
 
 	private final ImportPath moduleImportPath;

@@ -18,9 +18,8 @@ final class StandardImportSpecification implements StaticImportSpecification {
 	 *            block in which it appeared (really relative to that code
 	 *            block's containing module)
 	 */
-	static StandardImportSpecification newInstance(String moduleImportPath) {
-		return new StandardImportSpecification(
-				ImportPath.fromDottedName(moduleImportPath));
+	static StandardImportSpecification newInstance(ImportPath moduleImportPath) {
+		return new StandardImportSpecification(moduleImportPath);
 	}
 
 	@Override

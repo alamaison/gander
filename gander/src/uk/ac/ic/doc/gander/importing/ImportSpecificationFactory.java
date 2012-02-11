@@ -10,23 +10,24 @@ import org.python.pydev.parser.jython.ast.aliasType;
 
 public final class ImportSpecificationFactory {
 
-	public static StandardImportSpecification newImport(String moduleImportName) {
+	public static StandardImportSpecification newImport(
+			ImportPath moduleImportName) {
 		return StandardImportSpecification.newInstance(moduleImportName);
 	}
 
-	public static StaticImportSpecification newImportAs(String moduleImportName,
-			String alias) {
+	public static StandardImportAsSpecification newImportAs(
+			ImportPath moduleImportName, String alias) {
 		return StandardImportAsSpecification.newInstance(moduleImportName,
 				alias);
 	}
 
-	public static StaticImportSpecification newFromImport(String moduleImportName,
-			String itemName) {
+	public static FromImportSpecification newFromImport(
+			ImportPath moduleImportName, String itemName) {
 		return FromImportSpecification.newInstance(moduleImportName, itemName);
 	}
 
-	public static StaticImportSpecification newFromImportAs(String moduleImportName,
-			String itemName, String alias) {
+	public static FromImportAsSpecification newFromImportAs(
+			ImportPath moduleImportName, String itemName, String alias) {
 		return FromImportAsSpecification.newInstance(moduleImportName,
 				itemName, alias);
 	}
@@ -36,28 +37,32 @@ public final class ImportSpecificationFactory {
 
 		for (aliasType alias : node.names) {
 			if (alias.asname != null) {
-				specs.add(newImportAs(((NameTok) alias.name).id,
+				specs.add(newImportAs(
+						ImportPath.fromDottedName(((NameTok) alias.name).id),
 						((NameTok) alias.asname).id));
 			} else {
-				specs.add(newImport(((NameTok) alias.name).id));
+				specs.add(newImport(ImportPath
+						.fromDottedName(((NameTok) alias.name).id)));
 			}
 		}
 
 		return specs;
 	}
 
-	public static Iterable<StaticImportSpecification> fromAstNode(ImportFrom node) {
+	public static Iterable<StaticImportSpecification> fromAstNode(
+			ImportFrom node) {
+
 		List<StaticImportSpecification> specs = new ArrayList<StaticImportSpecification>();
+
+		ImportPath modulePath = ImportPath
+				.fromDottedName(((NameTok) node.module).id);
 
 		for (aliasType alias : node.names) {
 			if (alias.asname != null) {
-				specs
-						.add(newFromImportAs(((NameTok) node.module).id,
-								((NameTok) alias.name).id,
-								((NameTok) alias.asname).id));
+				specs.add(newFromImportAs(modulePath,
+						((NameTok) alias.name).id, ((NameTok) alias.asname).id));
 			} else {
-				specs.add(newFromImport(((NameTok) node.module).id,
-						((NameTok) alias.name).id));
+				specs.add(newFromImport(modulePath, ((NameTok) alias.name).id));
 			}
 		}
 
