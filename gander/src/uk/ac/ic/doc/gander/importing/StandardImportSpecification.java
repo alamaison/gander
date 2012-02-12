@@ -33,7 +33,7 @@ final class StandardImportSpecification implements StaticImportSpecification {
 	}
 
 	@Override
-	public ImportPath loadedPath() {
+	public ImportPath modulePath() {
 		return moduleImportPath;
 	}
 
@@ -52,8 +52,7 @@ final class StandardImportSpecification implements StaticImportSpecification {
 			Import<O, C, M> importInstance, Binder<O, C, M> bindingHandler,
 			Loader<O, M> loader) {
 
-		return new StandardImportBindingScheme<O, C, M>(importInstance,
-				bindingHandler);
+		return new StandardImportBindingScheme<O, C, M>();
 	}
 
 	private StandardImportSpecification(ImportPath moduleImportPath) {

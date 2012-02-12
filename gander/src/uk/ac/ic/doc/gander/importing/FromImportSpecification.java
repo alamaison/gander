@@ -33,8 +33,8 @@ final class FromImportSpecification implements StaticImportSpecification {
 	}
 
 	@Override
-	public ImportPath loadedPath() {
-		return moduleImportPath.append(itemName);
+	public ImportPath modulePath() {
+		return moduleImportPath;
 	}
 
 	@Override

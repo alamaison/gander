@@ -37,11 +37,6 @@ final class FromImportAsSpecification implements StaticImportSpecification {
 	}
 
 	@Override
-	public ImportPath loadedPath() {
-		return moduleImportPath.append(itemName);
-	}
-
-	@Override
 	public ImportPath boundObjectParentPath() {
 		return moduleImportPath;
 	}
@@ -49,6 +44,11 @@ final class FromImportAsSpecification implements StaticImportSpecification {
 	@Override
 	public String boundObjectName() {
 		return itemName;
+	}
+
+	@Override
+	public ImportPath modulePath() {
+		return moduleImportPath;
 	}
 
 	@Override

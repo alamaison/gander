@@ -21,6 +21,31 @@ public interface ImportSpecification {
 	ImportPath boundObjectParentPath();
 
 	/**
+	 * Returns the part of the import module.
+	 * 
+	 * In a from-style import this means the module with respect to which items
+	 * are imported. Note that this doesn't mean the item might not also be a
+	 * module. It just means that thre returned path is the only part that can
+	 * be relied to to <em>definitely</em> be a module.
+	 * 
+	 * In a standard import, it is simply the module that is loaded. This is not
+	 * necessarily the module that is bound locally.
+	 * 
+	 * <ul>
+	 * <li>For {@code import a.b.c} that is {@code a.b.c}</li>
+	 * 
+	 * <li>For {@code import a.b.c as p} that is {@code a.b.c}</li>
+	 * 
+	 * <li>For {@code from a.b.c import d} that is {@code a.b.c}</li>
+	 * 
+	 * <li>For {@code from a.b.c import d as p} that is {@code a.b.c}</li>
+	 * 
+	 * <li>For {@code from a.b.c import *} that is {@code a.b.c}</li>
+	 * </ul>
+	 */
+	ImportPath modulePath();
+
+	/**
 	 * Returns whether the import is of a kind that only permits modules to be
 	 * imported.
 	 * 

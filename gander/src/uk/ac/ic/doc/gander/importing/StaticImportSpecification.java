@@ -40,19 +40,4 @@ public interface StaticImportSpecification extends ImportSpecification {
 	 * the path to the bound object.
 	 */
 	String boundObjectName();
-
-	/**
-	 * Returns the path whose objects are loaded as part of the import process.
-	 * 
-	 * <ul>
-	 * <li>For {@code import a.b.c} that is {@code a.b.c}</li>
-	 * 
-	 * <li>For {@code import a.b.c as p} that is {@code a.b.c}</li>
-	 * 
-	 * <li>For {@code from a.b.c import d} that is {@code a.b.c.d}</li>
-	 * 
-	 * <li>For {@code from a.b.c import d as p} that is {@code a.b.c.d}</li>
-	 * </ul>
-	 */
-	ImportPath loadedPath();
 }

@@ -82,7 +82,7 @@ public final class ImportSimulatorTest {
 			return loadModule(importPath, "[]");
 		}
 
-		public String loadNonModuleMember(String itemName,
+		public String loadModuleMember(String itemName,
 				String codeObjectWhoseNamespaceWeAreLoadingFrom) {
 			return codeObjectWhoseNamespaceWeAreLoadingFrom + "@" + itemName;
 		}

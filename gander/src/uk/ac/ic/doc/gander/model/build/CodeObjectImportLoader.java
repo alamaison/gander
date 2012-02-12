@@ -128,8 +128,8 @@ public class CodeObjectImportLoader {
 		 * the model below {@code relativeToPackage}.
 		 * 
 		 * @param importPath
-		 *            Path to search for relative to root, {@code
-		 *            relativeToPackage}.
+		 *            Path to search for relative to root,
+		 *            {@code relativeToPackage}.
 		 * @param relativeToModule
 		 *            Root of search.
 		 * @return {@link SourceFile} if loading succeeded, {@code null}
@@ -137,8 +137,8 @@ public class CodeObjectImportLoader {
 		 */
 		public ModuleCO loadModule(List<String> importPath,
 				ModuleCO relativeToModule) {
-			List<String> name = new ArrayList<String>(DottedName
-					.toImportTokens(relativeToModule
+			List<String> name = new ArrayList<String>(
+					DottedName.toImportTokens(relativeToModule
 							.oldStyleConflatedNamespace().getFullName()));
 			name.addAll(importPath);
 
@@ -175,7 +175,7 @@ public class CodeObjectImportLoader {
 			}
 		}
 
-		public CodeObject loadNonModuleMember(String itemName,
+		public CodeObject loadModuleMember(String itemName,
 				ModuleCO sourceModule) {
 			/*
 			 * We search the nested code objects in order checking their names
@@ -184,9 +184,9 @@ public class CodeObjectImportLoader {
 			 * the binding in the namespace so the last one will be imported in
 			 * preference to the earlier declarations.
 			 * 
-			 * WARNING: This is still not right! This is why we call it the
-			 * 'dodgy model'. Names can be added to the namespace in more ways
-			 * than just declaration and these can be imported too.
+			 * FIXME: This is still not right! This is why we call it the 'dodgy
+			 * model'. Names can be added to the namespace in more ways than
+			 * just declaration and these can be imported too.
 			 */
 			CodeObject object = null;
 			for (CodeObject nestedCodeObject : sourceModule.nestedCodeObjects()) {

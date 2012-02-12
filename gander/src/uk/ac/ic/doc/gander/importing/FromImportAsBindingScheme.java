@@ -1,5 +1,7 @@
 package uk.ac.ic.doc.gander.importing;
 
+import java.util.Collections;
+
 import uk.ac.ic.doc.gander.importing.ImportSimulator.Binder;
 import uk.ac.ic.doc.gander.importing.ImportSimulator.Loader;
 
@@ -20,30 +22,25 @@ final class FromImportAsBindingScheme<O, C, M> implements BindingScheme<M> {
 		this.loader = loader;
 	}
 
-	public void bindSolitaryToken(M module, String name) {
-	}
-
-	public void bindFirstToken(M module, String name) {
-	}
-
-	public void bindIntermediateToken(M module, String name,
-			M previouslyLoadedModule) {
-		if (module != null) {
-			bindingHandler.bindModuleToName(module, name,
-					previouslyLoadedModule);
-		} else {
-			bindingHandler.onUnresolvedImport(importInstance, name, previouslyLoadedModule);
+	@Override
+	public void bindItems(M previouslyLoadedModule) {
+		if (previouslyLoadedModule == null) {
+			throw new NullPointerException(
+					"Must have a module to import items with respect to");
 		}
-	}
 
-	public void bindFinalToken(M module, String name, M previouslyLoadedModule) {
+		String name = importInstance.specification().boundObjectName();
+
+		M submodule = loader.loadModule(Collections.singletonList(name),
+				previouslyLoadedModule);
+
 		/*
 		 * Resolve item name to an item relative the loaded module. If the item
 		 * is a module it will have been loaded and passed to us here. Otherwise
 		 * we try and find an item answering to that name.
 		 */
-		if (module == null) {
-			O object = loader.loadNonModuleMember(name, previouslyLoadedModule);
+		if (submodule == null) {
+			O object = loader.loadModuleMember(name, previouslyLoadedModule);
 
 			if (object != null) {
 				bindingHandler.bindObjectToLocalName(object, importInstance
@@ -51,11 +48,17 @@ final class FromImportAsBindingScheme<O, C, M> implements BindingScheme<M> {
 						.container());
 			} else {
 				// TODO: distinguish the object case
-				bindingHandler.onUnresolvedImport(importInstance, name, previouslyLoadedModule);
+				bindingHandler.onUnresolvedImport(importInstance, name,
+						previouslyLoadedModule);
 			}
 		} else {
-			bindingHandler.bindModuleToLocalName(module, importInstance
+			bindingHandler.bindModuleToLocalName(submodule, importInstance
 					.specification().bindingName(), importInstance.container());
 		}
+	}
+
+	@Override
+	public BindingBehaviour modulePathBindingBehaviour() {
+		return FromImportBindingBehaviour.INSTANCE;
 	}
 }

@@ -24,8 +24,10 @@ public final class NamespaceNameLoader implements
 		this.model = model;
 	}
 
+	@Override
 	public final ModuleCO loadModule(List<String> importPath,
 			ModuleCO relativeToModule) {
+		
 		List<String> name = new ArrayList<String>(DottedName
 				.toImportTokens(relativeToModule.oldStyleConflatedNamespace()
 						.getFullName()));
@@ -38,12 +40,15 @@ public final class NamespaceNameLoader implements
 		return loadModule(name);
 	}
 
+	@Override
 	public ModuleCO loadModule(List<String> importPath) {
 		return model.lookup(ImportPath.fromTokens(importPath));
 	}
 
-	public NamespaceName loadNonModuleMember(String itemName,
+	@Override
+	public NamespaceName loadModuleMember(String itemName,
 			ModuleCO sourceModule) {
+		
 		return new NamespaceName(itemName, sourceModule
 				.fullyQualifiedNamespace());
 	}
