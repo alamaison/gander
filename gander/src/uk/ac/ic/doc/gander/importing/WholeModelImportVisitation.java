@@ -107,7 +107,7 @@ public final class WholeModelImportVisitation {
 		return new ImportVisitor(new ImportVisitor.ImportHandler() {
 
 			@Override
-			public void onImport(StaticImportSpecification importStatement) {
+			public void onImport(ImportSpecification importStatement) {
 
 				ModuleCO relativeTo = null;
 				Module relativeToPackage = codeObject.enclosingModule()

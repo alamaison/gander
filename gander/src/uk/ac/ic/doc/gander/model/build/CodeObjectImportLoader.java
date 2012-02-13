@@ -2,7 +2,9 @@ package uk.ac.ic.doc.gander.model.build;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.python.pydev.parser.jython.ParseException;
 import org.python.pydev.parser.jython.SimpleNode;
@@ -74,9 +76,10 @@ public class CodeObjectImportLoader {
 
 		@Override
 		public Object visitImport(Import node) throws Exception {
-			ImportSimulator<CodeObject, CodeObject, ModuleCO> simulator = new ImportSimulator<CodeObject, CodeObject, ModuleCO>(
-					new DoNothingBinder<CodeObject, CodeObject, ModuleCO>(),
-					new Importer(model));
+			ImportSimulator<CodeObject, Set<CodeObject>, CodeObject, ModuleCO> simulator = ImportSimulator
+					.newInstance(
+							new DoNothingBinder<CodeObject, Set<CodeObject>, CodeObject, ModuleCO>(),
+							new Importer(model));
 
 			for (uk.ac.ic.doc.gander.importing.Import<CodeObject, CodeObject, ModuleCO> importInstance : ImportFactory
 					.<CodeObject, CodeObject, ModuleCO> fromAstNode(node,
@@ -88,9 +91,10 @@ public class CodeObjectImportLoader {
 
 		@Override
 		public Object visitImportFrom(ImportFrom node) throws Exception {
-			ImportSimulator<CodeObject, CodeObject, ModuleCO> simulator = new ImportSimulator<CodeObject, CodeObject, ModuleCO>(
-					new DoNothingBinder<CodeObject, CodeObject, ModuleCO>(),
-					new Importer(model));
+			ImportSimulator<CodeObject, Set<CodeObject>, CodeObject, ModuleCO> simulator = ImportSimulator
+					.newInstance(
+							new DoNothingBinder<CodeObject, Set<CodeObject>, CodeObject, ModuleCO>(),
+							new Importer(model));
 
 			for (uk.ac.ic.doc.gander.importing.Import<CodeObject, CodeObject, ModuleCO> importInstance : ImportFactory
 					.<CodeObject, CodeObject, ModuleCO> fromAstNode(node,
@@ -115,7 +119,7 @@ public class CodeObjectImportLoader {
 	}
 
 	private static class Importer implements
-			ImportSimulator.Loader<CodeObject, ModuleCO> {
+			ImportSimulator.Loader<CodeObject, Set<CodeObject>, ModuleCO> {
 
 		private MutableModel model;
 
@@ -175,7 +179,7 @@ public class CodeObjectImportLoader {
 			}
 		}
 
-		public CodeObject loadModuleMember(String itemName,
+		public CodeObject loadModuleNamespaceMember(String itemName,
 				ModuleCO sourceModule) {
 			/*
 			 * We search the nested code objects in order checking their names
@@ -200,6 +204,20 @@ public class CodeObjectImportLoader {
 
 			return object;
 		}
+
+		@Override
+		public Set<CodeObject> loadAllMembersInModuleNamespace(ModuleCO sourceModule) {
+			if (sourceModule == null) {
+				throw new NullPointerException("Source module required");
+			}
+
+			/*
+			 * FIXME: This is still not right! This is why we call it the 'dodgy
+			 * model'. Names can be added to the namespace in more ways than
+			 * just declaration and these can be imported too.
+			 */
+			return new HashSet<CodeObject>(sourceModule.nestedCodeObjects());
+		}
 	}
 
 	/**
@@ -213,8 +231,8 @@ public class CodeObjectImportLoader {
 	 * 
 	 * FIXME: This explanation is clear as mud
 	 */
-	private static class DoNothingBinder<O, C, M> implements
-			ImportSimulator.Binder<O, C, M> {
+	private static class DoNothingBinder<O, A, C, M> implements
+			ImportSimulator.Binder<O, A, C, M> {
 
 		public void bindModuleToLocalName(M loadedModule, String name,
 				C container) {
@@ -235,6 +253,11 @@ public class CodeObjectImportLoader {
 		public void onUnresolvedImport(
 				uk.ac.ic.doc.gander.importing.Import<O, C, M> importInstance,
 				String name, M receivingModule) {
+		}
+
+		@Override
+		public void bindAllNamespaceMembers(A sourceModule, C container) {
+			
 		}
 
 		public void onUnresolvedLocalImport(

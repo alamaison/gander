@@ -54,11 +54,11 @@ final class StandardImportAsSpecification implements StaticImportSpecification {
 	}
 
 	@Override
-	public <O, C, M> BindingScheme<M> newBindingScheme(
-			Import<O, C, M> importInstance, Binder<O, C, M> bindingHandler,
-			Loader<O, M> loader) {
+	public <O, A, C, M> BindingScheme<M> newBindingScheme(
+			Import<O, C, M> importInstance, Binder<O, A, C, M> bindingHandler,
+			Loader<O, A, M> loader) {
 
-		return new StandardImportAsBindingScheme<O, C, M>();
+		return StandardImportAsBindingScheme.newInstance();
 	}
 
 	private StandardImportAsSpecification(ImportPath moduleImportPath,

@@ -26,7 +26,7 @@ final class FromImportAsSpecification implements StaticImportSpecification {
 			String itemName, String alias) {
 		return new FromImportAsSpecification(moduleImportPath, itemName, alias);
 	}
-	
+
 	private final ImportPath moduleImportPath;
 	private final String itemName;
 	private final String alias;
@@ -57,11 +57,11 @@ final class FromImportAsSpecification implements StaticImportSpecification {
 	}
 
 	@Override
-	public <O, C, M> BindingScheme<M> newBindingScheme(
-			Import<O, C, M> importInstance, Binder<O, C, M> bindingHandler,
-			Loader<O, M> loader) {
+	public <O, A, C, M> BindingScheme<M> newBindingScheme(
+			Import<O, C, M> importInstance, Binder<O, A, C, M> bindingHandler,
+			Loader<O, A, M> loader) {
 
-		return new FromImportAsBindingScheme<O, C, M>(importInstance,
+		return FromImportAsBindingScheme.newInstance(importInstance,
 				bindingHandler, loader);
 	}
 

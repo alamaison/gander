@@ -32,8 +32,13 @@ public final class ImportSpecificationFactory {
 				itemName, alias);
 	}
 
-	public static Iterable<StaticImportSpecification> fromAstNode(Import node) {
-		List<StaticImportSpecification> specs = new ArrayList<StaticImportSpecification>();
+	public static FromImportEverythingSpecification newFromImportEverything(
+			ImportPath moduleName) {
+		return FromImportEverythingSpecification.newInstance(moduleName);
+	}
+
+	public static Iterable<ImportSpecification> fromAstNode(Import node) {
+		List<ImportSpecification> specs = new ArrayList<ImportSpecification>();
 
 		for (aliasType alias : node.names) {
 			if (alias.asname != null) {
@@ -49,20 +54,28 @@ public final class ImportSpecificationFactory {
 		return specs;
 	}
 
-	public static Iterable<StaticImportSpecification> fromAstNode(
-			ImportFrom node) {
+	public static Iterable<ImportSpecification> fromAstNode(ImportFrom node) {
 
-		List<StaticImportSpecification> specs = new ArrayList<StaticImportSpecification>();
+		List<ImportSpecification> specs = new ArrayList<ImportSpecification>();
 
 		ImportPath modulePath = ImportPath
 				.fromDottedName(((NameTok) node.module).id);
 
-		for (aliasType alias : node.names) {
-			if (alias.asname != null) {
-				specs.add(newFromImportAs(modulePath,
-						((NameTok) alias.name).id, ((NameTok) alias.asname).id));
-			} else {
-				specs.add(newFromImport(modulePath, ((NameTok) alias.name).id));
+		if (node.names.length == 0) { // this indicates a starred import
+
+			specs.add(newFromImportEverything(modulePath));
+
+		} else {
+
+			for (aliasType alias : node.names) {
+				if (alias.asname != null) {
+					specs.add(newFromImportAs(modulePath,
+							((NameTok) alias.name).id,
+							((NameTok) alias.asname).id));
+				} else {
+					specs.add(newFromImport(modulePath,
+							((NameTok) alias.name).id));
+				}
 			}
 		}
 

@@ -1,5 +1,7 @@
 package uk.ac.ic.doc.gander.flowinference;
 
+import java.util.Map.Entry;
+
 import uk.ac.ic.doc.gander.flowinference.types.TClass;
 import uk.ac.ic.doc.gander.flowinference.types.TFunction;
 import uk.ac.ic.doc.gander.flowinference.types.TModule;
@@ -20,7 +22,7 @@ import uk.ac.ic.doc.gander.model.codeobject.ModuleCO;
  * correct {@link Type} for the object.
  */
 final class ImportedNameTypeWatcher implements
-		ImportSimulator.Binder<NamespaceName, CodeObject, ModuleCO> {
+		ImportSimulator.Binder<NamespaceName, Namespace, CodeObject, ModuleCO> {
 
 	private final ImportTypeEvent eventHandler;
 
@@ -32,6 +34,7 @@ final class ImportedNameTypeWatcher implements
 		this.eventHandler = eventHandler;
 	}
 
+	@Override
 	public void bindModuleToLocalName(ModuleCO loadedModule, String name,
 			CodeObject importReceiver) {
 		assert loadedModule != null;
@@ -42,6 +45,7 @@ final class ImportedNameTypeWatcher implements
 				loadedModule));
 	}
 
+	@Override
 	public void bindModuleToName(ModuleCO loadedModule, String name,
 			ModuleCO container) {
 		assert loadedModule != null;
@@ -51,6 +55,7 @@ final class ImportedNameTypeWatcher implements
 		eventHandler.onImportTyped(container, name, new TModule(loadedModule));
 	}
 
+	@Override
 	public void bindObjectToLocalName(NamespaceName importedObject,
 			String name, CodeObject container) {
 
@@ -66,9 +71,11 @@ final class ImportedNameTypeWatcher implements
 		// TODO: The target of the 'from foo import bar' can
 		// be a variable.
 
+		// FIXME: container not necessarily the location the name is bound
 		eventHandler.onImportTyped(container, name, type);
 	}
 
+	@Override
 	public void bindObjectToName(NamespaceName importedObject, String name,
 			ModuleCO receivingModule) {
 		assert importedObject != null;
@@ -83,7 +90,27 @@ final class ImportedNameTypeWatcher implements
 		// TODO: The target of the 'from foo import bar' can
 		// be a variable.
 
+		// FIXME: container not necessarily the location the name is bound
 		eventHandler.onImportTyped(receivingModule, name, type);
+	}
+
+	@Override
+	public void bindAllNamespaceMembers(Namespace sourceNamespace, CodeObject container) {
+
+		// FIXME: container not necessarily the location the name is bound
+		
+		for (Entry<String, Class> importedClass : sourceNamespace.getClasses()
+				.entrySet()) {
+
+			eventHandler.onImportTyped(container, importedClass.getKey(),
+					new TClass(importedClass.getValue().codeObject()));
+		}
+
+		for (Entry<String, Function> importedFunction : sourceNamespace.getFunctions()
+				.entrySet()) {
+			eventHandler.onImportTyped(container, importedFunction.getKey(),
+					new TFunction(importedFunction.getValue().codeObject()));
+		}
 	}
 
 	private Type oldSchoolNamespaceLookup(NamespaceName importedObjectName) {
@@ -113,6 +140,7 @@ final class ImportedNameTypeWatcher implements
 		}
 	}
 
+	@Override
 	public void onUnresolvedImport(
 			Import<NamespaceName, CodeObject, ModuleCO> importInstance,
 			String name, ModuleCO relativeTo) {
@@ -134,6 +162,7 @@ final class ImportedNameTypeWatcher implements
 		}
 	}
 
+	@Override
 	public void onUnresolvedLocalImport(
 			Import<NamespaceName, CodeObject, ModuleCO> importInstance,
 			String name) {

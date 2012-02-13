@@ -14,13 +14,13 @@ package uk.ac.ic.doc.gander.importing;
  */
 public interface Import<O, C, M> {
 
-	StaticImportSpecification specification();
+	ImportSpecification specification();
 
 	M relativeTo();
 
 	C container();
 
-	BindingScheme<M> newBindingScheme(
-			ImportSimulator.Binder<O, C, M> bindingHandler,
-			ImportSimulator.Loader<O, M> loader);
+	<A> BindingScheme<M> newBindingScheme(
+			ImportSimulator.Binder<O, A, C, M> bindingHandler,
+			ImportSimulator.Loader<O, A, M> loader);
 }

@@ -32,15 +32,15 @@ final class DefaultImport<O, C, M> implements Import<O, C, M> {
 	 *            the import statement
 	 */
 	public static <O, C, M> DefaultImport<O, C, M> newImport(
-			StaticImportSpecification specification, M relativeTo, C container) {
+			ImportSpecification specification, M relativeTo, C container) {
 		return new DefaultImport<O, C, M>(specification, relativeTo, container);
 	}
 
-	private final StaticImportSpecification specification;
+	private final ImportSpecification specification;
 	private final M relativeTo;
 	private final C container;
 
-	public StaticImportSpecification specification() {
+	public ImportSpecification specification() {
 		return specification;
 	}
 
@@ -52,9 +52,9 @@ final class DefaultImport<O, C, M> implements Import<O, C, M> {
 		return container;
 	}
 
-	public BindingScheme<M> newBindingScheme(Binder<O, C, M> bindingHandler,
-			Loader<O, M> loader) {
-		
+	public <A> BindingScheme<M> newBindingScheme(
+			Binder<O, A, C, M> bindingHandler, Loader<O, A, M> loader) {
+
 		return specification.newBindingScheme(this, bindingHandler, loader);
 	}
 
@@ -72,7 +72,7 @@ final class DefaultImport<O, C, M> implements Import<O, C, M> {
 	 *            a representation of the code object whose code block contains
 	 *            the import statement
 	 */
-	private DefaultImport(StaticImportSpecification specification,
+	private DefaultImport(ImportSpecification specification,
 			M relativeTo, C container) {
 		if (specification == null)
 			throw new NullPointerException("Import specification not optional");

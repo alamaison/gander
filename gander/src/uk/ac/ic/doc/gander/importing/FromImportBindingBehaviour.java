@@ -8,7 +8,7 @@ package uk.ac.ic.doc.gander.importing;
  * the same way.
  */
 enum FromImportBindingBehaviour implements BindingBehaviour {
-	
+
 	INSTANCE;
 
 	/**

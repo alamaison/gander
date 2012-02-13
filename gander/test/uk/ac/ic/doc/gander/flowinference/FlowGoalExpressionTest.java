@@ -549,6 +549,28 @@ public class FlowGoalExpressionTest {
 				result);
 	}
 
+	@Test
+	public void importStar() throws Throwable {
+
+		TestModule test = newTestModule("import_star");
+		TestModule test_aux = newTestModule("import_star_aux");
+
+		Result<ModelSite<exprType>> result = solveBlastoff(test);
+
+		TestModule.assertResultIncludes(
+				"Star-imported class not flowed properly",
+				test_aux.printables("imported by *"), result);
+
+		TestModule.assertResultExcludes(
+				"Star-imported class must not only flow to matching names",
+				test_aux.printables("imported by * but different object"),
+				result);
+		TestModule.assertResultExcludes(
+				"Star-imported class must not affect other "
+						+ "non-star imported names",
+				test_aux.printables("not imported by *"), result);
+	}
+
 	private TestModule newTestModule(String testName) throws Throwable {
 		return new TestModule(testName, model);
 	}

@@ -485,7 +485,7 @@ final class NamespaceNameFlowStepGoalSolver {
 		 */
 		private final RedundancyEliminator<FlowPosition> importedReferences = new RedundancyEliminator<FlowPosition>();
 
-		private final Binder<NamespaceName, CodeObject, ModuleCO> worker = new Binder<NamespaceName, CodeObject, ModuleCO>() {
+		private final Binder<NamespaceName, Namespace, CodeObject, ModuleCO> worker = new Binder<NamespaceName, Namespace, CodeObject, ModuleCO>() {
 
 			public void bindModuleToLocalName(ModuleCO loadedModule,
 					String name, CodeObject container) {
@@ -550,6 +550,12 @@ final class NamespaceNameFlowStepGoalSolver {
 				 * unresolved.
 				 */
 			}
+
+			@Override
+			public void bindAllNamespaceMembers(Namespace sourceNamespace,
+					CodeObject container) {
+				handleBindAll(sourceNamespace, container);
+			}
 		};
 
 		ImportedKeyReferenceFlower() {
@@ -578,9 +584,6 @@ final class NamespaceNameFlowStepGoalSolver {
 		 *            the object being bound by an import
 		 * @param objectBinding
 		 *            variableName the variable it is being bound to
-		 * @param importReceiver
-		 *            the object with respect to which the binding namespace is
-		 *            resolved
 		 */
 		private void handleBind(CodeObject object, Variable objectBinding) {
 			assert variableBindsLocallyOrGlobally(objectBinding);
@@ -617,7 +620,7 @@ final class NamespaceNameFlowStepGoalSolver {
 			}
 		}
 
-		protected void handleBind(NamespaceName object, Variable objectBinding) {
+		void handleBind(NamespaceName object, Variable objectBinding) {
 			assert variableBindsLocallyOrGlobally(objectBinding);
 
 			if (object.equals(namespaceName)) {
@@ -629,6 +632,55 @@ final class NamespaceNameFlowStepGoalSolver {
 				/* import key */
 				/* from module import key */
 				importedReferences.add(variableFlowPositions(objectBinding));
+
+			} else {
+				/*
+				 * A namespace name (not ours) was imported into this namespace
+				 * and bound to a name which may permit access to our namespace
+				 * name by attribute access on the new name. Check if we are
+				 * able to flow to this other namespace. If so, check whether we
+				 * do, indeed, access that alias via attribute access on the
+				 * imported name because anywhere that happens may lead to our
+				 * namespace name flowing onwards.
+				 */
+
+				// FIXME: HOW?!
+				// if (weCanFlowToNameInImportedObjectsNamespace) {
+
+				/*
+				 * The imported object potentially allows access to the
+				 * namespace name we care about by way of an attribute access.
+				 */
+				/*
+				 * import module
+				 * 
+				 * module.key
+				 */
+				/*
+				 * from module import object
+				 * 
+				 * object.key
+				 */
+				// importedReferences
+				// .add(referencesToAttributeOfImportedCodeObject(objectBinding));
+				// }
+				// }
+			}
+		}
+
+		void handleBindAll(Namespace sourceNamespace, CodeObject container) {
+			// starred-import only allowed at top level
+			assert container instanceof ModuleCO;
+
+			if (namespaceName.namespace().equals(sourceNamespace)) {
+
+				/*
+				 * The imported object directly aliases the namespace name we
+				 * care about.
+				 */
+				/* from module import * (where key is in *) */
+				importedReferences.add(variableFlowPositions(new Variable(
+						namespaceName.name(), container)));
 
 			} else {
 				/*

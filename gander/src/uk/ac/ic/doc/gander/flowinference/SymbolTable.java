@@ -192,10 +192,10 @@ public class SymbolTable {
 		}
 	}
 
-	private ImportSimulator<NamespaceName, CodeObject, ModuleCO> simulator() {
+	private ImportSimulator<NamespaceName, Namespace, CodeObject, ModuleCO> simulator() {
 
-		return new ImportSimulator<NamespaceName, CodeObject, ModuleCO>(
-				new ImportedNameTypeWatcher(new ImportTypeEvent() {
+		return ImportSimulator.newInstance(new ImportedNameTypeWatcher(
+				new ImportTypeEvent() {
 
 					public void onImportTyped(CodeObject container,
 							String name, Type type) {

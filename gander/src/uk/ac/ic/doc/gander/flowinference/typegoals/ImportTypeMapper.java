@@ -7,6 +7,7 @@ import uk.ac.ic.doc.gander.flowinference.result.FiniteResult;
 import uk.ac.ic.doc.gander.flowinference.result.Result;
 import uk.ac.ic.doc.gander.flowinference.types.TModule;
 import uk.ac.ic.doc.gander.flowinference.types.Type;
+import uk.ac.ic.doc.gander.importing.ImportSpecification;
 import uk.ac.ic.doc.gander.importing.StaticImportSpecification;
 import uk.ac.ic.doc.gander.model.Module;
 import uk.ac.ic.doc.gander.model.NamespaceName;
@@ -21,26 +22,32 @@ final class ImportTypeMapper {
 		this.goalManager = goalManager;
 	}
 
-	Result<Type> typeImport(Variable variable,
-			StaticImportSpecification info) {
+	Result<Type> typeImport(Variable variable, ImportSpecification info) {
+		if (info instanceof StaticImportSpecification) {
 
-		if (variable.name().equals(info.bindingName())) {
+			if (variable.name().equals(
+					((StaticImportSpecification) info).bindingName())) {
 
-			ModuleCO module = variable.model().lookup(info.boundObjectParentPath());
+				ModuleCO module = variable.model().lookup(
+						info.boundObjectParentPath());
 
-			/*
-			 * TODO: in theory this could resolve to more than one module but
-			 * the model doesn't support that at the moment
-			 */
+				/*
+				 * TODO: in theory this could resolve to more than one module
+				 * but the model doesn't support that at the moment
+				 */
 
-			if (module == null) {
-				return TopT.INSTANCE;
+				if (module == null) {
+					return TopT.INSTANCE;
+				} else {
+					return typeImportedObject(module,
+							(StaticImportSpecification) info);
+				}
+
 			} else {
-				return typeImportedObject(module, info);
+				return FiniteResult.bottom();
 			}
-
 		} else {
-			return FiniteResult.bottom();
+			return TopT.INSTANCE;
 		}
 	}
 

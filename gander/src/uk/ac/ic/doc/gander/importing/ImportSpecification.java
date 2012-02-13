@@ -57,7 +57,8 @@ public interface ImportSpecification {
 	 * Returns an object implementing the binding behaviour of this kind of
 	 * import statement.
 	 */
-	<O, C, M> BindingScheme<M> newBindingScheme(Import<O, C, M> importInstance,
-			ImportSimulator.Binder<O, C, M> bindingHandler,
-			ImportSimulator.Loader<O, M> loader);
+	<O, A, C, M> BindingScheme<M> newBindingScheme(
+			Import<O, C, M> importInstance,
+			ImportSimulator.Binder<O, A, C, M> bindingHandler,
+			ImportSimulator.Loader<O, A, M> loader);
 }

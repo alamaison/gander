@@ -34,7 +34,7 @@ public final class ImportVisitor extends LocalCodeBlockVisitor {
 		 * @param importStatement
 		 *            object representing the import
 		 */
-		void onImport(StaticImportSpecification importStatement);
+		void onImport(ImportSpecification importStatement);
 
 	}
 
@@ -47,10 +47,10 @@ public final class ImportVisitor extends LocalCodeBlockVisitor {
 	@Override
 	public Object visitImport(Import node) throws Exception {
 
-		Iterable<StaticImportSpecification> statements = ImportSpecificationFactory
+		Iterable<ImportSpecification> statements = ImportSpecificationFactory
 				.fromAstNode(node);
 
-		for (StaticImportSpecification statement : statements) {
+		for (ImportSpecification statement : statements) {
 			callback.onImport(statement);
 		}
 
@@ -60,10 +60,10 @@ public final class ImportVisitor extends LocalCodeBlockVisitor {
 	@Override
 	public Object visitImportFrom(ImportFrom node) throws Exception {
 
-		Iterable<StaticImportSpecification> statements = ImportSpecificationFactory
+		Iterable<ImportSpecification> statements = ImportSpecificationFactory
 				.fromAstNode(node);
 
-		for (StaticImportSpecification statement : statements) {
+		for (ImportSpecification statement : statements) {
 			callback.onImport(statement);
 		}
 

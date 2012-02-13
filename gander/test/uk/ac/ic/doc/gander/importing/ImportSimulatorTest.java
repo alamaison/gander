@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.junit.Test;
 
@@ -19,7 +20,7 @@ public final class ImportSimulatorTest {
 
 	private List<TestEntry> bindings = new ArrayList<TestEntry>();
 
-	private Binder<String, String, String> bindingHandler = new Binder<String, String, String>() {
+	private Binder<String, Set<String>, String, String> bindingHandler = new Binder<String, Set<String>, String, String>() {
 
 		public void bindModuleToLocalName(String loadedModule, String name,
 				String importReceiver) {
@@ -41,6 +42,15 @@ public final class ImportSimulatorTest {
 			bindings.add(new TestEntry(importedObject, name, receivingModule));
 		}
 
+		@Override
+		public void bindAllNamespaceMembers(Set<String> allMembers,
+				String container) {
+			for (String member : allMembers) {
+				bindings.add(new TestEntry(member, member.substring(member
+						.lastIndexOf("@") + 1), container));
+			}
+		}
+
 		public void onUnresolvedImport(
 				Import<String, String, String> importInstance, String name,
 				String receivingModule) {
@@ -53,7 +63,7 @@ public final class ImportSimulatorTest {
 		}
 	};
 
-	private Loader<String, String> loader = new Loader<String, String>() {
+	private Loader<String, Set<String>, String> loader = new Loader<String, Set<String>, String>() {
 
 		public String loadModule(List<String> importPath,
 				String relativeToModule) {
@@ -82,15 +92,34 @@ public final class ImportSimulatorTest {
 			return loadModule(importPath, "[]");
 		}
 
-		public String loadModuleMember(String itemName,
+		public String loadModuleNamespaceMember(String itemName,
 				String codeObjectWhoseNamespaceWeAreLoadingFrom) {
 			return codeObjectWhoseNamespaceWeAreLoadingFrom + "@" + itemName;
 		}
+
+		@Override
+		public Set<String> loadAllMembersInModuleNamespace(
+				String sourceNamespace) {
+
+			Set<String> members = new HashSet<String>();
+
+			/*
+			 * g in e.f.g is a special name that we use in our tests as a module
+			 * containing two items, i and j. Used to test for-* import.
+			 */
+			if (sourceNamespace.equals("[e.f.g]")) {
+				members.add("[e.f.g]@i");
+				members.add("[e.f.g]@j");
+			} else {
+				members.add(sourceNamespace + "@none_of_the_tests_expect_me");
+			}
+
+			return members;
+		}
 	};
 
-	ImportSimulator<String, String, String> simulator() {
-		return new ImportSimulator<String, String, String>(bindingHandler,
-				loader);
+	ImportSimulator<String, Set<String>, String, String> simulator() {
+		return ImportSimulator.newInstance(bindingHandler, loader);
 	}
 
 	@Test
@@ -215,8 +244,19 @@ public final class ImportSimulatorTest {
 				entry("[a.b.c]", "c", "[a.b]"), entry("[a.b]", "b", "[a]"));
 	}
 
+	@Test
+	public void fromImportTripleAll() throws Throwable {
+		simulator().simulateImport(
+				newImport(FromImportEverythingSpecification
+						.newInstance(ImportPath.fromDottedName("e.f.g")), "[]",
+						"[smurble]"));
+		assertBindings(entry("[e.f.g]@i", "i", "[smurble]"),
+				entry("[e.f.g]@j", "j", "[smurble]"),
+				entry("[e.f.g]", "g", "[e.f]"), entry("[e.f]", "f", "[e]"));
+	}
+
 	private static Import<String, String, String> newImport(
-			StaticImportSpecification specification, String relativeTo,
+			ImportSpecification specification, String relativeTo,
 			String container) {
 		return DefaultImport.newImport(specification, relativeTo, container);
 	}

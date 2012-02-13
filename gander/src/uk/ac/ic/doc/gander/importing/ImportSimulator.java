@@ -4,6 +4,8 @@ import java.util.LinkedList;
 import java.util.List;
 
 import uk.ac.ic.doc.gander.importing.BindingBehaviour.Behaviour;
+import uk.ac.ic.doc.gander.importing.ImportSimulator.Binder;
+import uk.ac.ic.doc.gander.importing.ImportSimulator.Loader;
 
 /**
  * Simulates the Python import mechanism.
@@ -34,7 +36,7 @@ import uk.ac.ic.doc.gander.importing.BindingBehaviour.Behaviour;
  * @param <M>
  *            the type of Java objects representing Python modules
  */
-public final class ImportSimulator<O, C, M> {
+public final class ImportSimulator<O, A, C, M> {
 
 	/**
 	 * Callback through which the import simulation reports object being bound
@@ -52,7 +54,7 @@ public final class ImportSimulator<O, C, M> {
 	 * @param <M>
 	 *            the type of Java objects representing Python modules
 	 */
-	public interface Binder<O, C, M> {
+	public interface Binder<O, A, C, M> {
 
 		/**
 		 * The simulation is reporting that an object would be bound to a name
@@ -80,6 +82,8 @@ public final class ImportSimulator<O, C, M> {
 
 		void bindObjectToName(O importedObject, String name, M receivingModule);
 
+		void bindAllNamespaceMembers(A allMembers, C container);
+
 		void onUnresolvedImport(Import<O, C, M> importInstance, String name,
 				M receivingModule);
 
@@ -93,10 +97,13 @@ public final class ImportSimulator<O, C, M> {
 	 * @param <O>
 	 *            type of objects representing a Python program importing an
 	 *            object from a namespace
+	 * @param <A>
+	 *            type of objects representing a Python program importing
+	 *            <em>all (non-private)</em> objects from a namespace
 	 * @param <M>
 	 *            type of objects representing a Python program loading a module
 	 */
-	public interface Loader<O, M> {
+	public interface Loader<O, A, M> {
 
 		/**
 		 * Load a module or package relative to the given module.
@@ -126,13 +133,21 @@ public final class ImportSimulator<O, C, M> {
 		 */
 		M loadModule(List<String> importPath);
 
-		O loadModuleMember(String itemName, M sourceModule);
+		O loadModuleNamespaceMember(String itemName, M sourceModule);
+
+		A loadAllMembersInModuleNamespace(M sourceModule);
 	}
 
-	private final ImportSimulator.Binder<O, C, M> eventHandler;
-	private final ImportSimulator.Loader<O, M> loader;
+	public static <O, A, C, M> ImportSimulator<O, A, C, M> newInstance(
+			Binder<O, A, C, M> eventHandler, Loader<O, A, M> loader) {
+		return new ImportSimulator<O, A, C, M>(eventHandler, loader);
+	}
 
-	public ImportSimulator(Binder<O, C, M> eventHandler, Loader<O, M> loader) {
+	private final ImportSimulator.Binder<O, A, C, M> eventHandler;
+	private final ImportSimulator.Loader<O, A, M> loader;
+
+	private ImportSimulator(Binder<O, A, C, M> eventHandler,
+			Loader<O, A, M> loader) {
 		if (eventHandler == null)
 			throw new NullPointerException(
 					"Must have an event handler to react to import events");
@@ -195,7 +210,8 @@ public final class ImportSimulator<O, C, M> {
 			previouslyLoadedModule = module;
 		}
 
-		binder.bindItems(previouslyLoadedModule);
+		binder.itemBinding(previouslyLoadedModule).doBinding(importInstance,
+				eventHandler, loader);
 	}
 
 	private void doBinding(Behaviour behaviour, M module, String token,
@@ -206,9 +222,10 @@ public final class ImportSimulator<O, C, M> {
 			if (module != null) {
 				eventHandler.bindModuleToName(module, token,
 						previouslyLoadedModule);
-				eventHandler.bindModuleToLocalName(module, importInstance
-						.specification().bindingName(), importInstance
-						.container());
+				eventHandler.bindModuleToLocalName(module,
+						((StaticImportSpecification) importInstance
+								.specification()).bindingName(), importInstance
+								.container());
 			} else {
 				eventHandler.onUnresolvedImport(importInstance, token,
 						previouslyLoadedModule);
@@ -227,9 +244,10 @@ public final class ImportSimulator<O, C, M> {
 
 		case BINDS_IN_RECEIVER:
 			if (module != null) {
-				eventHandler.bindModuleToLocalName(module, importInstance
-						.specification().bindingName(), importInstance
-						.container());
+				eventHandler.bindModuleToLocalName(module,
+						((StaticImportSpecification) importInstance
+								.specification()).bindingName(), importInstance
+								.container());
 			} else {
 				eventHandler.onUnresolvedLocalImport(importInstance, token);
 			}

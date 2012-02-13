@@ -35,6 +35,7 @@ import uk.ac.ic.doc.gander.model.MutableModel;
 import uk.ac.ic.doc.gander.model.codeobject.ClassCO;
 import uk.ac.ic.doc.gander.model.codeobject.CodeObject;
 import uk.ac.ic.doc.gander.model.codeobject.FunctionCO;
+import uk.ac.ic.doc.gander.model.codeobject.ModuleCO;
 import uk.ac.ic.doc.gander.model.codeobject.NestedCodeObject;
 import uk.ac.ic.doc.gander.model.codeobject.NestedCodeObjects;
 
@@ -1583,6 +1584,23 @@ public class ZeroCfaTypeEngineTest {
 				"fun")));
 
 		assertEquals("Imported function's type not inferred correctly",
+				expectedType, type);
+	}
+
+	@Test
+	public void importStar() throws Throwable {
+		String testName = "import_star";
+
+		ScopedPrintNode node = findPrintNode(testName, "what_am_i");
+		Result<Type> type = engine.typeOf(node.site());
+
+		ModuleCO auxModule = model.lookup(ImportPath
+						.fromDottedName("import_star_aux"));
+		assertTrue(auxModule != null);
+		Set<Type> expectedType = typeJudgement(new TClass(
+				nestedClass(auxModule, "A")));
+
+		assertEquals("Star-style import didn't import expected class",
 				expectedType, type);
 	}
 

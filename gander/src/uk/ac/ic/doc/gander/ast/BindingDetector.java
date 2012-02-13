@@ -11,13 +11,12 @@ import org.python.pydev.parser.jython.ast.ImportFrom;
 import org.python.pydev.parser.jython.ast.ListComp;
 import org.python.pydev.parser.jython.ast.NameTok;
 import org.python.pydev.parser.jython.ast.TryExcept;
-import org.python.pydev.parser.jython.ast.aliasType;
 import org.python.pydev.parser.jython.ast.comprehensionType;
 import org.python.pydev.parser.jython.ast.excepthandlerType;
 import org.python.pydev.parser.jython.ast.exprType;
 
+import uk.ac.ic.doc.gander.importing.ImportSpecification;
 import uk.ac.ic.doc.gander.importing.ImportSpecificationFactory;
-import uk.ac.ic.doc.gander.importing.StaticImportSpecification;
 
 /**
  * Detector of statements able to bind a value.
@@ -39,7 +38,7 @@ public final class BindingDetector extends BindingStatementVisitor {
 
 		void forLoop(exprType target, exprType iterable);
 
-		boolean importStatement(StaticImportSpecification importation);
+		boolean importStatement(ImportSpecification importation);
 
 		boolean exceptionHandler(exprType name, exprType type);
 	}
@@ -89,32 +88,32 @@ public final class BindingDetector extends BindingStatementVisitor {
 
 	@Override
 	public Object visitImport(Import node) throws Exception {
-		Iterable<StaticImportSpecification> specifications = ImportSpecificationFactory
+		Iterable<ImportSpecification> specifications = ImportSpecificationFactory
 				.fromAstNode(node);
-		
-		for (StaticImportSpecification specification : specifications) {
-			
+
+		for (ImportSpecification specification : specifications) {
+
 			if (eventHandler.importStatement(specification)) {
 				break;
 			}
 		}
-		
+
 		return null;
 	}
 
 	@Override
 	public Object visitImportFrom(ImportFrom node) throws Exception {
-		
-		Iterable<StaticImportSpecification> specifications = ImportSpecificationFactory
+
+		Iterable<ImportSpecification> specifications = ImportSpecificationFactory
 				.fromAstNode(node);
-		
-		for (StaticImportSpecification specification : specifications) {
-			
+
+		for (ImportSpecification specification : specifications) {
+
 			if (eventHandler.importStatement(specification)) {
 				break;
 			}
 		}
-		
+
 		return null;
 	}
 

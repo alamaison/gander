@@ -16,7 +16,7 @@ import uk.ac.ic.doc.gander.model.codeobject.ModuleCO;
  * what it is.
  */
 public final class NamespaceNameLoader implements
-		Loader<NamespaceName, ModuleCO> {
+		Loader<NamespaceName, Namespace, ModuleCO> {
 
 	private final Model model;
 
@@ -27,10 +27,10 @@ public final class NamespaceNameLoader implements
 	@Override
 	public final ModuleCO loadModule(List<String> importPath,
 			ModuleCO relativeToModule) {
-		
-		List<String> name = new ArrayList<String>(DottedName
-				.toImportTokens(relativeToModule.oldStyleConflatedNamespace()
-						.getFullName()));
+
+		List<String> name = new ArrayList<String>(
+				DottedName.toImportTokens(relativeToModule
+						.oldStyleConflatedNamespace().getFullName()));
 		name.addAll(importPath);
 
 		// The imported module/package will always exist in the model
@@ -46,10 +46,14 @@ public final class NamespaceNameLoader implements
 	}
 
 	@Override
-	public NamespaceName loadModuleMember(String itemName,
-			ModuleCO sourceModule) {
-		
-		return new NamespaceName(itemName, sourceModule
-				.fullyQualifiedNamespace());
+	public NamespaceName loadModuleNamespaceMember(String itemName, ModuleCO sourceModule) {
+
+		return new NamespaceName(itemName,
+				sourceModule.fullyQualifiedNamespace());
+	}
+
+	@Override
+	public Namespace loadAllMembersInModuleNamespace(ModuleCO sourceModule) {
+		return sourceModule.fullyQualifiedNamespace();
 	}
 }
