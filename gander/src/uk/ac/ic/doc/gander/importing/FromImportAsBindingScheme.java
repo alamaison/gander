@@ -37,8 +37,8 @@ final class FromImportAsBindingScheme<O, A, C, M> implements BindingScheme<M> {
 			public <O, A, C> void doBinding(Import<O, C, M> importInstance,
 					Binder<O, A, C, M> bindingHandler, Loader<O, A, M> loader) {
 
-				StaticImportSpecification specification = (StaticImportSpecification) importInstance
-						.specification();
+				StaticImportStatement specification = (StaticImportStatement) importInstance
+						.statement();
 				C container = importInstance.container();
 				String name = specification.boundObjectName();
 

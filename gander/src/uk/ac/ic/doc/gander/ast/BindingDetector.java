@@ -15,8 +15,8 @@ import org.python.pydev.parser.jython.ast.comprehensionType;
 import org.python.pydev.parser.jython.ast.excepthandlerType;
 import org.python.pydev.parser.jython.ast.exprType;
 
-import uk.ac.ic.doc.gander.importing.ImportSpecification;
-import uk.ac.ic.doc.gander.importing.ImportSpecificationFactory;
+import uk.ac.ic.doc.gander.importing.ImportStatement;
+import uk.ac.ic.doc.gander.importing.ImportStatementFactory;
 
 /**
  * Detector of statements able to bind a value.
@@ -38,7 +38,7 @@ public final class BindingDetector extends BindingStatementVisitor {
 
 		void forLoop(exprType target, exprType iterable);
 
-		boolean importStatement(ImportSpecification importation);
+		boolean importStatement(ImportStatement importation);
 
 		boolean exceptionHandler(exprType name, exprType type);
 	}
@@ -88,10 +88,10 @@ public final class BindingDetector extends BindingStatementVisitor {
 
 	@Override
 	public Object visitImport(Import node) throws Exception {
-		Iterable<ImportSpecification> specifications = ImportSpecificationFactory
+		Iterable<ImportStatement> specifications = ImportStatementFactory
 				.fromAstNode(node);
 
-		for (ImportSpecification specification : specifications) {
+		for (ImportStatement specification : specifications) {
 
 			if (eventHandler.importStatement(specification)) {
 				break;
@@ -104,10 +104,10 @@ public final class BindingDetector extends BindingStatementVisitor {
 	@Override
 	public Object visitImportFrom(ImportFrom node) throws Exception {
 
-		Iterable<ImportSpecification> specifications = ImportSpecificationFactory
+		Iterable<ImportStatement> specifications = ImportStatementFactory
 				.fromAstNode(node);
 
-		for (ImportSpecification specification : specifications) {
+		for (ImportStatement specification : specifications) {
 
 			if (eventHandler.importStatement(specification)) {
 				break;

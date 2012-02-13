@@ -6,7 +6,7 @@ import uk.ac.ic.doc.gander.importing.ImportSimulator.Loader;
 /**
  * Model of an import statement of the form {@code import x.y.z as bar}.
  */
-final class StandardImportAsSpecification implements StaticImportSpecification {
+final class StandardImportAsStatement implements StaticImportStatement {
 
 	private final ImportPath moduleImportPath;
 	private final String alias;
@@ -23,9 +23,9 @@ final class StandardImportAsSpecification implements StaticImportSpecification {
 	 *            the name that the first segment of the path is bound to with
 	 *            respect to the container
 	 */
-	static StandardImportAsSpecification newInstance(
+	static StandardImportAsStatement newInstance(
 			ImportPath moduleImportPath, String alias) {
-		return new StandardImportAsSpecification(moduleImportPath, alias);
+		return new StandardImportAsStatement(moduleImportPath, alias);
 	}
 
 	@Override
@@ -61,7 +61,7 @@ final class StandardImportAsSpecification implements StaticImportSpecification {
 		return StandardImportAsBindingScheme.newInstance();
 	}
 
-	private StandardImportAsSpecification(ImportPath moduleImportPath,
+	private StandardImportAsStatement(ImportPath moduleImportPath,
 			String alias) {
 		if (moduleImportPath == null)
 			throw new NullPointerException("Module path is not optional");
@@ -95,7 +95,7 @@ final class StandardImportAsSpecification implements StaticImportSpecification {
 			return false;
 		if (getClass() != obj.getClass())
 			return false;
-		StandardImportAsSpecification other = (StandardImportAsSpecification) obj;
+		StandardImportAsStatement other = (StandardImportAsStatement) obj;
 		if (alias == null) {
 			if (other.alias != null)
 				return false;

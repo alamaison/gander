@@ -6,7 +6,7 @@ import uk.ac.ic.doc.gander.importing.ImportSimulator.Loader;
 /**
  * Model of an import statement of the form {@code from x.y import *}.
  */
-final class FromImportEverythingSpecification implements ImportSpecification {
+final class FromImportEverythingStatement implements ImportStatement {
 
 	/**
 	 * Creates representation of a starred, from-style import statement.
@@ -17,9 +17,9 @@ final class FromImportEverythingSpecification implements ImportSpecification {
 	 *            appeared (really relative to that code block's containing
 	 *            module)
 	 */
-	static FromImportEverythingSpecification newInstance(
+	static FromImportEverythingStatement newInstance(
 			ImportPath moduleImportPath) {
-		return new FromImportEverythingSpecification(moduleImportPath);
+		return new FromImportEverythingStatement(moduleImportPath);
 	}
 
 	private final ImportPath moduleImportPath;
@@ -47,7 +47,7 @@ final class FromImportEverythingSpecification implements ImportSpecification {
 		return FromImportEverythingBindingScheme.newInstance();
 	}
 
-	private FromImportEverythingSpecification(ImportPath moduleImportPath) {
+	private FromImportEverythingStatement(ImportPath moduleImportPath) {
 		if (moduleImportPath == null)
 			throw new NullPointerException("Module path is not optional");
 		if (moduleImportPath.isEmpty())

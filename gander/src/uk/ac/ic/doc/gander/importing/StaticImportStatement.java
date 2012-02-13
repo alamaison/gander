@@ -4,7 +4,7 @@ package uk.ac.ic.doc.gander.importing;
  * Common interface to the essential nature of the four particular types of
  * import.
  */
-public interface StaticImportSpecification extends ImportSpecification {
+public interface StaticImportStatement extends ImportStatement {
 
 	/**
 	 * Returns the name that a module is bound to in the binding namespace of

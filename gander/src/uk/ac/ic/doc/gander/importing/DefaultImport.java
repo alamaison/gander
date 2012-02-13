@@ -20,8 +20,8 @@ final class DefaultImport<O, C, M> implements Import<O, C, M> {
 	/**
 	 * Creates new representation of the import statement.
 	 * 
-	 * @param specification
-	 *            specification of the import being simulated
+	 * @param statement
+	 *            representation of the import being simulated
 	 * @param relativeTo
 	 *            representation of the module that the import statement
 	 *            operates relative to; may be {@code null} as that could be a
@@ -32,16 +32,16 @@ final class DefaultImport<O, C, M> implements Import<O, C, M> {
 	 *            the import statement
 	 */
 	public static <O, C, M> DefaultImport<O, C, M> newImport(
-			ImportSpecification specification, M relativeTo, C container) {
-		return new DefaultImport<O, C, M>(specification, relativeTo, container);
+			ImportStatement statement, M relativeTo, C container) {
+		return new DefaultImport<O, C, M>(statement, relativeTo, container);
 	}
 
-	private final ImportSpecification specification;
+	private final ImportStatement statement;
 	private final M relativeTo;
 	private final C container;
 
-	public ImportSpecification specification() {
-		return specification;
+	public ImportStatement statement() {
+		return statement;
 	}
 
 	public M relativeTo() {
@@ -55,27 +55,12 @@ final class DefaultImport<O, C, M> implements Import<O, C, M> {
 	public <A> BindingScheme<M> newBindingScheme(
 			Binder<O, A, C, M> bindingHandler, Loader<O, A, M> loader) {
 
-		return specification.newBindingScheme(this, bindingHandler, loader);
+		return statement.newBindingScheme(this, bindingHandler, loader);
 	}
 
-	/**
-	 * Creates new representation of the import statement.
-	 * 
-	 * @param specification
-	 *            specification of the import being simulated
-	 * @param relativeTo
-	 *            representation of the module that the import statement
-	 *            operates relative to; may be {@code null} as that could be a
-	 *            valid representation of the module object in some model of the
-	 *            system
-	 * @param container
-	 *            a representation of the code object whose code block contains
-	 *            the import statement
-	 */
-	private DefaultImport(ImportSpecification specification,
-			M relativeTo, C container) {
-		if (specification == null)
-			throw new NullPointerException("Import specification not optional");
+	private DefaultImport(ImportStatement statement, M relativeTo, C container) {
+		if (statement == null)
+			throw new NullPointerException("Import statement not optional");
 		if (container == null)
 			throw new NullPointerException(
 					"Imports must have a container; the code object "
@@ -85,7 +70,7 @@ final class DefaultImport<O, C, M> implements Import<O, C, M> {
 					"An import is never relative to the module "
 							+ "in which it appears");
 
-		this.specification = specification;
+		this.statement = statement;
 		this.relativeTo = relativeTo;
 		this.container = container;
 	}
@@ -97,7 +82,7 @@ final class DefaultImport<O, C, M> implements Import<O, C, M> {
 		result = prime * result
 				+ ((container == null) ? 0 : container.hashCode());
 		result = prime * result
-				+ ((specification == null) ? 0 : specification.hashCode());
+				+ ((statement == null) ? 0 : statement.hashCode());
 		result = prime * result
 				+ ((relativeTo == null) ? 0 : relativeTo.hashCode());
 		return result;
@@ -117,10 +102,10 @@ final class DefaultImport<O, C, M> implements Import<O, C, M> {
 				return false;
 		} else if (!container.equals(other.container))
 			return false;
-		if (specification == null) {
-			if (other.specification != null)
+		if (statement == null) {
+			if (other.statement != null)
 				return false;
-		} else if (!specification.equals(other.specification))
+		} else if (!statement.equals(other.statement))
 			return false;
 		if (relativeTo == null) {
 			if (other.relativeTo != null)
@@ -132,9 +117,8 @@ final class DefaultImport<O, C, M> implements Import<O, C, M> {
 
 	@Override
 	public String toString() {
-		return "DefaultImport [specification='" + specification
-				+ "', relativeTo=" + relativeTo + ", container=" + container
-				+ "]";
+		return "DefaultImport [statement='" + statement + "', relativeTo="
+				+ relativeTo + ", container=" + container + "]";
 	}
 
 }

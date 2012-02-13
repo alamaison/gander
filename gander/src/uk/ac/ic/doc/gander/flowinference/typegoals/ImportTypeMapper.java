@@ -7,8 +7,8 @@ import uk.ac.ic.doc.gander.flowinference.result.FiniteResult;
 import uk.ac.ic.doc.gander.flowinference.result.Result;
 import uk.ac.ic.doc.gander.flowinference.types.TModule;
 import uk.ac.ic.doc.gander.flowinference.types.Type;
-import uk.ac.ic.doc.gander.importing.ImportSpecification;
-import uk.ac.ic.doc.gander.importing.StaticImportSpecification;
+import uk.ac.ic.doc.gander.importing.ImportStatement;
+import uk.ac.ic.doc.gander.importing.StaticImportStatement;
 import uk.ac.ic.doc.gander.model.Module;
 import uk.ac.ic.doc.gander.model.NamespaceName;
 import uk.ac.ic.doc.gander.model.codeobject.ModuleCO;
@@ -22,11 +22,11 @@ final class ImportTypeMapper {
 		this.goalManager = goalManager;
 	}
 
-	Result<Type> typeImport(Variable variable, ImportSpecification info) {
-		if (info instanceof StaticImportSpecification) {
+	Result<Type> typeImport(Variable variable, ImportStatement info) {
+		if (info instanceof StaticImportStatement) {
 
 			if (variable.name().equals(
-					((StaticImportSpecification) info).bindingName())) {
+					((StaticImportStatement) info).bindingName())) {
 
 				ModuleCO module = variable.model().lookup(
 						info.boundObjectParentPath());
@@ -40,7 +40,7 @@ final class ImportTypeMapper {
 					return TopT.INSTANCE;
 				} else {
 					return typeImportedObject(module,
-							(StaticImportSpecification) info);
+							(StaticImportStatement) info);
 				}
 
 			} else {
@@ -75,7 +75,7 @@ final class ImportTypeMapper {
 	 * @return the type of the item
 	 */
 	private Result<Type> typeImportedObject(ModuleCO module,
-			StaticImportSpecification info) {
+			StaticImportStatement info) {
 
 		Module submodule = module.oldStyleConflatedNamespace().getModules()
 				.get(info.boundObjectName());

@@ -19,7 +19,7 @@ import uk.ac.ic.doc.gander.flowinference.result.Result;
 import uk.ac.ic.doc.gander.flowinference.types.TClass;
 import uk.ac.ic.doc.gander.flowinference.types.TFunction;
 import uk.ac.ic.doc.gander.flowinference.types.Type;
-import uk.ac.ic.doc.gander.importing.ImportSpecification;
+import uk.ac.ic.doc.gander.importing.ImportStatement;
 import uk.ac.ic.doc.gander.model.ModelSite;
 import uk.ac.ic.doc.gander.model.NamespaceName;
 import uk.ac.ic.doc.gander.model.codeobject.ClassCO;
@@ -255,7 +255,7 @@ class BoundTypeVisitor implements BindingDetector.DetectionEvent {
 	}
 
 	@Override
-	public boolean importStatement(ImportSpecification spec) {
+	public boolean importStatement(ImportStatement spec) {
 
 		judgement.add(new ImportTypeMapper(goalManager).typeImport(variable,
 				spec));

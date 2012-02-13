@@ -8,37 +8,35 @@ import org.python.pydev.parser.jython.ast.ImportFrom;
 import org.python.pydev.parser.jython.ast.NameTok;
 import org.python.pydev.parser.jython.ast.aliasType;
 
-public final class ImportSpecificationFactory {
+public final class ImportStatementFactory {
 
-	public static StandardImportSpecification newImport(
-			ImportPath moduleImportName) {
-		return StandardImportSpecification.newInstance(moduleImportName);
+	public static StandardImportStatement newImport(ImportPath moduleImportName) {
+		return StandardImportStatement.newInstance(moduleImportName);
 	}
 
-	public static StandardImportAsSpecification newImportAs(
+	public static StandardImportAsStatement newImportAs(
 			ImportPath moduleImportName, String alias) {
-		return StandardImportAsSpecification.newInstance(moduleImportName,
+		return StandardImportAsStatement.newInstance(moduleImportName, alias);
+	}
+
+	public static FromImportStatement newFromImport(
+			ImportPath moduleImportName, String itemName) {
+		return FromImportStatement.newInstance(moduleImportName, itemName);
+	}
+
+	public static FromImportAsStatement newFromImportAs(
+			ImportPath moduleImportName, String itemName, String alias) {
+		return FromImportAsStatement.newInstance(moduleImportName, itemName,
 				alias);
 	}
 
-	public static FromImportSpecification newFromImport(
-			ImportPath moduleImportName, String itemName) {
-		return FromImportSpecification.newInstance(moduleImportName, itemName);
-	}
-
-	public static FromImportAsSpecification newFromImportAs(
-			ImportPath moduleImportName, String itemName, String alias) {
-		return FromImportAsSpecification.newInstance(moduleImportName,
-				itemName, alias);
-	}
-
-	public static FromImportEverythingSpecification newFromImportEverything(
+	public static FromImportEverythingStatement newFromImportEverything(
 			ImportPath moduleName) {
-		return FromImportEverythingSpecification.newInstance(moduleName);
+		return FromImportEverythingStatement.newInstance(moduleName);
 	}
 
-	public static Iterable<ImportSpecification> fromAstNode(Import node) {
-		List<ImportSpecification> specs = new ArrayList<ImportSpecification>();
+	public static Iterable<ImportStatement> fromAstNode(Import node) {
+		List<ImportStatement> specs = new ArrayList<ImportStatement>();
 
 		for (aliasType alias : node.names) {
 			if (alias.asname != null) {
@@ -54,9 +52,9 @@ public final class ImportSpecificationFactory {
 		return specs;
 	}
 
-	public static Iterable<ImportSpecification> fromAstNode(ImportFrom node) {
+	public static Iterable<ImportStatement> fromAstNode(ImportFrom node) {
 
-		List<ImportSpecification> specs = new ArrayList<ImportSpecification>();
+		List<ImportStatement> specs = new ArrayList<ImportStatement>();
 
 		ImportPath modulePath = ImportPath
 				.fromDottedName(((NameTok) node.module).id);
@@ -82,7 +80,7 @@ public final class ImportSpecificationFactory {
 		return specs;
 	}
 
-	private ImportSpecificationFactory() {
+	private ImportStatementFactory() {
 		throw new AssertionError();
 	}
 

@@ -14,7 +14,7 @@ package uk.ac.ic.doc.gander.importing;
  */
 public interface Import<O, C, M> {
 
-	ImportSpecification specification();
+	ImportStatement statement();
 
 	M relativeTo();
 

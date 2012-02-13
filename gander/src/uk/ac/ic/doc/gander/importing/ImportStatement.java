@@ -1,6 +1,6 @@
 package uk.ac.ic.doc.gander.importing;
 
-public interface ImportSpecification {
+public interface ImportStatement {
 
 	/**
 	 * Returns the path whose children are the objects that are bound to names

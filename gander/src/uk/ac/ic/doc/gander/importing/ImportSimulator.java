@@ -168,7 +168,7 @@ public final class ImportSimulator<O, A, C, M> {
 	 *            the kind of import being simulated
 	 */
 	public void simulateImport(Import<O, C, M> importInstance) {
-		List<String> importPath = importInstance.specification().modulePath();
+		List<String> importPath = importInstance.statement().modulePath();
 		BindingScheme<M> binder = importInstance.newBindingScheme(eventHandler,
 				loader);
 		BindingBehaviour behaviour = binder.modulePathBindingBehaviour();
@@ -223,8 +223,8 @@ public final class ImportSimulator<O, A, C, M> {
 				eventHandler.bindModuleToName(module, token,
 						previouslyLoadedModule);
 				eventHandler.bindModuleToLocalName(module,
-						((StaticImportSpecification) importInstance
-								.specification()).bindingName(), importInstance
+						((StaticImportStatement) importInstance
+								.statement()).bindingName(), importInstance
 								.container());
 			} else {
 				eventHandler.onUnresolvedImport(importInstance, token,
@@ -245,8 +245,8 @@ public final class ImportSimulator<O, A, C, M> {
 		case BINDS_IN_RECEIVER:
 			if (module != null) {
 				eventHandler.bindModuleToLocalName(module,
-						((StaticImportSpecification) importInstance
-								.specification()).bindingName(), importInstance
+						((StaticImportStatement) importInstance
+								.statement()).bindingName(), importInstance
 								.container());
 			} else {
 				eventHandler.onUnresolvedLocalImport(importInstance, token);

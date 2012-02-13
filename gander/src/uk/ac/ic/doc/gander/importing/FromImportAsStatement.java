@@ -4,12 +4,12 @@ import uk.ac.ic.doc.gander.importing.ImportSimulator.Binder;
 import uk.ac.ic.doc.gander.importing.ImportSimulator.Loader;
 
 /**
- * Model of an import statement of the form {@code from x.y import i}.
+ * Model of an import statement of the form {@code from x.y import i as p}.
  */
-final class FromImportSpecification implements StaticImportSpecification {
+final class FromImportAsStatement implements StaticImportStatement {
 
 	/**
-	 * Creates representation of a from-style import statement.
+	 * Creates representation of a from-style import statement with an alias.
 	 * 
 	 * @param moduleImportPath
 	 *            the path of the module with respect to which an item is being
@@ -18,23 +18,22 @@ final class FromImportSpecification implements StaticImportSpecification {
 	 *            module)
 	 * @param itemName
 	 *            the name of the item being imported
+	 * @param alias
+	 *            the name that imported item is bound to with respect to the
+	 *            container
 	 */
-	static FromImportSpecification newInstance(ImportPath moduleImportName,
-			String itemName) {
-		return new FromImportSpecification(moduleImportName, itemName);
+	static FromImportAsStatement newInstance(ImportPath moduleImportPath,
+			String itemName, String alias) {
+		return new FromImportAsStatement(moduleImportPath, itemName, alias);
 	}
 
 	private final ImportPath moduleImportPath;
 	private final String itemName;
+	private final String alias;
 
 	@Override
 	public String bindingName() {
-		return itemName;
-	}
-
-	@Override
-	public ImportPath modulePath() {
-		return moduleImportPath;
+		return alias;
 	}
 
 	@Override
@@ -48,6 +47,11 @@ final class FromImportSpecification implements StaticImportSpecification {
 	}
 
 	@Override
+	public ImportPath modulePath() {
+		return moduleImportPath;
+	}
+
+	@Override
 	public boolean importsAreLimitedToModules() {
 		return false;
 	}
@@ -57,14 +61,12 @@ final class FromImportSpecification implements StaticImportSpecification {
 			Import<O, C, M> importInstance, Binder<O, A, C, M> bindingHandler,
 			Loader<O, A, M> loader) {
 
-		/*
-		 * The non-aliased from-import shares the from-import-as binding scheme
-		 */
 		return FromImportAsBindingScheme.newInstance(importInstance,
 				bindingHandler, loader);
 	}
 
-	private FromImportSpecification(ImportPath moduleImportPath, String itemName) {
+	private FromImportAsStatement(ImportPath moduleImportPath, String itemName,
+			String alias) {
 		if (moduleImportPath == null)
 			throw new NullPointerException("Module path is not optional");
 		if (moduleImportPath.isEmpty())
@@ -73,15 +75,21 @@ final class FromImportSpecification implements StaticImportSpecification {
 			throw new NullPointerException("Item name is not optional");
 		if (itemName.isEmpty())
 			throw new IllegalArgumentException("Item name cannot be empty");
+		if (alias == null)
+			throw new NullPointerException("Alias is not optional");
+		if (alias.isEmpty())
+			throw new IllegalArgumentException("Alias name cannot be empty");
 
 		this.moduleImportPath = moduleImportPath;
 		this.itemName = itemName;
+		this.alias = alias;
 	}
 
 	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
+		result = prime * result + ((alias == null) ? 0 : alias.hashCode());
 		result = prime * result
 				+ ((itemName == null) ? 0 : itemName.hashCode());
 		result = prime
@@ -98,7 +106,12 @@ final class FromImportSpecification implements StaticImportSpecification {
 			return false;
 		if (getClass() != obj.getClass())
 			return false;
-		FromImportSpecification other = (FromImportSpecification) obj;
+		FromImportAsStatement other = (FromImportAsStatement) obj;
+		if (alias == null) {
+			if (other.alias != null)
+				return false;
+		} else if (!alias.equals(other.alias))
+			return false;
 		if (itemName == null) {
 			if (other.itemName != null)
 				return false;
@@ -114,7 +127,8 @@ final class FromImportSpecification implements StaticImportSpecification {
 
 	@Override
 	public String toString() {
-		return "from " + moduleImportPath + " import " + itemName;
+		return "from " + moduleImportPath + " import " + itemName + " as "
+				+ alias;
 	}
 
 }

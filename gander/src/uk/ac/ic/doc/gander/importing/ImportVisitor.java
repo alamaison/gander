@@ -29,12 +29,12 @@ public final class ImportVisitor extends LocalCodeBlockVisitor {
 		 * 
 		 * Compound imports such as {@code import x.y.z, a.b, foo as bar} are
 		 * broken up into multiple calls to this method with a separate
-		 * {@link StaticImportSpecification} for each.
+		 * {@link StaticImportStatement} for each.
 		 * 
 		 * @param importStatement
 		 *            object representing the import
 		 */
-		void onImport(ImportSpecification importStatement);
+		void onImport(ImportStatement importStatement);
 
 	}
 
@@ -47,10 +47,10 @@ public final class ImportVisitor extends LocalCodeBlockVisitor {
 	@Override
 	public Object visitImport(Import node) throws Exception {
 
-		Iterable<ImportSpecification> statements = ImportSpecificationFactory
+		Iterable<ImportStatement> statements = ImportStatementFactory
 				.fromAstNode(node);
 
-		for (ImportSpecification statement : statements) {
+		for (ImportStatement statement : statements) {
 			callback.onImport(statement);
 		}
 
@@ -60,10 +60,10 @@ public final class ImportVisitor extends LocalCodeBlockVisitor {
 	@Override
 	public Object visitImportFrom(ImportFrom node) throws Exception {
 
-		Iterable<ImportSpecification> statements = ImportSpecificationFactory
+		Iterable<ImportStatement> statements = ImportStatementFactory
 				.fromAstNode(node);
 
-		for (ImportSpecification statement : statements) {
+		for (ImportStatement statement : statements) {
 			callback.onImport(statement);
 		}
 
