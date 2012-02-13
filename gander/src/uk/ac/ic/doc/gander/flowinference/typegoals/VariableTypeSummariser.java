@@ -19,6 +19,7 @@ import uk.ac.ic.doc.gander.flowinference.result.Result;
 import uk.ac.ic.doc.gander.flowinference.types.TClass;
 import uk.ac.ic.doc.gander.flowinference.types.TFunction;
 import uk.ac.ic.doc.gander.flowinference.types.Type;
+import uk.ac.ic.doc.gander.importing.ImportFactory;
 import uk.ac.ic.doc.gander.importing.ImportStatement;
 import uk.ac.ic.doc.gander.model.ModelSite;
 import uk.ac.ic.doc.gander.model.NamespaceName;
@@ -27,6 +28,7 @@ import uk.ac.ic.doc.gander.model.codeobject.CodeObject;
 import uk.ac.ic.doc.gander.model.codeobject.FormalParameter;
 import uk.ac.ic.doc.gander.model.codeobject.FunctionCO;
 import uk.ac.ic.doc.gander.model.codeobject.InvokableCodeObject;
+import uk.ac.ic.doc.gander.model.codeobject.ModuleCO;
 import uk.ac.ic.doc.gander.model.name_binding.Variable;
 
 /**
@@ -257,8 +259,20 @@ class BoundTypeVisitor implements BindingDetector.DetectionEvent {
 	@Override
 	public boolean importStatement(ImportStatement spec) {
 
-		judgement.add(new ImportTypeMapper(goalManager).typeImport(variable,
-				spec));
+		ModuleCO relativeTo;
+		if (variable.codeObject().enclosingModule()
+				.oldStyleConflatedNamespace().getParentScope() != null) {
+			relativeTo = (ModuleCO) variable.codeObject().enclosingModule()
+					.oldStyleConflatedNamespace().getParentScope().codeObject();
+		} else {
+			relativeTo = null;
+		}
+
+		judgement.add(new ImportTypeMapper(goalManager)
+				.typeImport(
+						variable,
+						ImportFactory.newImport(spec, relativeTo,
+								variable.codeObject())));
 
 		return judgement.isFinished();
 	}

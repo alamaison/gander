@@ -4,13 +4,18 @@ import java.util.Collections;
 
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
 import uk.ac.ic.doc.gander.flowinference.result.FiniteResult;
+import uk.ac.ic.doc.gander.flowinference.result.RedundancyEliminator;
 import uk.ac.ic.doc.gander.flowinference.result.Result;
 import uk.ac.ic.doc.gander.flowinference.types.TModule;
+import uk.ac.ic.doc.gander.flowinference.types.TUnresolvedImport;
 import uk.ac.ic.doc.gander.flowinference.types.Type;
-import uk.ac.ic.doc.gander.importing.ImportStatement;
-import uk.ac.ic.doc.gander.importing.StaticImportStatement;
-import uk.ac.ic.doc.gander.model.Module;
+import uk.ac.ic.doc.gander.importing.Import;
+import uk.ac.ic.doc.gander.importing.ImportSimulator;
+import uk.ac.ic.doc.gander.importing.ImportSimulator.Binder;
+import uk.ac.ic.doc.gander.model.Namespace;
 import uk.ac.ic.doc.gander.model.NamespaceName;
+import uk.ac.ic.doc.gander.model.NamespaceNameLoader;
+import uk.ac.ic.doc.gander.model.codeobject.CodeObject;
 import uk.ac.ic.doc.gander.model.codeobject.ModuleCO;
 import uk.ac.ic.doc.gander.model.name_binding.Variable;
 
@@ -22,77 +27,91 @@ final class ImportTypeMapper {
 		this.goalManager = goalManager;
 	}
 
-	Result<Type> typeImport(Variable variable, ImportStatement info) {
-		if (info instanceof StaticImportStatement) {
+	Result<Type> typeImport(Variable variable,
+			Import<CodeObject, ModuleCO> importInstance) {
+		LocalTypeBinder typingBinder = new LocalTypeBinder(variable);
 
-			if (variable.name().equals(
-					((StaticImportStatement) info).bindingName())) {
+		ImportSimulator<NamespaceName, Namespace, CodeObject, ModuleCO> simulator = ImportSimulator
+				.newInstance(typingBinder,
+						new NamespaceNameLoader(variable.model()));
+		simulator.simulateImport(importInstance);
 
-				ModuleCO module = variable.model().lookup(
-						info.boundObjectParentPath());
-
-				/*
-				 * TODO: in theory this could resolve to more than one module
-				 * but the model doesn't support that at the moment
-				 */
-
-				if (module == null) {
-					return TopT.INSTANCE;
-				} else {
-					return typeImportedObject(module,
-							(StaticImportStatement) info);
-				}
-
-			} else {
-				return FiniteResult.bottom();
-			}
-		} else {
-			return TopT.INSTANCE;
-		}
+		return typingBinder.partialVariableType.result();
 	}
 
-	/**
-	 * Type the object that is loaded and bound by the given import.
-	 * 
-	 * This works a bit differently depending on whether the import is a
-	 * bog-standard {@code import} of a {@code from x import}. The former only
-	 * looks for module objects while the latter can import both modules and
-	 * other objects.
-	 * 
-	 * This works a bit strangely; the mechanism for determining the type can't
-	 * just delegate the typing to the parent module's namespace. If the item
-	 * being imported is a submodule then it isn't an attribute of the parent
-	 * module's namespace. In other words the dotted import name isn't an
-	 * attribute access at all. Only once the submodule lookup fails, can the
-	 * dotted name be considered an attribute lookup and delegated to the
-	 * namespace typer.
-	 * 
-	 * @param module
-	 *            the module with respect to which the sub item is being
-	 *            imported
-	 * @param info
-	 *            the import specification
-	 * @return the type of the item
-	 */
-	private Result<Type> typeImportedObject(ModuleCO module,
-			StaticImportStatement info) {
+	private final class LocalTypeBinder implements
+			Binder<NamespaceName, Namespace, CodeObject, ModuleCO> {
 
-		Module submodule = module.oldStyleConflatedNamespace().getModules()
-				.get(info.boundObjectName());
+		private final Variable variable;
+		private final RedundancyEliminator<Type> partialVariableType = new RedundancyEliminator<Type>();
 
-		if (submodule != null) {
+		public LocalTypeBinder(Variable variable) {
+			this.variable = variable;
+		}
 
-			return new FiniteResult<Type>(Collections.singleton(new TModule(
-					submodule.codeObject())));
+		@Override
+		public void bindModuleToLocalName(ModuleCO loadedModule, String name,
+				CodeObject container) {
+			assert container.equals(variable.codeObject());
 
-		} else if (!info.importsAreLimitedToModules()) {
+			if (name.equals(variable.name())) {
 
-			return goalManager.registerSubgoal(new NamespaceNameTypeGoal(
-					new NamespaceName(info.boundObjectName(), module
-							.oldStyleConflatedNamespace())));
+				partialVariableType.add(new FiniteResult<Type>(Collections
+						.singleton(new TModule(loadedModule))));
+			}
+		}
 
-		} else {
-			return TopT.INSTANCE;
+		@Override
+		public void bindObjectToLocalName(NamespaceName importedObject,
+				String name, CodeObject container) {
+			assert container.equals(variable.codeObject());
+
+			if (name.equals(variable.name())) {
+
+				partialVariableType.add(goalManager
+						.registerSubgoal(new NamespaceNameTypeGoal(
+								importedObject)));
+			}
+		}
+
+		@Override
+		public void bindModuleToName(ModuleCO loadedModule, String name,
+				ModuleCO receivingModule) {
+			assert !receivingModule.equals(variable.codeObject());
+		}
+
+		@Override
+		public void bindObjectToName(NamespaceName importedObject, String name,
+				ModuleCO receivingModule) {
+			assert !receivingModule.equals(variable.codeObject());
+		}
+
+		@Override
+		public void bindAllNamespaceMembers(Namespace allMembers,
+				CodeObject container) {
+			assert container.equals(variable.codeObject());
+
+			/*
+			 * event though all names are imported, we are interested in a
+			 * specific name so can issue a query for it
+			 */
+			partialVariableType.add(goalManager
+					.registerSubgoal(new NamespaceNameTypeGoal(
+							new NamespaceName(variable.name(), allMembers))));
+		}
+
+		@Override
+		public void onUnresolvedImport(
+				Import<CodeObject, ModuleCO> importInstance, String name,
+				ModuleCO receivingModule) {
+			assert !receivingModule.equals(variable.codeObject());
+		}
+
+		@Override
+		public void onUnresolvedLocalImport(
+				Import<CodeObject, ModuleCO> importInstance, String name) {
+			partialVariableType.add(new FiniteResult<Type>(Collections
+					.singleton(new TUnresolvedImport(importInstance))));
 		}
 	}
 }
