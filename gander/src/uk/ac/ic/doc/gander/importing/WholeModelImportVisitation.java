@@ -7,7 +7,6 @@ import uk.ac.ic.doc.gander.model.CodeObjectWalker;
 import uk.ac.ic.doc.gander.model.Model;
 import uk.ac.ic.doc.gander.model.ModelWalker;
 import uk.ac.ic.doc.gander.model.Module;
-import uk.ac.ic.doc.gander.model.NamespaceName;
 import uk.ac.ic.doc.gander.model.codeobject.CodeObject;
 import uk.ac.ic.doc.gander.model.codeobject.ModuleCO;
 
@@ -16,11 +15,11 @@ import uk.ac.ic.doc.gander.model.codeobject.ModuleCO;
  */
 public final class WholeModelImportVisitation {
 
-	private final ImportHandler<NamespaceName, CodeObject, ModuleCO> callback;
+	private final ImportHandler<CodeObject, ModuleCO> callback;
 	private final Model model;
 
 	public WholeModelImportVisitation(Model model,
-			ImportHandler<NamespaceName, CodeObject, ModuleCO> callback) {
+			ImportHandler<CodeObject, ModuleCO> callback) {
 		this.model = model;
 		this.callback = callback;
 		walkModel();
@@ -116,7 +115,7 @@ public final class WholeModelImportVisitation {
 					relativeTo = relativeToPackage.codeObject();
 				}
 
-				Import<NamespaceName, CodeObject, ModuleCO> importInstance = ImportFactory
+				Import<CodeObject, ModuleCO> importInstance = ImportFactory
 						.newImport(importStatement, relativeTo, codeObject);
 				callback.onImport(importInstance);
 			}

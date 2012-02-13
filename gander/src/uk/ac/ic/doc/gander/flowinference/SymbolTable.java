@@ -168,9 +168,9 @@ public class SymbolTable {
 						.oldStyleConflatedNamespace().getParent().codeObject();
 			}
 
-			Iterable<uk.ac.ic.doc.gander.importing.Import<NamespaceName, CodeObject, ModuleCO>> imports = ImportFactory
+			Iterable<uk.ac.ic.doc.gander.importing.Import<CodeObject, ModuleCO>> imports = ImportFactory
 					.fromAstNode(node, relativeTo, currentScope);
-			for (uk.ac.ic.doc.gander.importing.Import<NamespaceName, CodeObject, ModuleCO> importInstance : imports) {
+			for (uk.ac.ic.doc.gander.importing.Import<CodeObject, ModuleCO> importInstance : imports) {
 				simulator().simulateImport(importInstance);
 			}
 		}
@@ -184,9 +184,9 @@ public class SymbolTable {
 						.oldStyleConflatedNamespace().getParent().codeObject();
 			}
 
-			Iterable<uk.ac.ic.doc.gander.importing.Import<NamespaceName, CodeObject, ModuleCO>> imports = ImportFactory
+			Iterable<uk.ac.ic.doc.gander.importing.Import<CodeObject, ModuleCO>> imports = ImportFactory
 					.fromAstNode(node, relativeTo, currentScope);
-			for (uk.ac.ic.doc.gander.importing.Import<NamespaceName, CodeObject, ModuleCO> importInstance : imports) {
+			for (uk.ac.ic.doc.gander.importing.Import<CodeObject, ModuleCO> importInstance : imports) {
 				simulator().simulateImport(importInstance);
 			}
 		}

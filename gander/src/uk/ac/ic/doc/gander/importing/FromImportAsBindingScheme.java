@@ -5,18 +5,9 @@ import java.util.Collections;
 import uk.ac.ic.doc.gander.importing.ImportSimulator.Binder;
 import uk.ac.ic.doc.gander.importing.ImportSimulator.Loader;
 
-final class FromImportAsBindingScheme<O, A, C, M> implements BindingScheme<M> {
+enum FromImportAsBindingScheme implements BindingScheme {
 
-	public static <O, A, C, M> FromImportAsBindingScheme<O, A, C, M> newInstance(
-			Import<O, C, M> importInstance, Binder<O, A, C, M> bindingHandler,
-			Loader<O, A, M> loader) {
-		return new FromImportAsBindingScheme<O, A, C, M>();
-	}
-
-
-	private FromImportAsBindingScheme() {
-		// just here to make constructor private
-	}
+	INSTANCE;
 
 	@Override
 	public BindingBehaviour modulePathBindingBehaviour() {
@@ -24,18 +15,19 @@ final class FromImportAsBindingScheme<O, A, C, M> implements BindingScheme<M> {
 	}
 
 	@Override
-	public ItemBindingStage<M> itemBinding(final M sourceModule) {
+	public ItemBindingStage itemBinding() {
 
-		if (sourceModule == null) {
-			throw new NullPointerException(
-					"Must have a module to import items with respect to");
-		}
-
-		return new ItemBindingStage<M>() {
+		return new ItemBindingStage() {
 
 			@Override
-			public <O, A, C> void doBinding(Import<O, C, M> importInstance,
-					Binder<O, A, C, M> bindingHandler, Loader<O, A, M> loader) {
+			public <O, A, C, M> void doBinding(Import<C, M> importInstance,
+					Binder<O, A, C, M> bindingHandler, Loader<O, A, M> loader,
+					M sourceModule) {
+
+				if (sourceModule == null) {
+					throw new NullPointerException(
+							"Must have a module to import items with respect to");
+				}
 
 				StaticImportStatement specification = (StaticImportStatement) importInstance
 						.statement();
@@ -52,7 +44,8 @@ final class FromImportAsBindingScheme<O, A, C, M> implements BindingScheme<M> {
 				 * name.
 				 */
 				if (submodule == null) {
-					O object = loader.loadModuleNamespaceMember(name, sourceModule);
+					O object = loader.loadModuleNamespaceMember(name,
+							sourceModule);
 
 					if (object != null) {
 						bindingHandler.bindObjectToLocalName(object,

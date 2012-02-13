@@ -32,11 +32,10 @@ public final class WholeModelImportSimulation {
 
 	private void walkModel() {
 
-		ImportHandler<NamespaceName, CodeObject, ModuleCO> handler = new ImportHandler<NamespaceName, CodeObject, ModuleCO>() {
+		ImportHandler<CodeObject, ModuleCO> handler = new ImportHandler<CodeObject, ModuleCO>() {
 
 			@Override
-			public void onImport(
-					Import<NamespaceName, CodeObject, ModuleCO> importInstance) {
+			public void onImport(Import<CodeObject, ModuleCO> importInstance) {
 				newImportSimulator().simulateImport(importInstance);
 			}
 

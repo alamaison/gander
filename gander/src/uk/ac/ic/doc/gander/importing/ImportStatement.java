@@ -57,8 +57,5 @@ public interface ImportStatement {
 	 * Returns an object implementing the binding behaviour of this kind of
 	 * import statement.
 	 */
-	<O, A, C, M> BindingScheme<M> newBindingScheme(
-			Import<O, C, M> importInstance,
-			ImportSimulator.Binder<O, A, C, M> bindingHandler,
-			ImportSimulator.Loader<O, A, M> loader);
+	BindingScheme bindingScheme();
 }

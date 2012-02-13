@@ -1,21 +1,15 @@
 package uk.ac.ic.doc.gander.importing;
 
-import uk.ac.ic.doc.gander.importing.ImportSimulator.Binder;
-import uk.ac.ic.doc.gander.importing.ImportSimulator.Loader;
-
 /**
  * Representation of an import statement at a particular location.
  * 
- * @param <O>
- *            the type of Java objects representing general Python objects that
- *            can be imported (including modules and other code objects)
  * @param <C>
  *            type of object representing the code object in which the import
  *            appears
  * @param <M>
  *            type of object representing modules in the runtime model
  */
-final class DefaultImport<O, C, M> implements Import<O, C, M> {
+final class DefaultImport<C, M> implements Import<C, M> {
 
 	/**
 	 * Creates new representation of the import statement.
@@ -31,31 +25,28 @@ final class DefaultImport<O, C, M> implements Import<O, C, M> {
 	 *            a representation of the code object whose code block contains
 	 *            the import statement
 	 */
-	public static <O, C, M> DefaultImport<O, C, M> newImport(
+	public static <C, M> DefaultImport<C, M> newImport(
 			ImportStatement statement, M relativeTo, C container) {
-		return new DefaultImport<O, C, M>(statement, relativeTo, container);
+		return new DefaultImport<C, M>(statement, relativeTo, container);
 	}
 
 	private final ImportStatement statement;
 	private final M relativeTo;
 	private final C container;
 
+	@Override
 	public ImportStatement statement() {
 		return statement;
 	}
 
+	@Override
 	public M relativeTo() {
 		return relativeTo;
 	}
 
+	@Override
 	public C container() {
 		return container;
-	}
-
-	public <A> BindingScheme<M> newBindingScheme(
-			Binder<O, A, C, M> bindingHandler, Loader<O, A, M> loader) {
-
-		return statement.newBindingScheme(this, bindingHandler, loader);
 	}
 
 	private DefaultImport(ImportStatement statement, M relativeTo, C container) {
@@ -96,7 +87,7 @@ final class DefaultImport<O, C, M> implements Import<O, C, M> {
 			return false;
 		if (getClass() != obj.getClass())
 			return false;
-		DefaultImport<?, ?, ?> other = (DefaultImport<?, ?, ?>) obj;
+		DefaultImport<?, ?> other = (DefaultImport<?, ?>) obj;
 		if (container == null) {
 			if (other.container != null)
 				return false;

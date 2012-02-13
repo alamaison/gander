@@ -95,10 +95,11 @@ final class ImportedNameTypeWatcher implements
 	}
 
 	@Override
-	public void bindAllNamespaceMembers(Namespace sourceNamespace, CodeObject container) {
+	public void bindAllNamespaceMembers(Namespace sourceNamespace,
+			CodeObject container) {
 
 		// FIXME: container not necessarily the location the name is bound
-		
+
 		for (Entry<String, Class> importedClass : sourceNamespace.getClasses()
 				.entrySet()) {
 
@@ -106,8 +107,8 @@ final class ImportedNameTypeWatcher implements
 					new TClass(importedClass.getValue().codeObject()));
 		}
 
-		for (Entry<String, Function> importedFunction : sourceNamespace.getFunctions()
-				.entrySet()) {
+		for (Entry<String, Function> importedFunction : sourceNamespace
+				.getFunctions().entrySet()) {
 			eventHandler.onImportTyped(container, importedFunction.getKey(),
 					new TFunction(importedFunction.getValue().codeObject()));
 		}
@@ -141,8 +142,7 @@ final class ImportedNameTypeWatcher implements
 	}
 
 	@Override
-	public void onUnresolvedImport(
-			Import<NamespaceName, CodeObject, ModuleCO> importInstance,
+	public void onUnresolvedImport(Import<CodeObject, ModuleCO> importInstance,
 			String name, ModuleCO relativeTo) {
 		System.err.print("WARNING: unresolved import at '" + name + "': "
 				+ importInstance);
@@ -164,8 +164,7 @@ final class ImportedNameTypeWatcher implements
 
 	@Override
 	public void onUnresolvedLocalImport(
-			Import<NamespaceName, CodeObject, ModuleCO> importInstance,
-			String name) {
+			Import<CodeObject, ModuleCO> importInstance, String name) {
 		System.err.print("WARNING: unresolved import at '" + name + "': "
 				+ importInstance);
 

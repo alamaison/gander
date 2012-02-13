@@ -1,8 +1,5 @@
 package uk.ac.ic.doc.gander.importing;
 
-import uk.ac.ic.doc.gander.importing.ImportSimulator.Binder;
-import uk.ac.ic.doc.gander.importing.ImportSimulator.Loader;
-
 /**
  * Model of an import statement of the form {@code from x.y import i}.
  */
@@ -53,15 +50,12 @@ final class FromImportStatement implements StaticImportStatement {
 	}
 
 	@Override
-	public <O, A, C, M> BindingScheme<M> newBindingScheme(
-			Import<O, C, M> importInstance, Binder<O, A, C, M> bindingHandler,
-			Loader<O, A, M> loader) {
+	public BindingScheme bindingScheme() {
 
 		/*
 		 * The non-aliased from-import shares the from-import-as binding scheme
 		 */
-		return FromImportAsBindingScheme.newInstance(importInstance,
-				bindingHandler, loader);
+		return FromImportAsBindingScheme.INSTANCE;
 	}
 
 	private FromImportStatement(ImportPath moduleImportPath, String itemName) {

@@ -1,8 +1,5 @@
 package uk.ac.ic.doc.gander.importing;
 
-import uk.ac.ic.doc.gander.importing.ImportSimulator.Binder;
-import uk.ac.ic.doc.gander.importing.ImportSimulator.Loader;
-
 /**
  * Model of an import statement of the form {@code import x.y.z as bar}.
  */
@@ -23,8 +20,8 @@ final class StandardImportAsStatement implements StaticImportStatement {
 	 *            the name that the first segment of the path is bound to with
 	 *            respect to the container
 	 */
-	static StandardImportAsStatement newInstance(
-			ImportPath moduleImportPath, String alias) {
+	static StandardImportAsStatement newInstance(ImportPath moduleImportPath,
+			String alias) {
 		return new StandardImportAsStatement(moduleImportPath, alias);
 	}
 
@@ -54,15 +51,12 @@ final class StandardImportAsStatement implements StaticImportStatement {
 	}
 
 	@Override
-	public <O, A, C, M> BindingScheme<M> newBindingScheme(
-			Import<O, C, M> importInstance, Binder<O, A, C, M> bindingHandler,
-			Loader<O, A, M> loader) {
+	public BindingScheme bindingScheme() {
 
-		return StandardImportAsBindingScheme.newInstance();
+		return StandardImportAsBindingScheme.INSTANCE;
 	}
 
-	private StandardImportAsStatement(ImportPath moduleImportPath,
-			String alias) {
+	private StandardImportAsStatement(ImportPath moduleImportPath, String alias) {
 		if (moduleImportPath == null)
 			throw new NullPointerException("Module path is not optional");
 		if (moduleImportPath.isEmpty())

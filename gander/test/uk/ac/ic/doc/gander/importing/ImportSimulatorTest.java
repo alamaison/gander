@@ -52,13 +52,13 @@ public final class ImportSimulatorTest {
 		}
 
 		public void onUnresolvedImport(
-				Import<String, String, String> importInstance, String name,
+				Import<String, String> importInstance, String name,
 				String receivingModule) {
 			fail();
 		}
 
 		public void onUnresolvedLocalImport(
-				Import<String, String, String> importInstance, String name) {
+				Import<String, String> importInstance, String name) {
 			fail();
 		}
 	};
@@ -255,7 +255,7 @@ public final class ImportSimulatorTest {
 				entry("[e.f.g]", "g", "[e.f]"), entry("[e.f]", "f", "[e]"));
 	}
 
-	private static Import<String, String, String> newImport(
+	private static Import<String, String> newImport(
 			ImportStatement specification, String relativeTo,
 			String container) {
 		return DefaultImport.newImport(specification, relativeTo, container);

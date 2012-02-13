@@ -25,11 +25,11 @@ import uk.ac.ic.doc.gander.model.name_binding.Variable;
 
 public class TUnresolvedImport implements TCodeObject {
 
-	private Import<?, ?, ?> importInstance;
+	private Import<?, ?> importInstance;
 
-	public TUnresolvedImport(Import<?, ?, ?> importInstance) {
-		//if (importInstance == null)
-		//	throw new NullPointerException("Failed import not optional");
+	public TUnresolvedImport(Import<?, ?> importInstance) {
+		// if (importInstance == null)
+		// throw new NullPointerException("Failed import not optional");
 		this.importInstance = importInstance;
 	}
 

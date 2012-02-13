@@ -81,8 +81,8 @@ public class CodeObjectImportLoader {
 							new DoNothingBinder<CodeObject, Set<CodeObject>, CodeObject, ModuleCO>(),
 							new Importer(model));
 
-			for (uk.ac.ic.doc.gander.importing.Import<CodeObject, CodeObject, ModuleCO> importInstance : ImportFactory
-					.<CodeObject, CodeObject, ModuleCO> fromAstNode(node,
+			for (uk.ac.ic.doc.gander.importing.Import<CodeObject, ModuleCO> importInstance : ImportFactory
+					.<CodeObject, ModuleCO> fromAstNode(node,
 							relativeToPackage, importContainer)) {
 				simulator.simulateImport(importInstance);
 			}
@@ -96,8 +96,8 @@ public class CodeObjectImportLoader {
 							new DoNothingBinder<CodeObject, Set<CodeObject>, CodeObject, ModuleCO>(),
 							new Importer(model));
 
-			for (uk.ac.ic.doc.gander.importing.Import<CodeObject, CodeObject, ModuleCO> importInstance : ImportFactory
-					.<CodeObject, CodeObject, ModuleCO> fromAstNode(node,
+			for (uk.ac.ic.doc.gander.importing.Import<CodeObject, ModuleCO> importInstance : ImportFactory
+					.<CodeObject, ModuleCO> fromAstNode(node,
 							relativeToPackage, importContainer)) {
 				simulator.simulateImport(importInstance);
 			}
@@ -206,7 +206,8 @@ public class CodeObjectImportLoader {
 		}
 
 		@Override
-		public Set<CodeObject> loadAllMembersInModuleNamespace(ModuleCO sourceModule) {
+		public Set<CodeObject> loadAllMembersInModuleNamespace(
+				ModuleCO sourceModule) {
 			if (sourceModule == null) {
 				throw new NullPointerException("Source module required");
 			}
@@ -251,17 +252,17 @@ public class CodeObjectImportLoader {
 		}
 
 		public void onUnresolvedImport(
-				uk.ac.ic.doc.gander.importing.Import<O, C, M> importInstance,
+				uk.ac.ic.doc.gander.importing.Import<C, M> importInstance,
 				String name, M receivingModule) {
 		}
 
 		@Override
 		public void bindAllNamespaceMembers(A sourceModule, C container) {
-			
+
 		}
 
 		public void onUnresolvedLocalImport(
-				uk.ac.ic.doc.gander.importing.Import<O, C, M> importInstance,
+				uk.ac.ic.doc.gander.importing.Import<C, M> importInstance,
 				String name) {
 			// FIXME: This gets fired when 'from x import a' occurs inside a
 			// module that x is currently importing as x is not yet complete.

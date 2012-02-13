@@ -3,29 +3,23 @@ package uk.ac.ic.doc.gander.importing;
 import uk.ac.ic.doc.gander.importing.ImportSimulator.Binder;
 import uk.ac.ic.doc.gander.importing.ImportSimulator.Loader;
 
-final class StandardImportBindingScheme<M> implements BindingScheme<M> {
+enum StandardImportBindingScheme implements BindingScheme {
 
-	public static <M> StandardImportBindingScheme<M> newInstance() {
-		return new StandardImportBindingScheme<M>();
-	}
-
-	private StandardImportBindingScheme() {
-		// just here to make constructor private
-	}
+	INSTANCE;
 
 	@Override
 	public BindingBehaviour modulePathBindingBehaviour() {
 		return StandardImportBindingBehaviour.INSTANCE;
 	}
 
-
 	@Override
-	public ItemBindingStage<M> itemBinding(M sourceModule) {
-		return new ItemBindingStage<M>() {
+	public ItemBindingStage itemBinding() {
+		return new ItemBindingStage() {
 
 			@Override
-			public <O, A, C> void doBinding(Import<O, C, M> importInstance,
-					Binder<O, A, C, M> bindingHandler, Loader<O, A, M> loader) {
+			public <O, A, C, M> void doBinding(Import<C, M> importInstance,
+					Binder<O, A, C, M> bindingHandler, Loader<O, A, M> loader,
+					M sourceModule) {
 			}
 		};
 	}

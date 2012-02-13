@@ -530,7 +530,7 @@ final class NamespaceNameFlowStepGoalSolver {
 			}
 
 			public void onUnresolvedImport(
-					Import<NamespaceName, CodeObject, ModuleCO> importInstance,
+					Import<CodeObject, ModuleCO> importInstance,
 					String name, ModuleCO receivingModule) {
 				/*
 				 * WARNING: We pretend that unresolved imports don't matter
@@ -541,7 +541,7 @@ final class NamespaceNameFlowStepGoalSolver {
 			}
 
 			public void onUnresolvedLocalImport(
-					Import<NamespaceName, CodeObject, ModuleCO> importInstance,
+					Import<CodeObject, ModuleCO> importInstance,
 					String name) {
 				/*
 				 * WARNING: We pretend that unresolved imports don't matter

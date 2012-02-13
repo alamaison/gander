@@ -3,16 +3,9 @@ package uk.ac.ic.doc.gander.importing;
 import uk.ac.ic.doc.gander.importing.ImportSimulator.Binder;
 import uk.ac.ic.doc.gander.importing.ImportSimulator.Loader;
 
-final class FromImportEverythingBindingScheme<O, A, C, M> implements
-		BindingScheme<M> {
+enum FromImportEverythingBindingScheme implements BindingScheme {
 
-	public static <O, A, C, M> FromImportEverythingBindingScheme<O, A, C, M> newInstance() {
-		return new FromImportEverythingBindingScheme<O, A, C, M>();
-	}
-
-	private FromImportEverythingBindingScheme() {
-		// just here to make constructor private
-	}
+	INSTANCE;
 
 	@Override
 	public BindingBehaviour modulePathBindingBehaviour() {
@@ -20,13 +13,14 @@ final class FromImportEverythingBindingScheme<O, A, C, M> implements
 	}
 
 	@Override
-	public uk.ac.ic.doc.gander.importing.BindingScheme.ItemBindingStage<M> itemBinding(
-			final M sourceModule) {
-		return new ItemBindingStage<M>() {
+	public ItemBindingStage itemBinding() {
+
+		return new ItemBindingStage() {
 
 			@Override
-			public <O, A, C> void doBinding(Import<O, C, M> importInstance,
-					Binder<O, A, C, M> bindingHandler, Loader<O, A, M> loader) {
+			public <O, A, C, M> void doBinding(Import<C, M> importInstance,
+					Binder<O, A, C, M> bindingHandler, Loader<O, A, M> loader,
+					M sourceModule) {
 
 				bindingHandler.bindAllNamespaceMembers(
 						loader.loadAllMembersInModuleNamespace(sourceModule),

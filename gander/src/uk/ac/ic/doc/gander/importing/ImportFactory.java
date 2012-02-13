@@ -5,12 +5,12 @@ import java.util.List;
 
 public final class ImportFactory {
 
-	public static <O, C, M> Import<O, C, M> newImport(
-			ImportStatement specification, M relativeTo, C container) {
+	public static <C, M> Import<C, M> newImport(ImportStatement specification,
+			M relativeTo, C container) {
 		return DefaultImport.newImport(specification, relativeTo, container);
 	}
 
-	public static <O, C, M> Iterable<Import<O, C, M>> fromAstNode(
+	public static <C, M> Iterable<Import<C, M>> fromAstNode(
 			org.python.pydev.parser.jython.ast.Import node, M relativeTo,
 			C container) {
 
@@ -21,7 +21,7 @@ public final class ImportFactory {
 				specs);
 	}
 
-	public static <O, C, M> Iterable<Import<O, C, M>> fromAstNode(
+	public static <C, M> Iterable<Import<C, M>> fromAstNode(
 			org.python.pydev.parser.jython.ast.ImportFrom node, M relativeTo,
 			C container) {
 
@@ -32,14 +32,14 @@ public final class ImportFactory {
 				specs);
 	}
 
-	private static <C, O, M> Iterable<Import<O, C, M>> createImportInstancesForSpecifications(
+	private static <C, M> Iterable<Import<C, M>> createImportInstancesForSpecifications(
 			M relativeTo, C container, Iterable<ImportStatement> specs) {
 
-		List<Import<O, C, M>> importInstances = new ArrayList<Import<O, C, M>>();
+		List<Import<C, M>> importInstances = new ArrayList<Import<C, M>>();
 
 		for (ImportStatement specification : specs) {
-			Import<O, C, M> importInstance = newImport(specification,
-					relativeTo, container);
+			Import<C, M> importInstance = newImport(specification, relativeTo,
+					container);
 			importInstances.add(importInstance);
 		}
 

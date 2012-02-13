@@ -3,7 +3,7 @@ package uk.ac.ic.doc.gander.importing;
 /**
  * Callback for simulations of Python import mechanism.
  */
-public interface ImportHandler<O, C, M> {
+public interface ImportHandler<C, M> {
 
 	/**
 	 * Seen an import statement.
@@ -15,6 +15,6 @@ public interface ImportHandler<O, C, M> {
 	 * @param importInstance
 	 *            object representing the import and the location it appears
 	 */
-	void onImport(Import<O, C, M> importInstance);
+	void onImport(Import<C, M> importInstance);
 
 }

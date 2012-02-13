@@ -1,8 +1,5 @@
 package uk.ac.ic.doc.gander.importing;
 
-import uk.ac.ic.doc.gander.importing.ImportSimulator.Binder;
-import uk.ac.ic.doc.gander.importing.ImportSimulator.Loader;
-
 /**
  * Model of an import statement of the form {@code from x.y import *}.
  */
@@ -17,8 +14,7 @@ final class FromImportEverythingStatement implements ImportStatement {
 	 *            appeared (really relative to that code block's containing
 	 *            module)
 	 */
-	static FromImportEverythingStatement newInstance(
-			ImportPath moduleImportPath) {
+	static FromImportEverythingStatement newInstance(ImportPath moduleImportPath) {
 		return new FromImportEverythingStatement(moduleImportPath);
 	}
 
@@ -40,11 +36,9 @@ final class FromImportEverythingStatement implements ImportStatement {
 	}
 
 	@Override
-	public <O, A, C, M> BindingScheme<M> newBindingScheme(
-			Import<O, C, M> importInstance, Binder<O, A, C, M> bindingHandler,
-			Loader<O, A, M> loader) {
+	public BindingScheme bindingScheme() {
 
-		return FromImportEverythingBindingScheme.newInstance();
+		return FromImportEverythingBindingScheme.INSTANCE;
 	}
 
 	private FromImportEverythingStatement(ImportPath moduleImportPath) {
