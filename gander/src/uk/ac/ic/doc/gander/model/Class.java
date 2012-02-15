@@ -13,6 +13,7 @@ import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
 import uk.ac.ic.doc.gander.flowinference.flowgoals.CodeObjectDefinitionPosition;
 import uk.ac.ic.doc.gander.flowinference.flowgoals.FlowGoal;
 import uk.ac.ic.doc.gander.flowinference.flowgoals.InstanceCreationPosition;
+import uk.ac.ic.doc.gander.flowinference.result.FiniteResult;
 import uk.ac.ic.doc.gander.flowinference.result.RedundancyEliminator;
 import uk.ac.ic.doc.gander.flowinference.result.Result;
 import uk.ac.ic.doc.gander.model.codeblock.CodeBlock;
@@ -75,12 +76,14 @@ public final class Class implements Namespace {
 	public Result<ModelSite<exprType>> writeableReferences(
 			SubgoalManager goalManager) {
 
-		RedundancyEliminator<ModelSite<exprType>> references = new RedundancyEliminator<ModelSite<exprType>>();
+		if (getParentScope().getName().isEmpty()) {
+			// builtin types do not have a writable namespace
+			return FiniteResult.bottom();
+		} else {
 
-		references.add(goalManager.registerSubgoal(new FlowGoal(
-				new CodeObjectDefinitionPosition(codeObject))));
-
-		return references.result();
+			return goalManager.registerSubgoal(new FlowGoal(
+					new CodeObjectDefinitionPosition(codeObject)));
+		}
 	}
 
 	public Set<Variable> variablesInScope(String name) {

@@ -16,6 +16,7 @@ import uk.ac.ic.doc.gander.cfg.Cfg;
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
 import uk.ac.ic.doc.gander.flowinference.flowgoals.CodeObjectDefinitionPosition;
 import uk.ac.ic.doc.gander.flowinference.flowgoals.FlowGoal;
+import uk.ac.ic.doc.gander.flowinference.result.FiniteResult;
 import uk.ac.ic.doc.gander.flowinference.result.Result;
 import uk.ac.ic.doc.gander.model.Class;
 import uk.ac.ic.doc.gander.model.Function;
@@ -230,11 +231,18 @@ final class FunctionObjectNamespace implements Namespace {
 	/**
 	 * {@inheritDoc}
 	 * 
-	 * All function object's namespace is writable everywhere it is readable.
+	 * All function object's namespace is writable everywhere it is readable
+	 * unless is is a builtin.
 	 */
 	public Result<ModelSite<exprType>> writeableReferences(
 			SubgoalManager goalManager) {
-		return references(goalManager);
+
+		if (getParentScope().getName().isEmpty()) {
+			// builtin functions do not have a writable namespace
+			return FiniteResult.bottom();
+		} else {
+			return references(goalManager);
+		}
 	}
 
 	public Set<Variable> variablesInScope(String name) {
@@ -248,7 +256,134 @@ final class FunctionObjectNamespace implements Namespace {
 	private static final String ERROR = "External function namespaces are currently non-functional";
 
 	public Namespace getParentScope() {
-		throw new UnsupportedOperationException(ERROR);
+		return new Namespace() {
+			
+			@Override
+			public Namespace getParentScope() {
+				// TODO Auto-generated method stub
+				return null;
+			}
+			
+			@Override
+			public String getName() {
+				return "I only exists so I don't look like a builtin";
+			}
+			
+			@Override
+			public SimpleNode getAst() {
+				// TODO Auto-generated method stub
+				return null;
+			}
+			
+			@Override
+			public Result<ModelSite<exprType>> writeableReferences(
+					SubgoalManager goalManager) {
+				// TODO Auto-generated method stub
+				return null;
+			}
+			
+			@Override
+			public Set<Variable> variablesWriteableInScope(String name) {
+				// TODO Auto-generated method stub
+				return null;
+			}
+			
+			@Override
+			public Set<Variable> variablesInScope(String name) {
+				// TODO Auto-generated method stub
+				return null;
+			}
+			
+			@Override
+			public Result<ModelSite<exprType>> references(SubgoalManager goalManager) {
+				// TODO Auto-generated method stub
+				return null;
+			}
+			
+			@Override
+			public Model model() {
+				// TODO Auto-generated method stub
+				return null;
+			}
+			
+			@Override
+			public Member lookupMember(String memberName) {
+				// TODO Auto-generated method stub
+				return null;
+			}
+			
+			@Override
+			public boolean isSystem() {
+				// TODO Auto-generated method stub
+				return false;
+			}
+			
+			@Override
+			public Map<String, Module> getModules() {
+				// TODO Auto-generated method stub
+				return null;
+			}
+			
+			@Override
+			public Module getGlobalNamespace() {
+				// TODO Auto-generated method stub
+				return null;
+			}
+			
+			@Override
+			public Map<String, Function> getFunctions() {
+				// TODO Auto-generated method stub
+				return null;
+			}
+			
+			@Override
+			public String getFullName() {
+				// TODO Auto-generated method stub
+				return null;
+			}
+			
+			@Override
+			public Map<String, Class> getClasses() {
+				// TODO Auto-generated method stub
+				return null;
+			}
+			
+			@Override
+			public Cfg getCfg() {
+				// TODO Auto-generated method stub
+				return null;
+			}
+			
+			@Override
+			public CodeObject codeObject() {
+				// TODO Auto-generated method stub
+				return null;
+			}
+			
+			@Override
+			public CodeBlock asCodeBlock() {
+				// TODO Auto-generated method stub
+				return null;
+			}
+			
+			@Override
+			public void addModule(Module module) {
+				// TODO Auto-generated method stub
+				
+			}
+			
+			@Override
+			public void addFunction(Function function) {
+				// TODO Auto-generated method stub
+				
+			}
+			
+			@Override
+			public void addClass(Class klass) {
+				// TODO Auto-generated method stub
+				
+			}
+		};
 	}
 
 	public String getName() {

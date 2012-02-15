@@ -1747,6 +1747,19 @@ public class ZeroCfaTypeEngineTest {
 	}
 
 	@Test
+	public void builtinReadonlyNamespace() throws Throwable {
+
+		TestModule test = newTestModule("builtin_readonly_namespace");
+
+		Set<Type> expectedType = Collections.emptySet();
+
+		Result<Type> type = engine.typeOf(test.printNode("what_am_i").site());
+
+		assertEquals("Didn't ignore assignment to builtin namespace.",
+				expectedType, type);
+	}
+
+	@Test
 	public void listTypeEscape() throws Throwable {
 		String testName = "list_type_escape";
 
