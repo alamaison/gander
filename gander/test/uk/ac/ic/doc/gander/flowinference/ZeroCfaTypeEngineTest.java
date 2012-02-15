@@ -1589,19 +1589,23 @@ public class ZeroCfaTypeEngineTest {
 
 	@Test
 	public void importStar() throws Throwable {
-		String testName = "import_star";
+		TestModule test = newTestModule("import_star");
+		TestModule aux = newTestModule("import_star_aux");
 
-		ScopedPrintNode node = findPrintNode(testName, "what_am_i");
-		Result<Type> type = engine.typeOf(node.site());
+		Result<Type> type = engine.typeOf(test.printNode("what_am_i").site());
 
-		ModuleCO auxModule = model.lookup(ImportPath
-						.fromDottedName("import_star_aux"));
-		assertTrue(auxModule != null);
 		Set<Type> expectedType = typeJudgement(new TClass(
-				nestedClass(auxModule, "A")));
+				aux.moduleLevelClass("A")));
 
 		assertEquals("Star-style import didn't import expected class",
 				expectedType, type);
+
+		type = engine.typeOf(test.printNode("i should not be affected by star")
+				.site());
+		expectedType = typeJudgement(new TClass(test.moduleLevelClass("B")));
+
+		assertEquals("Star-style import affected the inferred "
+				+ "type of unrealted variables.", expectedType, type);
 	}
 
 	@Test
