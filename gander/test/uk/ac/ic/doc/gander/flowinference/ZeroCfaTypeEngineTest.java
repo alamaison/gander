@@ -1082,6 +1082,24 @@ public class ZeroCfaTypeEngineTest {
 	}
 
 	@Test
+	public void functionParameterCalledFromOtherModuleViaStar()
+			throws Throwable {
+		String testName = "function_parameter_called_from_other_module_via_star";
+		ScopedPrintNode node = findPrintNode(testName, "what_am_i");
+		Result<Type> type = engine.typeOf(node.site());
+
+		Set<Type> expectedType = new HashSet<Type>();
+		expectedType.add(stringType);
+		expectedType.add(integerType);
+
+		assertEquals("Function parameter's type not inferred "
+				+ "correctly. This probably means that the analysis didn't "
+				+ "realise the function is imported into another "
+				+ "module via a starred importe and called from there "
+				+ "with a different type of parameter.", expectedType, type);
+	}
+
+	@Test
 	public void functionParameterCalledFromOtherModuleThroughCall()
 			throws Throwable {
 		String testName = "function_parameter_called_from_other_module_through_call";
