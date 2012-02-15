@@ -9,6 +9,7 @@ import org.python.pydev.parser.jython.ast.exprType;
 
 import uk.ac.ic.doc.gander.cfg.Cfg;
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
+import uk.ac.ic.doc.gander.flowinference.flowgoals.TopF;
 import uk.ac.ic.doc.gander.flowinference.result.Result;
 import uk.ac.ic.doc.gander.flowinference.typegoals.TopT;
 import uk.ac.ic.doc.gander.importing.Import;
@@ -63,6 +64,11 @@ public class TUnresolvedImport implements TCodeObject {
 	 */
 	public Namespace memberWriteableNamespace() {
 		return dummyNamespace();
+	}
+
+	@Override
+	public String toString() {
+		return "TUnresolvedImport [importInstance=" + importInstance + "]";
 	}
 
 	private Namespace dummyNamespace() {
@@ -135,16 +141,16 @@ public class TUnresolvedImport implements TCodeObject {
 
 			public Result<ModelSite<exprType>> references(
 					SubgoalManager goalManager) {
-				return null;
+				return TopF.INSTANCE;
 			}
 
 			public Result<ModelSite<exprType>> writeableReferences(
 					SubgoalManager goalManager) {
-				return null;
+				return TopF.INSTANCE;
 			}
 
 			public Set<Variable> variablesInScope(String name) {
-				return null;
+				return Collections.emptySet();
 			}
 
 			public Set<Variable> variablesWriteableInScope(String name) {

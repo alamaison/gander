@@ -10,6 +10,7 @@ import uk.ac.ic.doc.gander.flowinference.ArgumentPassage;
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
 import uk.ac.ic.doc.gander.flowinference.flowgoals.FlowPosition;
 import uk.ac.ic.doc.gander.flowinference.flowgoals.TopFp;
+import uk.ac.ic.doc.gander.flowinference.result.FiniteResult;
 import uk.ac.ic.doc.gander.flowinference.result.RedundancyEliminator;
 import uk.ac.ic.doc.gander.flowinference.result.Result;
 import uk.ac.ic.doc.gander.flowinference.result.Result.Transformer;
@@ -88,7 +89,9 @@ final class CallArgumentSituation implements FlowSituation {
 			 * XXX: just because the analysis thinks this might be happening,
 			 * doesn't mean that it will. Code might be correct in practice.
 			 */
-			throw new RuntimeException("Can't call non-callable code object");
+			System.err
+					.println("UNTYPABLE: Can't call non-callable code object");
+			return FiniteResult.bottom();
 		}
 	}
 

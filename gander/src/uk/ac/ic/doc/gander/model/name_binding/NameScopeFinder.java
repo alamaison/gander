@@ -37,7 +37,10 @@ public final class NameScopeFinder {
 
 	private final Set<ModelSite<Name>> nameBindings = new HashSet<ModelSite<Name>>();
 
-	public NameScopeFinder(final NamespaceName name) {
+	public NameScopeFinder(NamespaceName name) {
+		if (name == null) {
+			throw new NullPointerException("Namespace name required");
+		}
 
 		/*
 		 * Name bindings will only ever appear in or below the namespace they

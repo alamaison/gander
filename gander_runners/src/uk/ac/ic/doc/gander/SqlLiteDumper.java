@@ -2,6 +2,7 @@ package uk.ac.ic.doc.gander;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Set;
@@ -26,6 +27,9 @@ final class SqlLiteDumper implements ResultObserver {
 		Class.forName("org.sqlite.JDBC");
 
 		connection = DriverManager.getConnection("jdbc:sqlite:diffresults.db");
+		if (connection == null) {
+			throw new RuntimeException("No connection");
+		}
 
 		try {
 			Statement statement = connection.createStatement();
@@ -34,12 +38,7 @@ final class SqlLiteDumper implements ResultObserver {
 			readyCallsitesTable(statement);
 			readyResultsTables(statement);
 		} catch (SQLException e) {
-			try {
-				connection.close();
-			} catch (SQLException e2) {
-				// connection close failed.
-				System.err.println(e2);
-			}
+			connection.close();
 			throw e;
 		}
 
@@ -48,22 +47,18 @@ final class SqlLiteDumper implements ResultObserver {
 	public void resultReady(DiffResult result) {
 
 		try {
-			Statement statement = connection.createStatement();
-			statement.setQueryTimeout(30); // set timeout to 30 sec.
-
-			insertCallsite(result.callSite(), statement);
-			insertResult(result, statement);
+			insertCallsite(result.callSite());
+			insertResult(result);
 		} catch (SQLException e) {
 			System.err.println(e.getMessage());
 		}
 	}
 
-	private void insertResult(final DiffResult result, final Statement statement)
-			throws SQLException {
+	private void insertResult(final DiffResult result) throws SQLException {
 
 		/* Duck types */
 		for (Type type : result.duckType()) {
-			insertDuckType(result, statement, type);
+			insertDuckType(result, type);
 		}
 
 		/* Flow types */
@@ -72,9 +67,12 @@ final class SqlLiteDumper implements ResultObserver {
 			public void processInfiniteResult() {
 
 				try {
-					statement.executeUpdate("insert into "
-							+ flowResultsTableName + " values("
-							+ escape(result.callSite()) + ", NULL)");
+					PreparedStatement statement = connection
+							.prepareStatement("insert into "
+									+ flowResultsTableName
+									+ " values(?, NULL);");
+					statement.setString(1, result.callSite().toString());
+					statement.execute();
 				} catch (SQLException e) {
 					throw new RuntimeException(e);
 				}
@@ -84,7 +82,7 @@ final class SqlLiteDumper implements ResultObserver {
 				for (Type type : flowTypes) {
 
 					try {
-						insertFlowType(result, statement, type);
+						insertFlowType(result, type);
 					} catch (SQLException e) {
 						throw new RuntimeException(e);
 					}
@@ -93,33 +91,35 @@ final class SqlLiteDumper implements ResultObserver {
 		});
 	}
 
-	private void insertDuckType(DiffResult result, Statement statement,
-			Type type) throws SQLException {
-		insertTypeInto(duckResultsTableName, result, statement, type);
-	}
-
-	private void insertFlowType(DiffResult result, Statement statement,
-			Type type) throws SQLException {
-		insertTypeInto(flowResultsTableName, result, statement, type);
-	}
-
-	private void insertTypeInto(String tableName, DiffResult result,
-			Statement statement, Type type) throws SQLException {
-		statement.executeUpdate("insert into " + tableName + " values("
-				+ escape(result.callSite()) + ", " + escape(type) + ")");
-	}
-
-	private void insertCallsite(CallSite callSite, Statement statement)
+	private void insertDuckType(DiffResult result, Type type)
 			throws SQLException {
-		statement.executeUpdate("insert into " + callSitesTableName
-				+ " values(" + escape(callSite) + ", "
-				+ escape(callSite.getCall()) + ", "
-				+ escape(callSite.getScope()) + ", "
-				+ escape(callSite.getBlock()) + ")");
+		insertTypeInto(duckResultsTableName, result, type);
 	}
 
-	private <T> String escape(T string) {
-		return "'" + string + "'";
+	private void insertFlowType(DiffResult result, Type type)
+			throws SQLException {
+		insertTypeInto(flowResultsTableName, result, type);
+	}
+
+	private void insertTypeInto(String tableName, DiffResult result, Type type)
+			throws SQLException {
+		PreparedStatement statement = connection
+				.prepareStatement("insert into " + tableName + " values(?, ?);");
+		statement.setString(1, result.callSite().toString());
+		statement.setString(2, type.toString());
+		statement.execute();
+	}
+
+	private void insertCallsite(CallSite callSite) throws SQLException {
+		assert connection != null;
+		PreparedStatement statement = connection
+				.prepareStatement("insert into " + callSitesTableName
+						+ " values(?, ?, ?, ?);");
+		statement.setString(1, callSite.toString());
+		statement.setString(2, callSite.getCall().toString());
+		statement.setString(3, callSite.getScope().toString());
+		statement.setString(4, callSite.getBlock().toString());
+		statement.execute();
 	}
 
 	private void readyCallsitesTable(Statement statement) throws SQLException {

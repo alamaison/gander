@@ -192,6 +192,9 @@ final class NamespaceNameFlowStepGoalSolver {
 
 	public NamespaceNameFlowStepGoalSolver(SubgoalManager goalManager,
 			NamespaceName name) {
+		assert goalManager != null;
+		assert name != null;
+
 		this.goalManager = goalManager;
 		this.namespaceName = name;
 
@@ -530,8 +533,8 @@ final class NamespaceNameFlowStepGoalSolver {
 			}
 
 			public void onUnresolvedImport(
-					Import<CodeObject, ModuleCO> importInstance,
-					String name, ModuleCO receivingModule) {
+					Import<CodeObject, ModuleCO> importInstance, String name,
+					ModuleCO receivingModule) {
 				/*
 				 * WARNING: We pretend that unresolved imports don't matter
 				 * because they would swamp our results with Top. All flow
@@ -541,8 +544,7 @@ final class NamespaceNameFlowStepGoalSolver {
 			}
 
 			public void onUnresolvedLocalImport(
-					Import<CodeObject, ModuleCO> importInstance,
-					String name) {
+					Import<CodeObject, ModuleCO> importInstance, String name) {
 				/*
 				 * WARNING: We pretend that unresolved imports don't matter
 				 * because they would swamp our results with Top. All flow

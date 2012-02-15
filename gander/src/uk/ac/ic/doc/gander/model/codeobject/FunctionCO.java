@@ -238,8 +238,7 @@ final class FunctionObjectNamespace implements Namespace {
 	}
 
 	public Set<Variable> variablesInScope(String name) {
-		// TODO Auto-generated method stub
-		return null;
+		return Collections.emptySet();
 	}
 
 	public Set<Variable> variablesWriteableInScope(String name) {
