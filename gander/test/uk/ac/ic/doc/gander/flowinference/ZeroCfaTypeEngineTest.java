@@ -1878,6 +1878,18 @@ public class ZeroCfaTypeEngineTest {
 				+ "argument.", expectedType, type);
 	}
 
+	@Test
+	public void unresolvedImport() throws Throwable {
+		TestModule test = newTestModule("unresolved_import");
+
+		Result<Type> type = engine.typeOf(test.printNode("what_am_i").site());
+		Set<Type> expectedType = typeJudgement(new TClass(
+				test.moduleLevelClass("A")));
+
+		assertEquals("The unresolved import has affected the typing of "
+				+ "unrelated symbols.", expectedType, type);
+	}
+
 	private ScopedAstNode findNode(String moduleName, String tag)
 			throws Exception {
 		return new TaggedNodeAndScopeFinder(model.loadModule(moduleName)

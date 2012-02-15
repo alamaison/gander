@@ -110,8 +110,11 @@ final class ImportTypeMapper {
 		@Override
 		public void onUnresolvedLocalImport(
 				Import<CodeObject, ModuleCO> importInstance, String name) {
-			partialVariableType.add(new FiniteResult<Type>(Collections
-					.singleton(new TUnresolvedImport(importInstance))));
+
+			if (name.equals(variable.name())) {
+				partialVariableType.add(new FiniteResult<Type>(Collections
+						.singleton(new TUnresolvedImport(importInstance))));
+			}
 		}
 	}
 }
