@@ -281,7 +281,8 @@ class object:
         pass
     
     def __repr__(self):
-        return repr(self)
+        #return repr(self)
+        return "Bob I look like this ... naked"
     
     def __setattr__(self, name, value):
         self.__dict__[name] = value
@@ -290,7 +291,8 @@ class object:
         return 42
     
     def __str__(self):
-        return str(self)
+        #return str(self)
+        return "Bob I look like this"
     
     # __subclasshook__ not in pypy
     
@@ -320,6 +322,9 @@ class basestring(object):
     pass
 
 class str(basestring):
+    def __init__(*args):
+        pass
+    
     def __add__(self, x):
         self.data = self.data + x
     
