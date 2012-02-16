@@ -18,7 +18,7 @@ import uk.ac.ic.doc.gander.flowinference.typegoals.ExpressionTypeGoal;
 import uk.ac.ic.doc.gander.flowinference.typegoals.NamespaceNameTypeGoal;
 import uk.ac.ic.doc.gander.flowinference.typegoals.TopT;
 import uk.ac.ic.doc.gander.model.ModelSite;
-import uk.ac.ic.doc.gander.model.Namespace;
+import uk.ac.ic.doc.gander.model.OldNamespace;
 import uk.ac.ic.doc.gander.model.NamespaceName;
 import uk.ac.ic.doc.gander.model.codeobject.FormalParameter;
 import uk.ac.ic.doc.gander.model.codeobject.FunctionCO;
@@ -73,8 +73,8 @@ public final class TBoundMethod implements TCallable {
 	 * Reading a member from a methods delegates the lookup to the wrapped
 	 * unbound function object.
 	 */
-	public Set<Namespace> memberReadableNamespaces() {
-		return Collections.<Namespace> singleton(unboundMethod
+	public Set<OldNamespace> memberReadableNamespaces() {
+		return Collections.<OldNamespace> singleton(unboundMethod
 				.fullyQualifiedNamespace());
 	}
 
@@ -85,7 +85,7 @@ public final class TBoundMethod implements TCallable {
 	 * that member was readable (by delegating to the unbound method @see
 	 * memberReadableNamespaces). It throws an {@code AttributeError}.
 	 */
-	public Namespace memberWriteableNamespace() {
+	public OldNamespace memberWriteableNamespace() {
 		return null;
 	}
 

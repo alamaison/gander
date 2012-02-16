@@ -13,7 +13,7 @@ import uk.ac.ic.doc.gander.model.name_binding.Variable;
 public final class NamespaceName {
 
 	private final String name;
-	private final Namespace namespace;
+	private final OldNamespace namespace;
 
 	/**
 	 * Constructs new representation of a name in a namespace.
@@ -24,7 +24,7 @@ public final class NamespaceName {
 	 *            the namespace in which the name acts as a key to map to
 	 *            objects
 	 */
-	public NamespaceName(String name, Namespace namespace) {
+	public NamespaceName(String name, OldNamespace namespace) {
 		if (name == null)
 			throw new NullPointerException(
 					"Names in a namespace must actually exits");
@@ -32,7 +32,7 @@ public final class NamespaceName {
 			throw new IllegalArgumentException("Names must have characters");
 		if (namespace == null)
 			throw new NullPointerException(
-					"Namespace names need a namespace to hold them");
+					"OldNamespace names need a namespace to hold them");
 
 		this.name = name;
 		this.namespace = namespace;
@@ -53,7 +53,7 @@ public final class NamespaceName {
 		return name;
 	}
 
-	public Namespace namespace() {
+	public OldNamespace namespace() {
 		return namespace;
 	}
 

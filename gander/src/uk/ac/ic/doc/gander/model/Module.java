@@ -5,7 +5,7 @@ import java.util.Map;
 
 import uk.ac.ic.doc.gander.model.codeobject.ModuleCO;
 
-public interface Module extends Namespace {
+public interface Module extends OldNamespace {
 
 	@Deprecated
 	Map<String, Class> getClasses();

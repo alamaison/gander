@@ -43,7 +43,7 @@ import uk.ac.ic.doc.gander.flowinference.types.TObject;
 import uk.ac.ic.doc.gander.flowinference.types.Type;
 import uk.ac.ic.doc.gander.model.Model;
 import uk.ac.ic.doc.gander.model.ModelSite;
-import uk.ac.ic.doc.gander.model.Namespace;
+import uk.ac.ic.doc.gander.model.OldNamespace;
 import uk.ac.ic.doc.gander.model.name_binding.Variable;
 
 public final class ExpressionTypeGoal implements TypeGoal {
@@ -87,7 +87,7 @@ public final class ExpressionTypeGoal implements TypeGoal {
 		private final TopT topType;
 		private final SubgoalManager goalManager;
 
-		public TypeFinder(Namespace scope, SubgoalManager goalManager) {
+		public TypeFinder(OldNamespace scope, SubgoalManager goalManager) {
 			this.goalManager = goalManager;
 			Model model = scope.model();
 			dictType = new FiniteResult<Type>(Collections

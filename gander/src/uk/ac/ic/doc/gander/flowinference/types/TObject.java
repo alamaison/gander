@@ -12,7 +12,7 @@ import uk.ac.ic.doc.gander.flowinference.result.Result.Transformer;
 import uk.ac.ic.doc.gander.flowinference.typegoals.NamespaceNameTypeGoal;
 import uk.ac.ic.doc.gander.flowinference.typegoals.TopT;
 import uk.ac.ic.doc.gander.model.Class;
-import uk.ac.ic.doc.gander.model.Namespace;
+import uk.ac.ic.doc.gander.model.OldNamespace;
 import uk.ac.ic.doc.gander.model.NamespaceName;
 import uk.ac.ic.doc.gander.model.ObjectInstanceNamespace;
 import uk.ac.ic.doc.gander.model.codeobject.ClassCO;
@@ -81,7 +81,7 @@ public class TObject implements Type {
 	}
 
 	private Result<Type> memberTypeFromNamespace(String memberName,
-			Namespace namespace, SubgoalManager goalManager) {
+			OldNamespace namespace, SubgoalManager goalManager) {
 		NamespaceName member = new NamespaceName(memberName, namespace);
 		return goalManager.registerSubgoal(new NamespaceNameTypeGoal(member));
 	}
@@ -118,8 +118,8 @@ public class TObject implements Type {
 	 * Object instances are summarised using their class's namespace so a member
 	 * in once instance will affect all instances.
 	 */
-	public Set<Namespace> memberReadableNamespaces() {
-		return Collections.<Namespace> singleton(classObject
+	public Set<OldNamespace> memberReadableNamespaces() {
+		return Collections.<OldNamespace> singleton(classObject
 				.fullyQualifiedNamespace());
 	}
 
@@ -129,7 +129,7 @@ public class TObject implements Type {
 	 * Object instances are summarised using their class's namespace so a member
 	 * in once instance will affect all instances.
 	 */
-	public Namespace memberWriteableNamespace() {
+	public OldNamespace memberWriteableNamespace() {
 		return classObject.fullyQualifiedNamespace();
 	}
 

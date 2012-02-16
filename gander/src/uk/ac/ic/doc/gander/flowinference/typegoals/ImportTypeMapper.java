@@ -12,7 +12,7 @@ import uk.ac.ic.doc.gander.flowinference.types.Type;
 import uk.ac.ic.doc.gander.importing.Import;
 import uk.ac.ic.doc.gander.importing.ImportSimulator;
 import uk.ac.ic.doc.gander.importing.ImportSimulator.Binder;
-import uk.ac.ic.doc.gander.model.Namespace;
+import uk.ac.ic.doc.gander.model.OldNamespace;
 import uk.ac.ic.doc.gander.model.NamespaceName;
 import uk.ac.ic.doc.gander.model.NamespaceNameLoader;
 import uk.ac.ic.doc.gander.model.codeobject.CodeObject;
@@ -31,7 +31,7 @@ final class ImportTypeMapper {
 			Import<CodeObject, ModuleCO> importInstance) {
 		LocalTypeBinder typingBinder = new LocalTypeBinder(variable);
 
-		ImportSimulator<NamespaceName, Namespace, CodeObject, ModuleCO> simulator = ImportSimulator
+		ImportSimulator<NamespaceName, OldNamespace, CodeObject, ModuleCO> simulator = ImportSimulator
 				.newInstance(typingBinder,
 						new NamespaceNameLoader(variable.model()));
 		simulator.simulateImport(importInstance);
@@ -40,7 +40,7 @@ final class ImportTypeMapper {
 	}
 
 	private final class LocalTypeBinder implements
-			Binder<NamespaceName, Namespace, CodeObject, ModuleCO> {
+			Binder<NamespaceName, OldNamespace, CodeObject, ModuleCO> {
 
 		private final Variable variable;
 		private final RedundancyEliminator<Type> partialVariableType = new RedundancyEliminator<Type>();
@@ -89,7 +89,7 @@ final class ImportTypeMapper {
 		}
 
 		@Override
-		public void bindAllNamespaceMembers(Namespace allMembers,
+		public void bindAllNamespaceMembers(OldNamespace allMembers,
 				CodeObject container) {
 			assert container.equals(variable.codeObject());
 

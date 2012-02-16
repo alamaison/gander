@@ -159,7 +159,7 @@ public final class ModuleNamespace implements Module {
 		return parent;
 	}
 
-	public Namespace getParentScope() {
+	public OldNamespace getParentScope() {
 		return getParent();
 	}
 

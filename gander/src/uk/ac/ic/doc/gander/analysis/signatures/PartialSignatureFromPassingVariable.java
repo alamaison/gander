@@ -19,7 +19,7 @@ import uk.ac.ic.doc.gander.cfg.BasicBlock;
 import uk.ac.ic.doc.gander.cfg.Cfg;
 import uk.ac.ic.doc.gander.flowinference.TypeResolver;
 import uk.ac.ic.doc.gander.model.Function;
-import uk.ac.ic.doc.gander.model.Namespace;
+import uk.ac.ic.doc.gander.model.OldNamespace;
 
 /**
  * Given a variable name, return the part of its signature that is derived from
@@ -31,7 +31,7 @@ import uk.ac.ic.doc.gander.model.Namespace;
  */
 final class PartialSignatureFromPassingVariable {
 
-	private Stack<Namespace> enclosingScopes = new Stack<Namespace>();
+	private Stack<OldNamespace> enclosingScopes = new Stack<OldNamespace>();
 
 	/**
 	 * Return the signature produced by passing the given variable as a
@@ -65,7 +65,7 @@ final class PartialSignatureFromPassingVariable {
 	 * @return Partial signature of 'uses' as a set of method calls.
 	 */
 	Set<Call> buildSignature(String variable,
-			Iterable<BasicBlock> blocksToSearch, Namespace enclosingScope,
+			Iterable<BasicBlock> blocksToSearch, OldNamespace enclosingScope,
 			TypeResolver resolver) {
 		enclosingScopes.push(enclosingScope);
 
@@ -127,7 +127,7 @@ final class PartialSignatureFromPassingVariable {
 	}
 
 	private static Function resolveFunction(TypeResolver resolver,
-			Namespace enclosingScope, Call call) {
+			OldNamespace enclosingScope, Call call) {
 		Function function = new FunctionResolver(call, enclosingScope, resolver)
 				.getFunction();
 

@@ -28,7 +28,7 @@ public abstract class ModelCodeBlockWalker {
 	/**
 	 * Triggered on encountering a model code-block element.
 	 * 
-	 * TODO: Namespace should eventually become CodeBlock.
+	 * TODO: OldNamespace should eventually become CodeBlock.
 	 */
-	protected abstract void visitCodeBlock(Namespace codeBlock);
+	protected abstract void visitCodeBlock(OldNamespace codeBlock);
 }

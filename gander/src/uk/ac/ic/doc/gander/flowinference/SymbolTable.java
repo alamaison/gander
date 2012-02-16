@@ -23,7 +23,7 @@ import uk.ac.ic.doc.gander.model.Class;
 import uk.ac.ic.doc.gander.model.Function;
 import uk.ac.ic.doc.gander.model.Model;
 import uk.ac.ic.doc.gander.model.Module;
-import uk.ac.ic.doc.gander.model.Namespace;
+import uk.ac.ic.doc.gander.model.OldNamespace;
 import uk.ac.ic.doc.gander.model.NamespaceName;
 import uk.ac.ic.doc.gander.model.NamespaceNameLoader;
 import uk.ac.ic.doc.gander.model.codeobject.CodeObject;
@@ -31,7 +31,7 @@ import uk.ac.ic.doc.gander.model.codeobject.ModuleCO;
 
 public class SymbolTable {
 
-	private Map<Namespace, Map<String, Type>> symbols = new HashMap<Namespace, Map<String, Type>>();
+	private Map<OldNamespace, Map<String, Type>> symbols = new HashMap<OldNamespace, Map<String, Type>>();
 
 	private Model model;
 
@@ -40,7 +40,7 @@ public class SymbolTable {
 		processScope(model.getTopLevel());
 	}
 
-	public Map<String, Type> symbols(Namespace scope) {
+	public Map<String, Type> symbols(OldNamespace scope) {
 		Map<String, Type> bindings = symbols.get(scope);
 		if (bindings == null)
 			bindings = Collections.emptyMap();
@@ -50,9 +50,9 @@ public class SymbolTable {
 
 	private final class SymbolTableAstVisitor extends VisitorBase {
 
-		private Namespace currentScope;
+		private OldNamespace currentScope;
 
-		SymbolTableAstVisitor(SimpleNode ast, Namespace currentScope) {
+		SymbolTableAstVisitor(SimpleNode ast, OldNamespace currentScope) {
 			this.currentScope = currentScope;
 			try {
 				ast.traverse(this);
@@ -130,7 +130,7 @@ public class SymbolTable {
 	private class ImportSymbols {
 		private CodeObject currentScope;
 
-		ImportSymbols(Namespace currentScope) {
+		ImportSymbols(OldNamespace currentScope) {
 			this.currentScope = currentScope.codeObject();
 		}
 
@@ -192,7 +192,7 @@ public class SymbolTable {
 		}
 	}
 
-	private ImportSimulator<NamespaceName, Namespace, CodeObject, ModuleCO> simulator() {
+	private ImportSimulator<NamespaceName, OldNamespace, CodeObject, ModuleCO> simulator() {
 
 		return ImportSimulator.newInstance(new ImportedNameTypeWatcher(
 				new ImportTypeEvent() {
@@ -209,7 +209,7 @@ public class SymbolTable {
 				}), new NamespaceNameLoader(model));
 	}
 
-	private void processScope(Namespace scope) {
+	private void processScope(OldNamespace scope) {
 		new SymbolTableAstVisitor(scope.getAst(), scope);
 
 		for (Module pkg : scope.getModules().values()) {
@@ -241,7 +241,7 @@ public class SymbolTable {
 		}
 	}
 
-	private void put(Namespace scope, String name, Type type) {
+	private void put(OldNamespace scope, String name, Type type) {
 		assert type != null;
 
 		Map<String, Type> scopeMapping = symbols.get(scope);

@@ -20,7 +20,7 @@ public class ModelSite<T extends SimpleNode> {
 	}
 
 	@Deprecated
-	public Namespace namespace() {
+	public OldNamespace namespace() {
 		return codeObject.model().intrinsicNamespace(codeObject);
 	}
 

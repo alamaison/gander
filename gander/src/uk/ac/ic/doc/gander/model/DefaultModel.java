@@ -162,7 +162,7 @@ public class DefaultModel implements MutableModel {
 	 * Eventually this will do something more clever once we have properly
 	 * separated code objects and namespaces.
 	 */
-	public Namespace intrinsicNamespace(CodeObject codeObject) {
+	public OldNamespace intrinsicNamespace(CodeObject codeObject) {
 		return codeObject.oldStyleConflatedNamespace();
 	}
 }

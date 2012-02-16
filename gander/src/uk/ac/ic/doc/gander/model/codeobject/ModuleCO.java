@@ -9,7 +9,7 @@ import org.python.pydev.parser.jython.ast.stmtType;
 import uk.ac.ic.doc.gander.model.Model;
 import uk.ac.ic.doc.gander.model.ModelSite;
 import uk.ac.ic.doc.gander.model.Module;
-import uk.ac.ic.doc.gander.model.Namespace;
+import uk.ac.ic.doc.gander.model.OldNamespace;
 import uk.ac.ic.doc.gander.model.codeblock.CodeBlock;
 import uk.ac.ic.doc.gander.model.codeblock.DefaultCodeBlock;
 import uk.ac.ic.doc.gander.model.codeblock.DefaultCodeBlock.Acceptor;
@@ -103,7 +103,7 @@ public final class ModuleCO implements NamedCodeObject {
 	 * namespace.
 	 */
 	@Deprecated
-	public Namespace fullyQualifiedNamespace() {
+	public OldNamespace fullyQualifiedNamespace() {
 		return oldStyleConflatedNamespace();
 	}
 
@@ -114,7 +114,7 @@ public final class ModuleCO implements NamedCodeObject {
 	 * namespace.
 	 */
 	@Deprecated
-	public Namespace unqualifiedNamespace() {
+	public OldNamespace unqualifiedNamespace() {
 		return oldStyleConflatedNamespace();
 	}
 

@@ -18,6 +18,6 @@ public interface Model {
 	@Deprecated
 	public abstract Module lookup(List<String> importNameTokens);
 
-	public abstract Namespace intrinsicNamespace(CodeObject codeObject);
+	public abstract OldNamespace intrinsicNamespace(CodeObject codeObject);
 
 }

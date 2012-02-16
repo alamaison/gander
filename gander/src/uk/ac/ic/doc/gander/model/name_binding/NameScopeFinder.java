@@ -39,7 +39,7 @@ public final class NameScopeFinder {
 
 	public NameScopeFinder(NamespaceName name) {
 		if (name == null) {
-			throw new NullPointerException("Namespace name required");
+			throw new NullPointerException("OldNamespace name required");
 		}
 
 		/*

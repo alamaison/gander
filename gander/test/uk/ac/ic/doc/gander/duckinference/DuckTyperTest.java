@@ -22,7 +22,7 @@ import uk.ac.ic.doc.gander.model.Function;
 import uk.ac.ic.doc.gander.model.Module;
 import uk.ac.ic.doc.gander.model.DefaultModel;
 import uk.ac.ic.doc.gander.model.MutableModel;
-import uk.ac.ic.doc.gander.model.Namespace;
+import uk.ac.ic.doc.gander.model.OldNamespace;
 
 public class DuckTyperTest {
 
@@ -157,7 +157,7 @@ public class DuckTyperTest {
 	}
 
 
-	private void assertInference(String tag, Namespace scope, Type... expected)
+	private void assertInference(String tag, OldNamespace scope, Type... expected)
 			throws Exception {
 		Set<Type> type = typeOf(tag, (Function) scope);
 

@@ -17,7 +17,7 @@ import uk.ac.ic.doc.gander.flowinference.result.Result.Transformer;
 import uk.ac.ic.doc.gander.flowinference.typegoals.ExpressionTypeGoal;
 import uk.ac.ic.doc.gander.flowinference.types.Type;
 import uk.ac.ic.doc.gander.model.ModelSite;
-import uk.ac.ic.doc.gander.model.Namespace;
+import uk.ac.ic.doc.gander.model.OldNamespace;
 import uk.ac.ic.doc.gander.model.NamespaceName;
 
 final class AttributeSituation implements FlowSituation {
@@ -58,7 +58,7 @@ final class AttributeSituation implements FlowSituation {
 							 * Or is there some way that a read-only namespace
 							 * can flow here?
 							 */
-							for (Namespace namespace : object
+							for (OldNamespace namespace : object
 									.memberReadableNamespaces()) {
 								NamespaceName name = new NamespaceName(
 										((NameTok) attribute.astNode().attr).id,

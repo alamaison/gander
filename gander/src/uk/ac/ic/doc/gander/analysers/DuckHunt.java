@@ -22,7 +22,7 @@ import uk.ac.ic.doc.gander.model.Function;
 import uk.ac.ic.doc.gander.model.ModelWalker;
 import uk.ac.ic.doc.gander.model.DefaultModel;
 import uk.ac.ic.doc.gander.model.MutableModel;
-import uk.ac.ic.doc.gander.model.Namespace;
+import uk.ac.ic.doc.gander.model.OldNamespace;
 
 public class DuckHunt {
 
@@ -93,7 +93,7 @@ public class DuckHunt {
 	}
 
 	private Set<String> calculateDependentMethodNames(Call call,
-			BasicBlock containingBlock, Namespace scope) {
+			BasicBlock containingBlock, OldNamespace scope) {
 
 		Set<Call> dependentCalls = new CallTargetSignatureBuilder()
 				.signatureOfTarget(call, containingBlock, scope, typer);

@@ -14,11 +14,11 @@ import uk.ac.ic.doc.gander.flowinference.types.TUnresolvedImport;
 import uk.ac.ic.doc.gander.flowinference.types.Type;
 import uk.ac.ic.doc.gander.model.Class;
 import uk.ac.ic.doc.gander.model.Function;
-import uk.ac.ic.doc.gander.model.Namespace;
+import uk.ac.ic.doc.gander.model.OldNamespace;
 
 public class CallHelper {
 
-	public static boolean isMethodCall(Call call, Namespace scope,
+	public static boolean isMethodCall(Call call, OldNamespace scope,
 			TypeResolver typer) {
 		// Method calls are always indirect, dereferencing (at least) 'self'
 		if (!isIndirectCall(call))
@@ -34,7 +34,7 @@ public class CallHelper {
 		return !(callTarget instanceof TModule || callTarget instanceof TUnresolvedImport);
 	}
 
-	public static boolean isMethodCallOnName(Call call, Namespace scope,
+	public static boolean isMethodCallOnName(Call call, OldNamespace scope,
 			TypeResolver typer) {
 		return isMethodCall(call, scope, typer)
 				&& indirectCallTarget(call) instanceof Name;
@@ -159,7 +159,7 @@ public class CallHelper {
 		return indirectCallName(call).equals("__init__");
 	}
 
-	public static boolean isConstructorCall(Call call, Namespace scope,
+	public static boolean isConstructorCall(Call call, OldNamespace scope,
 			TypeResolver typer) {
 		if (isExplicitInitCall(call))
 			return true;

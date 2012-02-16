@@ -9,7 +9,7 @@ import org.python.pydev.parser.jython.ast.exprType;
 import uk.ac.ic.doc.gander.model.ModelSite;
 import uk.ac.ic.doc.gander.model.Module;
 import uk.ac.ic.doc.gander.model.MutableModel;
-import uk.ac.ic.doc.gander.model.Namespace;
+import uk.ac.ic.doc.gander.model.OldNamespace;
 import uk.ac.ic.doc.gander.model.codeobject.CodeObject;
 import uk.ac.ic.doc.gander.model.codeobject.ModuleCO;
 
@@ -31,7 +31,7 @@ public final class ScopedPrintNode {
 		return node.getScope();
 	}
 
-	public Namespace getGlobalNamespace() {
+	public OldNamespace getGlobalNamespace() {
 		return module;
 	}
 

@@ -7,7 +7,7 @@ import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
 import uk.ac.ic.doc.gander.flowinference.result.Result;
 import uk.ac.ic.doc.gander.flowinference.typegoals.NamespaceNameTypeGoal;
 import uk.ac.ic.doc.gander.model.Module;
-import uk.ac.ic.doc.gander.model.Namespace;
+import uk.ac.ic.doc.gander.model.OldNamespace;
 import uk.ac.ic.doc.gander.model.NamespaceName;
 import uk.ac.ic.doc.gander.model.codeobject.ModuleCO;
 
@@ -57,15 +57,15 @@ public class TModule implements TCodeObject {
 	/**
 	 * {@inheritDoc}
 	 */
-	public Set<Namespace> memberReadableNamespaces() {
-		return Collections.<Namespace> singleton(moduleObject
+	public Set<OldNamespace> memberReadableNamespaces() {
+		return Collections.<OldNamespace> singleton(moduleObject
 				.fullyQualifiedNamespace());
 	}
 
 	/**
 	 * {@inheritDoc}
 	 */
-	public Namespace memberWriteableNamespace() {
+	public OldNamespace memberWriteableNamespace() {
 		return moduleObject.fullyQualifiedNamespace();
 	}
 

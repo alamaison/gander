@@ -3,7 +3,7 @@ package uk.ac.ic.doc.gander.model.codeobject;
 import org.python.pydev.parser.jython.SimpleNode;
 
 import uk.ac.ic.doc.gander.model.Model;
-import uk.ac.ic.doc.gander.model.Namespace;
+import uk.ac.ic.doc.gander.model.OldNamespace;
 import uk.ac.ic.doc.gander.model.codeblock.CodeBlock;
 
 public interface CodeObject {
@@ -62,20 +62,20 @@ public interface CodeObject {
 	 * block's scope. For instance, variables in a function definition are not
 	 * accessible outside the function code object.
 	 */
-	public Namespace fullyQualifiedNamespace();
+	public OldNamespace fullyQualifiedNamespace();
 
 	/**
 	 * Returns that namespace that is use when this object is accessed via an
 	 * unqualified reference (i.e. directly via a variable in the code object's
 	 * scope).
 	 */
-	public Namespace unqualifiedNamespace();
+	public OldNamespace unqualifiedNamespace();
 
 	/**
 	 * Temporary hack to get at the namespace.
 	 */
 	@Deprecated
-	Namespace oldStyleConflatedNamespace();
+	OldNamespace oldStyleConflatedNamespace();
 
 	/**
 	 * Do variables in nested code objects consider this code object's namespace

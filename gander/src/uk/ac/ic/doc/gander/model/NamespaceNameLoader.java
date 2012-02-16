@@ -16,7 +16,7 @@ import uk.ac.ic.doc.gander.model.codeobject.ModuleCO;
  * what it is.
  */
 public final class NamespaceNameLoader implements
-		Loader<NamespaceName, Namespace, ModuleCO> {
+		Loader<NamespaceName, OldNamespace, ModuleCO> {
 
 	private final Model model;
 
@@ -53,7 +53,7 @@ public final class NamespaceNameLoader implements
 	}
 
 	@Override
-	public Namespace loadAllMembersInModuleNamespace(ModuleCO sourceModule) {
+	public OldNamespace loadAllMembersInModuleNamespace(ModuleCO sourceModule) {
 		return sourceModule.fullyQualifiedNamespace();
 	}
 }

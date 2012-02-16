@@ -24,7 +24,7 @@ import uk.ac.ic.doc.gander.model.DefaultModel;
 import uk.ac.ic.doc.gander.model.Function;
 import uk.ac.ic.doc.gander.model.Module;
 import uk.ac.ic.doc.gander.model.MutableModel;
-import uk.ac.ic.doc.gander.model.Namespace;
+import uk.ac.ic.doc.gander.model.OldNamespace;
 
 public class SymbolTableTest {
 
@@ -40,7 +40,7 @@ public class SymbolTableTest {
 		model = new DefaultModel(hierarchy);
 	}
 
-	private Map<String, Type> symbols(Namespace scope) throws Exception {
+	private Map<String, Type> symbols(OldNamespace scope) throws Exception {
 		return new SymbolTable(model).symbols(scope);
 	}
 

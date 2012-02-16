@@ -19,7 +19,7 @@ import uk.ac.ic.doc.gander.model.codeobject.FunctionCO;
 import uk.ac.ic.doc.gander.model.name_binding.InScopeVariableFinder;
 import uk.ac.ic.doc.gander.model.name_binding.Variable;
 
-public final class Function implements Namespace {
+public final class Function implements OldNamespace {
 
 	private final Map<String, Function> functions = new HashMap<String, Function>();
 	private final Map<String, Class> classes = new HashMap<String, Class>();
@@ -107,7 +107,7 @@ public final class Function implements Namespace {
 		return graph;
 	}
 
-	public Namespace getParentScope() {
+	public OldNamespace getParentScope() {
 		CodeObject codeObjectParent = codeObject.parent();
 		if (codeObjectParent != null) {
 			return codeObjectParent.oldStyleConflatedNamespace();

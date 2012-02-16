@@ -8,14 +8,14 @@ import org.python.pydev.parser.jython.ast.Module;
 import org.python.pydev.parser.jython.ast.NameTok;
 
 import uk.ac.ic.doc.gander.ast.ScopedAstVisitor;
-import uk.ac.ic.doc.gander.model.Namespace;
+import uk.ac.ic.doc.gander.model.OldNamespace;
 
 public class TaggedCallAndScopeFinder {
 	private String tag;
 	private Call call = null;
-	private Namespace scope;
+	private OldNamespace scope;
 
-	public TaggedCallAndScopeFinder(Namespace startingScope, String tag)
+	public TaggedCallAndScopeFinder(OldNamespace startingScope, String tag)
 			throws Exception {
 		this.tag = tag;
 		startingScope.getAst().accept(new TagFinder(startingScope));
@@ -25,13 +25,13 @@ public class TaggedCallAndScopeFinder {
 		return call;
 	}
 
-	public Namespace getCallScope() {
+	public OldNamespace getCallScope() {
 		return scope;
 	}
 
-	private class TagFinder extends ScopedAstVisitor<Namespace> {
+	private class TagFinder extends ScopedAstVisitor<OldNamespace> {
 
-		public TagFinder(Namespace startingScope) {
+		public TagFinder(OldNamespace startingScope) {
 			super(startingScope);
 		}
 
@@ -60,18 +60,18 @@ public class TaggedCallAndScopeFinder {
 		}
 
 		@Override
-		protected Namespace atScope(Module node) {
+		protected OldNamespace atScope(Module node) {
 			assert getScope().getAst() == node;
 			return getScope();
 		}
 
 		@Override
-		protected Namespace atScope(FunctionDef node) {
+		protected OldNamespace atScope(FunctionDef node) {
 			return getScope().getFunctions().get(((NameTok) node.name).id);
 		}
 
 		@Override
-		protected Namespace atScope(ClassDef node) {
+		protected OldNamespace atScope(ClassDef node) {
 			return getScope().getClasses().get(((NameTok) node.name).id);
 		}
 	}

@@ -24,7 +24,7 @@ import uk.ac.ic.doc.gander.model.Member;
 import uk.ac.ic.doc.gander.model.Model;
 import uk.ac.ic.doc.gander.model.ModelSite;
 import uk.ac.ic.doc.gander.model.Module;
-import uk.ac.ic.doc.gander.model.Namespace;
+import uk.ac.ic.doc.gander.model.OldNamespace;
 import uk.ac.ic.doc.gander.model.codeblock.CodeBlock;
 import uk.ac.ic.doc.gander.model.codeblock.DefaultCodeBlock;
 import uk.ac.ic.doc.gander.model.codeblock.DefaultCodeBlock.Acceptor;
@@ -131,7 +131,7 @@ public final class FunctionCO implements NamedCodeObject, NestedCodeObject,
 	 * Qualified references on a function object access a separate namespace
 	 * from the function body.
 	 */
-	public Namespace fullyQualifiedNamespace() {
+	public OldNamespace fullyQualifiedNamespace() {
 		return new FunctionObjectNamespace(this);
 	}
 
@@ -141,7 +141,7 @@ public final class FunctionCO implements NamedCodeObject, NestedCodeObject,
 	 * Unqualified references (variables) in a function body are separate from
 	 * the references on the function object.
 	 */
-	public Namespace unqualifiedNamespace() {
+	public OldNamespace unqualifiedNamespace() {
 		return oldStyleConflatedNamespace();
 	}
 
@@ -209,7 +209,7 @@ public final class FunctionCO implements NamedCodeObject, NestedCodeObject,
 
 }
 
-final class FunctionObjectNamespace implements Namespace {
+final class FunctionObjectNamespace implements OldNamespace {
 
 	private final FunctionCO codeObject;
 
@@ -255,11 +255,11 @@ final class FunctionObjectNamespace implements Namespace {
 
 	private static final String ERROR = "External function namespaces are currently non-functional";
 
-	public Namespace getParentScope() {
-		return new Namespace() {
+	public OldNamespace getParentScope() {
+		return new OldNamespace() {
 			
 			@Override
-			public Namespace getParentScope() {
+			public OldNamespace getParentScope() {
 				// TODO Auto-generated method stub
 				return null;
 			}

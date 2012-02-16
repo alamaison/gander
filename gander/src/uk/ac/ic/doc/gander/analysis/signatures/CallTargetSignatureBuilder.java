@@ -11,7 +11,7 @@ import org.python.pydev.parser.jython.ast.exprType;
 import uk.ac.ic.doc.gander.CallHelper;
 import uk.ac.ic.doc.gander.cfg.BasicBlock;
 import uk.ac.ic.doc.gander.flowinference.TypeResolver;
-import uk.ac.ic.doc.gander.model.Namespace;
+import uk.ac.ic.doc.gander.model.OldNamespace;
 
 /**
  * Creates type signatures specifically for the target of an indirect call.
@@ -29,7 +29,7 @@ import uk.ac.ic.doc.gander.model.Namespace;
 public class CallTargetSignatureBuilder {
 
 	public Set<Call> signatureOfTarget(Call call, BasicBlock containingBlock,
-			Namespace scope, TypeResolver resolver) {
+			OldNamespace scope, TypeResolver resolver) {
 		assert CallHelper.isIndirectCall(call);
 		if (!CallHelper.isIndirectCall(call))
 			return Collections.emptySet();

@@ -19,7 +19,7 @@ import uk.ac.ic.doc.gander.model.Member;
 import uk.ac.ic.doc.gander.model.Model;
 import uk.ac.ic.doc.gander.model.ModelSite;
 import uk.ac.ic.doc.gander.model.Module;
-import uk.ac.ic.doc.gander.model.Namespace;
+import uk.ac.ic.doc.gander.model.OldNamespace;
 import uk.ac.ic.doc.gander.model.codeblock.CodeBlock;
 import uk.ac.ic.doc.gander.model.codeobject.CodeObject;
 import uk.ac.ic.doc.gander.model.name_binding.Variable;
@@ -55,14 +55,14 @@ public class TUnresolvedImport implements TCodeObject {
 	/**
 	 * {@inheritDoc}
 	 */
-	public Set<Namespace> memberReadableNamespaces() {
-		return Collections.<Namespace> singleton(dummyNamespace());
+	public Set<OldNamespace> memberReadableNamespaces() {
+		return Collections.<OldNamespace> singleton(dummyNamespace());
 	}
 
 	/**
 	 * {@inheritDoc}
 	 */
-	public Namespace memberWriteableNamespace() {
+	public OldNamespace memberWriteableNamespace() {
 		return dummyNamespace();
 	}
 
@@ -71,10 +71,10 @@ public class TUnresolvedImport implements TCodeObject {
 		return "TUnresolvedImport [importInstance=" + importInstance + "]";
 	}
 
-	private Namespace dummyNamespace() {
-		return new Namespace() {
+	private OldNamespace dummyNamespace() {
+		return new OldNamespace() {
 
-			public Namespace getParentScope() {
+			public OldNamespace getParentScope() {
 				return null;
 			}
 

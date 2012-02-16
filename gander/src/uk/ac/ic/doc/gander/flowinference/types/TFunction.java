@@ -18,7 +18,7 @@ import uk.ac.ic.doc.gander.flowinference.typegoals.NamespaceNameTypeGoal;
 import uk.ac.ic.doc.gander.flowinference.typegoals.TopT;
 import uk.ac.ic.doc.gander.model.Function;
 import uk.ac.ic.doc.gander.model.ModelSite;
-import uk.ac.ic.doc.gander.model.Namespace;
+import uk.ac.ic.doc.gander.model.OldNamespace;
 import uk.ac.ic.doc.gander.model.NamespaceName;
 import uk.ac.ic.doc.gander.model.codeobject.FormalParameter;
 import uk.ac.ic.doc.gander.model.codeobject.FunctionCO;
@@ -83,15 +83,15 @@ public class TFunction implements TCodeObject, TCallable {
 	/**
 	 * {@inheritDoc}
 	 */
-	public Set<Namespace> memberReadableNamespaces() {
-		return Collections.<Namespace> singleton(functionObject
+	public Set<OldNamespace> memberReadableNamespaces() {
+		return Collections.<OldNamespace> singleton(functionObject
 				.fullyQualifiedNamespace());
 	}
 
 	/**
 	 * {@inheritDoc}
 	 */
-	public Namespace memberWriteableNamespace() {
+	public OldNamespace memberWriteableNamespace() {
 		return functionObject.fullyQualifiedNamespace();
 	}
 

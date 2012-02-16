@@ -15,7 +15,7 @@ import uk.ac.ic.doc.gander.flowinference.types.TClass;
 import uk.ac.ic.doc.gander.flowinference.types.Type;
 import uk.ac.ic.doc.gander.model.Class;
 import uk.ac.ic.doc.gander.model.Model;
-import uk.ac.ic.doc.gander.model.Namespace;
+import uk.ac.ic.doc.gander.model.OldNamespace;
 
 public class DuckTyper {
 	private final LoadedTypeDefinitions definitions;
@@ -42,7 +42,7 @@ public class DuckTyper {
 	 * @return A type judgement as a set of {@link Type}s.
 	 */
 	public Set<Type> typeOf(Call call, BasicBlock containingBlock,
-			Namespace scope) {
+			OldNamespace scope) {
 
 		Set<String> methods = calculateDependentMethodNames(call,
 				containingBlock, scope);
@@ -63,7 +63,7 @@ public class DuckTyper {
 	}
 
 	private Set<String> calculateDependentMethodNames(Call call,
-			BasicBlock containingBlock, Namespace scope) {
+			BasicBlock containingBlock, OldNamespace scope) {
 
 		Set<Call> dependentCalls = new CallTargetSignatureBuilder()
 				.signatureOfTarget(call, containingBlock, scope, resolver);

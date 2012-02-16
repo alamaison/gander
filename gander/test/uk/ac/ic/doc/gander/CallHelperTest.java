@@ -17,13 +17,13 @@ import uk.ac.ic.doc.gander.model.Function;
 import uk.ac.ic.doc.gander.model.Module;
 import uk.ac.ic.doc.gander.model.DefaultModel;
 import uk.ac.ic.doc.gander.model.MutableModel;
-import uk.ac.ic.doc.gander.model.Namespace;
+import uk.ac.ic.doc.gander.model.OldNamespace;
 
 public class CallHelperTest {
 
 	private TypeResolver typer;
 	private Call call;
-	private Namespace scope;
+	private OldNamespace scope;
 
 	@Test
 	public void function() throws Throwable {

@@ -12,7 +12,7 @@ import uk.ac.ic.doc.gander.importing.ImportSimulator;
 import uk.ac.ic.doc.gander.model.Class;
 import uk.ac.ic.doc.gander.model.Function;
 import uk.ac.ic.doc.gander.model.Module;
-import uk.ac.ic.doc.gander.model.Namespace;
+import uk.ac.ic.doc.gander.model.OldNamespace;
 import uk.ac.ic.doc.gander.model.NamespaceName;
 import uk.ac.ic.doc.gander.model.codeobject.CodeObject;
 import uk.ac.ic.doc.gander.model.codeobject.ModuleCO;
@@ -22,7 +22,7 @@ import uk.ac.ic.doc.gander.model.codeobject.ModuleCO;
  * correct {@link Type} for the object.
  */
 final class ImportedNameTypeWatcher implements
-		ImportSimulator.Binder<NamespaceName, Namespace, CodeObject, ModuleCO> {
+		ImportSimulator.Binder<NamespaceName, OldNamespace, CodeObject, ModuleCO> {
 
 	private final ImportTypeEvent eventHandler;
 
@@ -95,7 +95,7 @@ final class ImportedNameTypeWatcher implements
 	}
 
 	@Override
-	public void bindAllNamespaceMembers(Namespace sourceNamespace,
+	public void bindAllNamespaceMembers(OldNamespace sourceNamespace,
 			CodeObject container) {
 
 		// FIXME: container not necessarily the location the name is bound
@@ -116,7 +116,7 @@ final class ImportedNameTypeWatcher implements
 
 	private Type oldSchoolNamespaceLookup(NamespaceName importedObjectName) {
 
-		Namespace parent = importedObjectName.namespace();
+		OldNamespace parent = importedObjectName.namespace();
 		String objectName = importedObjectName.name();
 
 		Module importedModule = parent.getModules().get(objectName);

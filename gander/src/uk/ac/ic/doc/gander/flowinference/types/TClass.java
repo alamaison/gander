@@ -28,7 +28,7 @@ import uk.ac.ic.doc.gander.flowinference.typegoals.TopT;
 import uk.ac.ic.doc.gander.model.Class;
 import uk.ac.ic.doc.gander.model.Function;
 import uk.ac.ic.doc.gander.model.ModelSite;
-import uk.ac.ic.doc.gander.model.Namespace;
+import uk.ac.ic.doc.gander.model.OldNamespace;
 import uk.ac.ic.doc.gander.model.NamespaceName;
 import uk.ac.ic.doc.gander.model.codeobject.ClassCO;
 import uk.ac.ic.doc.gander.model.codeobject.CodeObject;
@@ -139,15 +139,15 @@ public class TClass implements TCodeObject, TCallable {
 	/**
 	 * {@inheritDoc}
 	 */
-	public Set<Namespace> memberReadableNamespaces() {
-		return Collections.<Namespace> singleton(classObject
+	public Set<OldNamespace> memberReadableNamespaces() {
+		return Collections.<OldNamespace> singleton(classObject
 				.fullyQualifiedNamespace());
 	}
 
 	/**
 	 * {@inheritDoc}
 	 */
-	public Namespace memberWriteableNamespace() {
+	public OldNamespace memberWriteableNamespace() {
 		return classObject.fullyQualifiedNamespace();
 	}
 

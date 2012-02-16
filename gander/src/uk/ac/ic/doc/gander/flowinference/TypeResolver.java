@@ -19,12 +19,12 @@ import uk.ac.ic.doc.gander.flowinference.types.TUnresolvedImport;
 import uk.ac.ic.doc.gander.flowinference.types.Type;
 import uk.ac.ic.doc.gander.model.LexicalResolver;
 import uk.ac.ic.doc.gander.model.Model;
-import uk.ac.ic.doc.gander.model.Namespace;
+import uk.ac.ic.doc.gander.model.OldNamespace;
 import uk.ac.ic.doc.gander.model.codeobject.CodeObject;
 
 public class TypeResolver extends VisitorBase {
 
-	private Stack<Namespace> scopes = new Stack<Namespace>();
+	private Stack<OldNamespace> scopes = new Stack<OldNamespace>();
 	private SymbolTable table;
 	private final Model model;
 
@@ -33,7 +33,7 @@ public class TypeResolver extends VisitorBase {
 		this.table = new SymbolTable(model);
 	}
 
-	public Type typeOf(SimpleNode node, Namespace scope) {
+	public Type typeOf(SimpleNode node, OldNamespace scope) {
 		try {
 			scopes.push(scope);
 			return (Type) node.accept(this);
@@ -63,7 +63,7 @@ public class TypeResolver extends VisitorBase {
 
 		if (valueType != null && valueType instanceof TCodeObject) {
 			try {
-				Namespace scope;
+				OldNamespace scope;
 				if (valueType instanceof TUnresolvedImport) {
 					scope = null;
 				} else {

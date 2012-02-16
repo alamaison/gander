@@ -31,7 +31,7 @@ import uk.ac.ic.doc.gander.model.CodeObjectWalker;
 import uk.ac.ic.doc.gander.model.Model;
 import uk.ac.ic.doc.gander.model.ModelSite;
 import uk.ac.ic.doc.gander.model.Module;
-import uk.ac.ic.doc.gander.model.Namespace;
+import uk.ac.ic.doc.gander.model.OldNamespace;
 import uk.ac.ic.doc.gander.model.NamespaceName;
 import uk.ac.ic.doc.gander.model.ParentSiteFinder;
 import uk.ac.ic.doc.gander.model.codeobject.ClassCO;
@@ -488,7 +488,7 @@ final class NamespaceNameFlowStepGoalSolver {
 		 */
 		private final RedundancyEliminator<FlowPosition> importedReferences = new RedundancyEliminator<FlowPosition>();
 
-		private final Binder<NamespaceName, Namespace, CodeObject, ModuleCO> worker = new Binder<NamespaceName, Namespace, CodeObject, ModuleCO>() {
+		private final Binder<NamespaceName, OldNamespace, CodeObject, ModuleCO> worker = new Binder<NamespaceName, OldNamespace, CodeObject, ModuleCO>() {
 
 			public void bindModuleToLocalName(ModuleCO loadedModule,
 					String name, CodeObject container) {
@@ -564,7 +564,7 @@ final class NamespaceNameFlowStepGoalSolver {
 			}
 
 			@Override
-			public void bindAllNamespaceMembers(Namespace sourceNamespace,
+			public void bindAllNamespaceMembers(OldNamespace sourceNamespace,
 					CodeObject container) {
 				if (!importedReferences.isFinished()) {
 					handleBindAll(sourceNamespace, container);
@@ -682,7 +682,7 @@ final class NamespaceNameFlowStepGoalSolver {
 			}
 		}
 
-		void handleBindAll(Namespace sourceNamespace, CodeObject container) {
+		void handleBindAll(OldNamespace sourceNamespace, CodeObject container) {
 			// starred-import only allowed at top level
 			assert container instanceof ModuleCO;
 
@@ -757,7 +757,7 @@ final class NamespaceNameFlowStepGoalSolver {
 		}
 
 		private boolean codeObjectAllowsAttributesToAccessNamespace(
-				CodeObject loadedObject, Namespace namespace) {
+				CodeObject loadedObject, OldNamespace namespace) {
 
 			return loadedObject.model().intrinsicNamespace(loadedObject)
 					.equals(namespace);

@@ -37,7 +37,7 @@ public abstract class ModelWalkerWithParent {
 		ancestors.pop();
 	}
 
-	private void walkThroughNamespace(Namespace namespace) {
+	private void walkThroughNamespace(OldNamespace namespace) {
 		for (Entry<String, Module> module : namespace.getModules().entrySet()) {
 			visitModule(module.getValue());
 			ancestors.push(module.getValue());

@@ -17,7 +17,7 @@ public abstract class NamespaceWalker {
 		walkThroughNamespace(topLevel);
 	}
 
-	private void walkThroughNamespace(Namespace namespace) {
+	private void walkThroughNamespace(OldNamespace namespace) {
 		for (Module module : namespace.getModules().values()) {
 			walk(module);
 		}

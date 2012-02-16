@@ -12,7 +12,7 @@ import uk.ac.ic.doc.gander.model.codeblock.CodeBlock;
 import uk.ac.ic.doc.gander.model.codeobject.CodeObject;
 import uk.ac.ic.doc.gander.model.name_binding.Variable;
 
-public interface Namespace extends Member {
+public interface OldNamespace extends Member {
 
 	/**
 	 * Returns the expressions that expose this namespace.

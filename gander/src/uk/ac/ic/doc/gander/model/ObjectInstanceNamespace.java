@@ -17,7 +17,7 @@ import uk.ac.ic.doc.gander.model.codeobject.ClassCO;
 import uk.ac.ic.doc.gander.model.codeobject.CodeObject;
 import uk.ac.ic.doc.gander.model.name_binding.Variable;
 
-public final class ObjectInstanceNamespace implements Namespace {
+public final class ObjectInstanceNamespace implements OldNamespace {
 
 	private final ClassCO classObject;
 
@@ -126,7 +126,7 @@ public final class ObjectInstanceNamespace implements Namespace {
 		throw new UnsupportedOperationException();
 	}
 
-	public Namespace getParentScope() {
+	public OldNamespace getParentScope() {
 		throw new UnsupportedOperationException();
 	}
 

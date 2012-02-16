@@ -21,13 +21,13 @@ import uk.ac.ic.doc.gander.hierarchy.HierarchyFactory;
 import uk.ac.ic.doc.gander.model.Module;
 import uk.ac.ic.doc.gander.model.DefaultModel;
 import uk.ac.ic.doc.gander.model.MutableModel;
-import uk.ac.ic.doc.gander.model.Namespace;
+import uk.ac.ic.doc.gander.model.OldNamespace;
 
 public class CallTargetSignatureBuilderTest {
 
 	private CallTargetSignatureBuilder analyser = new CallTargetSignatureBuilder();
 	private TypeResolver typer;
-	private Namespace scope;
+	private OldNamespace scope;
 	private Call call;
 
 	private void setup(String projectPath) throws Throwable {
@@ -91,7 +91,7 @@ public class CallTargetSignatureBuilderTest {
 				+ "signature produced by the analyser", expected, calledMethods);
 	}
 
-	private BasicBlock findBlockContainingCall(Call call, Namespace scope) {
+	private BasicBlock findBlockContainingCall(Call call, OldNamespace scope) {
 		for (BasicBlock block : scope.getCfg().getBlocks()) {
 			for (SimpleNode node : block) {
 				if (node.equals(call))
