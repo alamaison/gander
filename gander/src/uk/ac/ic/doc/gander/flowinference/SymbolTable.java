@@ -23,17 +23,17 @@ import uk.ac.ic.doc.gander.model.Class;
 import uk.ac.ic.doc.gander.model.Function;
 import uk.ac.ic.doc.gander.model.Model;
 import uk.ac.ic.doc.gander.model.Module;
-import uk.ac.ic.doc.gander.model.OldNamespace;
 import uk.ac.ic.doc.gander.model.NamespaceName;
 import uk.ac.ic.doc.gander.model.NamespaceNameLoader;
+import uk.ac.ic.doc.gander.model.OldNamespace;
 import uk.ac.ic.doc.gander.model.codeobject.CodeObject;
 import uk.ac.ic.doc.gander.model.codeobject.ModuleCO;
 
 public class SymbolTable {
 
-	private Map<OldNamespace, Map<String, Type>> symbols = new HashMap<OldNamespace, Map<String, Type>>();
+	private final Map<OldNamespace, Map<String, Type>> symbols = new HashMap<OldNamespace, Map<String, Type>>();
 
-	private Model model;
+	private final Model model;
 
 	public SymbolTable(Model model) {
 		this.model = model;
@@ -50,7 +50,7 @@ public class SymbolTable {
 
 	private final class SymbolTableAstVisitor extends VisitorBase {
 
-		private OldNamespace currentScope;
+		private final OldNamespace currentScope;
 
 		SymbolTableAstVisitor(SimpleNode ast, OldNamespace currentScope) {
 			this.currentScope = currentScope;
@@ -128,7 +128,7 @@ public class SymbolTable {
 	}
 
 	private class ImportSymbols {
-		private CodeObject currentScope;
+		private final CodeObject currentScope;
 
 		ImportSymbols(OldNamespace currentScope) {
 			this.currentScope = currentScope.codeObject();
@@ -192,11 +192,12 @@ public class SymbolTable {
 		}
 	}
 
-	private ImportSimulator<NamespaceName, OldNamespace, CodeObject, ModuleCO> simulator() {
+	private ImportSimulator<NamespaceName, Namespace, CodeObject, ModuleCO> simulator() {
 
 		return ImportSimulator.newInstance(new ImportedNameTypeWatcher(
 				new ImportTypeEvent() {
 
+					@Override
 					public void onImportTyped(CodeObject container,
 							String name, Type type) {
 

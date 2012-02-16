@@ -6,10 +6,10 @@ import org.python.pydev.parser.jython.ast.VisitorIF;
 import org.python.pydev.parser.jython.ast.exprType;
 import org.python.pydev.parser.jython.ast.stmtType;
 
+import uk.ac.ic.doc.gander.flowinference.Namespace;
 import uk.ac.ic.doc.gander.model.Model;
 import uk.ac.ic.doc.gander.model.ModelSite;
-import uk.ac.ic.doc.gander.model.Module;
-import uk.ac.ic.doc.gander.model.OldNamespace;
+import uk.ac.ic.doc.gander.model.ModuleNamespace;
 import uk.ac.ic.doc.gander.model.codeblock.CodeBlock;
 import uk.ac.ic.doc.gander.model.codeblock.DefaultCodeBlock;
 import uk.ac.ic.doc.gander.model.codeblock.DefaultCodeBlock.Acceptor;
@@ -21,7 +21,7 @@ public final class ModuleCO implements NamedCodeObject {
 
 	private final String name;
 	private final org.python.pydev.parser.jython.ast.Module ast;
-	private Module oldYukkyNamespace = null;
+	private ModuleNamespace oldYukkyNamespace = null;
 	private CodeBlock codeBlock = null;
 
 	/**
@@ -43,15 +43,18 @@ public final class ModuleCO implements NamedCodeObject {
 		this.ast = ast;
 	}
 
+	@Override
 	public org.python.pydev.parser.jython.ast.Module ast() {
 		return ast;
 	}
 
+	@Override
 	public CodeBlock codeBlock() {
 		if (codeBlock == null) {
 
 			Acceptor acceptor = new Acceptor() {
 
+				@Override
 				public void accept(VisitorIF visitor) throws Exception {
 					for (stmtType stmt : ast.body) {
 						stmt.accept(visitor);
@@ -66,10 +69,12 @@ public final class ModuleCO implements NamedCodeObject {
 		return codeBlock;
 	}
 
+	@Override
 	public ModuleCO enclosingModule() {
 		return this;
 	}
 
+	@Override
 	public NestedCodeObjects nestedCodeObjects() {
 		return new DefaultNestedCodeObjects(this, model());
 	}
@@ -81,6 +86,7 @@ public final class ModuleCO implements NamedCodeObject {
 	 * bound must bind in the module (global) namespace (or the builtins but
 	 * that is a runtime decision).
 	 */
+	@Override
 	public CodeObject lexicallyNextCodeObject() {
 		return null;
 	}
@@ -92,6 +98,7 @@ public final class ModuleCO implements NamedCodeObject {
 	 * scope if the variable is not defined in a scope between there and the
 	 * occurrence. In other words, yes.
 	 */
+	@Override
 	public boolean nestedVariablesCanBindHere() {
 		return true;
 	}
@@ -102,8 +109,9 @@ public final class ModuleCO implements NamedCodeObject {
 	 * Both qualified and unqualified references of a module access the same
 	 * namespace.
 	 */
+	@Override
 	@Deprecated
-	public OldNamespace fullyQualifiedNamespace() {
+	public Namespace fullyQualifiedNamespace() {
 		return oldStyleConflatedNamespace();
 	}
 
@@ -113,26 +121,31 @@ public final class ModuleCO implements NamedCodeObject {
 	 * Both qualified and unqualified references of a module access the same
 	 * namespace.
 	 */
+	@Override
 	@Deprecated
-	public OldNamespace unqualifiedNamespace() {
+	public Namespace unqualifiedNamespace() {
 		return oldStyleConflatedNamespace();
 	}
 
+	@Override
 	@Deprecated
 	public Model model() {
 		return oldStyleConflatedNamespace().model();
 	}
 
+	@Override
 	@Deprecated
-	public Module oldStyleConflatedNamespace() {
+	public ModuleNamespace oldStyleConflatedNamespace() {
 		assert oldYukkyNamespace != null;
 		return oldYukkyNamespace;
 	}
 
+	@Override
 	public String declaredName() {
 		return name;
 	}
 
+	@Override
 	public String absoluteDescription() {
 		return declaredName();
 	}
@@ -173,9 +186,14 @@ public final class ModuleCO implements NamedCodeObject {
 		return "ModuleCO[" + absoluteDescription() + "]";
 	}
 
-	public void setNamespace(Module module) {
+	public void setNamespace(ModuleNamespace module) {
 		assert module != null;
 		oldYukkyNamespace = module;
+	}
+
+	@Override
+	public boolean isBuiltin() {
+		return name.isEmpty();
 	}
 
 }

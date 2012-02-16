@@ -1,10 +1,8 @@
 package uk.ac.ic.doc.gander.model.codeobject;
 
 import java.util.Collections;
-import java.util.Map;
 import java.util.Set;
 
-import org.python.pydev.parser.jython.SimpleNode;
 import org.python.pydev.parser.jython.ast.FunctionDef;
 import org.python.pydev.parser.jython.ast.NameTok;
 import org.python.pydev.parser.jython.ast.VisitorIF;
@@ -12,19 +10,15 @@ import org.python.pydev.parser.jython.ast.argumentsType;
 import org.python.pydev.parser.jython.ast.exprType;
 import org.python.pydev.parser.jython.ast.stmtType;
 
-import uk.ac.ic.doc.gander.cfg.Cfg;
+import uk.ac.ic.doc.gander.flowinference.Namespace;
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
 import uk.ac.ic.doc.gander.flowinference.flowgoals.CodeObjectDefinitionPosition;
 import uk.ac.ic.doc.gander.flowinference.flowgoals.FlowGoal;
 import uk.ac.ic.doc.gander.flowinference.result.FiniteResult;
 import uk.ac.ic.doc.gander.flowinference.result.Result;
-import uk.ac.ic.doc.gander.model.Class;
 import uk.ac.ic.doc.gander.model.Function;
-import uk.ac.ic.doc.gander.model.Member;
 import uk.ac.ic.doc.gander.model.Model;
 import uk.ac.ic.doc.gander.model.ModelSite;
-import uk.ac.ic.doc.gander.model.Module;
-import uk.ac.ic.doc.gander.model.OldNamespace;
 import uk.ac.ic.doc.gander.model.codeblock.CodeBlock;
 import uk.ac.ic.doc.gander.model.codeblock.DefaultCodeBlock;
 import uk.ac.ic.doc.gander.model.codeblock.DefaultCodeBlock.Acceptor;
@@ -67,15 +61,18 @@ public final class FunctionCO implements NamedCodeObject, NestedCodeObject,
 		this.parent = parent;
 	}
 
+	@Override
 	public FunctionDef ast() {
 		return ast;
 	}
 
+	@Override
 	public CodeBlock codeBlock() {
 		if (codeBlock == null) {
 
 			Acceptor acceptor = new Acceptor() {
 
+				@Override
 				public void accept(VisitorIF visitor) throws Exception {
 					ast.args.accept(visitor);
 
@@ -92,10 +89,12 @@ public final class FunctionCO implements NamedCodeObject, NestedCodeObject,
 		return codeBlock;
 	}
 
+	@Override
 	public ModuleCO enclosingModule() {
 		return parent().enclosingModule();
 	}
 
+	@Override
 	public NestedCodeObjects nestedCodeObjects() {
 		return new DefaultNestedCodeObjects(this, model());
 	}
@@ -107,6 +106,7 @@ public final class FunctionCO implements NamedCodeObject, NestedCodeObject,
 	 * next code object that should be considered is the next code object that
 	 * allows nested code object's variables to bind in it. I.e. not classes.
 	 */
+	@Override
 	public CodeObject lexicallyNextCodeObject() {
 		if (parent().nestedVariablesCanBindHere())
 			return parent;
@@ -121,6 +121,7 @@ public final class FunctionCO implements NamedCodeObject, NestedCodeObject,
 	 * bind in this function's namespace if the weren't define in a namespace
 	 * between this function and their nested location. In other words, yes.
 	 */
+	@Override
 	public boolean nestedVariablesCanBindHere() {
 		return true;
 	}
@@ -131,7 +132,8 @@ public final class FunctionCO implements NamedCodeObject, NestedCodeObject,
 	 * Qualified references on a function object access a separate namespace
 	 * from the function body.
 	 */
-	public OldNamespace fullyQualifiedNamespace() {
+	@Override
+	public Namespace fullyQualifiedNamespace() {
 		return new FunctionObjectNamespace(this);
 	}
 
@@ -141,32 +143,39 @@ public final class FunctionCO implements NamedCodeObject, NestedCodeObject,
 	 * Unqualified references (variables) in a function body are separate from
 	 * the references on the function object.
 	 */
-	public OldNamespace unqualifiedNamespace() {
+	@Override
+	public Namespace unqualifiedNamespace() {
 		return oldStyleConflatedNamespace();
 	}
 
+	@Override
 	public Model model() {
 		return oldStyleConflatedNamespace().model();
 	}
 
+	@Override
 	public String declaredName() {
 		return ((NameTok) ast.name).id;
 	}
 
+	@Override
 	public String absoluteDescription() {
 		return parent.absoluteDescription() + "/" + declaredName();
 	}
 
+	@Override
 	public CodeObject parent() {
 		return parent;
 	}
 
+	@Override
 	@Deprecated
 	public Function oldStyleConflatedNamespace() {
 		assert yukkyOldNamespace != null;
 		return yukkyOldNamespace;
 	}
 
+	@Override
 	public FormalParameters formalParameters() {
 		return new FormalParameters(new ModelSite<argumentsType>(ast().args,
 				this));
@@ -207,9 +216,14 @@ public final class FunctionCO implements NamedCodeObject, NestedCodeObject,
 		yukkyOldNamespace = function;
 	}
 
+	@Override
+	public boolean isBuiltin() {
+		return parent.isBuiltin();
+	}
+
 }
 
-final class FunctionObjectNamespace implements OldNamespace {
+final class FunctionObjectNamespace implements Namespace {
 
 	private final FunctionCO codeObject;
 
@@ -223,6 +237,7 @@ final class FunctionObjectNamespace implements OldNamespace {
 	 * A function object's namespace is accessible by attribute reference from
 	 * anywhere the function object flows to.
 	 */
+	@Override
 	public Result<ModelSite<exprType>> references(SubgoalManager goalManager) {
 		return goalManager.registerSubgoal(new FlowGoal(
 				new CodeObjectDefinitionPosition(codeObject)));
@@ -234,10 +249,11 @@ final class FunctionObjectNamespace implements OldNamespace {
 	 * All function object's namespace is writable everywhere it is readable
 	 * unless is is a builtin.
 	 */
+	@Override
 	public Result<ModelSite<exprType>> writeableReferences(
 			SubgoalManager goalManager) {
 
-		if (getParentScope().getName().isEmpty()) {
+		if (codeObject.isBuiltin()) {
 			// builtin functions do not have a writable namespace
 			return FiniteResult.bottom();
 		} else {
@@ -245,208 +261,19 @@ final class FunctionObjectNamespace implements OldNamespace {
 		}
 	}
 
+	@Override
 	public Set<Variable> variablesInScope(String name) {
 		return Collections.emptySet();
 	}
 
+	@Override
 	public Set<Variable> variablesWriteableInScope(String name) {
 		return Collections.emptySet();
 	}
 
-	private static final String ERROR = "External function namespaces are currently non-functional";
-
-	public OldNamespace getParentScope() {
-		return new OldNamespace() {
-			
-			@Override
-			public OldNamespace getParentScope() {
-				// TODO Auto-generated method stub
-				return null;
-			}
-			
-			@Override
-			public String getName() {
-				return "I only exists so I don't look like a builtin";
-			}
-			
-			@Override
-			public SimpleNode getAst() {
-				// TODO Auto-generated method stub
-				return null;
-			}
-			
-			@Override
-			public Result<ModelSite<exprType>> writeableReferences(
-					SubgoalManager goalManager) {
-				// TODO Auto-generated method stub
-				return null;
-			}
-			
-			@Override
-			public Set<Variable> variablesWriteableInScope(String name) {
-				// TODO Auto-generated method stub
-				return null;
-			}
-			
-			@Override
-			public Set<Variable> variablesInScope(String name) {
-				// TODO Auto-generated method stub
-				return null;
-			}
-			
-			@Override
-			public Result<ModelSite<exprType>> references(SubgoalManager goalManager) {
-				// TODO Auto-generated method stub
-				return null;
-			}
-			
-			@Override
-			public Model model() {
-				// TODO Auto-generated method stub
-				return null;
-			}
-			
-			@Override
-			public Member lookupMember(String memberName) {
-				// TODO Auto-generated method stub
-				return null;
-			}
-			
-			@Override
-			public boolean isSystem() {
-				// TODO Auto-generated method stub
-				return false;
-			}
-			
-			@Override
-			public Map<String, Module> getModules() {
-				// TODO Auto-generated method stub
-				return null;
-			}
-			
-			@Override
-			public Module getGlobalNamespace() {
-				// TODO Auto-generated method stub
-				return null;
-			}
-			
-			@Override
-			public Map<String, Function> getFunctions() {
-				// TODO Auto-generated method stub
-				return null;
-			}
-			
-			@Override
-			public String getFullName() {
-				// TODO Auto-generated method stub
-				return null;
-			}
-			
-			@Override
-			public Map<String, Class> getClasses() {
-				// TODO Auto-generated method stub
-				return null;
-			}
-			
-			@Override
-			public Cfg getCfg() {
-				// TODO Auto-generated method stub
-				return null;
-			}
-			
-			@Override
-			public CodeObject codeObject() {
-				// TODO Auto-generated method stub
-				return null;
-			}
-			
-			@Override
-			public CodeBlock asCodeBlock() {
-				// TODO Auto-generated method stub
-				return null;
-			}
-			
-			@Override
-			public void addModule(Module module) {
-				// TODO Auto-generated method stub
-				
-			}
-			
-			@Override
-			public void addFunction(Function function) {
-				// TODO Auto-generated method stub
-				
-			}
-			
-			@Override
-			public void addClass(Class klass) {
-				// TODO Auto-generated method stub
-				
-			}
-		};
-	}
-
-	public String getName() {
-		throw new UnsupportedOperationException(ERROR);
-	}
-
-	public SimpleNode getAst() {
-		throw new UnsupportedOperationException(ERROR);
-	}
-
+	@Override
 	public Model model() {
-		throw new UnsupportedOperationException(ERROR);
+		return codeObject.model();
 	}
 
-	public Member lookupMember(String memberName) {
-		throw new UnsupportedOperationException(ERROR);
-	}
-
-	public boolean isSystem() {
-		throw new UnsupportedOperationException(ERROR);
-	}
-
-	public Map<String, Module> getModules() {
-		throw new UnsupportedOperationException(ERROR);
-	}
-
-	public Module getGlobalNamespace() {
-		throw new UnsupportedOperationException(ERROR);
-	}
-
-	public Map<String, Function> getFunctions() {
-		throw new UnsupportedOperationException(ERROR);
-	}
-
-	public String getFullName() {
-		throw new UnsupportedOperationException(ERROR);
-	}
-
-	public Map<String, Class> getClasses() {
-		throw new UnsupportedOperationException(ERROR);
-	}
-
-	public Cfg getCfg() {
-		throw new UnsupportedOperationException(ERROR);
-	}
-
-	public CodeObject codeObject() {
-		return codeObject;
-	}
-
-	public CodeBlock asCodeBlock() {
-		throw new UnsupportedOperationException(ERROR);
-	}
-
-	public void addModule(Module module) {
-		throw new UnsupportedOperationException(ERROR);
-	}
-
-	public void addFunction(Function function) {
-		throw new UnsupportedOperationException(ERROR);
-	}
-
-	public void addClass(Class klass) {
-		throw new UnsupportedOperationException(ERROR);
-	}
 }

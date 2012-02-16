@@ -2,6 +2,7 @@ package uk.ac.ic.doc.gander.model.codeobject;
 
 import org.python.pydev.parser.jython.SimpleNode;
 
+import uk.ac.ic.doc.gander.flowinference.Namespace;
 import uk.ac.ic.doc.gander.model.Model;
 import uk.ac.ic.doc.gander.model.OldNamespace;
 import uk.ac.ic.doc.gander.model.codeblock.CodeBlock;
@@ -62,14 +63,16 @@ public interface CodeObject {
 	 * block's scope. For instance, variables in a function definition are not
 	 * accessible outside the function code object.
 	 */
-	public OldNamespace fullyQualifiedNamespace();
+	public Namespace fullyQualifiedNamespace();
 
 	/**
-	 * Returns that namespace that is use when this object is accessed via an
-	 * unqualified reference (i.e. directly via a variable in the code object's
-	 * scope).
+	 * Returns the namespace whose names are modified when this code object's
+	 * body is executed.
+	 * 
+	 * This is the namespace affected by unqualified references; uses of a
+	 * variable in this code object's scope).
 	 */
-	public OldNamespace unqualifiedNamespace();
+	public Namespace unqualifiedNamespace();
 
 	/**
 	 * Temporary hack to get at the namespace.
@@ -96,4 +99,6 @@ public interface CodeObject {
 	 * {@literal .} to avoid the temptation to read to much into its meaning.
 	 */
 	String absoluteDescription();
+
+	public abstract boolean isBuiltin();
 }

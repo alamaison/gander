@@ -12,8 +12,8 @@ import uk.ac.ic.doc.gander.importing.ImportSimulator;
 import uk.ac.ic.doc.gander.model.Class;
 import uk.ac.ic.doc.gander.model.Function;
 import uk.ac.ic.doc.gander.model.Module;
-import uk.ac.ic.doc.gander.model.OldNamespace;
 import uk.ac.ic.doc.gander.model.NamespaceName;
+import uk.ac.ic.doc.gander.model.OldNamespace;
 import uk.ac.ic.doc.gander.model.codeobject.CodeObject;
 import uk.ac.ic.doc.gander.model.codeobject.ModuleCO;
 
@@ -22,7 +22,7 @@ import uk.ac.ic.doc.gander.model.codeobject.ModuleCO;
  * correct {@link Type} for the object.
  */
 final class ImportedNameTypeWatcher implements
-		ImportSimulator.Binder<NamespaceName, OldNamespace, CodeObject, ModuleCO> {
+		ImportSimulator.Binder<NamespaceName, Namespace, CodeObject, ModuleCO> {
 
 	private final ImportTypeEvent eventHandler;
 
@@ -95,49 +95,58 @@ final class ImportedNameTypeWatcher implements
 	}
 
 	@Override
-	public void bindAllNamespaceMembers(OldNamespace sourceNamespace,
+	public void bindAllNamespaceMembers(Namespace sourceNamespace,
 			CodeObject container) {
 
 		// FIXME: container not necessarily the location the name is bound
 
-		for (Entry<String, Class> importedClass : sourceNamespace.getClasses()
-				.entrySet()) {
+		if (sourceNamespace instanceof OldNamespace) {
 
-			eventHandler.onImportTyped(container, importedClass.getKey(),
-					new TClass(importedClass.getValue().codeObject()));
-		}
+			for (Entry<String, Class> importedClass : ((OldNamespace) sourceNamespace)
+					.getClasses().entrySet()) {
 
-		for (Entry<String, Function> importedFunction : sourceNamespace
-				.getFunctions().entrySet()) {
-			eventHandler.onImportTyped(container, importedFunction.getKey(),
-					new TFunction(importedFunction.getValue().codeObject()));
+				eventHandler.onImportTyped(container, importedClass.getKey(),
+						new TClass(importedClass.getValue().codeObject()));
+			}
+
+			for (Entry<String, Function> importedFunction : ((OldNamespace) sourceNamespace)
+					.getFunctions().entrySet()) {
+				eventHandler.onImportTyped(container,
+						importedFunction.getKey(), new TFunction(
+								importedFunction.getValue().codeObject()));
+			}
 		}
 	}
 
 	private Type oldSchoolNamespaceLookup(NamespaceName importedObjectName) {
 
-		OldNamespace parent = importedObjectName.namespace();
-		String objectName = importedObjectName.name();
+		if (importedObjectName.namespace() instanceof OldNamespace) {
 
-		Module importedModule = parent.getModules().get(objectName);
-		if (importedModule != null) {
-			return new TModule(importedModule.codeObject());
-		} else {
+			OldNamespace parent = (OldNamespace) importedObjectName.namespace();
+			String objectName = importedObjectName.name();
 
-			Class importedClass = parent.getClasses().get(objectName);
-
-			if (importedClass != null) {
-				return new TClass(importedClass.codeObject());
+			Module importedModule = parent.getModules().get(objectName);
+			if (importedModule != null) {
+				return new TModule(importedModule.codeObject());
 			} else {
 
-				Function importedFunction = parent.getFunctions().get(
-						objectName);
-				if (importedFunction != null) {
-					return new TFunction(importedFunction.codeObject());
+				Class importedClass = parent.getClasses().get(objectName);
+
+				if (importedClass != null) {
+					return new TClass(importedClass.codeObject());
 				} else {
-					return null;
+
+					Function importedFunction = parent.getFunctions().get(
+							objectName);
+					if (importedFunction != null) {
+						return new TFunction(importedFunction.codeObject());
+					} else {
+						return null;
+					}
 				}
 			}
+		} else {
+			return null;
 		}
 	}
 

@@ -9,10 +9,10 @@ import org.python.pydev.parser.jython.ast.VisitorIF;
 import org.python.pydev.parser.jython.ast.exprType;
 import org.python.pydev.parser.jython.ast.stmtType;
 
+import uk.ac.ic.doc.gander.flowinference.Namespace;
 import uk.ac.ic.doc.gander.model.Class;
 import uk.ac.ic.doc.gander.model.Model;
 import uk.ac.ic.doc.gander.model.ModelSite;
-import uk.ac.ic.doc.gander.model.OldNamespace;
 import uk.ac.ic.doc.gander.model.codeblock.CodeBlock;
 import uk.ac.ic.doc.gander.model.codeblock.DefaultCodeBlock;
 import uk.ac.ic.doc.gander.model.codeblock.DefaultCodeBlock.Acceptor;
@@ -53,10 +53,12 @@ public final class ClassCO implements NamedCodeObject, NestedCodeObject {
 		this.parent = parent;
 	}
 
+	@Override
 	public ClassDef ast() {
 		return ast;
 	}
 
+	@Override
 	public CodeBlock codeBlock() {
 		if (codeBlock == null) {
 			// Classes don't have parameters that get bound after
@@ -68,6 +70,7 @@ public final class ClassCO implements NamedCodeObject, NestedCodeObject {
 
 			Acceptor acceptor = new Acceptor() {
 
+				@Override
 				public void accept(VisitorIF visitor) throws Exception {
 					for (stmtType stmt : ast.body) {
 						stmt.accept(visitor);
@@ -81,27 +84,32 @@ public final class ClassCO implements NamedCodeObject, NestedCodeObject {
 		return codeBlock;
 	}
 
+	@Override
 	public ModuleCO enclosingModule() {
 		return parent().enclosingModule();
 	}
 
+	@Override
 	public NestedCodeObjects nestedCodeObjects() {
 		return new DefaultNestedCodeObjects(this, model());
 	}
 
-	@Deprecated
+	@Override
 	public Model model() {
 		return oldStyleConflatedNamespace().model();
 	}
 
+	@Override
 	public String declaredName() {
 		return ((NameTok) ast.name).id;
 	}
 
+	@Override
 	public String absoluteDescription() {
 		return parent().absoluteDescription() + "/" + declaredName();
 	}
 
+	@Override
 	public CodeObject parent() {
 		return parent;
 	}
@@ -113,6 +121,7 @@ public final class ClassCO implements NamedCodeObject, NestedCodeObject {
 	 * code object that should be considered is the next code object that allows
 	 * nested code object's variables to bind in it. I.e. not classes.
 	 */
+	@Override
 	public CodeObject lexicallyNextCodeObject() {
 		if (parent().nestedVariablesCanBindHere())
 			return parent();
@@ -120,6 +129,7 @@ public final class ClassCO implements NamedCodeObject, NestedCodeObject {
 			return parent().lexicallyNextCodeObject();
 	}
 
+	@Override
 	public boolean nestedVariablesCanBindHere() {
 		return false;
 	}
@@ -130,7 +140,8 @@ public final class ClassCO implements NamedCodeObject, NestedCodeObject {
 	 * Both qualified and unqualified references of a class access the same
 	 * namespace.
 	 */
-	public OldNamespace fullyQualifiedNamespace() {
+	@Override
+	public Namespace fullyQualifiedNamespace() {
 		return oldStyleConflatedNamespace();
 	}
 
@@ -140,10 +151,12 @@ public final class ClassCO implements NamedCodeObject, NestedCodeObject {
 	 * Both qualified and unqualified references of a class access the same
 	 * namespace.
 	 */
-	public OldNamespace unqualifiedNamespace() {
+	@Override
+	public Namespace unqualifiedNamespace() {
 		return oldStyleConflatedNamespace();
 	}
 
+	@Override
 	@Deprecated
 	public Class oldStyleConflatedNamespace() {
 		assert yukkyOldNamespace != null;
@@ -183,6 +196,11 @@ public final class ClassCO implements NamedCodeObject, NestedCodeObject {
 	public void setNamespace(Class namespace) {
 		assert namespace != null;
 		yukkyOldNamespace = namespace;
+	}
+
+	@Override
+	public boolean isBuiltin() {
+		return parent.isBuiltin();
 	}
 
 }

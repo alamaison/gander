@@ -8,7 +8,7 @@ import org.python.pydev.parser.jython.ast.exprType;
 
 import uk.ac.ic.doc.gander.flowinference.Argument;
 import uk.ac.ic.doc.gander.flowinference.ArgumentPassage;
-import uk.ac.ic.doc.gander.flowinference.ArgumentPassingStrategy;
+import uk.ac.ic.doc.gander.flowinference.Namespace;
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
 import uk.ac.ic.doc.gander.flowinference.flowgoals.FlowPosition;
 import uk.ac.ic.doc.gander.flowinference.result.FiniteResult;
@@ -18,7 +18,6 @@ import uk.ac.ic.doc.gander.flowinference.typegoals.NamespaceNameTypeGoal;
 import uk.ac.ic.doc.gander.flowinference.typegoals.TopT;
 import uk.ac.ic.doc.gander.model.Function;
 import uk.ac.ic.doc.gander.model.ModelSite;
-import uk.ac.ic.doc.gander.model.OldNamespace;
 import uk.ac.ic.doc.gander.model.NamespaceName;
 import uk.ac.ic.doc.gander.model.codeobject.FormalParameter;
 import uk.ac.ic.doc.gander.model.codeobject.FunctionCO;
@@ -44,6 +43,7 @@ public class TFunction implements TCodeObject, TCallable {
 		this.functionObject = functionInstance;
 	}
 
+	@Override
 	public FunctionCO codeObject() {
 		return functionObject;
 	}
@@ -58,10 +58,12 @@ public class TFunction implements TCodeObject, TCallable {
 		return functionObject.oldStyleConflatedNamespace();
 	}
 
+	@Override
 	public String getName() {
 		return getFunctionInstance().getFullName();
 	}
 
+	@Override
 	public Result<Type> returnType(SubgoalManager goalManager) {
 		return new FunctionReturnTypeSolver(goalManager, functionObject)
 				.solution();
@@ -73,6 +75,7 @@ public class TFunction implements TCodeObject, TCallable {
 	 * Members on a function are returned directly from the function object's
 	 * namespace.
 	 */
+	@Override
 	public Result<Type> memberType(String memberName, SubgoalManager goalManager) {
 
 		NamespaceName member = new NamespaceName(memberName,
@@ -83,15 +86,17 @@ public class TFunction implements TCodeObject, TCallable {
 	/**
 	 * {@inheritDoc}
 	 */
-	public Set<OldNamespace> memberReadableNamespaces() {
-		return Collections.<OldNamespace> singleton(functionObject
+	@Override
+	public Set<Namespace> memberReadableNamespaces() {
+		return Collections.<Namespace> singleton(functionObject
 				.fullyQualifiedNamespace());
 	}
 
 	/**
 	 * {@inheritDoc}
 	 */
-	public OldNamespace memberWriteableNamespace() {
+	@Override
+	public Namespace memberWriteableNamespace() {
 		return functionObject.fullyQualifiedNamespace();
 	}
 
@@ -148,6 +153,7 @@ public class TFunction implements TCodeObject, TCallable {
 	 * method are passed directly to the parameter of the receiver with the same
 	 * index.
 	 */
+	@Override
 	public Result<ArgumentPassage> destinationsReceivingArgument(
 			Argument argument, SubgoalManager goalManager) {
 
@@ -182,6 +188,7 @@ public class TFunction implements TCodeObject, TCallable {
 				Collections.singleton(functionObject));
 	}
 
+	@Override
 	public Result<FlowPosition> flowPositionsCausedByCalling(
 			SubgoalManager goalManager) {
 		return FiniteResult.bottom();
@@ -191,12 +198,12 @@ public class TFunction implements TCodeObject, TCallable {
 	 * {@inheritDoc}
 	 * 
 	 * When an unbound function is called as an attribute of another object,
-	 * nothing special happens.  That object doesn't flow anywhere.
+	 * nothing special happens. That object doesn't flow anywhere.
 	 */
 	@Override
 	public Result<FlowPosition> flowPositionsOfHiddenSelfArgument(
 			SubgoalManager goalManager) {
-		
+
 		return FiniteResult.bottom();
 	}
 

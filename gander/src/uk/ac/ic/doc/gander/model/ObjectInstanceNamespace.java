@@ -1,23 +1,19 @@
 package uk.ac.ic.doc.gander.model;
 
 import java.util.Collections;
-import java.util.Map;
 import java.util.Set;
 
-import org.python.pydev.parser.jython.SimpleNode;
 import org.python.pydev.parser.jython.ast.exprType;
 
-import uk.ac.ic.doc.gander.cfg.Cfg;
+import uk.ac.ic.doc.gander.flowinference.Namespace;
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
 import uk.ac.ic.doc.gander.flowinference.flowgoals.FlowGoal;
 import uk.ac.ic.doc.gander.flowinference.flowgoals.InstanceCreationPosition;
 import uk.ac.ic.doc.gander.flowinference.result.Result;
-import uk.ac.ic.doc.gander.model.codeblock.CodeBlock;
 import uk.ac.ic.doc.gander.model.codeobject.ClassCO;
-import uk.ac.ic.doc.gander.model.codeobject.CodeObject;
 import uk.ac.ic.doc.gander.model.name_binding.Variable;
 
-public final class ObjectInstanceNamespace implements OldNamespace {
+public final class ObjectInstanceNamespace implements Namespace {
 
 	private final ClassCO classObject;
 
@@ -25,13 +21,14 @@ public final class ObjectInstanceNamespace implements OldNamespace {
 		this.classObject = classObject;
 	}
 
-	public Result<ModelSite<exprType>> references(
-			SubgoalManager goalManager) {
+	@Override
+	public Result<ModelSite<exprType>> references(SubgoalManager goalManager) {
 
 		return goalManager.registerSubgoal(new FlowGoal(
 				new InstanceCreationPosition(classObject)));
 	}
 
+	@Override
 	public Result<ModelSite<exprType>> writeableReferences(
 			SubgoalManager goalManager) {
 
@@ -46,6 +43,7 @@ public final class ObjectInstanceNamespace implements OldNamespace {
 	 * namespace. Only code-objects are affected that way. Object members must
 	 * be accessed via an attribute access on the object.
 	 */
+	@Override
 	public Set<Variable> variablesInScope(String name) {
 		return Collections.emptySet();
 	}
@@ -57,77 +55,14 @@ public final class ObjectInstanceNamespace implements OldNamespace {
 	 * namespace. Only code-objects are affected that way. Object members must
 	 * be set via an assignment to an attribute access on the object.
 	 */
+	@Override
 	public Set<Variable> variablesWriteableInScope(String name) {
 		return Collections.emptySet();
 	}
 
-	public void addClass(Class klass) {
-		throw new UnsupportedOperationException();
-	}
-
-	public void addFunction(Function function) {
-		throw new UnsupportedOperationException();
-	}
-
-	public void addModule(Module module) {
-		throw new UnsupportedOperationException();
-	}
-
-	public CodeBlock asCodeBlock() {
-		throw new UnsupportedOperationException();
-	}
-
-	public CodeObject codeObject() {
-		throw new UnsupportedOperationException();
-	}
-
-	public Cfg getCfg() {
-		throw new UnsupportedOperationException();
-	}
-
-	public Map<String, Class> getClasses() {
-		throw new UnsupportedOperationException();
-	}
-
-	public String getFullName() {
-		throw new UnsupportedOperationException();
-	}
-
-	public Map<String, Function> getFunctions() {
-		throw new UnsupportedOperationException();
-	}
-
-	public Module getGlobalNamespace() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	public Map<String, Module> getModules() {
-		throw new UnsupportedOperationException();
-	}
-
-	public boolean isSystem() {
-		throw new UnsupportedOperationException();
-	}
-
-	public Member lookupMember(String memberName) {
-		throw new UnsupportedOperationException();
-	}
-
+	@Override
 	public Model model() {
-		throw new UnsupportedOperationException();
-	}
-
-	public SimpleNode getAst() {
-		throw new UnsupportedOperationException();
-	}
-
-	public String getName() {
-		throw new UnsupportedOperationException();
-	}
-
-	public OldNamespace getParentScope() {
-		throw new UnsupportedOperationException();
+		return classObject.model();
 	}
 
 	@Override

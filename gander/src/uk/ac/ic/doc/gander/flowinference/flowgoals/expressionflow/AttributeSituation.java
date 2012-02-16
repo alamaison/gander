@@ -7,6 +7,7 @@ import org.python.pydev.parser.jython.ast.Attribute;
 import org.python.pydev.parser.jython.ast.NameTok;
 import org.python.pydev.parser.jython.ast.exprType;
 
+import uk.ac.ic.doc.gander.flowinference.Namespace;
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
 import uk.ac.ic.doc.gander.flowinference.flowgoals.FlowPosition;
 import uk.ac.ic.doc.gander.flowinference.flowgoals.NamespaceNamePosition;
@@ -17,7 +18,6 @@ import uk.ac.ic.doc.gander.flowinference.result.Result.Transformer;
 import uk.ac.ic.doc.gander.flowinference.typegoals.ExpressionTypeGoal;
 import uk.ac.ic.doc.gander.flowinference.types.Type;
 import uk.ac.ic.doc.gander.model.ModelSite;
-import uk.ac.ic.doc.gander.model.OldNamespace;
 import uk.ac.ic.doc.gander.model.NamespaceName;
 
 final class AttributeSituation implements FlowSituation {
@@ -37,6 +37,7 @@ final class AttributeSituation implements FlowSituation {
 	 * name of the attribute-accessible namespace of the types of object
 	 * possible at the LHS of the attribute.
 	 */
+	@Override
 	public Result<FlowPosition> nextFlowPositions(SubgoalManager goalManager) {
 
 		Result<Type> lhs = goalManager.registerSubgoal(new ExpressionTypeGoal(
@@ -46,6 +47,7 @@ final class AttributeSituation implements FlowSituation {
 		return lhs
 				.transformResult(new Transformer<Type, Result<FlowPosition>>() {
 
+					@Override
 					public Result<FlowPosition> transformFiniteResult(
 							Set<Type> lhsObjects) {
 						Set<FlowPosition> positions = new HashSet<FlowPosition>();
@@ -58,7 +60,7 @@ final class AttributeSituation implements FlowSituation {
 							 * Or is there some way that a read-only namespace
 							 * can flow here?
 							 */
-							for (OldNamespace namespace : object
+							for (Namespace namespace : object
 									.memberReadableNamespaces()) {
 								NamespaceName name = new NamespaceName(
 										((NameTok) attribute.astNode().attr).id,
@@ -70,6 +72,7 @@ final class AttributeSituation implements FlowSituation {
 						return new FiniteResult<FlowPosition>(positions);
 					}
 
+					@Override
 					public Result<FlowPosition> transformInfiniteResult() {
 						return TopFp.INSTANCE;
 					}

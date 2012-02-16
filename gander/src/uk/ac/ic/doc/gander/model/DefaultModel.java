@@ -15,7 +15,6 @@ import uk.ac.ic.doc.gander.model.build.CodeObjectImportLoader;
 import uk.ac.ic.doc.gander.model.build.FileLoader;
 import uk.ac.ic.doc.gander.model.build.PackageLoader;
 import uk.ac.ic.doc.gander.model.build.TopLevelModuleLoader;
-import uk.ac.ic.doc.gander.model.codeobject.CodeObject;
 import uk.ac.ic.doc.gander.model.codeobject.ModuleCO;
 
 public class DefaultModel implements MutableModel {
@@ -39,20 +38,24 @@ public class DefaultModel implements MutableModel {
 			return null;
 	}
 
+	@Override
 	public Module getTopLevel() {
 		return topLevelPackage;
 	}
 
+	@Override
 	@Deprecated
 	public Module lookup(String importName) {
 		return lookup(DottedName.toImportTokens(importName));
 	}
 
+	@Override
 	@Deprecated
 	public Module lookup(List<String> importNameTokens) {
 		return getTopLevel().lookup(importNameTokens);
 	}
 
+	@Override
 	public Module load(String importName) throws ParseException, IOException {
 		List<String> tokens = DottedName.toImportTokens(importName);
 		Module imported = loadPackage(tokens);
@@ -61,11 +64,13 @@ public class DefaultModel implements MutableModel {
 		return imported;
 	}
 
+	@Override
 	public Module loadModule(String fullyQualifiedName) throws ParseException,
 			IOException {
 		return loadModule(DottedName.toImportTokens(fullyQualifiedName));
 	}
 
+	@Override
 	public Module loadPackage(String fullyQualifiedName) throws ParseException,
 			IOException {
 		return loadPackage(DottedName.toImportTokens(fullyQualifiedName));
@@ -76,6 +81,7 @@ public class DefaultModel implements MutableModel {
 	 * 
 	 * Will also load any parent packages if they haven't been loaded yet.
 	 */
+	@Override
 	public Module loadModule(List<String> fullyQualifiedPath)
 			throws ParseException, IOException {
 		// Loading must be idempotent so if the module is already loaded we
@@ -118,6 +124,7 @@ public class DefaultModel implements MutableModel {
 	 * 
 	 * Will also load any parent packages if they haven't been loaded yet.
 	 */
+	@Override
 	public Module loadPackage(List<String> fullyQualifiedPath)
 			throws ParseException, IOException {
 		Queue<String> tokens = new LinkedList<String>(fullyQualifiedPath);
@@ -145,7 +152,7 @@ public class DefaultModel implements MutableModel {
 				.findSourceFile(fullyQualifiedPath);
 		if (module == null)
 			return null;
-		return new FileLoader(module, (Module) parent, this).getModule();
+		return new FileLoader(module, parent, this).getModule();
 	}
 
 	private Module loadPackageIntoParent(List<String> fullyQualifiedPath,
@@ -155,14 +162,6 @@ public class DefaultModel implements MutableModel {
 				.findPackage(fullyQualifiedPath);
 		if (pkg == null)
 			return null;
-		return new PackageLoader(pkg, (Module) parent, this).getPackage();
-	}
-
-	/**
-	 * Eventually this will do something more clever once we have properly
-	 * separated code objects and namespaces.
-	 */
-	public OldNamespace intrinsicNamespace(CodeObject codeObject) {
-		return codeObject.oldStyleConflatedNamespace();
+		return new PackageLoader(pkg, parent, this).getPackage();
 	}
 }

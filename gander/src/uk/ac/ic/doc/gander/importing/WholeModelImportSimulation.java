@@ -1,8 +1,8 @@
 package uk.ac.ic.doc.gander.importing;
 
+import uk.ac.ic.doc.gander.flowinference.Namespace;
 import uk.ac.ic.doc.gander.importing.ImportSimulator.Binder;
 import uk.ac.ic.doc.gander.model.Model;
-import uk.ac.ic.doc.gander.model.OldNamespace;
 import uk.ac.ic.doc.gander.model.NamespaceName;
 import uk.ac.ic.doc.gander.model.NamespaceNameLoader;
 import uk.ac.ic.doc.gander.model.codeobject.CodeObject;
@@ -20,11 +20,11 @@ import uk.ac.ic.doc.gander.model.codeobject.ModuleCO;
  */
 public final class WholeModelImportSimulation {
 
-	private final Binder<NamespaceName, OldNamespace, CodeObject, ModuleCO> callback;
+	private final Binder<NamespaceName, Namespace, CodeObject, ModuleCO> callback;
 	private final Model model;
 
 	public WholeModelImportSimulation(Model model,
-			Binder<NamespaceName, OldNamespace, CodeObject, ModuleCO> callback) {
+			Binder<NamespaceName, Namespace, CodeObject, ModuleCO> callback) {
 		this.model = model;
 		this.callback = callback;
 		walkModel();
@@ -45,7 +45,7 @@ public final class WholeModelImportSimulation {
 
 	}
 
-	private ImportSimulator<NamespaceName, OldNamespace, CodeObject, ModuleCO> newImportSimulator() {
+	private ImportSimulator<NamespaceName, Namespace, CodeObject, ModuleCO> newImportSimulator() {
 		return ImportSimulator.newInstance(callback, new NamespaceNameLoader(
 				model));
 	}

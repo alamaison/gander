@@ -8,6 +8,7 @@ import org.python.pydev.parser.jython.ast.exprType;
 
 import uk.ac.ic.doc.gander.flowinference.Argument;
 import uk.ac.ic.doc.gander.flowinference.ArgumentPassage;
+import uk.ac.ic.doc.gander.flowinference.Namespace;
 import uk.ac.ic.doc.gander.flowinference.SelfArgument;
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
 import uk.ac.ic.doc.gander.flowinference.flowgoals.FlowPosition;
@@ -18,7 +19,6 @@ import uk.ac.ic.doc.gander.flowinference.typegoals.ExpressionTypeGoal;
 import uk.ac.ic.doc.gander.flowinference.typegoals.NamespaceNameTypeGoal;
 import uk.ac.ic.doc.gander.flowinference.typegoals.TopT;
 import uk.ac.ic.doc.gander.model.ModelSite;
-import uk.ac.ic.doc.gander.model.OldNamespace;
 import uk.ac.ic.doc.gander.model.NamespaceName;
 import uk.ac.ic.doc.gander.model.codeobject.FormalParameter;
 import uk.ac.ic.doc.gander.model.codeobject.FunctionCO;
@@ -44,11 +44,13 @@ public final class TBoundMethod implements TCallable {
 		this.instance = instance;
 	}
 
+	@Override
 	public String getName() {
 		return "<bound method " + instance.getName() + "."
 				+ unboundMethod.declaredName() + ">";
 	}
 
+	@Override
 	public Result<Type> returnType(SubgoalManager goalManager) {
 		return new FunctionReturnTypeSolver(goalManager, unboundMethod)
 				.solution();
@@ -60,6 +62,7 @@ public final class TBoundMethod implements TCallable {
 	 * Members on a method are returned directly from the method's function
 	 * object's namespace.
 	 */
+	@Override
 	public Result<Type> memberType(String memberName, SubgoalManager goalManager) {
 
 		NamespaceName member = new NamespaceName(memberName,
@@ -73,8 +76,9 @@ public final class TBoundMethod implements TCallable {
 	 * Reading a member from a methods delegates the lookup to the wrapped
 	 * unbound function object.
 	 */
-	public Set<OldNamespace> memberReadableNamespaces() {
-		return Collections.<OldNamespace> singleton(unboundMethod
+	@Override
+	public Set<Namespace> memberReadableNamespaces() {
+		return Collections.<Namespace> singleton(unboundMethod
 				.fullyQualifiedNamespace());
 	}
 
@@ -85,7 +89,10 @@ public final class TBoundMethod implements TCallable {
 	 * that member was readable (by delegating to the unbound method @see
 	 * memberReadableNamespaces). It throws an {@code AttributeError}.
 	 */
-	public OldNamespace memberWriteableNamespace() {
+	@Override
+	public Namespace memberWriteableNamespace() {
+		System.err.println("UNTYPABLE: Cannot write to an attribute "
+				+ "of an unbound method " + unboundMethod);
 		return null;
 	}
 
@@ -124,6 +131,7 @@ public final class TBoundMethod implements TCallable {
 	 * parameter of the receiver that is one further along the parameter list
 	 * than the argument's position.
 	 */
+	@Override
 	public Result<ArgumentPassage> destinationsReceivingArgument(
 			Argument argument, SubgoalManager goalManager) {
 
@@ -187,6 +195,7 @@ public final class TBoundMethod implements TCallable {
 				Collections.singleton(unboundMethod));
 	}
 
+	@Override
 	public Result<FlowPosition> flowPositionsCausedByCalling(
 			SubgoalManager goalManager) {
 		return FiniteResult.bottom();
@@ -195,8 +204,8 @@ public final class TBoundMethod implements TCallable {
 	/**
 	 * {@inheritDoc}
 	 * 
-	 * When this method is called as an attribute of another object,
-	 * that object flows to its code object's self parameter.
+	 * When this method is called as an attribute of another object, that object
+	 * flows to its code object's self parameter.
 	 */
 	@Override
 	public Result<FlowPosition> flowPositionsOfHiddenSelfArgument(

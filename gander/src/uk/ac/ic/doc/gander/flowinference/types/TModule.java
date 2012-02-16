@@ -3,11 +3,11 @@ package uk.ac.ic.doc.gander.flowinference.types;
 import java.util.Collections;
 import java.util.Set;
 
+import uk.ac.ic.doc.gander.flowinference.Namespace;
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
 import uk.ac.ic.doc.gander.flowinference.result.Result;
 import uk.ac.ic.doc.gander.flowinference.typegoals.NamespaceNameTypeGoal;
 import uk.ac.ic.doc.gander.model.Module;
-import uk.ac.ic.doc.gander.model.OldNamespace;
 import uk.ac.ic.doc.gander.model.NamespaceName;
 import uk.ac.ic.doc.gander.model.codeobject.ModuleCO;
 
@@ -23,6 +23,7 @@ public class TModule implements TCodeObject {
 		this.moduleObject = moduleInstance;
 	}
 
+	@Override
 	public ModuleCO codeObject() {
 		return moduleObject;
 	}
@@ -37,6 +38,7 @@ public class TModule implements TCodeObject {
 		return moduleObject.oldStyleConflatedNamespace();
 	}
 
+	@Override
 	public String getName() {
 		return getModuleInstance().getFullName();
 	}
@@ -47,25 +49,28 @@ public class TModule implements TCodeObject {
 	 * Members on a module are returned directly from the module object's
 	 * namespace.
 	 */
+	@Override
 	public Result<Type> memberType(String memberName, SubgoalManager goalManager) {
 
-		NamespaceName member = new NamespaceName(memberName, moduleObject
-				.fullyQualifiedNamespace());
+		NamespaceName member = new NamespaceName(memberName,
+				moduleObject.fullyQualifiedNamespace());
 		return goalManager.registerSubgoal(new NamespaceNameTypeGoal(member));
 	}
 
 	/**
 	 * {@inheritDoc}
 	 */
-	public Set<OldNamespace> memberReadableNamespaces() {
-		return Collections.<OldNamespace> singleton(moduleObject
+	@Override
+	public Set<Namespace> memberReadableNamespaces() {
+		return Collections.<Namespace> singleton(moduleObject
 				.fullyQualifiedNamespace());
 	}
 
 	/**
 	 * {@inheritDoc}
 	 */
-	public OldNamespace memberWriteableNamespace() {
+	@Override
+	public Namespace memberWriteableNamespace() {
 		return moduleObject.fullyQualifiedNamespace();
 	}
 

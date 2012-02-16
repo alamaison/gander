@@ -43,7 +43,6 @@ import uk.ac.ic.doc.gander.flowinference.types.TObject;
 import uk.ac.ic.doc.gander.flowinference.types.Type;
 import uk.ac.ic.doc.gander.model.Model;
 import uk.ac.ic.doc.gander.model.ModelSite;
-import uk.ac.ic.doc.gander.model.OldNamespace;
 import uk.ac.ic.doc.gander.model.name_binding.Variable;
 
 public final class ExpressionTypeGoal implements TypeGoal {
@@ -58,12 +57,14 @@ public final class ExpressionTypeGoal implements TypeGoal {
 		this.expression = expression;
 	}
 
+	@Override
 	public Result<Type> initialSolution() {
 		return FiniteResult.bottom();
 	}
 
+	@Override
 	public Result<Type> recalculateSolution(SubgoalManager goalManager) {
-		TypeFinder finder = new TypeFinder(expression.namespace(), goalManager);
+		TypeFinder finder = new TypeFinder(expression.model(), goalManager);
 		try {
 			return (Result<Type>) expression.astNode().accept(finder);
 		} catch (Exception e) {
@@ -87,30 +88,29 @@ public final class ExpressionTypeGoal implements TypeGoal {
 		private final TopT topType;
 		private final SubgoalManager goalManager;
 
-		public TypeFinder(OldNamespace scope, SubgoalManager goalManager) {
+		public TypeFinder(Model model, SubgoalManager goalManager) {
 			this.goalManager = goalManager;
-			Model model = scope.model();
-			dictType = new FiniteResult<Type>(Collections
-					.singleton(new TObject(model.getTopLevel().getClasses()
-							.get("dict"))));
-			listType = new FiniteResult<Type>(Collections
-					.singleton(new TObject(model.getTopLevel().getClasses()
-							.get("list"))));
+			dictType = new FiniteResult<Type>(
+					Collections.singleton(new TObject(model.getTopLevel()
+							.getClasses().get("dict"))));
+			listType = new FiniteResult<Type>(
+					Collections.singleton(new TObject(model.getTopLevel()
+							.getClasses().get("list"))));
 			setType = new FiniteResult<Type>(Collections.singleton(new TObject(
 					model.getTopLevel().getClasses().get("set"))));
 			intType = new FiniteResult<Type>(Collections.singleton(new TObject(
 					model.getTopLevel().getClasses().get("int"))));
-			longType = new FiniteResult<Type>(Collections
-					.singleton(new TObject(model.getTopLevel().getClasses()
-							.get("long"))));
-			floatType = new FiniteResult<Type>(Collections
-					.singleton(new TObject(model.getTopLevel().getClasses()
-							.get("float"))));
+			longType = new FiniteResult<Type>(
+					Collections.singleton(new TObject(model.getTopLevel()
+							.getClasses().get("long"))));
+			floatType = new FiniteResult<Type>(
+					Collections.singleton(new TObject(model.getTopLevel()
+							.getClasses().get("float"))));
 			strType = new FiniteResult<Type>(Collections.singleton(new TObject(
 					model.getTopLevel().getClasses().get("str"))));
-			tupleType = new FiniteResult<Type>(Collections
-					.singleton(new TObject(model.getTopLevel().getClasses()
-							.get("tuple"))));
+			tupleType = new FiniteResult<Type>(
+					Collections.singleton(new TObject(model.getTopLevel()
+							.getClasses().get("tuple"))));
 			topType = TopT.INSTANCE;
 		}
 

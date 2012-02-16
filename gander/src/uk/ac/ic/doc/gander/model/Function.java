@@ -9,6 +9,7 @@ import org.python.pydev.parser.jython.ast.FunctionDef;
 import org.python.pydev.parser.jython.ast.exprType;
 
 import uk.ac.ic.doc.gander.cfg.Cfg;
+import uk.ac.ic.doc.gander.flowinference.Namespace;
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
 import uk.ac.ic.doc.gander.flowinference.result.FiniteResult;
 import uk.ac.ic.doc.gander.flowinference.result.Result;
@@ -19,7 +20,7 @@ import uk.ac.ic.doc.gander.model.codeobject.FunctionCO;
 import uk.ac.ic.doc.gander.model.name_binding.InScopeVariableFinder;
 import uk.ac.ic.doc.gander.model.name_binding.Variable;
 
-public final class Function implements OldNamespace {
+public final class Function implements OldNamespace, Namespace {
 
 	private final Map<String, Function> functions = new HashMap<String, Function>();
 	private final Map<String, Class> classes = new HashMap<String, Class>();
@@ -89,10 +90,12 @@ public final class Function implements OldNamespace {
 		}
 	}
 
+	@Override
 	public String getName() {
 		return codeObject.declaredName();
 	}
 
+	@Override
 	public String getFullName() {
 		String parentName = getParentScope().getFullName();
 		if (parentName.isEmpty())
@@ -101,12 +104,14 @@ public final class Function implements OldNamespace {
 			return parentName + "." + getName();
 	}
 
+	@Override
 	public Cfg getCfg() {
 		if (graph == null)
 			graph = new Cfg(getAst());
 		return graph;
 	}
 
+	@Override
 	public OldNamespace getParentScope() {
 		CodeObject codeObjectParent = codeObject.parent();
 		if (codeObjectParent != null) {
@@ -116,33 +121,39 @@ public final class Function implements OldNamespace {
 		}
 	}
 
+	@Override
 	@Deprecated
 	public Map<String, Module> getModules() {
 		return Collections.emptyMap();
 	}
 
+	@Override
 	@Deprecated
 	public Map<String, Class> getClasses() {
 		// return Collections.unmodifiableMap(classes);
 		return classes;
 	}
 
+	@Override
 	@Deprecated
 	public Map<String, Function> getFunctions() {
 		return functions;
 		// return Collections.unmodifiableMap(functions);
 	}
 
+	@Override
 	@Deprecated
 	public void addModule(Module pkg) {
 		throw new Error("A function cannot contain a module");
 	}
 
+	@Override
 	@Deprecated
 	public void addClass(Class klass) {
 		classes.put(klass.getName(), klass);
 	}
 
+	@Override
 	@Deprecated
 	public void addFunction(Function function) {
 		functions.put(function.getName(), function);
@@ -166,14 +177,17 @@ public final class Function implements OldNamespace {
 	 * element to their hierarchy parent. However, some model elements don't
 	 * have a hierarchy element. For example the dummy_builtin module.
 	 */
+	@Override
 	public boolean isSystem() {
 		return getParentScope().isSystem();
 	}
 
+	@Override
 	public FunctionDef getAst() {
 		return codeObject.ast();
 	}
 
+	@Override
 	@Deprecated
 	public Member lookupMember(String memberName) {
 		if (classes.containsKey(memberName))
@@ -184,18 +198,22 @@ public final class Function implements OldNamespace {
 		return null;
 	}
 
+	@Override
 	public CodeBlock asCodeBlock() {
 		return codeObject.codeBlock();
 	}
 
+	@Override
 	public Module getGlobalNamespace() {
 		return getParentScope().getGlobalNamespace();
 	}
 
+	@Override
 	public Model model() {
 		return model;
 	}
 
+	@Override
 	public FunctionCO codeObject() {
 		return codeObject;
 	}

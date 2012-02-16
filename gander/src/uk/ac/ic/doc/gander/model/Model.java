@@ -3,11 +3,10 @@ package uk.ac.ic.doc.gander.model;
 import java.util.List;
 
 import uk.ac.ic.doc.gander.importing.ImportPath;
-import uk.ac.ic.doc.gander.model.codeobject.CodeObject;
 import uk.ac.ic.doc.gander.model.codeobject.ModuleCO;
 
 public interface Model {
-	
+
 	ModuleCO lookup(ImportPath path);
 
 	public abstract Module getTopLevel();
@@ -17,7 +16,5 @@ public interface Model {
 
 	@Deprecated
 	public abstract Module lookup(List<String> importNameTokens);
-
-	public abstract OldNamespace intrinsicNamespace(CodeObject codeObject);
 
 }

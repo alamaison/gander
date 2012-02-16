@@ -4,6 +4,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
+import uk.ac.ic.doc.gander.flowinference.Namespace;
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
 import uk.ac.ic.doc.gander.flowinference.result.FiniteResult;
 import uk.ac.ic.doc.gander.flowinference.result.RedundancyEliminator;
@@ -12,7 +13,6 @@ import uk.ac.ic.doc.gander.flowinference.result.Result.Transformer;
 import uk.ac.ic.doc.gander.flowinference.typegoals.NamespaceNameTypeGoal;
 import uk.ac.ic.doc.gander.flowinference.typegoals.TopT;
 import uk.ac.ic.doc.gander.model.Class;
-import uk.ac.ic.doc.gander.model.OldNamespace;
 import uk.ac.ic.doc.gander.model.NamespaceName;
 import uk.ac.ic.doc.gander.model.ObjectInstanceNamespace;
 import uk.ac.ic.doc.gander.model.codeobject.ClassCO;
@@ -43,6 +43,7 @@ public class TObject implements Type {
 		return classObject;
 	}
 
+	@Override
 	public String getName() {
 		return "Instance<" + getClassInstance().getFullName() + ">";
 	}
@@ -53,6 +54,7 @@ public class TObject implements Type {
 	 * Members on an object are converted to bound method objects before they
 	 * are returned from the namespace.
 	 */
+	@Override
 	public Result<Type> memberType(String memberName, SubgoalManager goalManager) {
 
 		RedundancyEliminator<Type> result = new RedundancyEliminator<Type>();
@@ -81,13 +83,14 @@ public class TObject implements Type {
 	}
 
 	private Result<Type> memberTypeFromNamespace(String memberName,
-			OldNamespace namespace, SubgoalManager goalManager) {
+			Namespace namespace, SubgoalManager goalManager) {
 		NamespaceName member = new NamespaceName(memberName, namespace);
 		return goalManager.registerSubgoal(new NamespaceNameTypeGoal(member));
 	}
 
 	private final class TypeBinder implements Transformer<Type, Result<Type>> {
 
+		@Override
 		public Result<Type> transformFiniteResult(Set<Type> result) {
 			Set<Type> boundTypes = new HashSet<Type>();
 
@@ -98,6 +101,7 @@ public class TObject implements Type {
 			return new FiniteResult<Type>(boundTypes);
 		}
 
+		@Override
 		public Result<Type> transformInfiniteResult() {
 			return TopT.INSTANCE;
 		}
@@ -118,8 +122,9 @@ public class TObject implements Type {
 	 * Object instances are summarised using their class's namespace so a member
 	 * in once instance will affect all instances.
 	 */
-	public Set<OldNamespace> memberReadableNamespaces() {
-		return Collections.<OldNamespace> singleton(classObject
+	@Override
+	public Set<Namespace> memberReadableNamespaces() {
+		return Collections.<Namespace> singleton(classObject
 				.fullyQualifiedNamespace());
 	}
 
@@ -129,7 +134,8 @@ public class TObject implements Type {
 	 * Object instances are summarised using their class's namespace so a member
 	 * in once instance will affect all instances.
 	 */
-	public OldNamespace memberWriteableNamespace() {
+	@Override
+	public Namespace memberWriteableNamespace() {
 		return classObject.fullyQualifiedNamespace();
 	}
 

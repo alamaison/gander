@@ -15,6 +15,7 @@ import org.python.pydev.parser.jython.ast.exprType;
 
 import uk.ac.ic.doc.gander.ast.AstParentNodeFinder;
 import uk.ac.ic.doc.gander.ast.LocalCodeBlockVisitor;
+import uk.ac.ic.doc.gander.flowinference.Namespace;
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
 import uk.ac.ic.doc.gander.flowinference.flowgoals.expressionflow.ExpressionPosition;
 import uk.ac.ic.doc.gander.flowinference.result.FiniteResult;
@@ -28,10 +29,8 @@ import uk.ac.ic.doc.gander.importing.WholeModelImportSimulation;
 import uk.ac.ic.doc.gander.model.AttributeAccessFinder;
 import uk.ac.ic.doc.gander.model.Class;
 import uk.ac.ic.doc.gander.model.CodeObjectWalker;
-import uk.ac.ic.doc.gander.model.Model;
 import uk.ac.ic.doc.gander.model.ModelSite;
 import uk.ac.ic.doc.gander.model.Module;
-import uk.ac.ic.doc.gander.model.OldNamespace;
 import uk.ac.ic.doc.gander.model.NamespaceName;
 import uk.ac.ic.doc.gander.model.ParentSiteFinder;
 import uk.ac.ic.doc.gander.model.codeobject.ClassCO;
@@ -113,6 +112,7 @@ final class NamespaceNameFlowStepGoal implements FlowStepGoal {
 		this.name = name;
 	}
 
+	@Override
 	public Result<FlowPosition> initialSolution() {
 		return FiniteResult.bottom();
 	}
@@ -147,6 +147,7 @@ final class NamespaceNameFlowStepGoal implements FlowStepGoal {
 	 * with the name {@code m}</li>
 	 * </ul>
 	 * */
+	@Override
 	public Result<FlowPosition> recalculateSolution(SubgoalManager goalManager) {
 		return new NamespaceNameFlowStepGoalSolver(goalManager, name)
 				.solution();
@@ -286,10 +287,12 @@ final class NamespaceNameFlowStepGoalSolver {
 			namespaceReferences.actOnResult(this);
 		}
 
+		@Override
 		public void processInfiniteResult() {
 			positions = TopFp.INSTANCE;
 		}
 
+		@Override
 		public void processFiniteResult(
 				Set<ModelSite<exprType>> namespaceReferences) {
 
@@ -337,6 +340,7 @@ final class NamespaceNameFlowStepGoalSolver {
 			return positions;
 		}
 
+		@Override
 		public void processFiniteResult(Set<ModelSite<exprType>> result) {
 
 			Set<FlowPosition> inheritedPositions = new HashSet<FlowPosition>();
@@ -391,12 +395,21 @@ final class NamespaceNameFlowStepGoalSolver {
 										namespaceName.name());
 
 						if (overridingDeclarations.isEmpty()) {
-							inheritedPositions
-									.add(new NamespaceNamePosition(
-											new NamespaceName(
-													namespaceName.name(),
-													inheritingClass
-															.oldStyleConflatedNamespace())));
+
+							/*
+							 * Inheritance doesn't really add names to the
+							 * subclass's namespace in a qualified or
+							 * unqualified way. Really the namespace delegates
+							 * to the superclass when the lookup fails. That
+							 * isn't modelled very well here
+							 */
+							assert inheritingClass.unqualifiedNamespace()
+									.equals(inheritingClass
+											.fullyQualifiedNamespace());
+							inheritedPositions.add(new NamespaceNamePosition(
+									new NamespaceName(namespaceName.name(),
+											inheritingClass
+													.unqualifiedNamespace())));
 						}
 					}
 
@@ -407,6 +420,7 @@ final class NamespaceNameFlowStepGoalSolver {
 			positions = new FiniteResult<FlowPosition>(inheritedPositions);
 		}
 
+		@Override
 		public void processInfiniteResult() {
 			positions = TopFp.INSTANCE;
 		}
@@ -488,8 +502,9 @@ final class NamespaceNameFlowStepGoalSolver {
 		 */
 		private final RedundancyEliminator<FlowPosition> importedReferences = new RedundancyEliminator<FlowPosition>();
 
-		private final Binder<NamespaceName, OldNamespace, CodeObject, ModuleCO> worker = new Binder<NamespaceName, OldNamespace, CodeObject, ModuleCO>() {
+		private final Binder<NamespaceName, Namespace, CodeObject, ModuleCO> worker = new Binder<NamespaceName, Namespace, CodeObject, ModuleCO>() {
 
+			@Override
 			public void bindModuleToLocalName(ModuleCO loadedModule,
 					String name, CodeObject container) {
 				/*
@@ -504,6 +519,7 @@ final class NamespaceNameFlowStepGoalSolver {
 				}
 			}
 
+			@Override
 			public void bindModuleToName(ModuleCO loadedModule, String name,
 					ModuleCO receivingModule) {
 				/*
@@ -516,6 +532,7 @@ final class NamespaceNameFlowStepGoalSolver {
 				}
 			}
 
+			@Override
 			public void bindObjectToLocalName(NamespaceName importedObject,
 					String name, CodeObject container) {
 				/*
@@ -530,6 +547,7 @@ final class NamespaceNameFlowStepGoalSolver {
 				}
 			}
 
+			@Override
 			public void bindObjectToName(NamespaceName importedObject,
 					String name, ModuleCO receivingModule) {
 				/*
@@ -542,6 +560,7 @@ final class NamespaceNameFlowStepGoalSolver {
 				}
 			}
 
+			@Override
 			public void onUnresolvedImport(
 					Import<CodeObject, ModuleCO> importInstance, String name,
 					ModuleCO receivingModule) {
@@ -553,6 +572,7 @@ final class NamespaceNameFlowStepGoalSolver {
 				 */
 			}
 
+			@Override
 			public void onUnresolvedLocalImport(
 					Import<CodeObject, ModuleCO> importInstance, String name) {
 				/*
@@ -564,7 +584,7 @@ final class NamespaceNameFlowStepGoalSolver {
 			}
 
 			@Override
-			public void bindAllNamespaceMembers(OldNamespace sourceNamespace,
+			public void bindAllNamespaceMembers(Namespace sourceNamespace,
 					CodeObject container) {
 				if (!importedReferences.isFinished()) {
 					handleBindAll(sourceNamespace, container);
@@ -682,7 +702,7 @@ final class NamespaceNameFlowStepGoalSolver {
 			}
 		}
 
-		void handleBindAll(OldNamespace sourceNamespace, CodeObject container) {
+		void handleBindAll(Namespace sourceNamespace, CodeObject container) {
 			// starred-import only allowed at top level
 			assert container instanceof ModuleCO;
 
@@ -746,10 +766,8 @@ final class NamespaceNameFlowStepGoalSolver {
 			 */
 
 			return object instanceof NestedCodeObject
-					&& object
-							.model()
-							.intrinsicNamespace(
-									((NestedCodeObject) object).parent())
+					&& ((NestedCodeObject) object).parent()
+							.unqualifiedNamespace()
 							.equals(namespaceName.namespace())
 					&& object instanceof NamedCodeObject
 					&& ((NamedCodeObject) object).declaredName().equals(
@@ -757,10 +775,9 @@ final class NamespaceNameFlowStepGoalSolver {
 		}
 
 		private boolean codeObjectAllowsAttributesToAccessNamespace(
-				CodeObject loadedObject, OldNamespace namespace) {
+				CodeObject loadedObject, Namespace namespace) {
 
-			return loadedObject.model().intrinsicNamespace(loadedObject)
-					.equals(namespace);
+			return loadedObject.fullyQualifiedNamespace().equals(namespace);
 		}
 	}
 
@@ -789,12 +806,14 @@ final class NamespaceNameFlowStepGoalSolver {
 
 		Transformer<ModelSite<exprType>, Result<FlowPosition>> accessPositioner = new Transformer<ModelSite<exprType>, Result<FlowPosition>>() {
 
+			@Override
 			public Result<FlowPosition> transformFiniteResult(
 					Set<ModelSite<exprType>> moduleReferences) {
 				return new FiniteResult<FlowPosition>(
 						findAccessesToCodeObjectNamespaceName(moduleReferences));
 			}
 
+			@Override
 			public Result<FlowPosition> transformInfiniteResult() {
 				return TopFp.INSTANCE;
 			}
@@ -815,6 +834,7 @@ final class NamespaceNameFlowStepGoalSolver {
 		new AttributeAccessFinder(moduleReferenceExpressions,
 				new AttributeAccessFinder.Event() {
 
+					@Override
 					public boolean attributeAccess(
 							ModelSite<Attribute> attribute) {
 						if (((NameTok) attribute.astNode().attr).id
@@ -885,10 +905,12 @@ final class NamespaceNameFlowStepGoalSolver {
 			}
 		}
 
+		@Override
 		public void processInfiniteResult() {
 			positions = TopFp.INSTANCE;
 		}
 
+		@Override
 		public void processFiniteResult(
 				Set<ModelSite<exprType>> classObjectPositions) {
 
@@ -920,18 +942,9 @@ final class NamespaceNameFlowStepGoalSolver {
 	}
 
 	public boolean variableBindsLocallyOrGlobally(Variable variable) {
-		return nameBindsLocallyOrGlobally(variable.codeObject(),
-				new NamespaceName(variable.bindingLocation()));
-	}
-
-	private boolean nameBindsLocallyOrGlobally(CodeObject importReceiver,
-			NamespaceName nameBinding) {
-		Model model = nameBinding.namespace().model();
-
-		return nameBinding.namespace().equals(
-				model.intrinsicNamespace(importReceiver))
-				|| nameBinding.namespace().equals(
-						model.intrinsicNamespace(importReceiver
-								.enclosingModule()));
+		return variable.bindingLocation().codeObject()
+				.equals(variable.codeObject())
+				|| variable.bindingLocation().codeObject()
+						.equals(variable.codeObject().enclosingModule());
 	}
 }

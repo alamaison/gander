@@ -19,11 +19,6 @@ public class ModelSite<T extends SimpleNode> {
 		return codeObject.model();
 	}
 
-	@Deprecated
-	public OldNamespace namespace() {
-		return codeObject.model().intrinsicNamespace(codeObject);
-	}
-
 	public CodeObject codeObject() {
 		return codeObject;
 	}
@@ -35,7 +30,7 @@ public class ModelSite<T extends SimpleNode> {
 		 * constructor and the constructor would call asCodeBlock leading to an
 		 * infinite loop.
 		 */
-		//assert codeBlockContainsNode(codeObject.codeBlock(), node);
+		// assert codeBlockContainsNode(codeObject.codeBlock(), node);
 		return node;
 	}
 

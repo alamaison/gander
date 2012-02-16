@@ -10,6 +10,7 @@ import java.util.Set;
 import org.python.pydev.parser.jython.ast.exprType;
 
 import uk.ac.ic.doc.gander.cfg.Cfg;
+import uk.ac.ic.doc.gander.flowinference.Namespace;
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
 import uk.ac.ic.doc.gander.flowinference.flowgoals.CodeObjectDefinitionPosition;
 import uk.ac.ic.doc.gander.flowinference.flowgoals.FlowGoal;
@@ -29,7 +30,7 @@ import uk.ac.ic.doc.gander.model.name_binding.Variable;
  * separate packages, only modules. After all, this is how Python sees things.
  * The Hierarchy would still maintain the distinction between them.
  */
-public final class ModuleNamespace implements Module {
+public final class ModuleNamespace implements Module, Namespace {
 
 	private final HashMap<String, Class> classes = new HashMap<String, Class>();
 	private final HashMap<String, Function> functions = new HashMap<String, Function>();
@@ -71,8 +72,7 @@ public final class ModuleNamespace implements Module {
 	 * A module's execution namespace is accessible by attribute access on any
 	 * expression that the module code object can reach.
 	 */
-	public Result<ModelSite<exprType>> references(
-			SubgoalManager goalManager) {
+	public Result<ModelSite<exprType>> references(SubgoalManager goalManager) {
 
 		return goalManager.registerSubgoal(new FlowGoal(
 				new CodeObjectDefinitionPosition(codeObject)));
@@ -101,32 +101,39 @@ public final class ModuleNamespace implements Module {
 		return variablesInScope(name);
 	}
 
+	@Override
 	public void addClass(Class subclass) {
 		classes.put(subclass.getName(), subclass);
 	}
 
+	@Override
 	public void addFunction(Function subfunction) {
 		functions.put(subfunction.getName(), subfunction);
 	}
 
+	@Override
 	public void addModule(Module submodule) {
 		modules.put(submodule.getName(), submodule);
 	}
 
+	@Override
 	public org.python.pydev.parser.jython.ast.Module getAst() {
 		return codeObject.ast();
 	}
 
+	@Override
 	public Cfg getCfg() {
 		throw new Error("Not implemented yet");
 	}
 
+	@Override
 	@Deprecated
 	public Map<String, Class> getClasses() {
 		// return Collections.unmodifiableMap(classes);
 		return classes;
 	}
 
+	@Override
 	public String getFullName() {
 		if (isTopLevel())
 			return getName();
@@ -139,38 +146,46 @@ public final class ModuleNamespace implements Module {
 		}
 	}
 
+	@Override
 	@Deprecated
 	public Map<String, Function> getFunctions() {
 		// return Collections.unmodifiableMap(functions);
 		return functions;
 	}
 
+	@Override
 	@Deprecated
 	public Map<String, Module> getModules() {
 		// return Collections.unmodifiableMap(modules);
 		return modules;
 	}
 
+	@Override
 	public String getName() {
 		return codeObject.declaredName();
 	}
 
+	@Override
 	public Module getParent() {
 		return parent;
 	}
 
+	@Override
 	public OldNamespace getParentScope() {
 		return getParent();
 	}
 
+	@Override
 	public boolean isSystem() {
 		return isSystem;
 	}
 
+	@Override
 	public boolean isTopLevel() {
 		return getParent() == null;
 	}
 
+	@Override
 	@Deprecated
 	public Module lookup(List<String> importNameTokens) {
 		Queue<String> tokens = new LinkedList<String>(importNameTokens);
@@ -192,6 +207,7 @@ public final class ModuleNamespace implements Module {
 		return "ModuleNamespace[" + getFullName() + "]";
 	}
 
+	@Override
 	@Deprecated
 	public Member lookupMember(String memberName) {
 		if (modules.containsKey(memberName))
@@ -204,18 +220,22 @@ public final class ModuleNamespace implements Module {
 		return null;
 	}
 
+	@Override
 	public CodeBlock asCodeBlock() {
 		return codeObject.codeBlock();
 	}
 
+	@Override
 	public Module getGlobalNamespace() {
 		return this;
 	}
 
+	@Override
 	public Model model() {
 		return model;
 	}
 
+	@Override
 	public ModuleCO codeObject() {
 		return codeObject;
 	}

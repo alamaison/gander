@@ -1,5 +1,6 @@
 package uk.ac.ic.doc.gander.model;
 
+import uk.ac.ic.doc.gander.flowinference.Namespace;
 import uk.ac.ic.doc.gander.model.name_binding.BindingLocation;
 import uk.ac.ic.doc.gander.model.name_binding.Variable;
 
@@ -13,7 +14,7 @@ import uk.ac.ic.doc.gander.model.name_binding.Variable;
 public final class NamespaceName {
 
 	private final String name;
-	private final OldNamespace namespace;
+	private final Namespace namespace;
 
 	/**
 	 * Constructs new representation of a name in a namespace.
@@ -24,7 +25,7 @@ public final class NamespaceName {
 	 *            the namespace in which the name acts as a key to map to
 	 *            objects
 	 */
-	public NamespaceName(String name, OldNamespace namespace) {
+	public NamespaceName(String name, Namespace namespace) {
 		if (name == null)
 			throw new NullPointerException(
 					"Names in a namespace must actually exits");
@@ -46,14 +47,15 @@ public final class NamespaceName {
 	 *            the location to convert
 	 */
 	public NamespaceName(BindingLocation bindingLocation) {
-		this(bindingLocation.name(), bindingLocation.codeObject().unqualifiedNamespace());
+		this(bindingLocation.name(), bindingLocation.codeObject()
+				.unqualifiedNamespace());
 	}
 
 	public String name() {
 		return name;
 	}
 
-	public OldNamespace namespace() {
+	public Namespace namespace() {
 		return namespace;
 	}
 

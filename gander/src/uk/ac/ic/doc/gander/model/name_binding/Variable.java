@@ -1,7 +1,6 @@
 package uk.ac.ic.doc.gander.model.name_binding;
 
 import uk.ac.ic.doc.gander.model.Model;
-import uk.ac.ic.doc.gander.model.OldNamespace;
 import uk.ac.ic.doc.gander.model.codeobject.CodeObject;
 
 /**

@@ -1,57 +1,13 @@
 package uk.ac.ic.doc.gander.model;
 
 import java.util.Map;
-import java.util.Set;
-
-import org.python.pydev.parser.jython.ast.exprType;
 
 import uk.ac.ic.doc.gander.cfg.Cfg;
-import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
-import uk.ac.ic.doc.gander.flowinference.result.Result;
 import uk.ac.ic.doc.gander.model.codeblock.CodeBlock;
 import uk.ac.ic.doc.gander.model.codeobject.CodeObject;
-import uk.ac.ic.doc.gander.model.name_binding.Variable;
 
+@Deprecated
 public interface OldNamespace extends Member {
-
-	/**
-	 * Returns the expressions that expose this namespace.
-	 * 
-	 * In other words, the expressions that may hold an object that, via an
-	 * attribute access, can read values from names of this namespace.
-	 * 
-	 * There is no such thing as a write-only namespace so this is a superset of
-	 * the writeable references.
-	 * 
-	 * @param goalManager
-	 *            allows us to use type inference to determine the result.
-	 */
-	public Result<ModelSite<exprType>> references(SubgoalManager goalManager);
-
-	/**
-	 * Returns the expressions that expose this namespace such that its members
-	 * may be modified.
-	 * 
-	 * In other words, the expressions that may hold an object that, via a
-	 * binding to attribute access, can set names of this namespace.
-	 * 
-	 * @param goalManager
-	 *            allows us to use type inference to determine the result.
-	 */
-	public Result<ModelSite<exprType>> writeableReferences(
-			SubgoalManager goalManager);
-
-	/**
-	 * Returns the set of variables that can read the value of the given name in
-	 * this namespace.
-	 */
-	public Set<Variable> variablesInScope(String name);
-
-	/**
-	 * Returns the set of variables that can set the value of the given name in
-	 * this namespace.
-	 */
-	public Set<Variable> variablesWriteableInScope(String name);
 
 	public String getFullName();
 

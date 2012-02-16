@@ -11,6 +11,7 @@ import org.python.pydev.parser.jython.ast.exprType;
 
 import uk.ac.ic.doc.gander.flowinference.Argument;
 import uk.ac.ic.doc.gander.flowinference.ArgumentPassage;
+import uk.ac.ic.doc.gander.flowinference.Namespace;
 import uk.ac.ic.doc.gander.flowinference.TopI;
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
 import uk.ac.ic.doc.gander.flowinference.flowgoals.FlowPosition;
@@ -28,7 +29,6 @@ import uk.ac.ic.doc.gander.flowinference.typegoals.TopT;
 import uk.ac.ic.doc.gander.model.Class;
 import uk.ac.ic.doc.gander.model.Function;
 import uk.ac.ic.doc.gander.model.ModelSite;
-import uk.ac.ic.doc.gander.model.OldNamespace;
 import uk.ac.ic.doc.gander.model.NamespaceName;
 import uk.ac.ic.doc.gander.model.codeobject.ClassCO;
 import uk.ac.ic.doc.gander.model.codeobject.CodeObject;
@@ -96,6 +96,7 @@ public class TClass implements TCodeObject, TCallable {
 		this.classObject = classInstance;
 	}
 
+	@Override
 	public ClassCO codeObject() {
 		return classObject;
 	}
@@ -110,10 +111,12 @@ public class TClass implements TCodeObject, TCallable {
 		return classObject.oldStyleConflatedNamespace();
 	}
 
+	@Override
 	public String getName() {
 		return getClassInstance().getFullName();
 	}
 
+	@Override
 	public Result<Type> returnType(SubgoalManager goalManager) {
 		/*
 		 * Calling a class is a constructor call. Constructors are special
@@ -129,6 +132,7 @@ public class TClass implements TCodeObject, TCallable {
 	 * 
 	 * Members on a class are returned directly from the class namespace.
 	 */
+	@Override
 	public Result<Type> memberType(String memberName, SubgoalManager goalManager) {
 
 		NamespaceName member = new NamespaceName(memberName,
@@ -139,15 +143,17 @@ public class TClass implements TCodeObject, TCallable {
 	/**
 	 * {@inheritDoc}
 	 */
-	public Set<OldNamespace> memberReadableNamespaces() {
-		return Collections.<OldNamespace> singleton(classObject
+	@Override
+	public Set<Namespace> memberReadableNamespaces() {
+		return Collections.<Namespace> singleton(classObject
 				.fullyQualifiedNamespace());
 	}
 
 	/**
 	 * {@inheritDoc}
 	 */
-	public OldNamespace memberWriteableNamespace() {
+	@Override
+	public Namespace memberWriteableNamespace() {
 		return classObject.fullyQualifiedNamespace();
 	}
 
@@ -175,6 +181,7 @@ public class TClass implements TCodeObject, TCallable {
 			this.goalManager = goalManager;
 		}
 
+		@Override
 		public Result<Type> transformFiniteResult(Set<Type> result) {
 			RedundancyEliminator<Type> parameterType = new RedundancyEliminator<Type>();
 
@@ -198,6 +205,7 @@ public class TClass implements TCodeObject, TCallable {
 			return parameterType.result();
 		}
 
+		@Override
 		public Result<Type> transformInfiniteResult() {
 			/*
 			 * Can't work out what __init__ implementations could be called so
@@ -214,6 +222,7 @@ public class TClass implements TCodeObject, TCallable {
 	 * parameter of the receiver that is one further along the parameter list
 	 * than the ordinal.
 	 */
+	@Override
 	public Result<ArgumentPassage> destinationsReceivingArgument(
 			Argument argument, SubgoalManager goalManager) {
 		if (argument == null) {
@@ -307,6 +316,7 @@ public class TClass implements TCodeObject, TCallable {
 	 * FIXME: Doesn't work if the method was added by assignment rather than
 	 * declaration.
 	 */
+	@Override
 	public Result<FlowPosition> flowPositionsCausedByCalling(
 			SubgoalManager goalManager) {
 
@@ -393,10 +403,12 @@ public class TClass implements TCodeObject, TCallable {
 
 		superclassTypes.actOnResult(new Processor<Type>() {
 
+			@Override
 			public void processInfiniteResult() {
 				positions.add(TopFp.INSTANCE);
 			}
 
+			@Override
 			public void processFiniteResult(Set<Type> possibleSuperclassTypes) {
 
 				for (Type supertype : possibleSuperclassTypes) {

@@ -2,9 +2,9 @@ package uk.ac.ic.doc.gander.flowinference.types;
 
 import java.util.Set;
 
+import uk.ac.ic.doc.gander.flowinference.Namespace;
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
 import uk.ac.ic.doc.gander.flowinference.result.Result;
-import uk.ac.ic.doc.gander.model.OldNamespace;
 
 public interface Type {
 	String getName();
@@ -20,7 +20,7 @@ public interface Type {
 	 * instance may read from the object instance's namespace as well as the
 	 * namespace of the object's class.
 	 */
-	Set<OldNamespace> memberReadableNamespaces();
+	Set<Namespace> memberReadableNamespaces();
 
 	/**
 	 * Returns the namespace that is modified when storing a value as a member
@@ -31,5 +31,5 @@ public interface Type {
 	 * TODO: investigate if there is any sitatuation where the target of an
 	 * attribute write in Python is not limited to one namespace.
 	 */
-	OldNamespace memberWriteableNamespace();
+	Namespace memberWriteableNamespace();
 }

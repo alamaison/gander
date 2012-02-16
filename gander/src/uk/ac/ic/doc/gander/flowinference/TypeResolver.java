@@ -24,8 +24,8 @@ import uk.ac.ic.doc.gander.model.codeobject.CodeObject;
 
 public class TypeResolver extends VisitorBase {
 
-	private Stack<OldNamespace> scopes = new Stack<OldNamespace>();
-	private SymbolTable table;
+	private final Stack<OldNamespace> scopes = new Stack<OldNamespace>();
+	private final SymbolTable table;
 	private final Model model;
 
 	public TypeResolver(Model model) {
@@ -114,7 +114,7 @@ public class TypeResolver extends VisitorBase {
 	 */
 	private class SymbolTableTypeResolver extends LexicalResolver<Type> {
 
-		private SymbolTable table;
+		private final SymbolTable table;
 
 		public SymbolTableTypeResolver(SymbolTable table) {
 			this.table = table;
@@ -122,8 +122,8 @@ public class TypeResolver extends VisitorBase {
 
 		@Override
 		protected Type searchScopeForVariable(String token, CodeObject scope) {
-			Map<String, Type> scopeTokens = table.symbols(model
-					.intrinsicNamespace(scope));
+			Map<String, Type> scopeTokens = table.symbols(scope
+					.oldStyleConflatedNamespace());
 			if (scopeTokens != null)
 				return scopeTokens.get(token);
 

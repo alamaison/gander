@@ -4,7 +4,6 @@ import org.python.pydev.parser.jython.ast.Call;
 
 import uk.ac.ic.doc.gander.flowinference.Argument;
 import uk.ac.ic.doc.gander.flowinference.ArgumentPassage;
-import uk.ac.ic.doc.gander.flowinference.ArgumentPassingStrategy;
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
 import uk.ac.ic.doc.gander.flowinference.flowgoals.FlowPosition;
 import uk.ac.ic.doc.gander.flowinference.result.Result;
@@ -91,7 +90,6 @@ public interface TCallable extends Type {
 	 *            allows us to determine the flow positions using type inference
 	 */
 	Result<FlowPosition> flowPositionsCausedByCalling(SubgoalManager goalManager);
-
 
 	/**
 	 * Returns the flow positions that the LHS of an attribute might flow to

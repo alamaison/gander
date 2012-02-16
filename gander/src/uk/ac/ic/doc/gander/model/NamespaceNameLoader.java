@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import uk.ac.ic.doc.gander.DottedName;
+import uk.ac.ic.doc.gander.flowinference.Namespace;
 import uk.ac.ic.doc.gander.importing.ImportPath;
 import uk.ac.ic.doc.gander.importing.ImportSimulator.Loader;
 import uk.ac.ic.doc.gander.model.codeobject.ModuleCO;
@@ -16,7 +17,7 @@ import uk.ac.ic.doc.gander.model.codeobject.ModuleCO;
  * what it is.
  */
 public final class NamespaceNameLoader implements
-		Loader<NamespaceName, OldNamespace, ModuleCO> {
+		Loader<NamespaceName, Namespace, ModuleCO> {
 
 	private final Model model;
 
@@ -46,14 +47,15 @@ public final class NamespaceNameLoader implements
 	}
 
 	@Override
-	public NamespaceName loadModuleNamespaceMember(String itemName, ModuleCO sourceModule) {
+	public NamespaceName loadModuleNamespaceMember(String itemName,
+			ModuleCO sourceModule) {
 
 		return new NamespaceName(itemName,
 				sourceModule.fullyQualifiedNamespace());
 	}
 
 	@Override
-	public OldNamespace loadAllMembersInModuleNamespace(ModuleCO sourceModule) {
+	public Namespace loadAllMembersInModuleNamespace(ModuleCO sourceModule) {
 		return sourceModule.fullyQualifiedNamespace();
 	}
 }
