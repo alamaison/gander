@@ -42,6 +42,9 @@ final class VariableTypeSummariser {
 	VariableTypeSummariser(Variable variable, SubgoalManager manager) {
 
 		types.add(new BoundTypeVisitor(manager, variable).getJudgement());
+		if (types.isFinished()) {
+			return;
+		}
 
 		/*
 		 * For names that bind in the global namespace, we must add any values

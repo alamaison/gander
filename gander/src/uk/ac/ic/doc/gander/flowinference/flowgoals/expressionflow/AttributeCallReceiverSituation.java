@@ -57,6 +57,9 @@ final class AttributeCallReceiverSituation implements FlowSituation {
 
 		for (Type receiver : receiverTypes) {
 			nextPositions.add(selfParameterOf(receiver, goalManager));
+			if (nextPositions.isFinished()) {
+				break;
+			}
 		}
 
 		return nextPositions.result();

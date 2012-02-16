@@ -23,6 +23,9 @@ public final class ReceivingParameterPositioner implements
 
 		for (ArgumentPassage parameter : receivingParameters) {
 			parameterPositions.add(parameter.nextFlowPositions());
+			if (parameterPositions.isFinished()) {
+				break;
+			}
 		}
 
 		return parameterPositions.result();

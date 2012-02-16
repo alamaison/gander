@@ -179,6 +179,10 @@ public class TClass implements TCodeObject, TCallable {
 			RedundancyEliminator<Type> parameterType = new RedundancyEliminator<Type>();
 
 			for (Type initType : result) {
+				if (parameterType.isFinished()) {
+					break;
+				}
+
 				if (initType instanceof TFunction) {
 					TBoundMethod init = new TBoundMethod(
 							((TFunction) initType).codeObject(), new TObject(

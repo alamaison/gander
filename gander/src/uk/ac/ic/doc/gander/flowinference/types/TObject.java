@@ -56,8 +56,13 @@ public class TObject implements Type {
 	public Result<Type> memberType(String memberName, SubgoalManager goalManager) {
 
 		RedundancyEliminator<Type> result = new RedundancyEliminator<Type>();
+
 		result.add(memberTypeFromObject(memberName, goalManager));
-		result.add(memberTypeFromClass(memberName, goalManager));
+
+		if (!result.isFinished()) {
+			result.add(memberTypeFromClass(memberName, goalManager));
+		}
+
 		return result.result();
 	}
 

@@ -98,10 +98,14 @@ final class NamespaceNameTypeGoalSolver {
 	}
 
 	private void addTypesFromNamespace() {
+		
 		completeType.add(new UnqualifiedNameDefinitionsPartialSolution(
 				goalManager, name).partialSolution());
-		completeType.add(new QualifiedNameDefinitionsPartialSolution(
-				goalManager, name).partialSolution());
+		
+		if (!completeType.isFinished()) {
+			completeType.add(new QualifiedNameDefinitionsPartialSolution(
+					goalManager, name).partialSolution());
+		}
 	}
 
 	private void addTypesFromInheritanceChain(Class klass) {

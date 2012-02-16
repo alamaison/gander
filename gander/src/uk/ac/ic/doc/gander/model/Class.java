@@ -61,8 +61,11 @@ public final class Class implements Namespace {
 
 		references.add(goalManager.registerSubgoal(new FlowGoal(
 				new CodeObjectDefinitionPosition(codeObject))));
-		references.add(goalManager.registerSubgoal(new FlowGoal(
-				new InstanceCreationPosition(codeObject))));
+		
+		if (!references.isFinished()) {
+			references.add(goalManager.registerSubgoal(new FlowGoal(
+					new InstanceCreationPosition(codeObject))));
+		}
 
 		return references.result();
 	}

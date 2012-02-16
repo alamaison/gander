@@ -172,6 +172,9 @@ final class CallsiteToParameterTypeMapper implements
 					type.add(((TCallable) typeAtCallSite)
 							.typeOfArgumentPassedToParameter(parameter,
 									callSite, goalManager));
+					if (type.isFinished()) {
+						break;
+					}
 				}
 
 			} else {

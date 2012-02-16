@@ -499,7 +499,9 @@ final class NamespaceNameFlowStepGoalSolver {
 				 * this may not be the code object whose unqualified namespace
 				 * the variable binds in.
 				 */
-				handleBind(loadedModule, new Variable(name, container));
+				if (!importedReferences.isFinished()) {
+					handleBind(loadedModule, new Variable(name, container));
+				}
 			}
 
 			public void bindModuleToName(ModuleCO loadedModule, String name,
@@ -508,7 +510,10 @@ final class NamespaceNameFlowStepGoalSolver {
 				 * The binding occurs as though it were being bound to a global
 				 * variable in a particular module.
 				 */
-				handleBind(loadedModule, new Variable(name, receivingModule));
+				if (!importedReferences.isFinished()) {
+					handleBind(loadedModule,
+							new Variable(name, receivingModule));
+				}
 			}
 
 			public void bindObjectToLocalName(NamespaceName importedObject,
@@ -520,7 +525,9 @@ final class NamespaceNameFlowStepGoalSolver {
 				 * this may not be the code object whose unqualified namespace
 				 * the variable binds in.
 				 */
-				handleBind(importedObject, new Variable(name, container));
+				if (!importedReferences.isFinished()) {
+					handleBind(importedObject, new Variable(name, container));
+				}
 			}
 
 			public void bindObjectToName(NamespaceName importedObject,
@@ -529,7 +536,10 @@ final class NamespaceNameFlowStepGoalSolver {
 				 * The binding occurs as though it were being bound to a global
 				 * variable in a particular module.
 				 */
-				handleBind(importedObject, new Variable(name, receivingModule));
+				if (!importedReferences.isFinished()) {
+					handleBind(importedObject, new Variable(name,
+							receivingModule));
+				}
 			}
 
 			public void onUnresolvedImport(
@@ -556,7 +566,9 @@ final class NamespaceNameFlowStepGoalSolver {
 			@Override
 			public void bindAllNamespaceMembers(Namespace sourceNamespace,
 					CodeObject container) {
-				handleBindAll(sourceNamespace, container);
+				if (!importedReferences.isFinished()) {
+					handleBindAll(sourceNamespace, container);
+				}
 			}
 		};
 

@@ -93,7 +93,8 @@ final class FlowGoalSolver {
 			closure.add(positions);
 			positions = findNextFlowPositions(positions);
 
-		} while (!isSuperset(closure.result(), positions));
+		} while (!closure.isFinished()
+				&& !isSuperset(closure.result(), positions));
 
 		/*
 		 * Only expression positions make sense for an external caller. All

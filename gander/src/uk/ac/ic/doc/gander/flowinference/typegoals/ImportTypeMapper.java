@@ -54,7 +54,8 @@ final class ImportTypeMapper {
 				CodeObject container) {
 			assert container.equals(variable.codeObject());
 
-			if (name.equals(variable.name())) {
+			if (!partialVariableType.isFinished()
+					&& name.equals(variable.name())) {
 
 				partialVariableType.add(new FiniteResult<Type>(Collections
 						.singleton(new TModule(loadedModule))));
@@ -66,7 +67,8 @@ final class ImportTypeMapper {
 				String name, CodeObject container) {
 			assert container.equals(variable.codeObject());
 
-			if (name.equals(variable.name())) {
+			if (!partialVariableType.isFinished()
+					&& name.equals(variable.name())) {
 
 				partialVariableType.add(goalManager
 						.registerSubgoal(new NamespaceNameTypeGoal(
@@ -95,9 +97,13 @@ final class ImportTypeMapper {
 			 * event though all names are imported, we are interested in a
 			 * specific name so can issue a query for it
 			 */
-			partialVariableType.add(goalManager
-					.registerSubgoal(new NamespaceNameTypeGoal(
-							new NamespaceName(variable.name(), allMembers))));
+			if (!partialVariableType.isFinished()) {
+				partialVariableType
+						.add(goalManager
+								.registerSubgoal(new NamespaceNameTypeGoal(
+										new NamespaceName(variable.name(),
+												allMembers))));
+			}
 		}
 
 		@Override
