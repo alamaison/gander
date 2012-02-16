@@ -321,7 +321,8 @@ public class TClass implements TCodeObject, TCallable {
 		 */
 		Set<String> doneMethods = new HashSet<String>();
 
-		flowToMethodsOfClass(classObject, doneMethods, goalManager, positions);
+		flowToMethodsOfClass(this, doneMethods, new HashSet<TClass>(),
+				goalManager, positions);
 
 		return positions.result();
 	}
@@ -339,12 +340,18 @@ public class TClass implements TCodeObject, TCallable {
 		return FiniteResult.bottom();
 	}
 
-	private void flowToMethodsOfClass(ClassCO classObject,
-			Set<String> doneMethods, SubgoalManager goalManager,
+	private void flowToMethodsOfClass(TClass klass, Set<String> doneMethods,
+			Set<TClass> doneClasses, SubgoalManager goalManager,
 			RedundancyEliminator<FlowPosition> positions) {
 
-		Collection<Function> methods = classObject.oldStyleConflatedNamespace()
-				.getFunctions().values();
+		/*
+		 * This prevents a stack overflow in the case that the class appears to
+		 * inherit from itself or a grandparent.
+		 */
+		doneClasses.add(klass);
+
+		Collection<Function> methods = klass.codeObject()
+				.oldStyleConflatedNamespace().getFunctions().values();
 
 		Set<FlowPosition> localPositions = new HashSet<FlowPosition>();
 		for (Function method : methods) {
@@ -363,11 +370,11 @@ public class TClass implements TCodeObject, TCallable {
 
 		positions.add(new FiniteResult<FlowPosition>(localPositions));
 
-		for (exprType base : classObject.ast().bases) {
+		for (exprType base : klass.codeObject().ast().bases) {
 
-			flowToMethodsOfSuperClass(
-					new ModelSite<exprType>(base, classObject.parent()),
-					doneMethods, positions, goalManager);
+			flowToMethodsOfSuperClass(new ModelSite<exprType>(base, klass
+					.codeObject().parent()), doneMethods, doneClasses,
+					positions, goalManager);
 
 			if (positions.isFinished())
 				break;
@@ -377,7 +384,7 @@ public class TClass implements TCodeObject, TCallable {
 
 	private void flowToMethodsOfSuperClass(
 			final ModelSite<exprType> superclass,
-			final Set<String> doneMethods,
+			final Set<String> doneMethods, final Set<TClass> doneClasses,
 			final RedundancyEliminator<FlowPosition> positions,
 			final SubgoalManager goalManager) {
 
@@ -395,13 +402,13 @@ public class TClass implements TCodeObject, TCallable {
 				for (Type supertype : possibleSuperclassTypes) {
 
 					if (supertype instanceof TClass) {
-						if (!supertype.equals(TClass.this)) {
+						if (!doneClasses.contains(supertype)) {
 							TClass superclass = (TClass) supertype;
-							flowToMethodsOfClass(superclass.codeObject(),
-									doneMethods, goalManager, positions);
+							flowToMethodsOfClass(superclass, doneMethods,
+									doneClasses, goalManager, positions);
 						} else {
 							System.err.println("UNTYPABLE: " + classObject
-									+ " appears to inherit from itself");
+									+ " appears to inherit circularly");
 						}
 					} else {
 						System.err.println("UNTYPABLE: " + classObject

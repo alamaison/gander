@@ -1747,6 +1747,34 @@ public class ZeroCfaTypeEngineTest {
 	}
 
 	@Test
+	public void inheritedMethodRecursiveGrandparent() throws Throwable {
+
+		TestModule test = newTestModule("inherited_method_recursive_grandparent");
+
+		FunctionCO m = (FunctionCO) test.printNode("first A's m").getScope();
+		Set<Type> expectedUnboundType = typeJudgement(new TFunction(m));
+
+		Result<Type> unboundType = engine.typeOf(test.printNode(
+				"what_am_i_unbound").site());
+
+		assertEquals("Didn't infer inherited unbound method type correctly.",
+				expectedUnboundType, unboundType);
+
+		ClassCO oldestA = (ClassCO) test.printNode("first A").getScope();
+		ClassCO oldA = (ClassCO) test.printNode("second A").getScope();
+		ClassCO newA = (ClassCO) test.printNode("third A").getScope();
+		Set<Type> expectedBoundType = typeJudgement(new TBoundMethod(m,
+				new TObject(newA)), new TBoundMethod(m, new TObject(oldA)),
+				new TBoundMethod(m, new TObject(oldestA)));
+
+		Result<Type> boundType = engine.typeOf(test
+				.printNode("what_am_i_bound").site());
+
+		assertEquals("Didn't infer inherited bound method type correctly.",
+				expectedBoundType, boundType);
+	}
+
+	@Test
 	public void builtinReadonlyNamespace() throws Throwable {
 
 		TestModule test = newTestModule("builtin_readonly_namespace");
