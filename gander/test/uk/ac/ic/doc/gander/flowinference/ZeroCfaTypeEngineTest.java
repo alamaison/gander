@@ -35,7 +35,6 @@ import uk.ac.ic.doc.gander.model.MutableModel;
 import uk.ac.ic.doc.gander.model.codeobject.ClassCO;
 import uk.ac.ic.doc.gander.model.codeobject.CodeObject;
 import uk.ac.ic.doc.gander.model.codeobject.FunctionCO;
-import uk.ac.ic.doc.gander.model.codeobject.ModuleCO;
 import uk.ac.ic.doc.gander.model.codeobject.NestedCodeObject;
 import uk.ac.ic.doc.gander.model.codeobject.NestedCodeObjects;
 
@@ -1951,6 +1950,26 @@ public class ZeroCfaTypeEngineTest {
 
 		assertEquals("The unresolved import has affected the typing of "
 				+ "unrelated symbols.", expectedType, type);
+	}
+
+	@Test
+	public void resultOfCallOnTop() throws Throwable {
+		TestModule test = newTestModule("result_of_call_on_top");
+
+		Result<Type> type = engine.typeOf(test.printNode("what_am_i").site());
+
+		assertEquals("Calling an unknown type of object (Top) "
+				+ "should also result in Top.", TopT.INSTANCE, type);
+	}
+
+	@Test
+	public void resultOfMethodCallOnTop() throws Throwable {
+		TestModule test = newTestModule("result_of_method_call_on_top");
+
+		Result<Type> type = engine.typeOf(test.printNode("what_am_i").site());
+
+		assertEquals("Calling a method of an unknown object (Top) "
+				+ "should also result in Top.", TopT.INSTANCE, type);
 	}
 
 	private ScopedAstNode findNode(String moduleName, String tag)
