@@ -105,17 +105,20 @@ def format():
 def frozenset():
     pass
 
-def getattr():
-    pass
+def getattr(obj, name, default=None):
+    if hasattr(obj, name):
+        return obj.__dict__[name]
+    else:
+        return default
 
 def globals():
     pass
 
-def hasattr():
-    pass
+def hasattr(obj, name):
+    return True
 
-def hash(object):
-    return 42;
+def hash(obj):
+    return 42
 
 def help():
     pass
