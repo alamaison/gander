@@ -305,20 +305,21 @@ final class SituationMapper implements VisitorIF {
 
 			for (int i = 0; i < node.args.length; ++i) {
 				if (isMatch(node.args[i])) {
-					
+
 					ModelSite<Call> callSite = nodeToSite(node);
-					Argument argument = new ExplicitPositionalArgument(callSite, i);
-					
+					Argument argument = new ExplicitPositionalArgument(
+							callSite, i);
+
 					return new CallArgumentSituation(callSite, argument);
 				}
 			}
 
 			for (int i = 0; i < node.keywords.length; ++i) {
 				if (isMatch(node.keywords[i].value)) {
-					
+
 					ModelSite<Call> callSite = nodeToSite(node);
 					Argument argument = new ExplicitKeywordArgument(callSite, i);
-					
+
 					return new CallArgumentSituation(callSite, argument);
 				}
 			}
@@ -408,7 +409,11 @@ final class SituationMapper implements VisitorIF {
 
 	@Override
 	public Object visitEllipsis(Ellipsis node) throws Exception {
-		return notInAFlowSituation();
+		/*
+		 * The effect of an ellipsis in a subscript is up to the implementation
+		 * of the type's __getitem__. We can't reason about this.
+		 */
+		return EscapeSituation.INSTANCE;
 	}
 
 	@Override
@@ -431,7 +436,9 @@ final class SituationMapper implements VisitorIF {
 
 	@Override
 	public Object visitExtSlice(ExtSlice node) throws Exception {
-		// TODO Auto-generated method stub
+		/*
+		 * Flow is handled by the contained slices when we traverse.
+		 */
 		return notInAFlowSituation();
 	}
 
@@ -495,8 +502,15 @@ final class SituationMapper implements VisitorIF {
 
 	@Override
 	public Object visitIndex(Index node) throws Exception {
-		// TODO Auto-generated method stub
-		return notInAFlowSituation();
+		/*
+		 * Values used as an index may flow into the collection being indexed
+		 * (for example creating a new key in a dictionary so we lose track of
+		 * it.
+		 * 
+		 * TODO: this decision should be delegated to the type the index is
+		 * applied to.
+		 */
+		return EscapeSituation.INSTANCE;
 	}
 
 	@Override
@@ -668,7 +682,14 @@ final class SituationMapper implements VisitorIF {
 
 	@Override
 	public Object visitSlice(Slice node) throws Exception {
-		// TODO Auto-generated method stub
+		/*
+		 * I don't think an expression appearing as a delimeter of a slice can
+		 * create a new 'key' in the list so the value can't flow anywhere; it
+		 * is only used.
+		 * 
+		 * TODO: this decision should be delegated to the type the slice is
+		 * applied to
+		 */
 		return notInAFlowSituation();
 	}
 
@@ -691,8 +712,19 @@ final class SituationMapper implements VisitorIF {
 
 	@Override
 	public Object visitSubscript(Subscript node) throws Exception {
-		// TODO Auto-generated method stub
-		return notInAFlowSituation();
+		if (isMatch(node)) {
+			/*
+			 * The value has flowed into the subscription but we lose track of
+			 * it there
+			 */
+			return EscapeSituation.INSTANCE;
+		} else {
+			/*
+			 * Values that flow into the index or slice of a subscription are
+			 * handled when we traverse
+			 */
+			return notInAFlowSituation();
+		}
 	}
 
 	@Override

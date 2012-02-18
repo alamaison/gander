@@ -213,6 +213,17 @@ public class FlowGoalExpressionTest {
 				"Flow should have escaped on entering list", result);
 	}
 
+	@Test
+	public void listSubscript() throws Throwable {
+
+		TestModule test = newTestModule("list_subscript");
+
+		Result<ModelSite<exprType>> result = solveBlastoff(test);
+
+		TestModule.assertResultIsTop(
+				"Flow should have escaped on entering list", result);
+	}
+
 	// Only Python 2.7+ @Test
 	public void set() throws Throwable {
 
@@ -239,6 +250,28 @@ public class FlowGoalExpressionTest {
 	public void dictValue() throws Throwable {
 
 		TestModule test = newTestModule("dict_value");
+
+		Result<ModelSite<exprType>> result = solveBlastoff(test);
+
+		TestModule.assertResultIsTop(
+				"Flow should have escaped on entering dictionary", result);
+	}
+
+	@Test
+	public void dictSubscriptKey() throws Throwable {
+
+		TestModule test = newTestModule("dict_subscript_key");
+
+		Result<ModelSite<exprType>> result = solveBlastoff(test);
+
+		TestModule.assertResultIsTop(
+				"Flow should have escaped on entering dictionary", result);
+	}
+
+	@Test
+	public void dictSubscriptValue() throws Throwable {
+
+		TestModule test = newTestModule("dict_subscript_value");
 
 		Result<ModelSite<exprType>> result = solveBlastoff(test);
 
