@@ -11,14 +11,13 @@ import uk.ac.ic.doc.gander.flowinference.result.Concentrator.DatumProcessor;
 import uk.ac.ic.doc.gander.flowinference.result.FiniteResult;
 import uk.ac.ic.doc.gander.flowinference.result.RedundancyEliminator;
 import uk.ac.ic.doc.gander.flowinference.result.Result;
-import uk.ac.ic.doc.gander.flowinference.result.Result.Processor;
 import uk.ac.ic.doc.gander.flowinference.result.Result.Transformer;
 import uk.ac.ic.doc.gander.flowinference.sendersgoals.FunctionSendersGoal;
 import uk.ac.ic.doc.gander.flowinference.types.TCallable;
 import uk.ac.ic.doc.gander.flowinference.types.Type;
 import uk.ac.ic.doc.gander.model.ModelSite;
-import uk.ac.ic.doc.gander.model.codeobject.FormalParameter;
 import uk.ac.ic.doc.gander.model.codeobject.InvokableCodeObject;
+import uk.ac.ic.doc.gander.model.parameters.FormalParameter;
 
 final class ParameterTypeGoal implements TypeGoal {
 
@@ -29,10 +28,12 @@ final class ParameterTypeGoal implements TypeGoal {
 		this.parameter = parameter;
 	}
 
+	@Override
 	public Result<Type> initialSolution() {
 		return FiniteResult.bottom();
 	}
 
+	@Override
 	public Result<Type> recalculateSolution(SubgoalManager goalManager) {
 		return new ParameterTypeGoalSolver(parameter, goalManager).solution();
 	}
@@ -105,6 +106,7 @@ final class CallArgumentTyper implements DatumProcessor<ModelSite<Call>, Type> {
 		this.goalManager = goalManager;
 	}
 
+	@Override
 	public Result<Type> process(final ModelSite<Call> callSite) {
 
 		/*
@@ -147,6 +149,7 @@ final class CallsiteToParameterTypeMapper implements
 		this.goalManager = goalManager;
 	}
 
+	@Override
 	public Result<Type> transformInfiniteResult() {
 		/*
 		 * No idea how we are being called so don't know what our parameter is
@@ -159,6 +162,7 @@ final class CallsiteToParameterTypeMapper implements
 		 */
 	}
 
+	@Override
 	public Result<Type> transformFiniteResult(Set<Type> result) {
 		RedundancyEliminator<Type> type = new RedundancyEliminator<Type>();
 

@@ -20,10 +20,10 @@ import uk.ac.ic.doc.gander.flowinference.typegoals.NamespaceNameTypeGoal;
 import uk.ac.ic.doc.gander.flowinference.typegoals.TopT;
 import uk.ac.ic.doc.gander.model.ModelSite;
 import uk.ac.ic.doc.gander.model.NamespaceName;
-import uk.ac.ic.doc.gander.model.codeobject.FormalParameter;
 import uk.ac.ic.doc.gander.model.codeobject.FunctionCO;
 import uk.ac.ic.doc.gander.model.codeobject.InvokableCodeObject;
-import uk.ac.ic.doc.gander.model.codeobject.NamedParameter;
+import uk.ac.ic.doc.gander.model.parameters.FormalParameter;
+import uk.ac.ic.doc.gander.model.parameters.NamedParameter;
 
 public final class TBoundMethod implements TCallable {
 

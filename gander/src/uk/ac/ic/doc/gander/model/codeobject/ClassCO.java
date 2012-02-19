@@ -16,6 +16,7 @@ import uk.ac.ic.doc.gander.model.ModelSite;
 import uk.ac.ic.doc.gander.model.codeblock.CodeBlock;
 import uk.ac.ic.doc.gander.model.codeblock.DefaultCodeBlock;
 import uk.ac.ic.doc.gander.model.codeblock.DefaultCodeBlock.Acceptor;
+import uk.ac.ic.doc.gander.model.parameters.FormalParameters;
 
 /**
  * Model of Python classes as first-class objects.

@@ -3,8 +3,8 @@ package uk.ac.ic.doc.gander.flowinference;
 import uk.ac.ic.doc.gander.flowinference.flowgoals.FlowPosition;
 import uk.ac.ic.doc.gander.flowinference.result.FiniteResult;
 import uk.ac.ic.doc.gander.flowinference.result.Result;
-import uk.ac.ic.doc.gander.model.codeobject.FormalParameter;
 import uk.ac.ic.doc.gander.model.codeobject.InvokableCodeObject;
+import uk.ac.ic.doc.gander.model.parameters.FormalParameter;
 
 public final class SelfArgument implements PositionalArgument {
 

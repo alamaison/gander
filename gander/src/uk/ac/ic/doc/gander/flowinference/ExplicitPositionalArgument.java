@@ -6,9 +6,9 @@ import uk.ac.ic.doc.gander.flowinference.flowgoals.FlowPosition;
 import uk.ac.ic.doc.gander.flowinference.result.FiniteResult;
 import uk.ac.ic.doc.gander.flowinference.result.Result;
 import uk.ac.ic.doc.gander.model.ModelSite;
-import uk.ac.ic.doc.gander.model.codeobject.FormalParameter;
-import uk.ac.ic.doc.gander.model.codeobject.FormalParameters;
 import uk.ac.ic.doc.gander.model.codeobject.InvokableCodeObject;
+import uk.ac.ic.doc.gander.model.parameters.FormalParameter;
+import uk.ac.ic.doc.gander.model.parameters.FormalParameters;
 
 public final class ExplicitPositionalArgument implements PositionalArgument {
 

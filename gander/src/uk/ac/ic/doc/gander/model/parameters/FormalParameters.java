@@ -1,4 +1,4 @@
-package uk.ac.ic.doc.gander.model.codeobject;
+package uk.ac.ic.doc.gander.model.parameters;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -11,6 +11,7 @@ import org.python.pydev.parser.jython.ast.argumentsType;
 import org.python.pydev.parser.jython.ast.exprType;
 
 import uk.ac.ic.doc.gander.model.ModelSite;
+import uk.ac.ic.doc.gander.model.codeobject.InvokableCodeObject;
 
 public final class FormalParameters {
 
@@ -19,7 +20,7 @@ public final class FormalParameters {
 	private final ModelSite<argumentsType> argsNode;
 	private final List<FormalParameter> parameters;
 
-	FormalParameters(ModelSite<argumentsType> argsNode) {
+	public FormalParameters(ModelSite<argumentsType> argsNode) {
 		this.argsNode = argsNode;
 		this.parameters = buildParameters(argsNode);
 	}

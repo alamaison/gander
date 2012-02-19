@@ -4,9 +4,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import uk.ac.ic.doc.gander.model.codeobject.FormalParameter;
 import uk.ac.ic.doc.gander.model.name_binding.LocallyBoundNameFinder;
 import uk.ac.ic.doc.gander.model.name_binding.Variable;
+import uk.ac.ic.doc.gander.model.parameters.FormalParameter;
 
 /**
  * For a given code block, find the set of names that bound in it.

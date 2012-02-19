@@ -4,7 +4,7 @@ import java.util.Set;
 
 import org.python.pydev.parser.jython.ast.VisitorIF;
 
-import uk.ac.ic.doc.gander.model.codeobject.FormalParameters;
+import uk.ac.ic.doc.gander.model.parameters.FormalParameters;
 
 public class DefaultCodeBlock implements CodeBlock {
 

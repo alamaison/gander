@@ -1,4 +1,4 @@
-package uk.ac.ic.doc.gander.model.codeobject;
+package uk.ac.ic.doc.gander.model.parameters;
 
 import java.util.Collections;
 import java.util.Set;

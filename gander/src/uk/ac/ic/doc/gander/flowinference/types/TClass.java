@@ -31,9 +31,9 @@ import uk.ac.ic.doc.gander.model.ModelSite;
 import uk.ac.ic.doc.gander.model.NamespaceName;
 import uk.ac.ic.doc.gander.model.codeobject.ClassCO;
 import uk.ac.ic.doc.gander.model.codeobject.CodeObject;
-import uk.ac.ic.doc.gander.model.codeobject.FormalParameter;
-import uk.ac.ic.doc.gander.model.codeobject.FormalParameters;
 import uk.ac.ic.doc.gander.model.codeobject.InvokableCodeObject;
+import uk.ac.ic.doc.gander.model.parameters.FormalParameter;
+import uk.ac.ic.doc.gander.model.parameters.FormalParameters;
 
 public class TClass implements TCodeObject, TCallable {
 
