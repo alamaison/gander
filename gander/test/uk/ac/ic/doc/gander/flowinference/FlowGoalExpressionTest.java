@@ -626,6 +626,23 @@ public class FlowGoalExpressionTest {
 				test_aux.printables("not imported by *"), result);
 	}
 
+	@Test
+	public void classNonLexicalBinding() throws Throwable {
+
+		TestModule test = newTestModule("class_non_lexical_binding");
+
+		Result<ModelSite<exprType>> result = solveBlastoff(test);
+
+		TestModule.assertResultIncludes(
+				"Global should have flowed into class namespace.",
+				test.printables("the global ends up in A's namespace"), result);
+
+		TestModule.assertResultExcludes("Global should not have flowed into "
+				+ "class namespace as it wasn't assigned.", test
+				.printables("global doesn't get into a "
+						+ "class namespace unless it was assigned"), result);
+	}
+
 	private TestModule newTestModule(String testName) throws Throwable {
 		return new TestModule(testName, model);
 	}

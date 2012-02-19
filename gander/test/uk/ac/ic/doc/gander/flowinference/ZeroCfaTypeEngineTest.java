@@ -273,6 +273,30 @@ public class ZeroCfaTypeEngineTest {
 	}
 
 	/**
+	 * Variables in a class aren't actually lexically bound which is quite
+	 * nasty.
+	 */
+	@Test
+	public void classNonLexicalBinding() throws Throwable {
+
+		TestModule test = newTestModule("class_non_lexical_binding");
+
+		Result<Type> typeX = engine.typeOf(test.printNode(
+				"this came from the global x").site());
+
+		assertEquals("Wrong type; the analysis probably failed to see that "
+				+ "the LHS and RHS of the assignment in the class "
+				+ "refer to different locations even though they have the "
+				+ "same variable name.", typeJudgement(integerType), typeX);
+
+		Result<Type> typeY = engine.typeOf(test.printNode(
+				"this didn't come from anywhere").site());
+
+		assertEquals("Y should not have been found in the class's namespace.",
+				typeJudgement(), typeY);
+	}
+
+	/**
 	 * A variable is assigned directly to itself. This might cause type
 	 * inference to recurse infinitely leading to a stack overflow unless
 	 * handled properly.
