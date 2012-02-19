@@ -3,7 +3,6 @@ package uk.ac.ic.doc.gander.flowinference.types;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 import org.python.pydev.parser.jython.ast.Call;
@@ -12,12 +11,12 @@ import org.python.pydev.parser.jython.ast.exprType;
 import uk.ac.ic.doc.gander.flowinference.Argument;
 import uk.ac.ic.doc.gander.flowinference.ArgumentPassage;
 import uk.ac.ic.doc.gander.flowinference.Namespace;
+import uk.ac.ic.doc.gander.flowinference.SelfArgument;
 import uk.ac.ic.doc.gander.flowinference.TopI;
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
 import uk.ac.ic.doc.gander.flowinference.flowgoals.FlowPosition;
 import uk.ac.ic.doc.gander.flowinference.flowgoals.TopFp;
 import uk.ac.ic.doc.gander.flowinference.flowgoals.TopP;
-import uk.ac.ic.doc.gander.flowinference.flowgoals.expressionflow.ExpressionPosition;
 import uk.ac.ic.doc.gander.flowinference.result.FiniteResult;
 import uk.ac.ic.doc.gander.flowinference.result.RedundancyEliminator;
 import uk.ac.ic.doc.gander.flowinference.result.Result;
@@ -33,6 +32,7 @@ import uk.ac.ic.doc.gander.model.NamespaceName;
 import uk.ac.ic.doc.gander.model.codeobject.ClassCO;
 import uk.ac.ic.doc.gander.model.codeobject.CodeObject;
 import uk.ac.ic.doc.gander.model.codeobject.FormalParameter;
+import uk.ac.ic.doc.gander.model.codeobject.FormalParameters;
 import uk.ac.ic.doc.gander.model.codeobject.InvokableCodeObject;
 
 public class TClass implements TCodeObject, TCallable {
@@ -363,22 +363,21 @@ public class TClass implements TCodeObject, TCallable {
 		Collection<Function> methods = klass.codeObject()
 				.oldStyleConflatedNamespace().getFunctions().values();
 
-		Set<FlowPosition> localPositions = new HashSet<FlowPosition>();
 		for (Function method : methods) {
-			List<ModelSite<exprType>> parameters = method.codeObject()
-					.formalParameters().parameters();
+			FormalParameters parameters = method.codeObject()
+					.formalParameters();
 
-			if (parameters.size() > 0) {
-				ModelSite<exprType> selfParameter = parameters.get(0);
-				assert selfParameter.codeObject().equals(method.codeObject());
-				localPositions.add(new ExpressionPosition(selfParameter));
+			if (parameters.hasParameterForPosition(0)) {
+				positions.add(parameters.passByPosition(0)
+						.passage(new SelfArgument()).nextFlowPositions());
 				doneMethods.add(method.getName());
 			} else {
 				System.err.println("Method missing self parameter: " + method);
 			}
-		}
 
-		positions.add(new FiniteResult<FlowPosition>(localPositions));
+			if (positions.isFinished())
+				break;
+		}
 
 		for (exprType base : klass.codeObject().ast().bases) {
 
