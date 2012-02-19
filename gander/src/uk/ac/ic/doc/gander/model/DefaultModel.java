@@ -15,6 +15,7 @@ import uk.ac.ic.doc.gander.model.build.CodeObjectImportLoader;
 import uk.ac.ic.doc.gander.model.build.FileLoader;
 import uk.ac.ic.doc.gander.model.build.PackageLoader;
 import uk.ac.ic.doc.gander.model.build.TopLevelModuleLoader;
+import uk.ac.ic.doc.gander.model.codeobject.ClassCO;
 import uk.ac.ic.doc.gander.model.codeobject.ModuleCO;
 
 public class DefaultModel implements MutableModel {
@@ -163,5 +164,10 @@ public class DefaultModel implements MutableModel {
 		if (pkg == null)
 			return null;
 		return new PackageLoader(pkg, parent, this).getPackage();
+	}
+
+	@Override
+	public ClassCO builtinTuple() {
+		return getTopLevel().getClasses().get("tuple").codeObject();
 	}
 }

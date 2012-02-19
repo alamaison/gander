@@ -4,7 +4,6 @@ import java.util.Collections;
 import java.util.Set;
 
 import org.python.pydev.parser.jython.ast.Call;
-import org.python.pydev.parser.jython.ast.exprType;
 
 import uk.ac.ic.doc.gander.flowinference.Argument;
 import uk.ac.ic.doc.gander.flowinference.ArgumentPassage;
@@ -13,16 +12,13 @@ import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
 import uk.ac.ic.doc.gander.flowinference.flowgoals.FlowPosition;
 import uk.ac.ic.doc.gander.flowinference.result.FiniteResult;
 import uk.ac.ic.doc.gander.flowinference.result.Result;
-import uk.ac.ic.doc.gander.flowinference.typegoals.ExpressionTypeGoal;
 import uk.ac.ic.doc.gander.flowinference.typegoals.NamespaceNameTypeGoal;
-import uk.ac.ic.doc.gander.flowinference.typegoals.TopT;
 import uk.ac.ic.doc.gander.model.Function;
 import uk.ac.ic.doc.gander.model.ModelSite;
 import uk.ac.ic.doc.gander.model.NamespaceName;
 import uk.ac.ic.doc.gander.model.codeobject.FormalParameter;
 import uk.ac.ic.doc.gander.model.codeobject.FunctionCO;
 import uk.ac.ic.doc.gander.model.codeobject.InvokableCodeObject;
-import uk.ac.ic.doc.gander.model.codeobject.NamedParameter;
 
 /**
  * Model of Python function object types.
@@ -105,45 +101,7 @@ public class TFunction implements TCodeObject, TCallable {
 			FormalParameter parameter, ModelSite<Call> callSite,
 			SubgoalManager goalManager) {
 
-		if (parameter instanceof NamedParameter) {
-			ModelSite<exprType> passedArgument = expressionFromArgumentList(
-					callSite, ((NamedParameter) parameter).index(),
-					(NamedParameter) parameter);
-			if (passedArgument != null) {
-				return goalManager.registerSubgoal(new ExpressionTypeGoal(
-						passedArgument));
-			} else {
-				return TopT.INSTANCE;
-			}
-		} else {
-			return TopT.INSTANCE;
-		}
-	}
-
-	private ModelSite<exprType> expressionFromArgumentList(
-			ModelSite<Call> callSite, int index, NamedParameter parameter) {
-
-		if (index < callSite.astNode().args.length) {
-
-			return new ModelSite<exprType>(callSite.astNode().args[index],
-					callSite.codeObject());
-
-		} else {
-			/*
-			 * Fewer argument were passed to the function than are declared in
-			 * its signature. It's probably expecting default arguments.
-			 */
-			ModelSite<exprType> defaultValue = parameter.defaultValue();
-			if (defaultValue != null) {
-				return defaultValue;
-			} else {
-				/* No default. The program is wrong. */
-				System.err
-						.println("PROGRAM ERROR: Too few arguments passed to "
-								+ functionObject + " at " + callSite);
-				return null;
-			}
-		}
+		return parameter.typeAtCall(callSite, goalManager);
 	}
 
 	/**
