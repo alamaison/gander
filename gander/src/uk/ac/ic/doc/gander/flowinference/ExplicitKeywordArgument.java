@@ -29,9 +29,9 @@ public final class ExplicitKeywordArgument implements KeywordArgument {
 
 		FormalParameters parameters = receiver.formalParameters();
 
-		if (parameters.hasParameterName(keyword())) {
+		if (parameters.hasKeywordableParameter(keyword())) {
 
-			FormalParameter parameter = parameters.namedParameter(keyword());
+			FormalParameter parameter = parameters.keywordableParameter(keyword());
 			return parameter.passage(this);
 
 		} else {

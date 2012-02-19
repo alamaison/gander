@@ -30,17 +30,25 @@ public final class FormalParameters {
 		return parameters;
 	}
 
-	public boolean hasParameterName(String parameterName) {
-		return findNamedParameter(parameterName) != null;
+	/**
+	 * Returns whether the parameter list includes a parameter that could
+	 * receive an argument passed with the given keyword.
+	 */
+	public boolean hasKeywordableParameter(String keyword) {
+		return findKeywordableParameter(keyword) != null;
 	}
 
-	public NamedParameter namedParameter(String parameterName) {
+	/**
+	 * Returns the parameter that will receive an argument passed with the given
+	 * keyword.
+	 */
+	public NamedParameter keywordableParameter(String keyword) {
 
-		NamedParameter p = findNamedParameter(parameterName);
+		NamedParameter p = findKeywordableParameter(keyword);
 		if (p != null) {
 			return p;
 		} else {
-			throw new IllegalArgumentException("Parameter '" + parameterName
+			throw new IllegalArgumentException("Parameter '" + keyword
 					+ "' doesn't exist in " + argsNode.codeObject());
 		}
 	}
@@ -58,6 +66,28 @@ public final class FormalParameters {
 			throw new IndexOutOfBoundsException(
 					"Parameter out of bounds: Position: " + position
 							+ " Parameters: " + argsNode);
+		}
+	}
+
+	/**
+	 * Returns whether the parameter list includes a parameter that will bind a
+	 * value to the given variable name.
+	 */
+	public boolean hasVariableBindingParameter(String variableName) {
+		return findVariableBindingParameter(variableName) != null;
+	}
+
+	/**
+	 * Returns the parameter that will bind a value to the given variable name.
+	 */
+	public NamedParameter variableBindingParameter(String variableName) {
+
+		NamedParameter p = findVariableBindingParameter(variableName);
+		if (p != null) {
+			return p;
+		} else {
+			throw new IllegalArgumentException("No parameter defining '"
+					+ variableName + "' exists in " + argsNode.codeObject());
 		}
 	}
 
@@ -86,14 +116,29 @@ public final class FormalParameters {
 		}
 	}
 
-	private NamedParameter findNamedParameter(String parameterName) {
+	private NamedParameter findKeywordableParameter(String keyword) {
 
 		for (int i = 0; i < parameters.size(); ++i) {
 
 			FormalParameter p = passByPosition(i);
 
 			if (p instanceof NamedParameter
-					&& ((NamedParameter) p).name().equals(parameterName)) {
+					&& ((NamedParameter) p).name().equals(keyword)) {
+				return (NamedParameter) p;
+			}
+		}
+
+		return null;
+	}
+
+	private NamedParameter findVariableBindingParameter(String variableName) {
+
+		for (int i = 0; i < parameters.size(); ++i) {
+
+			FormalParameter p = passByPosition(i);
+
+			if (p instanceof NamedParameter
+					&& ((NamedParameter) p).name().equals(variableName)) {
 				return (NamedParameter) p;
 			}
 		}

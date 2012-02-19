@@ -139,7 +139,7 @@ class BoundTypeVisitor implements BindingDetector.DetectionEvent {
 			if (invokable.formalParameters().parameterNames().contains(name)) {
 
 				FormalParameter parameter = invokable.formalParameters()
-						.namedParameter(name);
+						.keywordableParameter(name);
 
 				judgement.add(goalManager
 						.registerSubgoal(new ParameterTypeGoal(parameter)));
