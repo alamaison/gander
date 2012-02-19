@@ -195,21 +195,6 @@ public final class FormalParameters {
 		this.defaults = Collections.emptyList();
 	}
 
-	public List<String> parameterNames() {
-		ArrayList<String> args = new ArrayList<String>();
-		for (ModelSite<exprType> expr : parameters()) {
-			if (expr.astNode() instanceof Name) {
-				args.add(((Name) expr.astNode()).id);
-			} else {
-				/*
-				 * TODO: Work out what we want to do ... and why this even
-				 * happens. I've seen this be a Tuple, for instance.
-				 */
-				System.err.println("TODO: odd parameter: " + expr);
-			}
-		}
-		return args;
-	}
 
 	private List<ModelSite<exprType>> buildParameters() {
 
