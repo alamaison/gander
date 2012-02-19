@@ -643,6 +643,30 @@ public class FlowGoalExpressionTest {
 						+ "class namespace unless it was assigned"), result);
 	}
 
+	@Test
+	public void getattrMethod() throws Throwable {
+
+		TestModule test = newTestModule("getattr_method");
+
+		Result<ModelSite<exprType>> result = solveBlastoff(test);
+
+		TestModule.assertResultIsTop(
+				"getattr should cause us to lose all ability to track the flow "
+						+ "of an object's attributes.", result);
+	}
+
+	@Test
+	public void getattrFunction() throws Throwable {
+
+		TestModule test = newTestModule("getattr_function");
+
+		Result<ModelSite<exprType>> result = solveBlastoff(test);
+
+		TestModule.assertResultIsTop(
+				"getattr should cause us to lose all ability to track the flow "
+						+ "of an object's attributes.", result);
+	}
+
 	private TestModule newTestModule(String testName) throws Throwable {
 		return new TestModule(testName, model);
 	}
