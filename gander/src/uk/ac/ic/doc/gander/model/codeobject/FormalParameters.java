@@ -138,46 +138,37 @@ public final class FormalParameters {
 		return null;
 	}
 
-	private static NamedParameter makeNamedParameter(
-			ModelSite<argumentsType> argsNode, int i, ModelSite<Name> p) {
-
-		List<ModelSite<exprType>> defaults = buildDefaults(argsNode);
-		int firstDefaultOffset = argsNode.astNode().args.length
-				- defaults.size();
-		assert firstDefaultOffset >= 0;
-
-		ModelSite<exprType> defaultValue;
-		if (i >= firstDefaultOffset) {
-			defaultValue = defaults.get(i - firstDefaultOffset);
-		} else {
-			defaultValue = null;
-		}
-
-		return new NamedParameter(i, p, defaultValue);
-	}
-
-	private static final class ParameterBuilder extends VisitorBase {
+	private static final class PositionalParameterFactory extends VisitorBase {
 
 		private final int index;
 		private final ModelSite<argumentsType> argsNode;
 
-		public ParameterBuilder(int index, ModelSite<argumentsType> argsNode) {
+		public PositionalParameterFactory(int index,
+				ModelSite<argumentsType> argsNode) {
 			this.index = index;
 			this.argsNode = argsNode;
 		}
 
 		@Override
 		public Object visitName(Name node) throws Exception {
-			return makeNamedParameter(argsNode, index, new ModelSite<Name>(
-					node, argsNode.codeObject()));
+
+			ModelSite<Name> parameterNode = new ModelSite<Name>(node,
+					argsNode.codeObject());
+			ModelSite<exprType> defaultNode = getDefault(index, argsNode);
+
+			return new NamedParameter(index, parameterNode, defaultNode);
 		}
 
 		@Override
-		protected Object unhandled_node(final SimpleNode node) throws Exception {
+		protected Object unhandled_node(SimpleNode node) throws Exception {
+
 			System.err.println("Unknown parameter type: " + node + " in "
 					+ argsNode);
-			return new UnrecognisedParameter(new ModelSite<exprType>(
-					(exprType) node, argsNode.codeObject()));
+
+			ModelSite<exprType> parameterNode = new ModelSite<exprType>(
+					(exprType) node, argsNode.codeObject());
+
+			return new UnrecognisedParameter(parameterNode);
 		}
 
 		@Override
@@ -185,6 +176,28 @@ public final class FormalParameters {
 			/* Just mapping so don't traverse */
 		}
 
+	}
+
+	private static ModelSite<exprType> getDefault(int parameterIndex,
+			ModelSite<argumentsType> argsNode) {
+
+		exprType[] defaults = argsNode.astNode().defaults;
+
+		if (parameterIndex < defaults.length) {
+			exprType defaultValue = defaults[parameterIndex];
+			if (defaultValue != null) {
+				/*
+				 * defaults exist in the context of the callable's parent code
+				 * object
+				 */
+				return new ModelSite<exprType>(defaultValue,
+						((InvokableCodeObject) argsNode.codeObject()).parent());
+			} else {
+				return null; // null default means no default
+			}
+		} else {
+			return null;
+		}
 	}
 
 	private FormalParameters() {
@@ -202,7 +215,7 @@ public final class FormalParameters {
 
 				try {
 					bp.add((FormalParameter) argsNode.astNode().args[i]
-							.accept(new ParameterBuilder(i, argsNode)));
+							.accept(new PositionalParameterFactory(i, argsNode)));
 				} catch (Exception e) {
 					throw new RuntimeException(e);
 				}
@@ -210,28 +223,5 @@ public final class FormalParameters {
 		}
 
 		return bp;
-	}
-
-	private static List<ModelSite<exprType>> buildDefaults(
-			ModelSite<argumentsType> argsNode) {
-
-		List<ModelSite<exprType>> defaultSites = new ArrayList<ModelSite<exprType>>();
-		if (argsNode != null) {
-			for (exprType defaultValue : argsNode.astNode().defaults) {
-				if (defaultValue != null) {
-					/*
-					 * defaults exist in the context of the callable's parent
-					 * code object
-					 */
-					defaultSites.add(new ModelSite<exprType>(defaultValue,
-							((InvokableCodeObject) argsNode.codeObject())
-									.parent()));
-				} else {
-					defaultSites.add(null); // null default means no default
-				}
-			}
-		}
-
-		return defaultSites;
 	}
 }
