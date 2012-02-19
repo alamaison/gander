@@ -17,16 +17,14 @@ public final class FormalParameters {
 	public static final FormalParameters EMPTY_PARAMETERS = new FormalParameters();
 
 	private final ModelSite<argumentsType> argsNode;
-	private final List<ModelSite<exprType>> parameters;
-	private final List<ModelSite<exprType>> defaults;
+	private final List<FormalParameter> parameters;
 
 	FormalParameters(ModelSite<argumentsType> argsNode) {
 		this.argsNode = argsNode;
-		this.parameters = buildParameters();
-		this.defaults = buildDefaults();
+		this.parameters = buildParameters(argsNode);
 	}
 
-	public List<ModelSite<exprType>> parameters() {
+	public List<FormalParameter> parameters() {
 		return parameters;
 	}
 
@@ -95,13 +93,7 @@ public final class FormalParameters {
 
 		if (position < parameters.size()) {
 
-			ModelSite<exprType> p = parameters.get(position);
-			try {
-				return (FormalParameter) p.astNode().accept(
-						new ParameterBuilder(position));
-			} catch (Exception e) {
-				throw new RuntimeException(e);
-			}
+			return parameters.get(position);
 
 		} else {
 
@@ -146,8 +138,12 @@ public final class FormalParameters {
 		return null;
 	}
 
-	private NamedParameter makeNamedParameter(int i, ModelSite<Name> p) {
-		int firstDefaultOffset = parameters.size() - defaults.size();
+	private static NamedParameter makeNamedParameter(
+			ModelSite<argumentsType> argsNode, int i, ModelSite<Name> p) {
+
+		List<ModelSite<exprType>> defaults = buildDefaults(argsNode);
+		int firstDefaultOffset = argsNode.astNode().args.length
+				- defaults.size();
 		assert firstDefaultOffset >= 0;
 
 		ModelSite<exprType> defaultValue;
@@ -160,18 +156,20 @@ public final class FormalParameters {
 		return new NamedParameter(i, p, defaultValue);
 	}
 
-	private final class ParameterBuilder extends VisitorBase {
+	private static final class ParameterBuilder extends VisitorBase {
 
 		private final int index;
+		private final ModelSite<argumentsType> argsNode;
 
-		public ParameterBuilder(int index) {
+		public ParameterBuilder(int index, ModelSite<argumentsType> argsNode) {
 			this.index = index;
+			this.argsNode = argsNode;
 		}
 
 		@Override
 		public Object visitName(Name node) throws Exception {
-			return makeNamedParameter(index,
-					new ModelSite<Name>(node, argsNode.codeObject()));
+			return makeNamedParameter(argsNode, index, new ModelSite<Name>(
+					node, argsNode.codeObject()));
 		}
 
 		@Override
@@ -192,25 +190,30 @@ public final class FormalParameters {
 	private FormalParameters() {
 		this.argsNode = null;
 		this.parameters = Collections.emptyList();
-		this.defaults = Collections.emptyList();
 	}
 
+	private static List<FormalParameter> buildParameters(
+			ModelSite<argumentsType> argsNode) {
 
-	private List<ModelSite<exprType>> buildParameters() {
+		List<FormalParameter> bp = new ArrayList<FormalParameter>();
 
-		List<ModelSite<exprType>> argumentSites = new ArrayList<ModelSite<exprType>>();
 		if (argsNode != null) {
-			for (exprType argument : argsNode.astNode().args) {
-				// arguments exist in the context of the callable's code object
-				argumentSites.add(new ModelSite<exprType>(argument, argsNode
-						.codeObject()));
+			for (int i = 0; i < argsNode.astNode().args.length; ++i) {
+
+				try {
+					bp.add((FormalParameter) argsNode.astNode().args[i]
+							.accept(new ParameterBuilder(i, argsNode)));
+				} catch (Exception e) {
+					throw new RuntimeException(e);
+				}
 			}
 		}
 
-		return argumentSites;
+		return bp;
 	}
 
-	private List<ModelSite<exprType>> buildDefaults() {
+	private static List<ModelSite<exprType>> buildDefaults(
+			ModelSite<argumentsType> argsNode) {
 
 		List<ModelSite<exprType>> defaultSites = new ArrayList<ModelSite<exprType>>();
 		if (argsNode != null) {

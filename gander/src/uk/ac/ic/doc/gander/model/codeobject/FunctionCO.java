@@ -82,8 +82,7 @@ public final class FunctionCO implements NamedCodeObject, NestedCodeObject,
 				}
 			};
 
-			codeBlock = new DefaultCodeBlock(formalParameters().parameters(),
-					acceptor);
+			codeBlock = new DefaultCodeBlock(formalParameters(), acceptor);
 		}
 
 		return codeBlock;

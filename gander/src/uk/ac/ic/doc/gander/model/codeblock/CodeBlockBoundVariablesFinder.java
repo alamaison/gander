@@ -1,9 +1,12 @@
 package uk.ac.ic.doc.gander.model.codeblock;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
+import uk.ac.ic.doc.gander.model.codeobject.FormalParameter;
 import uk.ac.ic.doc.gander.model.name_binding.LocallyBoundNameFinder;
+import uk.ac.ic.doc.gander.model.name_binding.Variable;
 
 /**
  * For a given code block, find the set of names that bound in it.
@@ -15,12 +18,17 @@ import uk.ac.ic.doc.gander.model.name_binding.LocallyBoundNameFinder;
  */
 final class CodeBlockBoundVariablesFinder {
 
-	static Set<String> boundVariables(CodeBlock codeBlock) {
+	static Set<String> boundVariables(DefaultCodeBlock codeBlock) {
 		assert codeBlock != null;
 
 		final Set<String> boundNames = new HashSet<String>();
 
-		boundNames.addAll(codeBlock.getNamedFormalParameters());
+		List<FormalParameter> bindingParameters = codeBlock.formalParameters().parameters();
+		for (FormalParameter parameter : bindingParameters) {
+			for (Variable variable : parameter.boundVariables()) {
+				boundNames.add(variable.name());
+			}
+		}
 
 		try {
 			codeBlock.accept(new LocallyBoundNameFinder() {

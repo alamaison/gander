@@ -78,7 +78,8 @@ public final class ClassCO implements NamedCodeObject, NestedCodeObject {
 				}
 			};
 
-			codeBlock = new DefaultCodeBlock(args, acceptor);
+			codeBlock = new DefaultCodeBlock(FormalParameters.EMPTY_PARAMETERS,
+					acceptor);
 		}
 
 		return codeBlock;

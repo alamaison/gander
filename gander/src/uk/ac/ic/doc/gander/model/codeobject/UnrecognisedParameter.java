@@ -1,5 +1,8 @@
 package uk.ac.ic.doc.gander.model.codeobject;
 
+import java.util.Collections;
+import java.util.Set;
+
 import org.python.pydev.parser.jython.ast.Call;
 import org.python.pydev.parser.jython.ast.exprType;
 
@@ -13,6 +16,7 @@ import uk.ac.ic.doc.gander.flowinference.result.Result;
 import uk.ac.ic.doc.gander.flowinference.typegoals.TopT;
 import uk.ac.ic.doc.gander.flowinference.types.Type;
 import uk.ac.ic.doc.gander.model.ModelSite;
+import uk.ac.ic.doc.gander.model.name_binding.Variable;
 
 final class UnrecognisedParameter implements FormalParameter {
 
@@ -83,6 +87,11 @@ final class UnrecognisedParameter implements FormalParameter {
 	@Override
 	public String toString() {
 		return "UnrecognisedParameter [parameter=" + parameter + "]";
+	}
+
+	@Override
+	public Set<Variable> boundVariables() {
+		return Collections.emptySet();
 	}
 
 }

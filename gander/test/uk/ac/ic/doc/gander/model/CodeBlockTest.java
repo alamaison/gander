@@ -2,9 +2,9 @@ package uk.ac.ic.doc.gander.model;
 
 import static org.junit.Assert.assertEquals;
 
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 import junit.framework.AssertionFailedError;
 
@@ -49,14 +49,23 @@ public class CodeBlockTest extends AbstractModelTest {
 	@Test
 	public void module() throws Throwable {
 		CodeBlock block = module.asCodeBlock();
-		assertEquals(Collections.emptyList(), block.getNamedFormalParameters());
+
+		Set<String> expectedVariableNames = new HashSet<String>();
+		expectedVariableNames.add("my_class_empty");
+		expectedVariableNames.add("my_class");
+		expectedVariableNames.add("my_free_function");
+		expectedVariableNames.add("my_function_with_args");
+		expectedVariableNames.add("test_nesting");
+		expectedVariableNames.add("test_nesting_class");
+
+		assertEquals(expectedVariableNames, block.getBoundVariables());
 	}
 
 	@Test
 	public void classEmpty() throws Throwable {
 		CodeBlock block = module.getClasses().get("my_class_empty")
 				.asCodeBlock();
-		assertEquals(Collections.emptyList(), block.getNamedFormalParameters());
+		assertEquals(Collections.emptySet(), block.getBoundVariables());
 
 		block.accept(new TraverseEverythingVisitor() {
 			@Override
@@ -69,7 +78,8 @@ public class CodeBlockTest extends AbstractModelTest {
 	@Test
 	public void classWithMethod() throws Throwable {
 		CodeBlock block = module.getClasses().get("my_class").asCodeBlock();
-		assertEquals(Collections.emptyList(), block.getNamedFormalParameters());
+		assertEquals(Collections.singleton("my_method_empty"),
+				block.getBoundVariables());
 
 		block.accept(new TraverseEverythingVisitor() {
 			@Override
@@ -89,7 +99,7 @@ public class CodeBlockTest extends AbstractModelTest {
 	public void function() throws Throwable {
 		CodeBlock block = module.getFunctions().get("my_free_function")
 				.asCodeBlock();
-		assertEquals(Collections.emptyList(), block.getNamedFormalParameters());
+		assertEquals(Collections.emptySet(), block.getBoundVariables());
 
 		block.accept(new TraverseEverythingVisitor() {
 			@Override
@@ -103,17 +113,17 @@ public class CodeBlockTest extends AbstractModelTest {
 	public void functionsWithArguments() throws Throwable {
 		CodeBlock block = module.getFunctions().get("my_function_with_args")
 				.asCodeBlock();
-		List<String> args = new ArrayList<String>();
+		Set<String> args = new HashSet<String>();
 		args.add("a");
 		args.add("b");
-		assertEquals(args, block.getNamedFormalParameters());
+		assertEquals(args, block.getBoundVariables());
 
 		block.accept(new TraverseEverythingVisitor() {
 			@Override
 			public Object visitPass(Pass node) throws Exception {
 				return null;
 			}
-			
+
 			@Override
 			public Object visitName(Name node) throws Exception {
 				// arguments are visited too

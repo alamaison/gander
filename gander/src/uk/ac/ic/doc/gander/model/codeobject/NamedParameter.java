@@ -1,6 +1,7 @@
 package uk.ac.ic.doc.gander.model.codeobject;
 
 import java.util.Collections;
+import java.util.Set;
 
 import org.python.pydev.parser.jython.ast.Call;
 import org.python.pydev.parser.jython.ast.Name;
@@ -18,6 +19,7 @@ import uk.ac.ic.doc.gander.flowinference.typegoals.ExpressionTypeGoal;
 import uk.ac.ic.doc.gander.flowinference.typegoals.TopT;
 import uk.ac.ic.doc.gander.flowinference.types.Type;
 import uk.ac.ic.doc.gander.model.ModelSite;
+import uk.ac.ic.doc.gander.model.name_binding.Variable;
 
 public final class NamedParameter implements FormalParameter {
 
@@ -125,6 +127,12 @@ public final class NamedParameter implements FormalParameter {
 										parameter)));
 			}
 		};
+	}
+
+	@Override
+	public Set<Variable> boundVariables() {
+		return Collections.singleton(new Variable(parameter.astNode().id,
+				parameter.codeObject()));
 	}
 
 	@Override

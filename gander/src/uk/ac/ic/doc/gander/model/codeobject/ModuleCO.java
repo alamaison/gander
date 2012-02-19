@@ -1,14 +1,10 @@
 package uk.ac.ic.doc.gander.model.codeobject;
 
-import java.util.Collections;
-
 import org.python.pydev.parser.jython.ast.VisitorIF;
-import org.python.pydev.parser.jython.ast.exprType;
 import org.python.pydev.parser.jython.ast.stmtType;
 
 import uk.ac.ic.doc.gander.flowinference.Namespace;
 import uk.ac.ic.doc.gander.model.Model;
-import uk.ac.ic.doc.gander.model.ModelSite;
 import uk.ac.ic.doc.gander.model.ModuleNamespace;
 import uk.ac.ic.doc.gander.model.codeblock.CodeBlock;
 import uk.ac.ic.doc.gander.model.codeblock.DefaultCodeBlock;
@@ -62,8 +58,8 @@ public final class ModuleCO implements NamedCodeObject {
 				}
 			};
 
-			codeBlock = new DefaultCodeBlock(
-					Collections.<ModelSite<exprType>> emptyList(), acceptor);
+			codeBlock = new DefaultCodeBlock(FormalParameters.EMPTY_PARAMETERS,
+					acceptor);
 		}
 
 		return codeBlock;

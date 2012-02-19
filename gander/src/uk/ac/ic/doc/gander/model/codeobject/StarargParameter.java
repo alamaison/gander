@@ -1,6 +1,7 @@
 package uk.ac.ic.doc.gander.model.codeobject;
 
 import java.util.Collections;
+import java.util.Set;
 
 import org.python.pydev.parser.jython.ast.Call;
 import org.python.pydev.parser.jython.ast.NameTok;
@@ -17,6 +18,7 @@ import uk.ac.ic.doc.gander.flowinference.result.Result;
 import uk.ac.ic.doc.gander.flowinference.types.TObject;
 import uk.ac.ic.doc.gander.flowinference.types.Type;
 import uk.ac.ic.doc.gander.model.ModelSite;
+import uk.ac.ic.doc.gander.model.name_binding.Variable;
 
 public final class StarargParameter implements FormalParameter {
 
@@ -63,5 +65,12 @@ public final class StarargParameter implements FormalParameter {
 		 */
 		return new FiniteResult<Type>(Collections.singleton(new TObject(
 				argsNode.model().builtinTuple())));
+	}
+
+	@Override
+	public Set<Variable> boundVariables() {
+		Variable bindingVar = new Variable(
+				((NameTok) argsNode.astNode().vararg).id, argsNode.codeObject());
+		return Collections.singleton(bindingVar);
 	}
 }
