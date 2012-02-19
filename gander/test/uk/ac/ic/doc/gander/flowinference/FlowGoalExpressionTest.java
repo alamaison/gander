@@ -448,14 +448,36 @@ public class FlowGoalExpressionTest {
 	}
 
 	@Test
-	public void functionStararg() throws Throwable {
+	public void functionParameterTuple() throws Throwable {
 
-		TestModule test = newTestModule("function_stararg");
+		TestModule test = newTestModule("function_parameter_tuple");
 
 		Result<ModelSite<exprType>> result = solveBlastoff(test);
 
 		TestModule.assertResultIsTop(
 				"Call loses track of x as it flows into a tuple", result);
+	}
+
+	@Test
+	public void functionParameterStarargs() throws Throwable {
+
+		TestModule test = newTestModule("function_parameter_starargs");
+
+		Result<ModelSite<exprType>> result = solveBlastoff(test);
+
+		TestModule.assertResultIsTop(
+				"Call loses track of x as it flows into a tuple", result);
+	}
+
+	@Test
+	public void functionParameterKwargs() throws Throwable {
+
+		TestModule test = newTestModule("function_parameter_kwargs");
+
+		Result<ModelSite<exprType>> result = solveBlastoff(test);
+
+		TestModule.assertResultIsTop(
+				"Call loses track of x as it flows into a dictionary", result);
 	}
 
 	@Test

@@ -1000,6 +1000,42 @@ public class ZeroCfaTypeEngineTest {
 	}
 
 	@Test
+	public void functionParameterTuple() throws Throwable {
+
+		TestModule test = newTestModule("function_parameter_tuple");
+
+		Result<Type> type = engine.typeOf(test.printNode("what_am_i").site());
+
+		assertEquals("Tuple parameters must be inferred as Top as we "
+				+ "can't reason about the way values map to their elements.",
+				TopT.INSTANCE, type);
+	}
+
+	@Test
+	public void functionParameterStarargs() throws Throwable {
+
+		TestModule test = newTestModule("function_parameter_starargs");
+
+		Result<Type> type = engine.typeOf(test.printNode("what_am_i").site());
+		Set<Type> expectedType = typeJudgement(tupleType);
+
+		assertEquals("Starargs parameter should always be a tuple.",
+				expectedType, type);
+	}
+
+	@Test
+	public void functionParameterKwargs() throws Throwable {
+
+		TestModule test = newTestModule("function_parameter_kwargs");
+
+		Result<Type> type = engine.typeOf(test.printNode("what_am_i").site());
+		Set<Type> expectedType = typeJudgement(tupleType);
+
+		assertEquals("Kwargs parameter should always be a dictionary.",
+				expectedType, type);
+	}
+
+	@Test
 	public void functionParameterCalledWithDifferentName() throws Throwable {
 		String testName = "function_parameter_called_with_different_name";
 		ScopedPrintNode node = findPrintNode(testName, "what_am_i");
