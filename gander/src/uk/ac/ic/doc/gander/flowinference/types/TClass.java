@@ -17,6 +17,7 @@ import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
 import uk.ac.ic.doc.gander.flowinference.flowgoals.FlowPosition;
 import uk.ac.ic.doc.gander.flowinference.flowgoals.TopFp;
 import uk.ac.ic.doc.gander.flowinference.flowgoals.TopP;
+import uk.ac.ic.doc.gander.flowinference.flowgoals.expressionflow.ReceivingParameterPositioner;
 import uk.ac.ic.doc.gander.flowinference.result.FiniteResult;
 import uk.ac.ic.doc.gander.flowinference.result.RedundancyEliminator;
 import uk.ac.ic.doc.gander.flowinference.result.Result;
@@ -33,7 +34,6 @@ import uk.ac.ic.doc.gander.model.codeobject.ClassCO;
 import uk.ac.ic.doc.gander.model.codeobject.CodeObject;
 import uk.ac.ic.doc.gander.model.codeobject.InvokableCodeObject;
 import uk.ac.ic.doc.gander.model.parameters.FormalParameter;
-import uk.ac.ic.doc.gander.model.parameters.FormalParameters;
 
 public class TClass implements TCodeObject, TCallable {
 
@@ -53,7 +53,9 @@ public class TClass implements TCodeObject, TCallable {
 			Set<ArgumentPassage> parameters = new HashSet<ArgumentPassage>();
 
 			for (Type initType : initImplementations) {
+
 				if (initType instanceof TCodeObject) {
+
 					CodeObject codeObject = ((TCodeObject) initType)
 							.codeObject();
 
@@ -364,19 +366,19 @@ public class TClass implements TCodeObject, TCallable {
 				.oldStyleConflatedNamespace().getFunctions().values();
 
 		for (Function method : methods) {
-			FormalParameters parameters = method.codeObject()
-					.formalParameters();
-
-			if (parameters.hasParameterForPosition(0)) {
-				positions.add(parameters.passByPosition(0)
-						.passage(new SelfArgument()).nextFlowPositions());
-				doneMethods.add(method.getName());
-			} else {
-				System.err.println("Method missing self parameter: " + method);
-			}
 
 			if (positions.isFinished())
 				break;
+
+			TBoundMethod boundMethod = new TBoundMethod(method.codeObject(),
+					new TObject(classObject));
+
+			Result<ArgumentPassage> selfDestinations = boundMethod
+					.destinationsReceivingArgument(new SelfArgument(),
+							goalManager);
+
+			positions.add(selfDestinations
+					.transformResult(new ReceivingParameterPositioner()));
 		}
 
 		for (exprType base : klass.codeObject().ast().bases) {
