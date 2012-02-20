@@ -1,6 +1,7 @@
 package uk.ac.ic.doc.gander.model.parameters;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -155,7 +156,8 @@ public final class FormalParameters {
 
 			ModelSite<Name> parameterNode = new ModelSite<Name>(node,
 					argsNode.codeObject());
-			ModelSite<exprType> defaultNode = getDefault(index, argsNode);
+			ModelSite<exprType> defaultNode = getDefaultForParameter(index,
+					argsNode);
 
 			return new NamedParameter(index, parameterNode, defaultNode);
 		}
@@ -179,25 +181,52 @@ public final class FormalParameters {
 
 	}
 
-	private static ModelSite<exprType> getDefault(int parameterIndex,
-			ModelSite<argumentsType> argsNode) {
+	private static ModelSite<exprType> getDefaultForParameter(
+			int parameterIndex, ModelSite<argumentsType> argsNode) {
 
+		/*
+		 * The defaults array isn't the same size as the parameters (in other
+		 * words, the parameters without defaults don't have a null entry in the
+		 * array). To calculate the mapping between the parameters and defaults
+		 * we must align the end of the defaults with the end of the positional
+		 * parameters.
+		 */
 		exprType[] defaults = argsNode.astNode().defaults;
+		int defaultOffset = argsNode.astNode().args.length - defaults.length;
+		assert (defaultOffset >= 0);
 
-		if (parameterIndex < defaults.length) {
-			exprType defaultValue = defaults[parameterIndex];
-			if (defaultValue != null) {
-				/*
-				 * defaults exist in the context of the callable's parent code
-				 * object
-				 */
-				return new ModelSite<exprType>(defaultValue,
-						((InvokableCodeObject) argsNode.codeObject()).parent());
-			} else {
-				return null; // null default means no default
-			}
-		} else {
+		if (parameterIndex < defaultOffset) {
+			/*
+			 * Requested parameter below the bottom of the aligned defaults
+			 * array so it not one of the parameters that has a default
+			 */
 			return null;
+		} else {
+
+			int defaultsIndex = parameterIndex - defaultOffset;
+
+			if (defaultsIndex >= 0 && defaultsIndex < defaults.length) {
+
+				exprType defaultValue = defaults[defaultsIndex];
+
+				if (defaultValue != null) {
+					/*
+					 * defaults exist in the context of the callable's parent
+					 * code object
+					 */
+					return new ModelSite<exprType>(defaultValue,
+							((InvokableCodeObject) argsNode.codeObject())
+									.parent());
+				} else {
+					return null; // null default means no default
+				}
+
+			} else {
+				throw new AssertionError("Mismatch between the defaults "
+						+ "and paramter arrays; " + defaultsIndex
+						+ " is not a valid index into "
+						+ Arrays.toString(defaults));
+			}
 		}
 	}
 
