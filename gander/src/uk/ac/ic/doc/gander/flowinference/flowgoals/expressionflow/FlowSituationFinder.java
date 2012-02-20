@@ -67,8 +67,8 @@ import org.python.pydev.parser.jython.ast.Yield;
 import org.python.pydev.parser.jython.ast.comprehensionType;
 import org.python.pydev.parser.jython.ast.exprType;
 
-import uk.ac.ic.doc.gander.flowinference.Argument;
-import uk.ac.ic.doc.gander.flowinference.ArgumentFactory;
+import uk.ac.ic.doc.gander.flowinference.argument.Argument;
+import uk.ac.ic.doc.gander.flowinference.argument.ArgumentFactory;
 import uk.ac.ic.doc.gander.model.ModelSite;
 
 final class FlowSituationFinder {

@@ -1,6 +1,6 @@
 package uk.ac.ic.doc.gander.flowinference.types;
 
-import uk.ac.ic.doc.gander.flowinference.ArgumentPassingStrategy;
+import uk.ac.ic.doc.gander.flowinference.argument.ArgumentPassingStrategy;
 
 /**
  * Model of the characteristics of passing arguments to a procedure using a

@@ -8,11 +8,11 @@ import java.util.Set;
 import org.python.pydev.parser.jython.ast.Call;
 import org.python.pydev.parser.jython.ast.exprType;
 
-import uk.ac.ic.doc.gander.flowinference.Argument;
-import uk.ac.ic.doc.gander.flowinference.ArgumentPassage;
 import uk.ac.ic.doc.gander.flowinference.Namespace;
-import uk.ac.ic.doc.gander.flowinference.SelfArgument;
 import uk.ac.ic.doc.gander.flowinference.TopI;
+import uk.ac.ic.doc.gander.flowinference.argument.Argument;
+import uk.ac.ic.doc.gander.flowinference.argument.ArgumentPassage;
+import uk.ac.ic.doc.gander.flowinference.argument.SelfArgument;
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
 import uk.ac.ic.doc.gander.flowinference.flowgoals.FlowPosition;
 import uk.ac.ic.doc.gander.flowinference.flowgoals.TopFp;

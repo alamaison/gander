@@ -1,6 +1,6 @@
 package uk.ac.ic.doc.gander.flowinference.flowgoals;
 
-import uk.ac.ic.doc.gander.flowinference.ArgumentPassage;
+import uk.ac.ic.doc.gander.flowinference.argument.ArgumentPassage;
 import uk.ac.ic.doc.gander.flowinference.result.Top;
 
 /**

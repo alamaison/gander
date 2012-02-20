@@ -1,4 +1,4 @@
-package uk.ac.ic.doc.gander.flowinference;
+package uk.ac.ic.doc.gander.flowinference.argument;
 
 import org.python.pydev.parser.jython.ast.Call;
 
@@ -10,12 +10,12 @@ import uk.ac.ic.doc.gander.model.codeobject.InvokableCodeObject;
 import uk.ac.ic.doc.gander.model.parameters.FormalParameter;
 import uk.ac.ic.doc.gander.model.parameters.FormalParameters;
 
-public final class ExplicitPositionalArgument implements PositionalArgument {
+final class ExplicitPositionalArgument implements PositionalArgument {
 
 	private final ModelSite<Call> callSite;
 	private final int position;
 
-	public ExplicitPositionalArgument(ModelSite<Call> callSite, int position) {
+	ExplicitPositionalArgument(ModelSite<Call> callSite, int position) {
 		this.callSite = callSite;
 		this.position = position;
 	}

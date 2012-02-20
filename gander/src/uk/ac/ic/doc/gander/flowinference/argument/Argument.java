@@ -1,4 +1,4 @@
-package uk.ac.ic.doc.gander.flowinference;
+package uk.ac.ic.doc.gander.flowinference.argument;
 
 import uk.ac.ic.doc.gander.model.codeobject.InvokableCodeObject;
 

@@ -7,9 +7,9 @@ import org.python.pydev.parser.jython.ast.Call;
 import org.python.pydev.parser.jython.ast.NameTok;
 import org.python.pydev.parser.jython.ast.argumentsType;
 
-import uk.ac.ic.doc.gander.flowinference.ArgumentPassage;
-import uk.ac.ic.doc.gander.flowinference.KeywordArgument;
-import uk.ac.ic.doc.gander.flowinference.PositionalArgument;
+import uk.ac.ic.doc.gander.flowinference.argument.ArgumentPassage;
+import uk.ac.ic.doc.gander.flowinference.argument.KeywordArgument;
+import uk.ac.ic.doc.gander.flowinference.argument.PositionalArgument;
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
 import uk.ac.ic.doc.gander.flowinference.flowgoals.FlowPosition;
 import uk.ac.ic.doc.gander.flowinference.flowgoals.TopFp;

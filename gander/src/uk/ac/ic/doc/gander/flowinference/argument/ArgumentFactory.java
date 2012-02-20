@@ -1,4 +1,4 @@
-package uk.ac.ic.doc.gander.flowinference;
+package uk.ac.ic.doc.gander.flowinference.argument;
 
 import org.python.pydev.parser.jython.ast.Call;
 import org.python.pydev.parser.jython.ast.exprType;

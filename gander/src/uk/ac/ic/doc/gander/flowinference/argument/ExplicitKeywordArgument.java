@@ -1,4 +1,4 @@
-package uk.ac.ic.doc.gander.flowinference;
+package uk.ac.ic.doc.gander.flowinference.argument;
 
 import org.python.pydev.parser.jython.ast.Call;
 import org.python.pydev.parser.jython.ast.NameTok;
@@ -12,12 +12,12 @@ import uk.ac.ic.doc.gander.model.codeobject.InvokableCodeObject;
 import uk.ac.ic.doc.gander.model.parameters.FormalParameter;
 import uk.ac.ic.doc.gander.model.parameters.FormalParameters;
 
-public final class ExplicitKeywordArgument implements KeywordArgument {
+final class ExplicitKeywordArgument implements KeywordArgument {
 
 	private final ModelSite<Call> callSite;
 	private final keywordType keyword;
 
-	public ExplicitKeywordArgument(ModelSite<Call> callSite, int keywordIndex) {
+	ExplicitKeywordArgument(ModelSite<Call> callSite, int keywordIndex) {
 		this.callSite = callSite;
 		this.keyword = callSite.astNode().keywords[keywordIndex];
 	}
@@ -31,7 +31,8 @@ public final class ExplicitKeywordArgument implements KeywordArgument {
 
 		if (parameters.hasKeywordableParameter(keyword())) {
 
-			FormalParameter parameter = parameters.keywordableParameter(keyword());
+			FormalParameter parameter = parameters
+					.keywordableParameter(keyword());
 			return parameter.passage(this);
 
 		} else {

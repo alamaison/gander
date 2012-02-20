@@ -2,7 +2,7 @@ package uk.ac.ic.doc.gander.flowinference.flowgoals.expressionflow;
 
 import java.util.Set;
 
-import uk.ac.ic.doc.gander.flowinference.ArgumentPassage;
+import uk.ac.ic.doc.gander.flowinference.argument.ArgumentPassage;
 import uk.ac.ic.doc.gander.flowinference.flowgoals.FlowPosition;
 import uk.ac.ic.doc.gander.flowinference.flowgoals.TopFp;
 import uk.ac.ic.doc.gander.flowinference.result.RedundancyEliminator;
