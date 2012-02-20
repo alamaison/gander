@@ -68,8 +68,7 @@ import org.python.pydev.parser.jython.ast.comprehensionType;
 import org.python.pydev.parser.jython.ast.exprType;
 
 import uk.ac.ic.doc.gander.flowinference.Argument;
-import uk.ac.ic.doc.gander.flowinference.ExplicitKeywordArgument;
-import uk.ac.ic.doc.gander.flowinference.ExplicitPositionalArgument;
+import uk.ac.ic.doc.gander.flowinference.ArgumentFactory;
 import uk.ac.ic.doc.gander.model.ModelSite;
 
 final class FlowSituationFinder {
@@ -290,41 +289,26 @@ final class SituationMapper implements VisitorIF {
 			ModelSite<Attribute> receiver = new ModelSite<Attribute>(
 					(Attribute) node.func, expression.codeObject());
 			return new AttributeCallReceiverSituation(receiver);
-		} else if (isMatch(node.starargs) || isMatch(node.kwargs)) {
-			/*
-			 * Unpacking an iterable, either through *args or *kwargs doesn't
-			 * cause the iterable to flow any further; only its contents.
-			 */
-			return notInAFlowSituation();
+
 		} else {
 
-			/*
-			 * Passing the expression as an argument in a call flows it to the
-			 * corresponding parameter of the call receiver.
-			 */
+			ModelSite<Call> callSite = nodeToSite(node);
+			Argument argument = ArgumentFactory.INSTANCE.fromCallSite(callSite,
+					expression.astNode());
 
-			for (int i = 0; i < node.args.length; ++i) {
-				if (isMatch(node.args[i])) {
+			if (argument != null) {
 
-					ModelSite<Call> callSite = nodeToSite(node);
-					Argument argument = new ExplicitPositionalArgument(
-							callSite, i);
+				/*
+				 * Passing the expression as an argument in a call flows it to
+				 * the corresponding parameter of the call receiver.
+				 */
+				return new CallArgumentSituation(callSite, argument);
 
-					return new CallArgumentSituation(callSite, argument);
-				}
+			} else {
+
+				/* expression was not an argument to this callsite */
+				return notInAFlowSituation();
 			}
-
-			for (int i = 0; i < node.keywords.length; ++i) {
-				if (isMatch(node.keywords[i].value)) {
-
-					ModelSite<Call> callSite = nodeToSite(node);
-					Argument argument = new ExplicitKeywordArgument(callSite, i);
-
-					return new CallArgumentSituation(callSite, argument);
-				}
-			}
-
-			return notInAFlowSituation();
 		}
 	}
 
