@@ -426,7 +426,7 @@ public class ZeroCfaTypeEngineTest {
 		FunctionCO unboundMethod = nestedFunction(klass, "method");
 
 		Set<Type> expectedBoundType = typeJudgement(new TBoundMethod(
-				unboundMethod, new TObject(klass)));
+				new TFunction(unboundMethod), new TObject(klass)));
 		Set<Type> expectedUnboundType = typeJudgement(new TFunction(
 				unboundMethod));
 
@@ -451,8 +451,8 @@ public class ZeroCfaTypeEngineTest {
 
 		ClassCO klass = moduleLevelClass(node, "A");
 		FunctionCO unboundMethod = nestedFunction(klass, "g");
-		Set<Type> expectedType = typeJudgement(new TBoundMethod(unboundMethod,
-				new TObject(klass)));
+		Set<Type> expectedType = typeJudgement(new TBoundMethod(new TFunction(
+				unboundMethod), new TObject(klass)));
 
 		assertEquals("Method not resolved correctly", expectedType, type);
 	}
@@ -1583,8 +1583,8 @@ public class ZeroCfaTypeEngineTest {
 		 * behaviour.
 		 */
 		Type functionF = new TFunction(nestedFunction(classA, "f"));
-		Type methodF = new TBoundMethod(nestedFunction(classA, "f"),
-				new TObject(classA));
+		Type methodF = new TBoundMethod(new TFunction(nestedFunction(classA,
+				"f")), new TObject(classA));
 		Type functionG = new TFunction(test.moduleLevelFunction("g"));
 
 		Result<Type> type = engine.typeOf(test.printNode("what_am_i_class")
@@ -1711,8 +1711,8 @@ public class ZeroCfaTypeEngineTest {
 		FunctionCO unboundMethod = nestedFunction(superclass, "m");
 
 		ClassCO klass = moduleLevelClass(node, "C");
-		Set<Type> expectedType = typeJudgement(new TBoundMethod(unboundMethod,
-				new TObject(klass)));
+		Set<Type> expectedType = typeJudgement(new TBoundMethod(new TFunction(
+				unboundMethod), new TObject(klass)));
 
 		assertEquals("Didn't infer inherited method type correctly. "
 				+ "Probably forgot to look in the superclass.", expectedType,
@@ -1722,8 +1722,8 @@ public class ZeroCfaTypeEngineTest {
 		type = engine.typeOf(node.site());
 
 		klass = moduleLevelClass(node, "D");
-		expectedType = typeJudgement(new TBoundMethod(unboundMethod,
-				new TObject(klass)));
+		expectedType = typeJudgement(new TBoundMethod(new TFunction(
+				unboundMethod), new TObject(klass)));
 
 		assertEquals("Didn't infer inherited method type correctly. "
 				+ "Probably forgot to look in the grandparent superclass.",
@@ -1740,13 +1740,13 @@ public class ZeroCfaTypeEngineTest {
 		ClassCO klassA = moduleLevelClass(node, "A");
 		FunctionCO unboundMethodA = nestedFunction(klassA, "m");
 
-		Set<Type> am = typeJudgement(new TBoundMethod(unboundMethodA,
-				new TObject(klassA)));
+		Set<Type> am = typeJudgement(new TBoundMethod(new TFunction(
+				unboundMethodA), new TObject(klassA)));
 
 		ClassCO klassB = moduleLevelClass(node, "B");
 		FunctionCO unboundMethodB = nestedFunction(klassB, "m");
-		Set<Type> bm = typeJudgement(new TBoundMethod(unboundMethodB,
-				new TObject(klassB)));
+		Set<Type> bm = typeJudgement(new TBoundMethod(new TFunction(
+				unboundMethodB), new TObject(klassB)));
 
 		assertEquals("Didn't infer inherited method type correctly. "
 				+ "Overriding the method shouldn't change the "
@@ -1761,8 +1761,8 @@ public class ZeroCfaTypeEngineTest {
 
 		node = findPrintNode(testName, "what_am_i_parent");
 		ClassCO klassC = moduleLevelClass(node, "C");
-		Set<Type> cm = typeJudgement(new TBoundMethod(unboundMethodB,
-				new TObject(klassC)));
+		Set<Type> cm = typeJudgement(new TBoundMethod(new TFunction(
+				unboundMethodB), new TObject(klassC)));
 		type = engine.typeOf(node.site());
 
 		assertEquals("Didn't infer inherited method type correctly. "
@@ -1770,8 +1770,8 @@ public class ZeroCfaTypeEngineTest {
 
 		node = findPrintNode(testName, "what_am_i_grandparent");
 		ClassCO klassD = moduleLevelClass(node, "D");
-		Set<Type> dm = typeJudgement(new TBoundMethod(unboundMethodB,
-				new TObject(klassD)));
+		Set<Type> dm = typeJudgement(new TBoundMethod(new TFunction(
+				unboundMethodB), new TObject(klassD)));
 		type = engine.typeOf(node.site());
 
 		assertEquals("Didn't infer inherited method type correctly. "
@@ -1795,8 +1795,9 @@ public class ZeroCfaTypeEngineTest {
 
 		ClassCO oldA = (ClassCO) test.printNode("first A").getScope();
 		ClassCO newA = (ClassCO) test.printNode("second A").getScope();
-		Set<Type> expectedBoundType = typeJudgement(new TBoundMethod(m,
-				new TObject(newA)), new TBoundMethod(m, new TObject(oldA)));
+		Set<Type> expectedBoundType = typeJudgement(new TBoundMethod(
+				new TFunction(m), new TObject(newA)), new TBoundMethod(
+				new TFunction(m), new TObject(oldA)));
 
 		Result<Type> boundType = engine.typeOf(test
 				.printNode("what_am_i_bound").site());
@@ -1822,9 +1823,10 @@ public class ZeroCfaTypeEngineTest {
 		ClassCO oldestA = (ClassCO) test.printNode("first A").getScope();
 		ClassCO oldA = (ClassCO) test.printNode("second A").getScope();
 		ClassCO newA = (ClassCO) test.printNode("third A").getScope();
-		Set<Type> expectedBoundType = typeJudgement(new TBoundMethod(m,
-				new TObject(newA)), new TBoundMethod(m, new TObject(oldA)),
-				new TBoundMethod(m, new TObject(oldestA)));
+		Set<Type> expectedBoundType = typeJudgement(new TBoundMethod(
+				new TFunction(m), new TObject(newA)), new TBoundMethod(
+				new TFunction(m), new TObject(oldA)), new TBoundMethod(
+				new TFunction(m), new TObject(oldestA)));
 
 		Result<Type> boundType = engine.typeOf(test
 				.printNode("what_am_i_bound").site());

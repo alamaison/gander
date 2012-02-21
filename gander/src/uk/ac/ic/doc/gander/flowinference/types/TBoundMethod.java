@@ -17,20 +17,18 @@ import uk.ac.ic.doc.gander.flowinference.flowgoals.expressionflow.ReceivingParam
 import uk.ac.ic.doc.gander.flowinference.result.FiniteResult;
 import uk.ac.ic.doc.gander.flowinference.result.Result;
 import uk.ac.ic.doc.gander.flowinference.typegoals.ExpressionTypeGoal;
-import uk.ac.ic.doc.gander.flowinference.typegoals.NamespaceNameTypeGoal;
 import uk.ac.ic.doc.gander.flowinference.typegoals.TopT;
 import uk.ac.ic.doc.gander.model.ModelSite;
-import uk.ac.ic.doc.gander.model.NamespaceName;
 import uk.ac.ic.doc.gander.model.codeobject.InvokableCodeObject;
 import uk.ac.ic.doc.gander.model.parameters.FormalParameter;
 import uk.ac.ic.doc.gander.model.parameters.NamedParameter;
 
 public final class TBoundMethod implements TCallable {
 
-	private final InvokableCodeObject unboundMethod;
+	private final TCallable unboundMethod;
 	private final TObject instance;
 
-	public TBoundMethod(InvokableCodeObject unboundMethod, TObject instance) {
+	public TBoundMethod(TCallable unboundMethod, TObject instance) {
 		if (unboundMethod == null)
 			throw new NullPointerException(
 					"Bound method must have a corresponding unbound method");
@@ -52,8 +50,7 @@ public final class TBoundMethod implements TCallable {
 
 	@Override
 	public Result<Type> returnType(SubgoalManager goalManager) {
-		return new FunctionReturnTypeSolver(goalManager, unboundMethod)
-				.solution();
+		return unboundMethod.returnType(goalManager);
 	}
 
 	/**
@@ -64,10 +61,7 @@ public final class TBoundMethod implements TCallable {
 	 */
 	@Override
 	public Result<Type> memberType(String memberName, SubgoalManager goalManager) {
-
-		NamespaceName member = new NamespaceName(memberName,
-				unboundMethod.fullyQualifiedNamespace());
-		return goalManager.registerSubgoal(new NamespaceNameTypeGoal(member));
+		return unboundMethod.memberType(memberName, goalManager);
 	}
 
 	/**
@@ -78,8 +72,7 @@ public final class TBoundMethod implements TCallable {
 	 */
 	@Override
 	public Set<Namespace> memberReadableNamespaces() {
-		return Collections.<Namespace> singleton(unboundMethod
-				.fullyQualifiedNamespace());
+		return unboundMethod.memberReadableNamespaces();
 	}
 
 	/**
@@ -142,22 +135,33 @@ public final class TBoundMethod implements TCallable {
 		Argument actualArgument = argument
 				.mapToActualArgument(new MethodStylePassingStrategy());
 
-		ArgumentDestination parameter = actualArgument
-				.passArgumentAtCall(unboundMethod);
+		return destinationsReceivingArgument(actualArgument, goalManager);
+	}
 
-		if (parameter != null) {
-			return new FiniteResult<ArgumentDestination>(
-					Collections.singleton(parameter));
-		} else {
-			return FiniteResult.bottom();
+	/**
+	 * {@inheritDoc}
+	 * 
+	 * Internally, the adjusted positional arguments are passed on to the
+	 * unbound method.
+	 */
+	@Override
+	public Result<ArgumentDestination> destinationsReceivingArgument(
+			Argument argument, SubgoalManager goalManager) {
+
+		if (argument == null) {
+			throw new NullPointerException("Argument is not optional");
 		}
+
+		return unboundMethod.destinationsReceivingArgument(argument,
+				goalManager);
 	}
 
 	@Deprecated
 	@Override
 	public FormalParameter selfParameter() {
 		try {
-			return unboundMethod.formalParameters().passByPosition(0);
+			return ((InvokableCodeObject) ((TCodeObject) unboundMethod)
+					.codeObject()).formalParameters().passByPosition(0);
 		} catch (IndexOutOfBoundsException e) {
 			System.err.println("UNTYPABLE: Unable to find self parameter in "
 					+ unboundMethod + ": ");
@@ -195,8 +199,7 @@ public final class TBoundMethod implements TCallable {
 	@Override
 	public Result<InvokableCodeObject> codeObjectsInvokedByCall(
 			SubgoalManager goalManager) {
-		return new FiniteResult<InvokableCodeObject>(
-				Collections.singleton(unboundMethod));
+		return unboundMethod.codeObjectsInvokedByCall(goalManager);
 	}
 
 	@Override

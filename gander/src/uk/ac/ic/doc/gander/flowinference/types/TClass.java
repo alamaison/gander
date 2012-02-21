@@ -32,7 +32,6 @@ import uk.ac.ic.doc.gander.model.Function;
 import uk.ac.ic.doc.gander.model.ModelSite;
 import uk.ac.ic.doc.gander.model.NamespaceName;
 import uk.ac.ic.doc.gander.model.codeobject.ClassCO;
-import uk.ac.ic.doc.gander.model.codeobject.CodeObject;
 import uk.ac.ic.doc.gander.model.codeobject.InvokableCodeObject;
 import uk.ac.ic.doc.gander.model.parameters.FormalParameter;
 
@@ -42,46 +41,42 @@ public class TClass implements TCodeObject, TCallable {
 			Transformer<Type, Result<ArgumentDestination>> {
 
 		private final Argument argument;
+		private final SubgoalManager goalManager;
 
-		public ReceivingParameterFinder(CallsiteArgument argument) {
-			this.argument = argument
-					.mapToActualArgument(new MethodStylePassingStrategy());
+		ReceivingParameterFinder(Argument argument, SubgoalManager goalManager) {
+			this.argument = argument;
+			this.goalManager = goalManager;
 		}
 
 		@Override
 		public Result<ArgumentDestination> transformFiniteResult(
 				Set<Type> initImplementations) {
 
-			Set<ArgumentDestination> parameters = new HashSet<ArgumentDestination>();
+			RedundancyEliminator<ArgumentDestination> destinations = new RedundancyEliminator<ArgumentDestination>();
 
 			for (Type initType : initImplementations) {
 
-				if (initType instanceof TCodeObject) {
+				if (initType instanceof TCallable) {
 
-					CodeObject codeObject = ((TCodeObject) initType)
-							.codeObject();
-
-					if (codeObject instanceof InvokableCodeObject) {
-
-						ArgumentDestination destination = argument
-								.passArgumentAtCall((InvokableCodeObject) codeObject);
-						parameters.add(destination);
-
-					} else {
-						System.err.println("UNTYPABLE: __init__ "
-								+ "implementation not invokable. class: "
-								+ classObject + " init implementation: "
-								+ initType);
-						return TopP.INSTANCE;
-					}
+					destinations.add(((TCallable) initType)
+							.destinationsReceivingArgument(argument,
+									goalManager));
 
 				} else {
+
 					// TODO: init might be a callable object
-					return TopP.INSTANCE;
+
+					System.err.println("UNTYPABLE: __init__ "
+							+ "implementation appears not to be callable: "
+							+ initType);
+				}
+
+				if (destinations.isFinished()) {
+					break;
 				}
 			}
 
-			return new FiniteResult<ArgumentDestination>(parameters);
+			return destinations.result();
 		}
 
 		@Override
@@ -205,9 +200,7 @@ public class TClass implements TCodeObject, TCallable {
 					 */
 
 					TBoundMethod boundInitMethod = new TBoundMethod(
-							(InvokableCodeObject) ((TCodeObject) initType)
-									.codeObject(),
-							new TObject(classObject));
+							(TCallable) initType, new TObject(classObject));
 
 					parameterType.add(boundInitMethod
 							.typeOfArgumentPassedToParameter(parameter,
@@ -238,7 +231,7 @@ public class TClass implements TCodeObject, TCallable {
 	/**
 	 * {@inheritDoc}
 	 * 
-	 * Ordinal arguments passed to a call to a bound method are passed to the
+	 * Ordinal arguments passed to a call to constructor are passed to the
 	 * parameter of the receiver that is one further along the parameter list
 	 * than the ordinal.
 	 */
@@ -250,13 +243,30 @@ public class TClass implements TCodeObject, TCallable {
 		}
 		if (goalManager == null) {
 			throw new NullPointerException(
-					"Goal manager required to resolve constructor");
+					"Goal manager required to resolve constructors");
+		}
+
+		Argument actualArgument = argument
+				.mapToActualArgument(new MethodStylePassingStrategy());
+
+		return destinationsReceivingArgument(actualArgument, goalManager);
+	}
+
+	@Override
+	public Result<ArgumentDestination> destinationsReceivingArgument(
+			Argument argument, SubgoalManager goalManager) {
+		if (argument == null) {
+			throw new NullPointerException("Argument is not optional");
+		}
+		if (goalManager == null) {
+			throw new NullPointerException(
+					"Goal manager required to resolve constructors");
 		}
 
 		Result<Type> initMethodTypes = initMethodTypes(goalManager);
 
 		return initMethodTypes.transformResult(new ReceivingParameterFinder(
-				argument));
+				argument, goalManager));
 	}
 
 	/**
@@ -358,8 +368,8 @@ public class TClass implements TCodeObject, TCallable {
 			if (positions.isFinished())
 				break;
 
-			TBoundMethod boundMethod = new TBoundMethod(method.codeObject(),
-					new TObject(classObject));
+			TBoundMethod boundMethod = new TBoundMethod(new TFunction(
+					method.codeObject()), new TObject(classObject));
 
 			Result<ArgumentDestination> selfDestinations = boundMethod
 					.destinationsReceivingArgument(new SelfCallsiteArgument(),

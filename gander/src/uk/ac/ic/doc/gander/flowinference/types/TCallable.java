@@ -2,6 +2,7 @@ package uk.ac.ic.doc.gander.flowinference.types;
 
 import org.python.pydev.parser.jython.ast.Call;
 
+import uk.ac.ic.doc.gander.flowinference.argument.Argument;
 import uk.ac.ic.doc.gander.flowinference.argument.ArgumentDestination;
 import uk.ac.ic.doc.gander.flowinference.argument.CallsiteArgument;
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
@@ -48,7 +49,7 @@ public interface TCallable extends Type {
 
 	/**
 	 * Returns the destinations to which the given argument is passed when
-	 * calling this type of callable.
+	 * calling this type of callable from a callsite.
 	 * 
 	 * This will almost always be a single destination but very rarely, such as
 	 * in the case of calling a class constructor where the constructor has been
@@ -56,6 +57,17 @@ public interface TCallable extends Type {
 	 */
 	Result<ArgumentDestination> destinationsReceivingArgument(
 			CallsiteArgument argument, SubgoalManager goalManager);
+
+	/**
+	 * Returns the destinations to which the given argument is passed when
+	 * calling this type of callable internally.
+	 * 
+	 * This will almost always be a single destination but very rarely, such as
+	 * in the case of calling a class constructor where the constructor has been
+	 * multiply defined, there may be more than one receiving parameter.
+	 */
+	Result<ArgumentDestination> destinationsReceivingArgument(
+			Argument argument, SubgoalManager goalManager);
 
 	/**
 	 * Returns the parameter that magically receives the LHS of a call on an

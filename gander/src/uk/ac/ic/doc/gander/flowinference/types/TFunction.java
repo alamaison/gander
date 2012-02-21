@@ -123,7 +123,21 @@ public class TFunction implements TCodeObject, TCallable {
 		Argument actualArgument = argument
 				.mapToActualArgument(new FunctionStylePassingStrategy());
 
-		ArgumentDestination parameter = actualArgument
+		return destinationsReceivingArgument(actualArgument, goalManager);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 * 
+	 * Even if the function is invoked internally, rather than at an explicit
+	 * call-site, positional arguments are passed directly to the parameter of
+	 * the receiver with the same index.
+	 */
+	@Override
+	public Result<ArgumentDestination> destinationsReceivingArgument(
+			Argument argument, SubgoalManager goalManager) {
+
+		ArgumentDestination parameter = argument
 				.passArgumentAtCall(functionObject);
 
 		return new FiniteResult<ArgumentDestination>(

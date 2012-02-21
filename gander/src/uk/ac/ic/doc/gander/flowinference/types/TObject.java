@@ -109,8 +109,7 @@ public class TObject implements Type {
 
 	private Type bindType(Type unboundType) {
 		if (unboundType instanceof TFunction) {
-			return new TBoundMethod(((TFunction) unboundType).codeObject(),
-					this);
+			return new TBoundMethod(((TFunction) unboundType), this);
 		} else {
 			return unboundType;
 		}
