@@ -21,17 +21,16 @@ import uk.ac.ic.doc.gander.flowinference.typegoals.NamespaceNameTypeGoal;
 import uk.ac.ic.doc.gander.flowinference.typegoals.TopT;
 import uk.ac.ic.doc.gander.model.ModelSite;
 import uk.ac.ic.doc.gander.model.NamespaceName;
-import uk.ac.ic.doc.gander.model.codeobject.FunctionCO;
 import uk.ac.ic.doc.gander.model.codeobject.InvokableCodeObject;
 import uk.ac.ic.doc.gander.model.parameters.FormalParameter;
 import uk.ac.ic.doc.gander.model.parameters.NamedParameter;
 
 public final class TBoundMethod implements TCallable {
 
-	private final FunctionCO unboundMethod;
+	private final InvokableCodeObject unboundMethod;
 	private final TObject instance;
 
-	public TBoundMethod(FunctionCO unboundMethod, TObject instance) {
+	public TBoundMethod(InvokableCodeObject unboundMethod, TObject instance) {
 		if (unboundMethod == null)
 			throw new NullPointerException(
 					"Bound method must have a corresponding unbound method");
@@ -47,8 +46,8 @@ public final class TBoundMethod implements TCallable {
 
 	@Override
 	public String getName() {
-		return "<bound method " + instance.getName() + "."
-				+ unboundMethod.declaredName() + ">";
+		return "<bound method " + instance.getName() + "." + unboundMethod
+				+ ">";
 	}
 
 	@Override
@@ -93,7 +92,7 @@ public final class TBoundMethod implements TCallable {
 	@Override
 	public Namespace memberWriteableNamespace() {
 		System.err.println("UNTYPABLE: Cannot write to an attribute "
-				+ "of an unbound method " + unboundMethod);
+				+ "of a bound method :" + this);
 		return null;
 	}
 

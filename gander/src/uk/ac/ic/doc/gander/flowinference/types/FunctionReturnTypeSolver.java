@@ -12,18 +12,19 @@ import uk.ac.ic.doc.gander.flowinference.result.Result;
 import uk.ac.ic.doc.gander.flowinference.typegoals.ExpressionTypeGoal;
 import uk.ac.ic.doc.gander.flowinference.typegoals.VariableTypeGoal;
 import uk.ac.ic.doc.gander.model.ModelSite;
-import uk.ac.ic.doc.gander.model.codeobject.FunctionCO;
+import uk.ac.ic.doc.gander.model.codeobject.InvokableCodeObject;
 import uk.ac.ic.doc.gander.model.name_binding.Variable;
 
 final class FunctionReturnTypeSolver {
 
 	private final SubgoalManager goalManager;
-	private final FunctionCO function;
+	private final InvokableCodeObject function;
 	private final RedundancyEliminator<Type> returnTypes = new RedundancyEliminator<Type>();
 
 	private boolean seenReturnStatement = false;
 
-	FunctionReturnTypeSolver(SubgoalManager goalManager, FunctionCO function) {
+	FunctionReturnTypeSolver(SubgoalManager goalManager,
+			InvokableCodeObject function) {
 		this.goalManager = goalManager;
 		this.function = function;
 

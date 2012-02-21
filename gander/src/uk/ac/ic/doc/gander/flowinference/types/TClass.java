@@ -167,43 +167,58 @@ public class TClass implements TCodeObject, TCallable {
 			FormalParameter parameter, ModelSite<Call> callSite,
 			SubgoalManager goalManager) {
 
-		Result<Type> initMethodTypes = initMethodTypes(goalManager);
+		Result<Type> unboundInitMethodTypes = initMethodTypes(goalManager);
 
-		return initMethodTypes.transformResult(new ParameterTyper(parameter,
-				callSite, goalManager));
+		return unboundInitMethodTypes
+				.transformResult(new InitMethodParameterTyper(parameter,
+						callSite, goalManager));
 	}
 
-	private class ParameterTyper implements Transformer<Type, Result<Type>> {
+	private class InitMethodParameterTyper implements
+			Transformer<Type, Result<Type>> {
 
 		private final FormalParameter parameter;
 		private final ModelSite<Call> callSite;
 		private final SubgoalManager goalManager;
 
-		ParameterTyper(FormalParameter parameter, ModelSite<Call> callSite,
-				SubgoalManager goalManager) {
+		InitMethodParameterTyper(FormalParameter parameter,
+				ModelSite<Call> callSite, SubgoalManager goalManager) {
 			this.parameter = parameter;
 			this.callSite = callSite;
 			this.goalManager = goalManager;
 		}
 
 		@Override
-		public Result<Type> transformFiniteResult(Set<Type> result) {
+		public Result<Type> transformFiniteResult(
+				Set<Type> unboundInitMethodTypes) {
+
 			RedundancyEliminator<Type> parameterType = new RedundancyEliminator<Type>();
 
-			for (Type initType : result) {
-				if (parameterType.isFinished()) {
-					break;
-				}
+			for (Type initType : unboundInitMethodTypes) {
 
-				if (initType instanceof TFunction) {
-					TBoundMethod init = new TBoundMethod(
-							((TFunction) initType).codeObject(), new TObject(
-									classObject));
-					parameterType.add(init.typeOfArgumentPassedToParameter(
-							parameter, callSite, goalManager));
+				if (initType instanceof TCallable) {
+
+					/*
+					 * The unbound init method has no idea what type it's self
+					 * argument might have. It knows nothing about self. For
+					 * that we need to bind it.
+					 */
+
+					TBoundMethod boundInitMethod = new TBoundMethod(
+							(InvokableCodeObject) ((TCodeObject) initType)
+									.codeObject(),
+							new TObject(classObject));
+
+					parameterType.add(boundInitMethod
+							.typeOfArgumentPassedToParameter(parameter,
+									callSite, goalManager));
 				} else {
 					// XXX: init might not be a function?!
 					parameterType.add(TopT.INSTANCE);
+				}
+
+				if (parameterType.isFinished()) {
+					break;
 				}
 			}
 
@@ -269,44 +284,14 @@ public class TClass implements TCodeObject, TCallable {
 	@Override
 	public Result<InvokableCodeObject> codeObjectsInvokedByCall(
 			SubgoalManager goalManager) {
+		if (goalManager == null) {
+			throw new NullPointerException("Goal manager required");
+		}
+
 		Result<Type> initObjects = initMethodTypes(goalManager);
 
-		return initObjects.transformResult(new InitCodeObjectFinder());
-	}
-
-	private static final class InitCodeObjectFinder implements
-			Transformer<Type, Result<InvokableCodeObject>> {
-
-		@Override
-		public Result<InvokableCodeObject> transformFiniteResult(
-				Set<Type> initImplementations) {
-
-			Set<InvokableCodeObject> codeObjects = new HashSet<InvokableCodeObject>();
-
-			for (Type initType : initImplementations) {
-				if (initType instanceof TCodeObject) {
-					CodeObject codeObject = ((TCodeObject) initType)
-							.codeObject();
-					if (codeObject instanceof InvokableCodeObject) {
-						codeObjects.add((InvokableCodeObject) codeObject);
-					} else {
-						// XXX: init might not be a callable?!
-						return TopI.INSTANCE;
-					}
-				} else {
-					// TODO: init might be a callable object
-					return TopI.INSTANCE;
-				}
-			}
-
-			return new FiniteResult<InvokableCodeObject>(codeObjects);
-		}
-
-		@Override
-		public Result<InvokableCodeObject> transformInfiniteResult() {
-			return TopI.INSTANCE;
-		}
-
+		return initObjects
+				.transformResult(new InitCodeObjectFinder(goalManager));
 	}
 
 	/**
@@ -436,6 +421,12 @@ public class TClass implements TCodeObject, TCallable {
 		});
 	}
 
+	/**
+	 * Returns the object(s) bound to the __init__ member of the class.
+	 * 
+	 * These are <em>not bound</em> to an instance of the class, they are the
+	 * unbound methods.
+	 */
 	private Result<Type> initMethodTypes(SubgoalManager goalManager) {
 		return memberType("__init__", goalManager);
 	}
@@ -469,6 +460,60 @@ public class TClass implements TCodeObject, TCallable {
 	@Override
 	public String toString() {
 		return "TClass [" + getName() + "]";
+	}
+
+}
+
+final class InitCodeObjectFinder implements
+		Transformer<Type, Result<InvokableCodeObject>> {
+
+	private final SubgoalManager goalManager;
+
+	InitCodeObjectFinder(SubgoalManager goalManager) {
+		this.goalManager = goalManager;
+	}
+
+	@Override
+	public Result<InvokableCodeObject> transformFiniteResult(
+			Set<Type> initImplementations) {
+
+		RedundancyEliminator<InvokableCodeObject> codeObjects = new RedundancyEliminator<InvokableCodeObject>();
+
+		for (Type initType : initImplementations) {
+
+			/*
+			 * The __init__ method can be implemented by any callable object,
+			 * plain function, callable object, lambda, even another class
+			 * (though that causes an error _after_ calling that class's
+			 * constructor because __init__ implementation are expected to
+			 * return None). This could be an arbitrarily long chain of
+			 * callables before we get to a code object so we just delegate
+			 * lookup to the next callable.
+			 */
+
+			if (initType instanceof TCallable) {
+
+				codeObjects.add(((TCallable) initType)
+						.codeObjectsInvokedByCall(goalManager));
+
+			} else {
+				System.err.println("UNTYPABLE: __init__ member "
+						+ "appears to be implemented by a non-callable: "
+						+ initType);
+				return TopI.INSTANCE;
+			}
+
+			if (codeObjects.isFinished()) {
+				break;
+			}
+		}
+
+		return codeObjects.result();
+	}
+
+	@Override
+	public Result<InvokableCodeObject> transformInfiniteResult() {
+		return TopI.INSTANCE;
 	}
 
 }
