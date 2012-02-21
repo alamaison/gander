@@ -4,7 +4,7 @@ import java.util.Set;
 
 import org.python.pydev.parser.jython.ast.Call;
 
-import uk.ac.ic.doc.gander.flowinference.argument.ArgumentPassage;
+import uk.ac.ic.doc.gander.flowinference.argument.ArgumentDestination;
 import uk.ac.ic.doc.gander.flowinference.argument.KeywordArgument;
 import uk.ac.ic.doc.gander.flowinference.argument.PositionalArgument;
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
@@ -17,9 +17,9 @@ public interface FormalParameter {
 
 	ModelSite<?> site();
 
-	ArgumentPassage passage(PositionalArgument argument);
+	ArgumentDestination passage(PositionalArgument argument);
 
-	ArgumentPassage passage(KeywordArgument argument);
+	ArgumentDestination passage(KeywordArgument argument);
 
 	Result<Type> typeAtCall(ModelSite<Call> callSite, SubgoalManager goalManager);
 

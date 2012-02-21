@@ -7,7 +7,8 @@ import org.python.pydev.parser.jython.ast.Call;
 
 import uk.ac.ic.doc.gander.flowinference.Namespace;
 import uk.ac.ic.doc.gander.flowinference.argument.Argument;
-import uk.ac.ic.doc.gander.flowinference.argument.ArgumentPassage;
+import uk.ac.ic.doc.gander.flowinference.argument.ArgumentDestination;
+import uk.ac.ic.doc.gander.flowinference.argument.CallsiteArgument;
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
 import uk.ac.ic.doc.gander.flowinference.flowgoals.FlowPosition;
 import uk.ac.ic.doc.gander.flowinference.result.FiniteResult;
@@ -112,17 +113,20 @@ public class TFunction implements TCodeObject, TCallable {
 	 * index.
 	 */
 	@Override
-	public Result<ArgumentPassage> destinationsReceivingArgument(
-			Argument argument, SubgoalManager goalManager) {
+	public Result<ArgumentDestination> destinationsReceivingArgument(
+			CallsiteArgument argument, SubgoalManager goalManager) {
 
 		if (argument == null) {
 			throw new NullPointerException("Argument is not optional");
 		}
 
-		ArgumentPassage parameter = argument.passArgumentAtCall(functionObject,
-				new FunctionStylePassingStrategy());
+		Argument actualArgument = argument
+				.mapToActualArgument(new FunctionStylePassingStrategy());
 
-		return new FiniteResult<ArgumentPassage>(
+		ArgumentDestination parameter = actualArgument
+				.passArgumentAtCall(functionObject);
+
+		return new FiniteResult<ArgumentDestination>(
 				Collections.singleton(parameter));
 	}
 

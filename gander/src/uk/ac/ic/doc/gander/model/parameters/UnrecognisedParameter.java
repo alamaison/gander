@@ -6,7 +6,7 @@ import java.util.Set;
 import org.python.pydev.parser.jython.ast.Call;
 import org.python.pydev.parser.jython.ast.exprType;
 
-import uk.ac.ic.doc.gander.flowinference.argument.ArgumentPassage;
+import uk.ac.ic.doc.gander.flowinference.argument.ArgumentDestination;
 import uk.ac.ic.doc.gander.flowinference.argument.KeywordArgument;
 import uk.ac.ic.doc.gander.flowinference.argument.PositionalArgument;
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
@@ -32,12 +32,12 @@ final class UnrecognisedParameter implements FormalParameter {
 	}
 
 	@Override
-	public ArgumentPassage passage(PositionalArgument argument) {
+	public ArgumentDestination passage(PositionalArgument argument) {
 		return passage();
 	}
 
 	@Override
-	public ArgumentPassage passage(KeywordArgument argument) {
+	public ArgumentDestination passage(KeywordArgument argument) {
 		return passage();
 	}
 
@@ -47,9 +47,9 @@ final class UnrecognisedParameter implements FormalParameter {
 		return TopT.INSTANCE;
 	}
 
-	private ArgumentPassage passage() {
+	private ArgumentDestination passage() {
 
-		return new ArgumentPassage() {
+		return new ArgumentDestination() {
 
 			@Override
 			public Result<FlowPosition> nextFlowPositions() {

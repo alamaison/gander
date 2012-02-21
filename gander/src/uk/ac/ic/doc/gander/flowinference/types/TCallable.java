@@ -2,8 +2,8 @@ package uk.ac.ic.doc.gander.flowinference.types;
 
 import org.python.pydev.parser.jython.ast.Call;
 
-import uk.ac.ic.doc.gander.flowinference.argument.Argument;
-import uk.ac.ic.doc.gander.flowinference.argument.ArgumentPassage;
+import uk.ac.ic.doc.gander.flowinference.argument.ArgumentDestination;
+import uk.ac.ic.doc.gander.flowinference.argument.CallsiteArgument;
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
 import uk.ac.ic.doc.gander.flowinference.flowgoals.FlowPosition;
 import uk.ac.ic.doc.gander.flowinference.result.Result;
@@ -54,8 +54,8 @@ public interface TCallable extends Type {
 	 * in the case of calling a class constructor where the constructor has been
 	 * multiply defined, there may be more than one receiving parameter.
 	 */
-	Result<ArgumentPassage> destinationsReceivingArgument(Argument argument,
-			SubgoalManager goalManager);
+	Result<ArgumentDestination> destinationsReceivingArgument(
+			CallsiteArgument argument, SubgoalManager goalManager);
 
 	/**
 	 * Returns the parameter that magically receives the LHS of a call on an

@@ -67,8 +67,8 @@ import org.python.pydev.parser.jython.ast.Yield;
 import org.python.pydev.parser.jython.ast.comprehensionType;
 import org.python.pydev.parser.jython.ast.exprType;
 
-import uk.ac.ic.doc.gander.flowinference.argument.Argument;
 import uk.ac.ic.doc.gander.flowinference.argument.ArgumentFactory;
+import uk.ac.ic.doc.gander.flowinference.argument.CallsiteArgument;
 import uk.ac.ic.doc.gander.model.ModelSite;
 
 final class FlowSituationFinder {
@@ -292,9 +292,13 @@ final class SituationMapper implements VisitorIF {
 
 		} else {
 
+			/*
+			 * The expression might be an argument to the call.
+			 */
+
 			ModelSite<Call> callSite = nodeToSite(node);
-			Argument argument = ArgumentFactory.INSTANCE.fromCallSite(callSite,
-					expression.astNode());
+			CallsiteArgument argument = ArgumentFactory.INSTANCE.fromCallSite(
+					callSite, expression.astNode());
 
 			if (argument != null) {
 

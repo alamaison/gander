@@ -1,6 +1,6 @@
 package uk.ac.ic.doc.gander.flowinference.flowgoals;
 
-import uk.ac.ic.doc.gander.flowinference.argument.ArgumentPassage;
+import uk.ac.ic.doc.gander.flowinference.argument.ArgumentDestination;
 import uk.ac.ic.doc.gander.flowinference.result.Top;
 
 /**
@@ -9,7 +9,7 @@ import uk.ac.ic.doc.gander.flowinference.result.Top;
  * Otherwise known as Top, this is used when our analysis lost track of where an
  * argument is received.
  */
-public final class TopP extends Top<ArgumentPassage> {
+public final class TopP extends Top<ArgumentDestination> {
 
 	public static final TopP INSTANCE = new TopP();
 

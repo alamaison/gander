@@ -11,8 +11,9 @@ import org.python.pydev.parser.jython.ast.exprType;
 import uk.ac.ic.doc.gander.flowinference.Namespace;
 import uk.ac.ic.doc.gander.flowinference.TopI;
 import uk.ac.ic.doc.gander.flowinference.argument.Argument;
-import uk.ac.ic.doc.gander.flowinference.argument.ArgumentPassage;
-import uk.ac.ic.doc.gander.flowinference.argument.SelfArgument;
+import uk.ac.ic.doc.gander.flowinference.argument.ArgumentDestination;
+import uk.ac.ic.doc.gander.flowinference.argument.CallsiteArgument;
+import uk.ac.ic.doc.gander.flowinference.argument.SelfCallsiteArgument;
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
 import uk.ac.ic.doc.gander.flowinference.flowgoals.FlowPosition;
 import uk.ac.ic.doc.gander.flowinference.flowgoals.TopFp;
@@ -38,19 +39,20 @@ import uk.ac.ic.doc.gander.model.parameters.FormalParameter;
 public class TClass implements TCodeObject, TCallable {
 
 	private final class ReceivingParameterFinder implements
-			Transformer<Type, Result<ArgumentPassage>> {
+			Transformer<Type, Result<ArgumentDestination>> {
 
 		private final Argument argument;
 
-		public ReceivingParameterFinder(Argument argument) {
-			this.argument = argument;
+		public ReceivingParameterFinder(CallsiteArgument argument) {
+			this.argument = argument
+					.mapToActualArgument(new MethodStylePassingStrategy());
 		}
 
 		@Override
-		public Result<ArgumentPassage> transformFiniteResult(
+		public Result<ArgumentDestination> transformFiniteResult(
 				Set<Type> initImplementations) {
 
-			Set<ArgumentPassage> parameters = new HashSet<ArgumentPassage>();
+			Set<ArgumentDestination> parameters = new HashSet<ArgumentDestination>();
 
 			for (Type initType : initImplementations) {
 
@@ -61,9 +63,9 @@ public class TClass implements TCodeObject, TCallable {
 
 					if (codeObject instanceof InvokableCodeObject) {
 
-						parameters.add(argument.passArgumentAtCall(
-								(InvokableCodeObject) codeObject,
-								new MethodStylePassingStrategy()));
+						ArgumentDestination destination = argument
+								.passArgumentAtCall((InvokableCodeObject) codeObject);
+						parameters.add(destination);
 
 					} else {
 						System.err.println("UNTYPABLE: __init__ "
@@ -72,17 +74,18 @@ public class TClass implements TCodeObject, TCallable {
 								+ initType);
 						return TopP.INSTANCE;
 					}
+
 				} else {
 					// TODO: init might be a callable object
 					return TopP.INSTANCE;
 				}
 			}
 
-			return new FiniteResult<ArgumentPassage>(parameters);
+			return new FiniteResult<ArgumentDestination>(parameters);
 		}
 
 		@Override
-		public Result<ArgumentPassage> transformInfiniteResult() {
+		public Result<ArgumentDestination> transformInfiniteResult() {
 			return TopP.INSTANCE;
 		}
 
@@ -225,8 +228,8 @@ public class TClass implements TCodeObject, TCallable {
 	 * than the ordinal.
 	 */
 	@Override
-	public Result<ArgumentPassage> destinationsReceivingArgument(
-			Argument argument, SubgoalManager goalManager) {
+	public Result<ArgumentDestination> destinationsReceivingArgument(
+			CallsiteArgument argument, SubgoalManager goalManager) {
 		if (argument == null) {
 			throw new NullPointerException("Argument is not optional");
 		}
@@ -373,8 +376,8 @@ public class TClass implements TCodeObject, TCallable {
 			TBoundMethod boundMethod = new TBoundMethod(method.codeObject(),
 					new TObject(classObject));
 
-			Result<ArgumentPassage> selfDestinations = boundMethod
-					.destinationsReceivingArgument(new SelfArgument(),
+			Result<ArgumentDestination> selfDestinations = boundMethod
+					.destinationsReceivingArgument(new SelfCallsiteArgument(),
 							goalManager);
 
 			positions.add(selfDestinations

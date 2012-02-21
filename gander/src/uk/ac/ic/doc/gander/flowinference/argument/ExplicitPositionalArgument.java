@@ -25,27 +25,24 @@ final class ExplicitPositionalArgument implements PositionalArgument {
 	 * particular calling mechanism.
 	 */
 	@Override
-	public ArgumentPassage passArgumentAtCall(
-			final InvokableCodeObject receiver,
-			ArgumentPassingStrategy argumentMapper) {
+	public ArgumentDestination passArgumentAtCall(
+			final InvokableCodeObject receiver) {
 
 		FormalParameters parameters = receiver.formalParameters();
 
-		final int realPosition = argumentMapper.realPosition(position);
-
 		if (parameters.hasParameterForPosition(position)) {
 
-			FormalParameter parameter = parameters.passByPosition(realPosition);
+			FormalParameter parameter = parameters.passByPosition(position);
 			return parameter.passage(this);
 
 		} else {
-			return new UntypableArgumentPassage() {
+			return new UntypableArgumentDestination() {
 
 				@Override
 				public Result<FlowPosition> nextFlowPositions() {
 					System.err.println("UNTYPABLE: " + receiver
 							+ " has no parameter that accepts an argument "
-							+ "at position " + realPosition);
+							+ "at position " + position);
 
 					return FiniteResult.bottom();
 				}
@@ -84,7 +81,7 @@ final class ExplicitPositionalArgument implements PositionalArgument {
 
 	@Override
 	public String toString() {
-		return "ExplicitPositionalArgument [callSite=" + callSite
+		return "ExplicitPositionalCallsiteArgument [callSite=" + callSite
 				+ ", position=" + position + "]";
 	}
 

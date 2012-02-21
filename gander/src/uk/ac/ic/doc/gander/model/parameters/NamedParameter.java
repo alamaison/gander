@@ -7,7 +7,7 @@ import org.python.pydev.parser.jython.ast.Call;
 import org.python.pydev.parser.jython.ast.Name;
 import org.python.pydev.parser.jython.ast.exprType;
 
-import uk.ac.ic.doc.gander.flowinference.argument.ArgumentPassage;
+import uk.ac.ic.doc.gander.flowinference.argument.ArgumentDestination;
 import uk.ac.ic.doc.gander.flowinference.argument.KeywordArgument;
 import uk.ac.ic.doc.gander.flowinference.argument.PositionalArgument;
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
@@ -102,12 +102,12 @@ public final class NamedParameter implements FormalParameter {
 	}
 
 	@Override
-	public ArgumentPassage passage(PositionalArgument argument) {
+	public ArgumentDestination passage(PositionalArgument argument) {
 		return passage();
 	}
 
 	@Override
-	public ArgumentPassage passage(KeywordArgument argument) {
+	public ArgumentDestination passage(KeywordArgument argument) {
 		return passage();
 	}
 
@@ -115,9 +115,9 @@ public final class NamedParameter implements FormalParameter {
 	 * All arguments passed to named parameters flow in the same way; to the
 	 * named parameter.
 	 */
-	private ArgumentPassage passage() {
+	private ArgumentDestination passage() {
 
-		return new ArgumentPassage() {
+		return new ArgumentDestination() {
 
 			@Override
 			public Result<FlowPosition> nextFlowPositions() {

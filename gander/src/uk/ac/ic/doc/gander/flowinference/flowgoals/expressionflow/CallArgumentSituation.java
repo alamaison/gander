@@ -5,8 +5,8 @@ import java.util.Set;
 import org.python.pydev.parser.jython.ast.Call;
 import org.python.pydev.parser.jython.ast.exprType;
 
-import uk.ac.ic.doc.gander.flowinference.argument.Argument;
-import uk.ac.ic.doc.gander.flowinference.argument.ArgumentPassage;
+import uk.ac.ic.doc.gander.flowinference.argument.ArgumentDestination;
+import uk.ac.ic.doc.gander.flowinference.argument.CallsiteArgument;
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
 import uk.ac.ic.doc.gander.flowinference.flowgoals.FlowPosition;
 import uk.ac.ic.doc.gander.flowinference.flowgoals.TopFp;
@@ -22,9 +22,10 @@ import uk.ac.ic.doc.gander.model.ModelSite;
 final class CallArgumentSituation implements FlowSituation {
 
 	private final ModelSite<Call> callSite;
-	private final Argument argument;
+	private final CallsiteArgument argument;
 
-	public CallArgumentSituation(ModelSite<Call> callSite, Argument argument) {
+	public CallArgumentSituation(ModelSite<Call> callSite,
+			CallsiteArgument argument) {
 		this.callSite = callSite;
 		this.argument = argument;
 	}
@@ -79,7 +80,7 @@ final class CallArgumentSituation implements FlowSituation {
 
 		if (receiver instanceof TCallable) {
 
-			Result<ArgumentPassage> receivingParameters = ((TCallable) receiver)
+			Result<ArgumentDestination> receivingParameters = ((TCallable) receiver)
 					.destinationsReceivingArgument(argument(), goalManager);
 
 			return receivingParameters
@@ -95,7 +96,7 @@ final class CallArgumentSituation implements FlowSituation {
 		}
 	}
 
-	private Argument argument() {
+	private CallsiteArgument argument() {
 		return argument;
 	}
 

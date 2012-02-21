@@ -8,8 +8,9 @@ import org.python.pydev.parser.jython.ast.exprType;
 
 import uk.ac.ic.doc.gander.flowinference.Namespace;
 import uk.ac.ic.doc.gander.flowinference.argument.Argument;
-import uk.ac.ic.doc.gander.flowinference.argument.ArgumentPassage;
-import uk.ac.ic.doc.gander.flowinference.argument.SelfArgument;
+import uk.ac.ic.doc.gander.flowinference.argument.ArgumentDestination;
+import uk.ac.ic.doc.gander.flowinference.argument.CallsiteArgument;
+import uk.ac.ic.doc.gander.flowinference.argument.SelfCallsiteArgument;
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
 import uk.ac.ic.doc.gander.flowinference.flowgoals.FlowPosition;
 import uk.ac.ic.doc.gander.flowinference.flowgoals.expressionflow.ReceivingParameterPositioner;
@@ -132,17 +133,21 @@ public final class TBoundMethod implements TCallable {
 	 * than the argument's position.
 	 */
 	@Override
-	public Result<ArgumentPassage> destinationsReceivingArgument(
-			Argument argument, SubgoalManager goalManager) {
+	public Result<ArgumentDestination> destinationsReceivingArgument(
+			CallsiteArgument argument, SubgoalManager goalManager) {
 
 		if (argument == null) {
 			throw new NullPointerException("Argument is not optional");
 		}
 
-		ArgumentPassage parameter = argument.passArgumentAtCall(unboundMethod,
-				new MethodStylePassingStrategy());
+		Argument actualArgument = argument
+				.mapToActualArgument(new MethodStylePassingStrategy());
+
+		ArgumentDestination parameter = actualArgument
+				.passArgumentAtCall(unboundMethod);
+
 		if (parameter != null) {
-			return new FiniteResult<ArgumentPassage>(
+			return new FiniteResult<ArgumentDestination>(
 					Collections.singleton(parameter));
 		} else {
 			return FiniteResult.bottom();
@@ -211,8 +216,8 @@ public final class TBoundMethod implements TCallable {
 	public Result<FlowPosition> flowPositionsOfHiddenSelfArgument(
 			SubgoalManager goalManager) {
 
-		Result<ArgumentPassage> selfDestinations = destinationsReceivingArgument(
-				new SelfArgument(), goalManager);
+		Result<ArgumentDestination> selfDestinations = destinationsReceivingArgument(
+				new SelfCallsiteArgument(), goalManager);
 
 		return selfDestinations
 				.transformResult(new ReceivingParameterPositioner());
@@ -255,4 +260,5 @@ public final class TBoundMethod implements TCallable {
 	public String toString() {
 		return "TBoundMethod [" + getName() + "]";
 	}
+
 }

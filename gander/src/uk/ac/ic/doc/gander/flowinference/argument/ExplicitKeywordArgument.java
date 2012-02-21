@@ -17,15 +17,14 @@ final class ExplicitKeywordArgument implements KeywordArgument {
 	private final ModelSite<Call> callSite;
 	private final keywordType keyword;
 
-	ExplicitKeywordArgument(ModelSite<Call> callSite, int keywordIndex) {
+	ExplicitKeywordArgument(ModelSite<Call> callSite, keywordType keyword) {
 		this.callSite = callSite;
-		this.keyword = callSite.astNode().keywords[keywordIndex];
+		this.keyword = keyword;
 	}
 
 	@Override
-	public ArgumentPassage passArgumentAtCall(
-			final InvokableCodeObject receiver,
-			ArgumentPassingStrategy argumentMapper) {
+	public ArgumentDestination passArgumentAtCall(
+			final InvokableCodeObject receiver) {
 
 		FormalParameters parameters = receiver.formalParameters();
 
@@ -36,7 +35,7 @@ final class ExplicitKeywordArgument implements KeywordArgument {
 			return parameter.passage(this);
 
 		} else {
-			return new UntypableArgumentPassage() {
+			return new UntypableArgumentDestination() {
 
 				@Override
 				public Result<FlowPosition> nextFlowPositions() {
@@ -50,7 +49,7 @@ final class ExplicitKeywordArgument implements KeywordArgument {
 		}
 	}
 
-	String keyword() {
+	private String keyword() {
 		return ((NameTok) keyword.arg).id;
 	}
 

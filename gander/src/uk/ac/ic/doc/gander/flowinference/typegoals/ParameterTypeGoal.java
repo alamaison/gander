@@ -74,13 +74,22 @@ final class ParameterTypeGoal implements TypeGoal {
 final class ParameterTypeGoalSolver {
 
 	private final Result<Type> solution;
+	private final SubgoalManager goalManager;
 
 	ParameterTypeGoalSolver(FormalParameter parameter,
 			SubgoalManager goalManager) {
 
+		this.goalManager = goalManager;
+
 		Result<ModelSite<Call>> callSites = goalManager
 				.registerSubgoal(new FunctionSendersGoal(
 						(InvokableCodeObject) parameter.site().codeObject()));
+
+		solution = deriveParameterTypeFromCallsites(parameter, callSites);
+	}
+
+	private Result<Type> deriveParameterTypeFromCallsites(
+			FormalParameter parameter, Result<ModelSite<Call>> callSites) {
 
 		Concentrator<ModelSite<Call>, Type> processor = Concentrator
 				.newInstance(new CallArgumentTyper(parameter, goalManager),
@@ -88,7 +97,7 @@ final class ParameterTypeGoalSolver {
 
 		callSites.actOnResult(processor);
 
-		solution = processor.result();
+		return processor.result();
 	}
 
 	public Result<Type> solution() {

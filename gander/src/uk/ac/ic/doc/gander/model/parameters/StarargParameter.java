@@ -7,7 +7,7 @@ import org.python.pydev.parser.jython.ast.Call;
 import org.python.pydev.parser.jython.ast.NameTok;
 import org.python.pydev.parser.jython.ast.argumentsType;
 
-import uk.ac.ic.doc.gander.flowinference.argument.ArgumentPassage;
+import uk.ac.ic.doc.gander.flowinference.argument.ArgumentDestination;
 import uk.ac.ic.doc.gander.flowinference.argument.KeywordArgument;
 import uk.ac.ic.doc.gander.flowinference.argument.PositionalArgument;
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
@@ -37,18 +37,18 @@ public final class StarargParameter implements FormalParameter {
 	}
 
 	@Override
-	public ArgumentPassage passage(PositionalArgument argument) {
+	public ArgumentDestination passage(PositionalArgument argument) {
 		return passage();
 	}
 
 	@Override
-	public ArgumentPassage passage(KeywordArgument argument) {
+	public ArgumentDestination passage(KeywordArgument argument) {
 		return passage();
 	}
 
-	private ArgumentPassage passage() {
+	private ArgumentDestination passage() {
 
-		return new ArgumentPassage() {
+		return new ArgumentDestination() {
 
 			@Override
 			public Result<FlowPosition> nextFlowPositions() {
