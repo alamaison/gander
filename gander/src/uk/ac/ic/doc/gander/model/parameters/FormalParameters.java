@@ -245,6 +245,7 @@ public final class FormalParameters {
 		List<FormalParameter> bp = new ArrayList<FormalParameter>();
 
 		if (argsNode != null) {
+
 			for (int i = 0; i < argsNode.astNode().args.length; ++i) {
 
 				try {
@@ -254,6 +255,15 @@ public final class FormalParameters {
 					throw new RuntimeException(e);
 				}
 			}
+
+			if (argsNode.astNode().vararg != null) {
+				bp.add(new StarargParameter(argsNode));
+			}
+
+			if (argsNode.astNode().kwarg != null) {
+				bp.add(new KwargParameter(argsNode));
+			}
+
 		}
 
 		return bp;

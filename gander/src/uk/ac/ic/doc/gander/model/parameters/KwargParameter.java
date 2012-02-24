@@ -1,7 +1,6 @@
 package uk.ac.ic.doc.gander.model.parameters;
 
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.Set;
 
 import org.python.pydev.parser.jython.ast.NameTok;
@@ -19,7 +18,7 @@ import uk.ac.ic.doc.gander.model.codeobject.InvokableCodeObject;
 import uk.ac.ic.doc.gander.model.name_binding.Variable;
 
 /**
- * Model of a parameter that mops up all the positional arguments passed to the
+ * Model of a parameter that mops up all the keyword arguments passed to the
  * procedure that weren't captured by one of the other parameters.
  * 
  * In Python this looks like {@code arg} in {@code def proc(x, y, *arg)}. The
@@ -27,13 +26,12 @@ import uk.ac.ic.doc.gander.model.name_binding.Variable;
  * example, if {@code proc} were called as {@code proc(1, 2, 3, 4)},
  * {@code args} would be the tuple {@code (3, 4)}.
  */
-final class StarargParameter implements FormalParameter {
+final class KwargParameter implements FormalParameter {
 
 	private final ModelSite<argumentsType> argsNode;
 
-	StarargParameter(ModelSite<argumentsType> argsNode) {
-		assert argsNode.codeObject() instanceof InvokableCodeObject;
-
+	KwargParameter(ModelSite<argumentsType> argsNode) {
+		assert argsNode != null;
 		this.argsNode = argsNode;
 	}
 
@@ -55,72 +53,27 @@ final class StarargParameter implements FormalParameter {
 	}
 
 	@Override
-	public Set<Argument> argumentsPassedAtCall(InternalCallsite callsite,
-			SubgoalManager goalManager) {
-
-		Set<Argument> arguments = new HashSet<Argument>();
-
-		/*
-		 * The starargs parameter eats all the arguments passed to a position
-		 * equal or higher than the starargs parameter (basically the positions
-		 * where it has run out of positional parameters). So we ask keep asking
-		 * for positional arguments until there are no more to give (argument
-		 * becomes null)
-		 */
-		for (int i = starargIndex();; ++i) {
-			Argument argument = callsite.argumentExplicitlyPassedAtPosition(i);
-			if (argument != null) {
-				arguments.add(argument);
-			} else {
-				break;
-			}
-		}
-
-		/*
-		 * Also, some or all of an expanded iterable argument's values may be
-		 * passed to the stararg parameter.
-		 * 
-		 * TODO: this is tricky because we should really keep track of the
-		 * offset into the expanded iterable somehow.
-		 */
-		Argument argument = callsite
-				.argumentThatCouldExpandIntoPosition(starargIndex());
-		if (argument != null) {
-			arguments.add(argument);
-		}
-
-		if (!arguments.isEmpty()) {
-			assert !arguments.contains(null);
-			return arguments;
-		} else {
-			/*
-			 * Even if nothing at the callsite ends up at the stararg, it must
-			 * still have a value. This is a default empty tuple.
-			 */
-			return Collections
-					.<Argument> singleton(new DefaultStarargsArgument());
-		}
+	public Set<Variable> boundVariables() {
+		Variable variable = new Variable(
+				((NameTok) argsNode.astNode().kwarg).id, codeObject());
+		return Collections.singleton(variable);
 	}
 
 	@Override
-	public Set<Variable> boundVariables() {
-		Variable bindingVar = new Variable(
-				((NameTok) argsNode.astNode().vararg).id, codeObject());
-		return Collections.singleton(bindingVar);
+	public Set<Argument> argumentsPassedAtCall(InternalCallsite callsite,
+			SubgoalManager goalManager) {
+		return Collections.emptySet();
 	}
 
 	@Override
 	public boolean acceptsArgumentByPosition(int position) {
-		return position >= starargIndex();
+		return false;
 	}
 
 	@Override
 	public boolean acceptsArgumentByKeyword(String keyword) {
-		return false;
-	}
-
-	private int starargIndex() {
-		return argsNode.astNode().args.length;
+		/* The kwarg parameter accepts all leftover keyword parameters */
+		return true;
 	}
 
 	@Override
@@ -140,7 +93,7 @@ final class StarargParameter implements FormalParameter {
 			return false;
 		if (getClass() != obj.getClass())
 			return false;
-		StarargParameter other = (StarargParameter) obj;
+		KwargParameter other = (KwargParameter) obj;
 		if (argsNode == null) {
 			if (other.argsNode != null)
 				return false;
@@ -151,7 +104,7 @@ final class StarargParameter implements FormalParameter {
 
 	@Override
 	public String toString() {
-		return "StarargParameter [argsNode=" + argsNode + "]";
+		return "KwargParameter [argsNode=" + argsNode + "]";
 	}
 
 }

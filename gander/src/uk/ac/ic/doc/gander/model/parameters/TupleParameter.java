@@ -23,7 +23,7 @@ final class TupleParameter implements FormalParameter {
 	private final ModelSite<Tuple> parameter;
 	private final ModelSite<exprType> defaultValue;
 
-	public TupleParameter(int index, ModelSite<Tuple> parameter,
+	TupleParameter(int index, ModelSite<Tuple> parameter,
 			ModelSite<exprType> defaultValue) {
 		assert index >= 0;
 		assert parameter != null;

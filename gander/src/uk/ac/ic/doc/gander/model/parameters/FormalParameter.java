@@ -20,8 +20,16 @@ public interface FormalParameter {
 	Set<Argument> argumentsPassedAtCall(InternalCallsite callsite,
 			SubgoalManager goalManager);
 
+	/**
+	 * When an argument is passed at a call-site explicitly using the given
+	 * position, will this parameter accept it?
+	 */
 	boolean acceptsArgumentByPosition(int position);
 
+	/**
+	 * When an argument is passed at a call-site explicitly using the given
+	 * keyword, will this parameter accept it?
+	 */
 	boolean acceptsArgumentByKeyword(String keyword);
 
 }
