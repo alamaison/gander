@@ -1,0 +1,98 @@
+package uk.ac.ic.doc.gander.flowinference.argument;
+
+import org.python.pydev.parser.jython.ast.exprType;
+
+import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
+import uk.ac.ic.doc.gander.flowinference.flowgoals.FlowPosition;
+import uk.ac.ic.doc.gander.flowinference.result.FiniteResult;
+import uk.ac.ic.doc.gander.flowinference.result.Result;
+import uk.ac.ic.doc.gander.flowinference.typegoals.TopT;
+import uk.ac.ic.doc.gander.flowinference.types.Type;
+import uk.ac.ic.doc.gander.model.ModelSite;
+import uk.ac.ic.doc.gander.model.codeobject.InvokableCodeObject;
+
+final class ExpandedIterableArgument implements Argument {
+
+	private final ModelSite<exprType> argument;
+
+	ExpandedIterableArgument(ModelSite<exprType> argument) {
+		assert argument != null;
+		this.argument = argument;
+	}
+
+	@Override
+	public ArgumentDestination passArgumentAtCall(
+			final InvokableCodeObject receiver) {
+
+		return new ArgumentDestination() {
+
+			@Override
+			public Result<FlowPosition> nextFlowPositions() {
+				/*
+				 * Expanding an iterable doesn't flow the iterable anywhere,
+				 * just its contents.
+				 */
+				return FiniteResult.bottom();
+			}
+		};
+	}
+
+	@Override
+	public boolean isPassedAtPosition(int position) {
+		return false;
+	}
+
+	@Override
+	public boolean isPassedByKeyword(String keyword) {
+		return false;
+	}
+
+	@Override
+	public boolean mayExpandIntoPosition(int position) {
+		// FIXME: should look at other arguments, each binding name can only
+		// have one source argument
+		return true;
+	}
+
+	@Override
+	public boolean mayExpandIntoKeyword(String keyword) {
+		return false;
+	}
+
+	@Override
+	public Result<Type> type(SubgoalManager goalManager) {
+		return TopT.INSTANCE;
+	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result
+				+ ((argument == null) ? 0 : argument.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		ExpandedIterableArgument other = (ExpandedIterableArgument) obj;
+		if (argument == null) {
+			if (other.argument != null)
+				return false;
+		} else if (!argument.equals(other.argument))
+			return false;
+		return true;
+	}
+
+	@Override
+	public String toString() {
+		return "ExpandedIterableArgument [argument=" + argument + "]";
+	}
+
+}

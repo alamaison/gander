@@ -25,6 +25,8 @@ public final class StrategyBasedInternalCallsite implements InternalCallsite {
 		if (passingStrategy.passesHiddenSelf()) {
 			arguments.add(passingStrategy.selfArgument());
 		}
+
+		assert !arguments.contains(null);
 	}
 
 	@Override
