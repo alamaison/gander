@@ -1012,6 +1012,18 @@ public class ZeroCfaTypeEngineTest {
 	}
 
 	@Test
+	public void functionParameterTupleDefault() throws Throwable {
+
+		TestModule test = newTestModule("function_parameter_tuple_default");
+
+		Result<Type> type = engine.typeOf(test.printNode("what_am_i").site());
+
+		assertEquals("Tuple parameters must be inferred as Top as we "
+				+ "can't reason about the way values map to their elements.",
+				TopT.INSTANCE, type);
+	}
+
+	@Test
 	public void functionParameterStarargs() throws Throwable {
 
 		TestModule test = newTestModule("function_parameter_starargs");
@@ -1024,6 +1036,19 @@ public class ZeroCfaTypeEngineTest {
 	}
 
 	@Test
+	public void functionParameterStarargsDefault() throws Throwable {
+
+		TestModule test = newTestModule("function_parameter_starargs_default");
+
+		Result<Type> type = engine.typeOf(test.printNode("what_am_i").site());
+		Set<Type> expectedType = typeJudgement(tupleType);
+
+		assertEquals("Starargs parameter should always be a tuple "
+				+ "even when nothing is passed at the callsite.", expectedType,
+				type);
+	}
+
+	@Test
 	public void functionParameterKwargs() throws Throwable {
 
 		TestModule test = newTestModule("function_parameter_kwargs");
@@ -1033,6 +1058,72 @@ public class ZeroCfaTypeEngineTest {
 
 		assertEquals("Kwargs parameter should always be a dictionary.",
 				expectedType, type);
+	}
+
+	@Test
+	public void functionParameterKwargsDefault() throws Throwable {
+
+		TestModule test = newTestModule("function_parameter_kwargs_default");
+
+		Result<Type> type = engine.typeOf(test.printNode("what_am_i").site());
+		Set<Type> expectedType = typeJudgement(tupleType);
+
+		assertEquals("Kwargs parameter should always be a dictionary "
+				+ "even when nothing is passed at the callsite.", expectedType,
+				type);
+	}
+
+	@Test
+	public void functionParameterExpandedIterArg() throws Throwable {
+
+		TestModule test = newTestModule("function_parameter_expanded_iter_arg");
+
+		Result<Type> b = engine.typeOf(test.printNode("b").site());
+		assertEquals("Arguments passed from an expanded iterable "
+				+ "must be inferred as Top as we can't reason about what "
+				+ "is in the iterable.", TopT.INSTANCE, b);
+
+		Result<Type> c = engine.typeOf(test.printNode("c").site());
+		assertEquals("Arguments passed from an expanded iterable "
+				+ "must be inferred as Top as we can't reason about what "
+				+ "is in the iterable.", TopT.INSTANCE, c);
+
+		Result<Type> a = engine.typeOf(test.printNode("a").site());
+		Set<Type> aExpected = typeJudgement(stringType);
+
+		assertEquals("An expanded iterable should prevent other "
+				+ "parameter types being inferred correctly and precisely.",
+				aExpected, a);
+	}
+
+	@Test
+	public void functionParameterExpandedMapArg() throws Throwable {
+
+		TestModule test = newTestModule("function_parameter_expanded_map_arg");
+
+		Result<Type> a = engine.typeOf(test.printNode("a").site());
+		assertEquals("Arguments passed from an expanded map "
+				+ "must be inferred as Top as we can't reason about what "
+				+ "is in the map.", TopT.INSTANCE, a);
+		Result<Type> c = engine.typeOf(test.printNode("c").site());
+		assertEquals("Arguments passed from an expanded map "
+				+ "must be inferred as Top as we can't reason about what "
+				+ "is in the map.", TopT.INSTANCE, c);
+
+		Result<Type> b = engine.typeOf(test.printNode("b").site());
+		Set<Type> bExpected = typeJudgement(listType);
+		assertEquals("Arguments passed to a call by explicit keyword "
+				+ "can be inferred precisely as in any call that is legal "
+				+ "in Python (and therefore executes the function) the "
+				+ "keyword will not also be a key in the map.", bExpected, b);
+
+		Result<Type> p = engine.typeOf(test.printNode("p").site());
+		Set<Type> pExpected = typeJudgement(integerType);
+		assertEquals("Arguments passed to a call by explicit position "
+				+ "can be inferred precisely as in any call that is legal "
+				+ "in Python (and therefore executes the function) the "
+				+ "name of the argument at the position will not also "
+				+ "be a key in the map.", pExpected, p);
 	}
 
 	@Test

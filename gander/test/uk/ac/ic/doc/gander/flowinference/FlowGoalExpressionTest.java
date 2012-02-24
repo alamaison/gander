@@ -481,6 +481,30 @@ public class FlowGoalExpressionTest {
 	}
 
 	@Test
+	public void functionParameterExpandedIter() throws Throwable {
+
+		TestModule test = newTestModule("function_parameter_expanded_iter");
+
+		Result<ModelSite<exprType>> result = solveBlastoff(test);
+
+		TestModule.assertResultExcludes(
+				"Iterable doesn't flow into function; only its contents",
+				test.printables("not here", "nor here"), result);
+	}
+
+	@Test
+	public void functionParameterExpandedMap() throws Throwable {
+
+		TestModule test = newTestModule("function_parameter_expanded_map");
+
+		Result<ModelSite<exprType>> result = solveBlastoff(test);
+
+		TestModule.assertResultExcludes(
+				"Mapping doesn't flow into function; only its contents",
+				test.printables("not here", "nor here"), result);
+	}
+
+	@Test
 	public void constructorArgument() throws Throwable {
 
 		TestModule test = newTestModule("constructor_argument");
