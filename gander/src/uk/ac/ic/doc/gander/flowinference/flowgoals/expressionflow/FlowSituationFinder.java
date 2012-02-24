@@ -297,7 +297,7 @@ final class SituationMapper implements VisitorIF {
 			 */
 
 			ModelSite<Call> callSite = nodeToSite(node);
-			CallsiteArgument argument = ArgumentFactory.INSTANCE.fromCallSite(
+			CallsiteArgument argument = ArgumentFactory.INSTANCE.searchCallSite(
 					callSite, expression.astNode());
 
 			if (argument != null) {

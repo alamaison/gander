@@ -1,7 +1,8 @@
 package uk.ac.ic.doc.gander.flowinference.argument;
 
-import org.python.pydev.parser.jython.ast.Call;
+import org.python.pydev.parser.jython.ast.exprType;
 
+import uk.ac.ic.doc.gander.flowinference.callsite.ArgumentPassingStrategy;
 import uk.ac.ic.doc.gander.model.ModelSite;
 
 /**
@@ -16,11 +17,15 @@ import uk.ac.ic.doc.gander.model.ModelSite;
 final class ExplicitPositionalCallsiteArgument implements
 		PositionalCallsiteArgument {
 
-	private final ModelSite<Call> callSite;
+	private final ModelSite<exprType> argument;
 	private final int position;
 
-	ExplicitPositionalCallsiteArgument(ModelSite<Call> callSite, int position) {
-		this.callSite = callSite;
+	ExplicitPositionalCallsiteArgument(ModelSite<exprType> argument,
+			int position) {
+		assert argument != null;
+		assert position >= 0;
+
+		this.argument = argument;
 		this.position = position;
 	}
 
@@ -33,7 +38,7 @@ final class ExplicitPositionalCallsiteArgument implements
 	@Override
 	public Argument mapToActualArgument(ArgumentPassingStrategy argumentMapper) {
 
-		return new ExplicitPositionalArgument(callSite,
+		return new ExplicitPositionalArgument(argument,
 				argumentMapper.realPosition(position));
 	}
 
@@ -41,9 +46,8 @@ final class ExplicitPositionalCallsiteArgument implements
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + position;
 		result = prime * result
-				+ ((callSite == null) ? 0 : callSite.hashCode());
+				+ ((argument == null) ? 0 : argument.hashCode());
 		return result;
 	}
 
@@ -56,19 +60,17 @@ final class ExplicitPositionalCallsiteArgument implements
 		if (getClass() != obj.getClass())
 			return false;
 		ExplicitPositionalCallsiteArgument other = (ExplicitPositionalCallsiteArgument) obj;
-		if (position != other.position)
-			return false;
-		if (callSite == null) {
-			if (other.callSite != null)
+		if (argument == null) {
+			if (other.argument != null)
 				return false;
-		} else if (!callSite.equals(other.callSite))
+		} else if (!argument.equals(other.argument))
 			return false;
 		return true;
 	}
 
 	@Override
 	public String toString() {
-		return "ExplicitPositionalCallsiteArgument [callSite=" + callSite
+		return "ExplicitPositionalCallsiteArgument [argument=" + argument
 				+ ", position=" + position + "]";
 	}
 

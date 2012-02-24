@@ -24,7 +24,6 @@ import uk.ac.ic.doc.gander.importing.ImportStatement;
 import uk.ac.ic.doc.gander.model.ModelSite;
 import uk.ac.ic.doc.gander.model.NamespaceName;
 import uk.ac.ic.doc.gander.model.codeobject.ClassCO;
-import uk.ac.ic.doc.gander.model.codeobject.CodeObject;
 import uk.ac.ic.doc.gander.model.codeobject.FunctionCO;
 import uk.ac.ic.doc.gander.model.codeobject.InvokableCodeObject;
 import uk.ac.ic.doc.gander.model.codeobject.ModuleCO;
@@ -79,7 +78,7 @@ class BoundTypeVisitor implements BindingDetector.DetectionEvent {
 		this.goalManager = goalManager;
 		this.variable = variable;
 
-		processParameters(variable.codeObject(), variable.name(), goalManager);
+		processParameters(variable, goalManager);
 
 		if (!judgement.isFinished()) {
 			processBody(variable);
@@ -130,19 +129,22 @@ class BoundTypeVisitor implements BindingDetector.DetectionEvent {
 		}
 	}
 
-	private void processParameters(CodeObject codeObject, String name,
-			SubgoalManager goalManager) {
+	private void processParameters(Variable variable, SubgoalManager goalManager) {
 
-		if (codeObject instanceof InvokableCodeObject) {
+		if (variable.codeObject() instanceof InvokableCodeObject) {
 
-			InvokableCodeObject invokable = (InvokableCodeObject) codeObject;
-			if (invokable.formalParameters().hasVariableBindingParameter(name)) {
+			InvokableCodeObject invokable = (InvokableCodeObject) variable
+					.codeObject();
+
+			if (invokable.formalParameters().hasVariableBindingParameter(
+					variable)) {
 
 				FormalParameter parameter = invokable.formalParameters()
-						.variableBindingParameter(name);
+						.variableBindingParameter(variable);
 
 				judgement.add(goalManager
-						.registerSubgoal(new ParameterTypeGoal(parameter)));
+						.registerSubgoal(new ParameterTypeGoal(parameter,
+								variable)));
 			}
 		}
 	}

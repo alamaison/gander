@@ -1,9 +1,10 @@
 package uk.ac.ic.doc.gander.flowinference.argument;
 
-import org.python.pydev.parser.jython.ast.Call;
 import org.python.pydev.parser.jython.ast.NameTok;
+import org.python.pydev.parser.jython.ast.exprType;
 import org.python.pydev.parser.jython.ast.keywordType;
 
+import uk.ac.ic.doc.gander.flowinference.callsite.ArgumentPassingStrategy;
 import uk.ac.ic.doc.gander.model.ModelSite;
 
 /**
@@ -17,21 +18,21 @@ import uk.ac.ic.doc.gander.model.ModelSite;
  */
 final class ExplicitKeywordCallsiteArgument implements KeywordCallsiteArgument {
 
-	private final ModelSite<Call> callSite;
-	private final keywordType keyword;
+	private final ModelSite<keywordType> argument;
 
-	ExplicitKeywordCallsiteArgument(ModelSite<Call> callSite, int keywordIndex) {
-		this.callSite = callSite;
-		this.keyword = callSite.astNode().keywords[keywordIndex];
+	ExplicitKeywordCallsiteArgument(ModelSite<keywordType> argument) {
+		assert argument != null;
+		this.argument = argument;
 	}
 
 	@Override
 	public Argument mapToActualArgument(ArgumentPassingStrategy argumentMapper) {
-		return new ExplicitKeywordArgument(callSite, keyword);
-	}
+		keywordType node = argument.astNode();
+		String keyword = ((NameTok) node.arg).id;
+		ModelSite<exprType> value = new ModelSite<exprType>(node.value,
+				argument.codeObject());
 
-	String keyword() {
-		return ((NameTok) keyword.arg).id;
+		return new ExplicitKeywordArgument(keyword, value);
 	}
 
 	@Override
@@ -39,8 +40,7 @@ final class ExplicitKeywordCallsiteArgument implements KeywordCallsiteArgument {
 		final int prime = 31;
 		int result = 1;
 		result = prime * result
-				+ ((callSite == null) ? 0 : callSite.hashCode());
-		result = prime * result + ((keyword == null) ? 0 : keyword.hashCode());
+				+ ((argument == null) ? 0 : argument.hashCode());
 		return result;
 	}
 
@@ -53,23 +53,17 @@ final class ExplicitKeywordCallsiteArgument implements KeywordCallsiteArgument {
 		if (getClass() != obj.getClass())
 			return false;
 		ExplicitKeywordCallsiteArgument other = (ExplicitKeywordCallsiteArgument) obj;
-		if (callSite == null) {
-			if (other.callSite != null)
+		if (argument == null) {
+			if (other.argument != null)
 				return false;
-		} else if (!callSite.equals(other.callSite))
-			return false;
-		if (keyword == null) {
-			if (other.keyword != null)
-				return false;
-		} else if (!keyword.equals(other.keyword))
+		} else if (!argument.equals(other.argument))
 			return false;
 		return true;
 	}
 
 	@Override
 	public String toString() {
-		return "ExplicitKeywordCallsiteArgument [callSite=" + callSite
-				+ ", keyword=" + keyword + "]";
+		return "ExplicitKeywordCallsiteArgument [argument=" + argument + "]";
 	}
 
 }

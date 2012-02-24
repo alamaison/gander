@@ -1,31 +1,34 @@
 package uk.ac.ic.doc.gander.model.parameters;
 
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Set;
 
-import org.python.pydev.parser.jython.ast.Call;
 import org.python.pydev.parser.jython.ast.Name;
 import org.python.pydev.parser.jython.ast.exprType;
 
+import uk.ac.ic.doc.gander.flowinference.argument.Argument;
 import uk.ac.ic.doc.gander.flowinference.argument.ArgumentDestination;
-import uk.ac.ic.doc.gander.flowinference.argument.KeywordArgument;
-import uk.ac.ic.doc.gander.flowinference.argument.PositionalArgument;
+import uk.ac.ic.doc.gander.flowinference.callsite.InternalCallsite;
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
 import uk.ac.ic.doc.gander.flowinference.flowgoals.FlowPosition;
 import uk.ac.ic.doc.gander.flowinference.flowgoals.expressionflow.ExpressionPosition;
 import uk.ac.ic.doc.gander.flowinference.result.FiniteResult;
 import uk.ac.ic.doc.gander.flowinference.result.Result;
-import uk.ac.ic.doc.gander.flowinference.typegoals.ExpressionTypeGoal;
-import uk.ac.ic.doc.gander.flowinference.typegoals.TopT;
-import uk.ac.ic.doc.gander.flowinference.types.Type;
 import uk.ac.ic.doc.gander.model.ModelSite;
+import uk.ac.ic.doc.gander.model.codeobject.InvokableCodeObject;
 import uk.ac.ic.doc.gander.model.name_binding.Variable;
 
-public final class NamedParameter implements FormalParameter {
+final class NamedParameter implements FormalParameter {
 
 	private final int index;
 	private final ModelSite<exprType> defaultValue;
 	private final ModelSite<Name> parameter;
+
+	@Override
+	public InvokableCodeObject codeObject() {
+		return (InvokableCodeObject) parameter.codeObject();
+	}
 
 	public int index() {
 		return index;
@@ -51,6 +54,9 @@ public final class NamedParameter implements FormalParameter {
 		if (parameter.astNode().id.isEmpty())
 			throw new IllegalArgumentException(
 					"Parameter name must contain characters");
+		if (!(parameter.codeObject() instanceof InvokableCodeObject))
+			throw new IllegalArgumentException("Parameters can only occur "
+					+ "in in invokable code object");
 
 		this.index = parameterIndex;
 		this.parameter = parameter;
@@ -58,64 +64,77 @@ public final class NamedParameter implements FormalParameter {
 	}
 
 	@Override
-	public ModelSite<Name> site() {
-		return parameter;
-	}
-
-	@Override
-	public Result<Type> typeAtCall(ModelSite<Call> callSite,
+	public Set<Argument> argumentsPassedAtCall(InternalCallsite callSite,
 			SubgoalManager goalManager) {
-		ModelSite<exprType> passedArgument = expressionFromArgumentList(
-				callSite, index());
-		if (passedArgument != null) {
-			return goalManager.registerSubgoal(new ExpressionTypeGoal(
-					passedArgument));
-		} else {
-			return TopT.INSTANCE;
+
+		/*
+		 * Positional arguments are given a chance to pass to this parameter
+		 * first
+		 */
+		Argument argument = callSite.argumentExplicitlyPassedAtPosition(index);
+		if (argument == null) {
+
+			/* Next explicit keywords get a go */
+			argument = callSite.argumentExplicitlyPassedToKeyword(name());
+
+		} else if (callSite.argumentExplicitlyPassedToKeyword(name()) != null) {
+
+			System.err.println("PROGRAM ERROR: cannot pass an argument "
+					+ "by position and keyword to the same parameter");
 		}
-	}
 
-	private ModelSite<exprType> expressionFromArgumentList(
-			ModelSite<Call> callSite, int index) {
-
-		if (index < callSite.astNode().args.length) {
-
-			return new ModelSite<exprType>(callSite.astNode().args[index],
-					callSite.codeObject());
-
+		if (argument != null) {
+			return Collections.singleton(argument);
 		} else {
+
 			/*
-			 * Fewer argument were passed to the function than are declared in
-			 * its signature. It's probably expecting default arguments.
+			 * When neither an explicit positional nor keyword argument is
+			 * passed, any of the remaining argument types could potentially
+			 * arrive at this parameter (it is decided at runtime) so we combine
+			 * them.
 			 */
-			ModelSite<exprType> defaultValue = defaultValue();
-			if (defaultValue != null) {
-				return defaultValue;
+
+			Set<Argument> arguments = new HashSet<Argument>();
+
+			/* Perhaps an argument was passed using an unpacked iterable */
+			argument = callSite.argumentThatCouldExpandIntoPosition(index);
+			if (argument != null) {
+				arguments.add(argument);
+			}
+
+			/* Or perhaps there's an unpacked dictionary argument */
+			argument = callSite.argumentThatCouldExpandIntoKeyword(name());
+			if (argument != null) {
+				arguments.add(argument);
+			}
+
+			/*
+			 * We've exhausted arguments passed at the callsite. Now default
+			 * arguments come into play.
+			 */
+			if (defaultValue() != null) {
+				arguments.add(new DefaultArgument(defaultValue()));
 			} else {
-				/* No default. The program is wrong. */
+				/*
+				 * Big no-no. We've run out of argument and there is no default
+				 * to plug the gap. The program is wrong.
+				 */
 				System.err
 						.println("PROGRAM ERROR: Too few arguments passed to "
 								+ parameter.codeObject() + " at " + callSite);
-				return null;
 			}
+
+			return arguments;
 		}
-	}
 
-	@Override
-	public ArgumentDestination passage(PositionalArgument argument) {
-		return passage();
-	}
-
-	@Override
-	public ArgumentDestination passage(KeywordArgument argument) {
-		return passage();
 	}
 
 	/**
 	 * All arguments passed to named parameters flow in the same way; to the
 	 * named parameter.
 	 */
-	private ArgumentDestination passage() {
+	@Override
+	public ArgumentDestination passage(Argument argument) {
 
 		return new ArgumentDestination() {
 
@@ -127,6 +146,16 @@ public final class NamedParameter implements FormalParameter {
 										parameter)));
 			}
 		};
+	}
+
+	@Override
+	public boolean acceptsArgumentByPosition(int position) {
+		return position == index;
+	}
+
+	@Override
+	public boolean acceptsArgumentByKeyword(String keyword) {
+		return keyword.equals(name());
 	}
 
 	@Override

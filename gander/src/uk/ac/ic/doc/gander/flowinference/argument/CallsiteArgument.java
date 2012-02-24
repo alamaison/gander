@@ -1,5 +1,7 @@
 package uk.ac.ic.doc.gander.flowinference.argument;
 
+import uk.ac.ic.doc.gander.flowinference.callsite.ArgumentPassingStrategy;
+
 public interface CallsiteArgument {
 
 	/**

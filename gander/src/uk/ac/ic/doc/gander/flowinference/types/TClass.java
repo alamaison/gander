@@ -24,9 +24,9 @@ import uk.ac.ic.doc.gander.flowinference.result.RedundancyEliminator;
 import uk.ac.ic.doc.gander.flowinference.result.Result;
 import uk.ac.ic.doc.gander.flowinference.result.Result.Processor;
 import uk.ac.ic.doc.gander.flowinference.result.Result.Transformer;
+import uk.ac.ic.doc.gander.flowinference.result.Top;
 import uk.ac.ic.doc.gander.flowinference.typegoals.ExpressionTypeGoal;
 import uk.ac.ic.doc.gander.flowinference.typegoals.NamespaceNameTypeGoal;
-import uk.ac.ic.doc.gander.flowinference.typegoals.TopT;
 import uk.ac.ic.doc.gander.model.Class;
 import uk.ac.ic.doc.gander.model.Function;
 import uk.ac.ic.doc.gander.model.ModelSite;
@@ -158,25 +158,25 @@ public class TClass implements TCodeObject, TCallable {
 	}
 
 	@Override
-	public Result<Type> typeOfArgumentPassedToParameter(
+	public Result<Argument> argumentsPassedToParameter(
 			FormalParameter parameter, ModelSite<Call> callSite,
 			SubgoalManager goalManager) {
 
 		Result<Type> unboundInitMethodTypes = initMethodTypes(goalManager);
 
 		return unboundInitMethodTypes
-				.transformResult(new InitMethodParameterTyper(parameter,
+				.transformResult(new InitMethodArgumentPasser(parameter,
 						callSite, goalManager));
 	}
 
-	private class InitMethodParameterTyper implements
-			Transformer<Type, Result<Type>> {
+	private class InitMethodArgumentPasser implements
+			Transformer<Type, Result<Argument>> {
 
 		private final FormalParameter parameter;
 		private final ModelSite<Call> callSite;
 		private final SubgoalManager goalManager;
 
-		InitMethodParameterTyper(FormalParameter parameter,
+		InitMethodArgumentPasser(FormalParameter parameter,
 				ModelSite<Call> callSite, SubgoalManager goalManager) {
 			this.parameter = parameter;
 			this.callSite = callSite;
@@ -184,10 +184,10 @@ public class TClass implements TCodeObject, TCallable {
 		}
 
 		@Override
-		public Result<Type> transformFiniteResult(
+		public Result<Argument> transformFiniteResult(
 				Set<Type> unboundInitMethodTypes) {
 
-			RedundancyEliminator<Type> parameterType = new RedundancyEliminator<Type>();
+			RedundancyEliminator<Argument> arguments = new RedundancyEliminator<Argument>();
 
 			for (Type initType : unboundInitMethodTypes) {
 
@@ -202,29 +202,34 @@ public class TClass implements TCodeObject, TCallable {
 					TBoundMethod boundInitMethod = new TBoundMethod(
 							(TCallable) initType, new TObject(classObject));
 
-					parameterType.add(boundInitMethod
-							.typeOfArgumentPassedToParameter(parameter,
-									callSite, goalManager));
+					arguments.add(boundInitMethod.argumentsPassedToParameter(
+							parameter, callSite, goalManager));
 				} else {
-					// XXX: init might not be a function?!
-					parameterType.add(TopT.INSTANCE);
+					System.err.println("UNTYPABLE: __init__ member "
+							+ "appears not to be callable: " + initType);
 				}
 
-				if (parameterType.isFinished()) {
+				if (arguments.isFinished()) {
 					break;
 				}
 			}
 
-			return parameterType.result();
+			return arguments.result();
 		}
 
 		@Override
-		public Result<Type> transformInfiniteResult() {
+		public Result<Argument> transformInfiniteResult() {
 			/*
 			 * Can't work out what __init__ implementations could be called so
 			 * we certainly can't work out the type of the self parameter
 			 */
-			return TopT.INSTANCE;
+			return new Top<Argument>() {
+
+				@Override
+				public String toString() {
+					return "⊤a";
+				}
+			};
 		}
 	};
 
@@ -247,7 +252,8 @@ public class TClass implements TCodeObject, TCallable {
 		}
 
 		Argument actualArgument = argument
-				.mapToActualArgument(new MethodStylePassingStrategy());
+				.mapToActualArgument(new MethodStylePassingStrategy(
+						new TObject(classObject)));
 
 		return destinationsReceivingArgument(actualArgument, goalManager);
 	}
@@ -267,21 +273,6 @@ public class TClass implements TCodeObject, TCallable {
 
 		return initMethodTypes.transformResult(new ReceivingParameterFinder(
 				argument, goalManager));
-	}
-
-	/**
-	 * {@inheritDoc}
-	 * 
-	 * Even if a class object is retrieved as an attribute of another object and
-	 * called, that other object doesn't flow anywhere. In other words, a class
-	 * object has no self parameter. The class object's constructor might but
-	 * that is not the same thing; this method is about flowing the object on
-	 * the LHS of the attribute.
-	 */
-	@Deprecated
-	@Override
-	public FormalParameter selfParameter() {
-		return null;
 	}
 
 	/**

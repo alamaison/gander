@@ -1,27 +1,24 @@
 package uk.ac.ic.doc.gander.flowinference.types;
 
-import java.util.Collections;
 import java.util.Set;
 
 import org.python.pydev.parser.jython.ast.Call;
-import org.python.pydev.parser.jython.ast.exprType;
 
 import uk.ac.ic.doc.gander.flowinference.Namespace;
 import uk.ac.ic.doc.gander.flowinference.argument.Argument;
 import uk.ac.ic.doc.gander.flowinference.argument.ArgumentDestination;
 import uk.ac.ic.doc.gander.flowinference.argument.CallsiteArgument;
 import uk.ac.ic.doc.gander.flowinference.argument.SelfCallsiteArgument;
+import uk.ac.ic.doc.gander.flowinference.callsite.InternalCallsite;
+import uk.ac.ic.doc.gander.flowinference.callsite.StrategyBasedInternalCallsite;
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
 import uk.ac.ic.doc.gander.flowinference.flowgoals.FlowPosition;
 import uk.ac.ic.doc.gander.flowinference.flowgoals.expressionflow.ReceivingParameterPositioner;
 import uk.ac.ic.doc.gander.flowinference.result.FiniteResult;
 import uk.ac.ic.doc.gander.flowinference.result.Result;
-import uk.ac.ic.doc.gander.flowinference.typegoals.ExpressionTypeGoal;
-import uk.ac.ic.doc.gander.flowinference.typegoals.TopT;
 import uk.ac.ic.doc.gander.model.ModelSite;
 import uk.ac.ic.doc.gander.model.codeobject.InvokableCodeObject;
 import uk.ac.ic.doc.gander.model.parameters.FormalParameter;
-import uk.ac.ic.doc.gander.model.parameters.NamedParameter;
 
 public final class TBoundMethod implements TCallable {
 
@@ -90,31 +87,17 @@ public final class TBoundMethod implements TCallable {
 	}
 
 	@Override
-	public Result<Type> typeOfArgumentPassedToParameter(
+	public Result<Argument> argumentsPassedToParameter(
 			FormalParameter parameter, ModelSite<Call> callSite,
 			SubgoalManager goalManager) {
 
-		if (parameter.equals(selfParameter())) {
-			/*
-			 * When a bound method is called the argument passed to the first
-			 * parameter is the bound instance.
-			 */
-			return new FiniteResult<Type>(Collections.singleton(instance));
-		} else {
-			if (parameter instanceof NamedParameter) {
-				ModelSite<exprType> passedArgument = expressionFromArgumentList(
-						callSite, ((NamedParameter) parameter).index() - 1,
-						(NamedParameter) parameter);
-				if (passedArgument != null) {
-					return goalManager.registerSubgoal(new ExpressionTypeGoal(
-							passedArgument));
-				} else {
-					return TopT.INSTANCE;
-				}
-			} else {
-				return TopT.INSTANCE;
-			}
-		}
+		InternalCallsite methodCall = new StrategyBasedInternalCallsite(
+				callSite, new MethodStylePassingStrategy(instance));
+
+		Set<Argument> arguments = parameter.argumentsPassedAtCall(methodCall,
+				goalManager);
+
+		return new FiniteResult<Argument>(arguments);
 	}
 
 	/**
@@ -133,7 +116,7 @@ public final class TBoundMethod implements TCallable {
 		}
 
 		Argument actualArgument = argument
-				.mapToActualArgument(new MethodStylePassingStrategy());
+				.mapToActualArgument(new MethodStylePassingStrategy(instance));
 
 		return destinationsReceivingArgument(actualArgument, goalManager);
 	}
@@ -154,46 +137,6 @@ public final class TBoundMethod implements TCallable {
 
 		return unboundMethod.destinationsReceivingArgument(argument,
 				goalManager);
-	}
-
-	@Deprecated
-	@Override
-	public FormalParameter selfParameter() {
-		try {
-			return ((InvokableCodeObject) ((TCodeObject) unboundMethod)
-					.codeObject()).formalParameters().passByPosition(0);
-		} catch (IndexOutOfBoundsException e) {
-			System.err.println("UNTYPABLE: Unable to find self parameter in "
-					+ unboundMethod + ": ");
-			e.printStackTrace();
-			return null;
-		}
-	}
-
-	private ModelSite<exprType> expressionFromArgumentList(
-			ModelSite<Call> callSite, int index, NamedParameter parameter) {
-
-		if (index < callSite.astNode().args.length) {
-
-			return new ModelSite<exprType>(callSite.astNode().args[index],
-					callSite.codeObject());
-
-		} else {
-			/*
-			 * Fewer argument were passed to the function than are declared in
-			 * its signature. It's probably expecting default arguments.
-			 */
-			ModelSite<exprType> defaultValue = parameter.defaultValue();
-			if (defaultValue != null) {
-				return defaultValue;
-			} else {
-				/* No default. The program is wrong. */
-				System.err
-						.println("PROGRAM ERROR: Too few arguments passed to "
-								+ unboundMethod + " at " + callSite);
-				return null;
-			}
-		}
 	}
 
 	@Override

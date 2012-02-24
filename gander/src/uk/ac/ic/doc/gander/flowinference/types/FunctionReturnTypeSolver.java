@@ -18,7 +18,7 @@ import uk.ac.ic.doc.gander.model.name_binding.Variable;
 final class FunctionReturnTypeSolver {
 
 	private final SubgoalManager goalManager;
-	private final InvokableCodeObject function;
+	private final InvokableCodeObject codeObject;
 	private final RedundancyEliminator<Type> returnTypes = new RedundancyEliminator<Type>();
 
 	private boolean seenReturnStatement = false;
@@ -26,7 +26,7 @@ final class FunctionReturnTypeSolver {
 	FunctionReturnTypeSolver(SubgoalManager goalManager,
 			InvokableCodeObject function) {
 		this.goalManager = goalManager;
-		this.function = function;
+		this.codeObject = function;
 
 		try {
 			function.codeBlock().accept(returnStatementSearcher());
@@ -36,7 +36,7 @@ final class FunctionReturnTypeSolver {
 
 		if (!returnTypes.isFinished() && !seenReturnStatement) {
 			/*
-			 * A missing 'return' statement means that the function returns
+			 * A missing 'return' statement means that the code object returns
 			 * builtin None.
 			 */
 			returnTypes.add(noneType(goalManager));
@@ -60,14 +60,14 @@ final class FunctionReturnTypeSolver {
 
 				if (node.value != null) {
 					ModelSite<exprType> returnValue = new ModelSite<exprType>(
-							node.value, function);
+							node.value, codeObject);
 					ExpressionTypeGoal typer = new ExpressionTypeGoal(
 							returnValue);
 					returnTypes.add(goalManager.registerSubgoal(typer));
 				} else {
 					/*
-					 * A bare 'return' statement means that the function returns
-					 * builtin None.
+					 * A bare 'return' statement means that the code object
+					 * returns builtin None.
 					 */
 					returnTypes.add(noneType(goalManager));
 				}
@@ -90,7 +90,7 @@ final class FunctionReturnTypeSolver {
 
 	private Result<Type> noneType(SubgoalManager goalManager) {
 		VariableTypeGoal typer = new VariableTypeGoal(new Variable("None",
-				function));
+				codeObject));
 		return goalManager.registerSubgoal(typer);
 	}
 }

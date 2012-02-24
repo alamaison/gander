@@ -2,27 +2,26 @@ package uk.ac.ic.doc.gander.model.parameters;
 
 import java.util.Set;
 
-import org.python.pydev.parser.jython.ast.Call;
-
+import uk.ac.ic.doc.gander.flowinference.argument.Argument;
 import uk.ac.ic.doc.gander.flowinference.argument.ArgumentDestination;
-import uk.ac.ic.doc.gander.flowinference.argument.KeywordArgument;
-import uk.ac.ic.doc.gander.flowinference.argument.PositionalArgument;
+import uk.ac.ic.doc.gander.flowinference.callsite.InternalCallsite;
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
-import uk.ac.ic.doc.gander.flowinference.result.Result;
-import uk.ac.ic.doc.gander.flowinference.types.Type;
-import uk.ac.ic.doc.gander.model.ModelSite;
+import uk.ac.ic.doc.gander.model.codeobject.InvokableCodeObject;
 import uk.ac.ic.doc.gander.model.name_binding.Variable;
 
 public interface FormalParameter {
 
-	ModelSite<?> site();
+	InvokableCodeObject codeObject();
 
-	ArgumentDestination passage(PositionalArgument argument);
-
-	ArgumentDestination passage(KeywordArgument argument);
-
-	Result<Type> typeAtCall(ModelSite<Call> callSite, SubgoalManager goalManager);
+	ArgumentDestination passage(Argument argument);
 
 	Set<Variable> boundVariables();
+
+	Set<Argument> argumentsPassedAtCall(InternalCallsite callsite,
+			SubgoalManager goalManager);
+
+	boolean acceptsArgumentByPosition(int position);
+
+	boolean acceptsArgumentByKeyword(String keyword);
 
 }

@@ -1,5 +1,8 @@
 package uk.ac.ic.doc.gander.flowinference.argument;
 
+import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
+import uk.ac.ic.doc.gander.flowinference.result.Result;
+import uk.ac.ic.doc.gander.flowinference.types.Type;
 import uk.ac.ic.doc.gander.model.codeobject.InvokableCodeObject;
 
 public interface Argument {
@@ -13,5 +16,20 @@ public interface Argument {
 	 * @return model of passing this argument
 	 */
 	ArgumentDestination passArgumentAtCall(InvokableCodeObject receiver);
+
+	boolean isPassedAtPosition(int position);
+
+	boolean isPassedByKeyword(String keyword);
+
+	boolean mayExpandIntoPosition(int position);
+
+	boolean mayExpandIntoKeyword(String keyword);
+
+	/**
+	 * FIXME: You can't really take the type of the argument, for example, what
+	 * about when it is passed to a tuple parameter or it is an expanded
+	 * iterable.
+	 */
+	Result<Type> type(SubgoalManager goalManager);
 
 }

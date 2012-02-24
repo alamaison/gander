@@ -7,12 +7,14 @@ import java.util.List;
 
 import org.python.pydev.parser.jython.SimpleNode;
 import org.python.pydev.parser.jython.ast.Name;
+import org.python.pydev.parser.jython.ast.Tuple;
 import org.python.pydev.parser.jython.ast.VisitorBase;
 import org.python.pydev.parser.jython.ast.argumentsType;
 import org.python.pydev.parser.jython.ast.exprType;
 
 import uk.ac.ic.doc.gander.model.ModelSite;
 import uk.ac.ic.doc.gander.model.codeobject.InvokableCodeObject;
+import uk.ac.ic.doc.gander.model.name_binding.Variable;
 
 public final class FormalParameters {
 
@@ -42,9 +44,9 @@ public final class FormalParameters {
 	 * Returns the parameter that will receive an argument passed with the given
 	 * keyword.
 	 */
-	public NamedParameter keywordableParameter(String keyword) {
+	public FormalParameter keywordableParameter(String keyword) {
 
-		NamedParameter p = findKeywordableParameter(keyword);
+		FormalParameter p = findKeywordableParameter(keyword);
 		if (p != null) {
 			return p;
 		} else {
@@ -73,67 +75,54 @@ public final class FormalParameters {
 	 * Returns whether the parameter list includes a parameter that will bind a
 	 * value to the given variable name.
 	 */
-	public boolean hasVariableBindingParameter(String variableName) {
-		return findVariableBindingParameter(variableName) != null;
+	public boolean hasVariableBindingParameter(Variable variable) {
+		return findVariableBindingParameter(variable) != null;
 	}
 
 	/**
 	 * Returns the parameter that will bind a value to the given variable name.
 	 */
-	public NamedParameter variableBindingParameter(String variableName) {
+	public FormalParameter variableBindingParameter(Variable variable) {
 
-		NamedParameter p = findVariableBindingParameter(variableName);
+		FormalParameter p = findVariableBindingParameter(variable);
 		if (p != null) {
 			return p;
 		} else {
 			throw new IllegalArgumentException("No parameter defining '"
-					+ variableName + "' exists in " + argsNode.codeObject());
+					+ variable + "' exists in " + argsNode.codeObject());
 		}
 	}
 
 	private FormalParameter findParameterForPosition(int position) {
 
-		if (position < parameters.size()) {
+		for (FormalParameter p : parameters) {
 
-			return parameters.get(position);
-
-		} else {
-
-			if (argsNode.astNode().vararg != null) {
-				int starargIndex = position = parameters.size();
-				assert starargIndex >= 0;
-
-				return new StarargParameter(argsNode, starargIndex);
-			} else {
-				return null;
-			}
-		}
-	}
-
-	private NamedParameter findKeywordableParameter(String keyword) {
-
-		for (int i = 0; i < parameters.size(); ++i) {
-
-			FormalParameter p = passByPosition(i);
-
-			if (p instanceof NamedParameter
-					&& ((NamedParameter) p).name().equals(keyword)) {
-				return (NamedParameter) p;
+			if (p.acceptsArgumentByPosition(position)) {
+				return p;
 			}
 		}
 
 		return null;
 	}
 
-	private NamedParameter findVariableBindingParameter(String variableName) {
+	private FormalParameter findKeywordableParameter(String keyword) {
 
-		for (int i = 0; i < parameters.size(); ++i) {
+		for (FormalParameter p : parameters) {
 
-			FormalParameter p = passByPosition(i);
+			if (p.acceptsArgumentByKeyword(keyword)) {
+				return p;
+			}
+		}
 
-			if (p instanceof NamedParameter
-					&& ((NamedParameter) p).name().equals(variableName)) {
-				return (NamedParameter) p;
+		return null;
+	}
+
+	private FormalParameter findVariableBindingParameter(Variable variable) {
+
+		for (FormalParameter p : parameters) {
+
+			if (p.boundVariables().contains(variable)) {
+				return p;
 			}
 		}
 
@@ -163,15 +152,30 @@ public final class FormalParameters {
 		}
 
 		@Override
+		public Object visitTuple(Tuple node) throws Exception {
+
+			if (node.elts.length == 1 && node.endsWithComma) {
+
+				/* not really a tuple, just brackets */
+				return node.elts[0].accept(this);
+
+			} else {
+
+				ModelSite<Tuple> parameterNode = new ModelSite<Tuple>(node,
+						argsNode.codeObject());
+				ModelSite<exprType> defaultNode = getDefaultForParameter(index,
+						argsNode);
+
+				return new TupleParameter(index, parameterNode, defaultNode);
+			}
+		}
+
+		@Override
 		protected Object unhandled_node(SimpleNode node) throws Exception {
 
 			System.err.println("Unknown parameter type: " + node + " in "
 					+ argsNode);
-
-			ModelSite<exprType> parameterNode = new ModelSite<exprType>(
-					(exprType) node, argsNode.codeObject());
-
-			return new UnrecognisedParameter(parameterNode);
+			return null;
 		}
 
 		@Override

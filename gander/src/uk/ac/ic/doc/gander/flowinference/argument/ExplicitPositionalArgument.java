@@ -1,22 +1,32 @@
 package uk.ac.ic.doc.gander.flowinference.argument;
 
-import org.python.pydev.parser.jython.ast.Call;
+import org.python.pydev.parser.jython.ast.exprType;
 
+import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
 import uk.ac.ic.doc.gander.flowinference.flowgoals.FlowPosition;
 import uk.ac.ic.doc.gander.flowinference.result.FiniteResult;
 import uk.ac.ic.doc.gander.flowinference.result.Result;
+import uk.ac.ic.doc.gander.flowinference.typegoals.ExpressionTypeGoal;
+import uk.ac.ic.doc.gander.flowinference.types.Type;
 import uk.ac.ic.doc.gander.model.ModelSite;
 import uk.ac.ic.doc.gander.model.codeobject.InvokableCodeObject;
 import uk.ac.ic.doc.gander.model.parameters.FormalParameter;
 import uk.ac.ic.doc.gander.model.parameters.FormalParameters;
 
+/**
+ * Model an argument, internal to the interpreter, that is being passed to a
+ * procedure using a numeric position to map it to a parameter.
+ */
 final class ExplicitPositionalArgument implements PositionalArgument {
 
-	private final ModelSite<Call> callSite;
 	private final int position;
+	private final ModelSite<? extends exprType> value;
 
-	ExplicitPositionalArgument(ModelSite<Call> callSite, int position) {
-		this.callSite = callSite;
+	ExplicitPositionalArgument(ModelSite<? extends exprType> value, int position) {
+		assert value != null;
+		assert position >= 0;
+
+		this.value = value;
 		this.position = position;
 	}
 
@@ -51,12 +61,35 @@ final class ExplicitPositionalArgument implements PositionalArgument {
 	}
 
 	@Override
+	public boolean isPassedAtPosition(int position) {
+		return this.position == position;
+	}
+
+	@Override
+	public boolean isPassedByKeyword(String keyword) {
+		return false;
+	}
+
+	@Override
+	public boolean mayExpandIntoPosition(int position) {
+		return false;
+	}
+
+	@Override
+	public boolean mayExpandIntoKeyword(String keyword) {
+		return false;
+	}
+
+	@Override
+	public Result<Type> type(SubgoalManager goalManager) {
+		return goalManager.registerSubgoal(new ExpressionTypeGoal(value));
+	}
+
+	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + position;
-		result = prime * result
-				+ ((callSite == null) ? 0 : callSite.hashCode());
+		result = prime * result + ((value == null) ? 0 : value.hashCode());
 		return result;
 	}
 
@@ -69,20 +102,18 @@ final class ExplicitPositionalArgument implements PositionalArgument {
 		if (getClass() != obj.getClass())
 			return false;
 		ExplicitPositionalArgument other = (ExplicitPositionalArgument) obj;
-		if (position != other.position)
-			return false;
-		if (callSite == null) {
-			if (other.callSite != null)
+		if (value == null) {
+			if (other.value != null)
 				return false;
-		} else if (!callSite.equals(other.callSite))
+		} else if (!value.equals(other.value))
 			return false;
 		return true;
 	}
 
 	@Override
 	public String toString() {
-		return "ExplicitPositionalCallsiteArgument [callSite=" + callSite
-				+ ", position=" + position + "]";
+		return "ExplicitPositionalArgument [position=" + position + ", value="
+				+ value + "]";
 	}
 
 }

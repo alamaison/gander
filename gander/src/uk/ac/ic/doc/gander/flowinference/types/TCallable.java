@@ -23,8 +23,8 @@ public interface TCallable extends Type {
 	Result<Type> returnType(SubgoalManager goalManager);
 
 	/**
-	 * Return the type of argument that is passed to the given parameter when
-	 * called from the given call-site.
+	 * Return the arguments that are passed to the given parameter when called
+	 * from the given call-site.
 	 * 
 	 * The parameter must belong to one of the code objects that receives calls
 	 * to this callable.
@@ -33,6 +33,17 @@ public interface TCallable extends Type {
 	 * default arguments in the callable's declaration or (in the case of method
 	 * calls) the type of the bound objects whose method is being invoked.
 	 * 
+	 * This will almost always be a single argument (as the receiver, the formal
+	 * parameter, is already know). There <em>may</em> be an exceedingly unusal
+	 * case where there could be more than one argument: if the object being
+	 * called invokes the same code object but in different ways; once as, say,
+	 * a plain function and another time as a bound method. We weren't able to
+	 * reproduce any such case.
+	 * 
+	 * The main reason for returning a {@link Result} here rather than a single
+	 * argument is for the case where we couldn't determine the argument at all,
+	 * in which case we return an infinite result.
+	 * 
 	 * @param parameter
 	 *            the parameter declared in one of the callable's responding
 	 *            code objects
@@ -40,16 +51,18 @@ public interface TCallable extends Type {
 	 *            an expression known to result in a call to this callable
 	 * @param goalManager
 	 *            allows us to solve the argument mapping using type inference
-	 * 
-	 * @return the type of value passed to the parameter when its code object is
-	 *         invoked from the given call-site
 	 */
-	Result<Type> typeOfArgumentPassedToParameter(FormalParameter parameter,
+	Result<Argument> argumentsPassedToParameter(FormalParameter parameter,
 			ModelSite<Call> callSite, SubgoalManager goalManager);
 
 	/**
 	 * Returns the destinations to which the given argument is passed when
 	 * calling this type of callable from a callsite.
+	 * 
+	 * This is effectively {@code parametersReceivingArgument()} but Python's,
+	 * weird and wonder parameter passing possibilities mean that an argument
+	 * may end up <em>inside</em> a parameter rather than at the parameter
+	 * itself. {@link ArgumentDestination} abstracts over that.
 	 * 
 	 * This will almost always be a single destination but very rarely, such as
 	 * in the case of calling a class constructor where the constructor has been
@@ -68,17 +81,6 @@ public interface TCallable extends Type {
 	 */
 	Result<ArgumentDestination> destinationsReceivingArgument(
 			Argument argument, SubgoalManager goalManager);
-
-	/**
-	 * Returns the parameter that magically receives the LHS of a call on an
-	 * attribute access when that call is received by this type of callable.
-	 * 
-	 * Otherwise known as the self parameter.
-	 * 
-	 * @return the parameter or {@code null} if no such parameter exists
-	 */
-	@Deprecated
-	FormalParameter selfParameter();
 
 	/**
 	 * Returns the codeObjects that might be invoked when this type of callable

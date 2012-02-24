@@ -9,6 +9,8 @@ import uk.ac.ic.doc.gander.flowinference.Namespace;
 import uk.ac.ic.doc.gander.flowinference.argument.Argument;
 import uk.ac.ic.doc.gander.flowinference.argument.ArgumentDestination;
 import uk.ac.ic.doc.gander.flowinference.argument.CallsiteArgument;
+import uk.ac.ic.doc.gander.flowinference.callsite.StrategyBasedInternalCallsite;
+import uk.ac.ic.doc.gander.flowinference.callsite.InternalCallsite;
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
 import uk.ac.ic.doc.gander.flowinference.flowgoals.FlowPosition;
 import uk.ac.ic.doc.gander.flowinference.result.FiniteResult;
@@ -98,11 +100,17 @@ public class TFunction implements TCodeObject, TCallable {
 	}
 
 	@Override
-	public Result<Type> typeOfArgumentPassedToParameter(
+	public Result<Argument> argumentsPassedToParameter(
 			FormalParameter parameter, ModelSite<Call> callSite,
 			SubgoalManager goalManager) {
 
-		return parameter.typeAtCall(callSite, goalManager);
+		InternalCallsite functionCall = new StrategyBasedInternalCallsite(callSite,
+				new FunctionStylePassingStrategy());
+
+		Set<Argument> arguments = parameter.argumentsPassedAtCall(functionCall,
+				goalManager);
+
+		return new FiniteResult<Argument>(arguments);
 	}
 
 	/**
@@ -142,19 +150,6 @@ public class TFunction implements TCodeObject, TCallable {
 
 		return new FiniteResult<ArgumentDestination>(
 				Collections.singleton(parameter));
-	}
-
-	/**
-	 * {@inheritDoc}
-	 * 
-	 * Even if an unbound function object is retrieved as an attribute of
-	 * another object and called, that other object doesn't flow anywhere. In
-	 * other words, an unbound function object has no self parameter.
-	 */
-	@Deprecated
-	@Override
-	public FormalParameter selfParameter() {
-		return null;
 	}
 
 	@Override

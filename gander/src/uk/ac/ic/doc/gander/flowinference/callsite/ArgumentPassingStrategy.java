@@ -1,4 +1,6 @@
-package uk.ac.ic.doc.gander.flowinference.argument;
+package uk.ac.ic.doc.gander.flowinference.callsite;
+
+import uk.ac.ic.doc.gander.flowinference.argument.Argument;
 
 /**
  * Model of an argument being passed to a procedure.
@@ -12,17 +14,23 @@ public interface ArgumentPassingStrategy {
 	int realPosition(int position);
 
 	/**
+	 * Returns the position that a positional argument appears at at the
+	 * callsite.
+	 */
+	int callsitePosition(int realPosition);
+
+	/**
 	 * Does a call to the code object in question, insert an instance of another
 	 * object as a positional argument dispatched to the receiving procedure?
 	 */
 	boolean passesHiddenSelf();
 
 	/**
-	 * The position at which an instance of another
-	 * object is inserted and dispatched to the receiving procedure?
+	 * The argument containing an instance of another object which is inserted
+	 * and dispatched to the receiving procedure
 	 * 
 	 * @throws {@link AssertionError} if {@code !passesHiddenSelf}.
 	 */
-	int selfPosition();
+	Argument selfArgument();
 
 }

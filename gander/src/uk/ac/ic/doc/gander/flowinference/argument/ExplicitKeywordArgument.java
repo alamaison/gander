@@ -1,25 +1,34 @@
 package uk.ac.ic.doc.gander.flowinference.argument;
 
-import org.python.pydev.parser.jython.ast.Call;
-import org.python.pydev.parser.jython.ast.NameTok;
-import org.python.pydev.parser.jython.ast.keywordType;
+import org.python.pydev.parser.jython.ast.exprType;
 
+import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
 import uk.ac.ic.doc.gander.flowinference.flowgoals.FlowPosition;
 import uk.ac.ic.doc.gander.flowinference.result.FiniteResult;
 import uk.ac.ic.doc.gander.flowinference.result.Result;
+import uk.ac.ic.doc.gander.flowinference.typegoals.ExpressionTypeGoal;
+import uk.ac.ic.doc.gander.flowinference.types.Type;
 import uk.ac.ic.doc.gander.model.ModelSite;
 import uk.ac.ic.doc.gander.model.codeobject.InvokableCodeObject;
 import uk.ac.ic.doc.gander.model.parameters.FormalParameter;
 import uk.ac.ic.doc.gander.model.parameters.FormalParameters;
 
+/**
+ * Model an argument, internal to the interpreter, that is being passed to a
+ * procedure using a keyword to map it to a parameter.
+ */
 final class ExplicitKeywordArgument implements KeywordArgument {
 
-	private final ModelSite<Call> callSite;
-	private final keywordType keyword;
+	private final String keyword;
+	private final ModelSite<exprType> value;
 
-	ExplicitKeywordArgument(ModelSite<Call> callSite, keywordType keyword) {
-		this.callSite = callSite;
+	ExplicitKeywordArgument(String keyword, ModelSite<exprType> value) {
+		assert keyword != null;
+		assert !keyword.isEmpty();
+		assert value != null;
+
 		this.keyword = keyword;
+		this.value = value;
 	}
 
 	@Override
@@ -49,17 +58,40 @@ final class ExplicitKeywordArgument implements KeywordArgument {
 		}
 	}
 
+	@Override
+	public boolean isPassedAtPosition(int position) {
+		return false;
+	}
+
+	@Override
+	public boolean isPassedByKeyword(String keyword) {
+		return keyword.equals(this.keyword());
+	}
+
+	@Override
+	public boolean mayExpandIntoPosition(int position) {
+		return false;
+	}
+
+	@Override
+	public boolean mayExpandIntoKeyword(String keyword) {
+		return false;
+	}
+
 	private String keyword() {
-		return ((NameTok) keyword.arg).id;
+		return keyword;
+	}
+
+	@Override
+	public Result<Type> type(SubgoalManager goalManager) {
+		return goalManager.registerSubgoal(new ExpressionTypeGoal(value));
 	}
 
 	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result
-				+ ((callSite == null) ? 0 : callSite.hashCode());
-		result = prime * result + ((keyword == null) ? 0 : keyword.hashCode());
+		result = prime * result + ((value == null) ? 0 : value.hashCode());
 		return result;
 	}
 
@@ -72,23 +104,18 @@ final class ExplicitKeywordArgument implements KeywordArgument {
 		if (getClass() != obj.getClass())
 			return false;
 		ExplicitKeywordArgument other = (ExplicitKeywordArgument) obj;
-		if (callSite == null) {
-			if (other.callSite != null)
+		if (value == null) {
+			if (other.value != null)
 				return false;
-		} else if (!callSite.equals(other.callSite))
-			return false;
-		if (keyword == null) {
-			if (other.keyword != null)
-				return false;
-		} else if (!keyword.equals(other.keyword))
+		} else if (!value.equals(other.value))
 			return false;
 		return true;
 	}
 
 	@Override
 	public String toString() {
-		return "ExplicitKeywordArgument [callSite=" + callSite + ", keyword="
-				+ keyword + "]";
+		return "ExplicitKeywordArgument [keyword=" + keyword + ", value="
+				+ value + "]";
 	}
 
 }

@@ -5,6 +5,7 @@ import java.util.Set;
 import org.python.pydev.parser.jython.ast.Call;
 import org.python.pydev.parser.jython.ast.exprType;
 
+import uk.ac.ic.doc.gander.flowinference.argument.Argument;
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
 import uk.ac.ic.doc.gander.flowinference.result.Concentrator;
 import uk.ac.ic.doc.gander.flowinference.result.Concentrator.DatumProcessor;
@@ -17,15 +18,27 @@ import uk.ac.ic.doc.gander.flowinference.types.TCallable;
 import uk.ac.ic.doc.gander.flowinference.types.Type;
 import uk.ac.ic.doc.gander.model.ModelSite;
 import uk.ac.ic.doc.gander.model.codeobject.InvokableCodeObject;
+import uk.ac.ic.doc.gander.model.name_binding.Variable;
 import uk.ac.ic.doc.gander.model.parameters.FormalParameter;
 
+/**
+ * Find the types that the given parameter may bind to the given variable name.
+ * 
+ * In Python, a single parameter may bind more than one name which is why the
+ * query is framed in this way.
+ */
 final class ParameterTypeGoal implements TypeGoal {
 
 	private final FormalParameter parameter;
+	private final Variable variable;
 
-	ParameterTypeGoal(FormalParameter parameter) {
+	ParameterTypeGoal(FormalParameter parameter, Variable variable) {
 		assert parameter != null;
+		assert variable != null;
+		assert parameter.codeObject().equals(variable.codeObject());
+
 		this.parameter = parameter;
+		this.variable = variable;
 	}
 
 	@Override
@@ -35,7 +48,8 @@ final class ParameterTypeGoal implements TypeGoal {
 
 	@Override
 	public Result<Type> recalculateSolution(SubgoalManager goalManager) {
-		return new ParameterTypeGoalSolver(parameter, goalManager).solution();
+		return new ParameterTypeGoalSolver(parameter, variable, goalManager)
+				.solution();
 	}
 
 	@Override
@@ -75,15 +89,20 @@ final class ParameterTypeGoalSolver {
 
 	private final Result<Type> solution;
 	private final SubgoalManager goalManager;
+	private final Variable variable;
 
-	ParameterTypeGoalSolver(FormalParameter parameter,
+	ParameterTypeGoalSolver(FormalParameter parameter, Variable variable,
 			SubgoalManager goalManager) {
+		assert parameter != null;
+		assert variable != null;
+		assert parameter.codeObject().equals(variable.codeObject());
+		assert goalManager != null;
 
 		this.goalManager = goalManager;
+		this.variable = variable;
 
 		Result<ModelSite<Call>> callSites = goalManager
-				.registerSubgoal(new FunctionSendersGoal(
-						(InvokableCodeObject) parameter.site().codeObject()));
+				.registerSubgoal(new FunctionSendersGoal(parameter.codeObject()));
 
 		solution = deriveParameterTypeFromCallsites(parameter, callSites);
 	}
@@ -92,8 +111,8 @@ final class ParameterTypeGoalSolver {
 			FormalParameter parameter, Result<ModelSite<Call>> callSites) {
 
 		Concentrator<ModelSite<Call>, Type> processor = Concentrator
-				.newInstance(new CallArgumentTyper(parameter, goalManager),
-						TopT.INSTANCE);
+				.newInstance(new CallArgumentTyper(parameter, variable,
+						goalManager), TopT.INSTANCE);
 
 		callSites.actOnResult(processor);
 
@@ -105,13 +124,25 @@ final class ParameterTypeGoalSolver {
 	}
 }
 
+/**
+ * Transforms a call-site into the types that may be bound to the given
+ * variable.
+ */
 final class CallArgumentTyper implements DatumProcessor<ModelSite<Call>, Type> {
 
 	private final FormalParameter parameter;
 	private final SubgoalManager goalManager;
+	private final Variable variable;
 
-	CallArgumentTyper(FormalParameter parameter, SubgoalManager goalManager) {
+	CallArgumentTyper(FormalParameter parameter, Variable variable,
+			SubgoalManager goalManager) {
+		assert parameter != null;
+		assert variable != null;
+		assert parameter.codeObject().equals(variable.codeObject());
+		assert goalManager != null;
+
 		this.parameter = parameter;
+		this.variable = variable;
 		this.goalManager = goalManager;
 	}
 
@@ -139,21 +170,28 @@ final class CallArgumentTyper implements DatumProcessor<ModelSite<Call>, Type> {
 		 * to include all of them; only those that are implemented by our code
 		 * object.
 		 */
-		return callableType.transformResult(new CallsiteToParameterTypeMapper(
-				callSite, parameter, goalManager));
+		return callableType.transformResult(new CallsiteToVariableTypeMapper(
+				callSite, variable, parameter, goalManager));
 	}
 };
 
-final class CallsiteToParameterTypeMapper implements
+final class CallsiteToVariableTypeMapper implements
 		Transformer<Type, Result<Type>> {
 
 	private final ModelSite<Call> callSite;
 	private final FormalParameter parameter;
 	private final SubgoalManager goalManager;
+	private final Variable variable;
 
-	CallsiteToParameterTypeMapper(ModelSite<Call> callSite,
+	CallsiteToVariableTypeMapper(ModelSite<Call> callSite, Variable variable,
 			FormalParameter parameter, SubgoalManager goalManager) {
+		assert parameter != null;
+		assert variable != null;
+		assert parameter.codeObject().equals(variable.codeObject());
+		assert goalManager != null;
+
 		this.callSite = callSite;
+		this.variable = variable;
 		this.parameter = parameter;
 		this.goalManager = goalManager;
 	}
@@ -179,23 +217,61 @@ final class CallsiteToParameterTypeMapper implements
 
 			if (typeAtCallSite instanceof TCallable) {
 
-				TCallable callable = (TCallable) typeAtCallSite;
-
-				if (callingObjectMightInvokeOurCodeObject(callable)) {
-					type.add(callable.typeOfArgumentPassedToParameter(
-							parameter, callSite, goalManager));
-					if (type.isFinished()) {
-						break;
-					}
-				}
+				type.add(typeContributedByCallingCallable((TCallable) typeAtCallSite));
 
 			} else {
-				System.err.println("WTF: call site isn't calling a callable: "
-						+ typeAtCallSite);
+				System.err.println("UNTYPABLE: call site isn't "
+						+ "calling a callable: " + typeAtCallSite);
+			}
+
+			if (type.isFinished()) {
+				break;
 			}
 		}
 
 		return type.result();
+	}
+
+	private Result<Type> typeContributedByCallingCallable(TCallable callable) {
+
+		if (callingObjectMightInvokeOurCodeObject(callable)) {
+
+			Result<Argument> arguments = callable.argumentsPassedToParameter(
+					parameter, callSite, goalManager);
+
+			return arguments
+					.transformResult(new Transformer<Argument, Result<Type>>() {
+
+						@Override
+						public Result<Type> transformFiniteResult(
+								Set<Argument> arguments) {
+
+							RedundancyEliminator<Type> parameterType = new RedundancyEliminator<Type>();
+
+							for (Argument argument : arguments) {
+								parameterType.add(argument.type(goalManager));
+
+								if (parameterType.isFinished())
+									break;
+							}
+
+							return parameterType.result();
+						}
+
+						@Override
+						public Result<Type> transformInfiniteResult() {
+							return TopT.INSTANCE;
+						}
+					});
+
+		} else {
+			/*
+			 * calling this callable never results in our code object being
+			 * invoked so it doesn't contribute to the type of the parameter's
+			 * bindings.
+			 */
+			return FiniteResult.bottom();
+		}
 	}
 
 	public boolean callingObjectMightInvokeOurCodeObject(TCallable object) {
@@ -205,9 +281,10 @@ final class CallsiteToParameterTypeMapper implements
 
 					@Override
 					public Boolean transformFiniteResult(
-							Set<InvokableCodeObject> result) {
+							Set<InvokableCodeObject> codeObjectsInvokedByCall) {
 
-						return result.contains(parameter.site().codeObject());
+						return codeObjectsInvokedByCall.contains(parameter
+								.codeObject());
 					}
 
 					@Override
