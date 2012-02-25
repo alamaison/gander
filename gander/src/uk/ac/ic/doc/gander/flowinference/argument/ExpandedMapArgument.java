@@ -11,7 +11,7 @@ import uk.ac.ic.doc.gander.flowinference.types.Type;
 import uk.ac.ic.doc.gander.model.ModelSite;
 import uk.ac.ic.doc.gander.model.codeobject.InvokableCodeObject;
 
-final class ExpandedMapArgument implements Argument {
+final class ExpandedMapArgument implements KeywordArgument {
 
 	private final ModelSite<exprType> argument;
 
