@@ -28,7 +28,6 @@ import uk.ac.ic.doc.gander.model.codeobject.FunctionCO;
 import uk.ac.ic.doc.gander.model.codeobject.InvokableCodeObject;
 import uk.ac.ic.doc.gander.model.codeobject.ModuleCO;
 import uk.ac.ic.doc.gander.model.name_binding.Variable;
-import uk.ac.ic.doc.gander.model.parameters.FormalParameter;
 
 /**
  * Find conservative approximation of the types bound to a given name in a
@@ -139,11 +138,8 @@ class BoundTypeVisitor implements BindingDetector.DetectionEvent {
 			if (invokable.formalParameters().hasVariableBindingParameter(
 					variable)) {
 
-				FormalParameter parameter = invokable.formalParameters()
-						.variableBindingParameter(variable);
-
 				judgement.add(goalManager
-						.registerSubgoal(new ParameterTypeGoal(parameter,
+						.registerSubgoal(new ParameterTypeGoal(invokable,
 								variable)));
 			}
 		}

@@ -29,15 +29,15 @@ import uk.ac.ic.doc.gander.model.parameters.FormalParameter;
  */
 final class ParameterTypeGoal implements TypeGoal {
 
-	private final FormalParameter parameter;
+	private final InvokableCodeObject invokable;
 	private final Variable variable;
 
-	ParameterTypeGoal(FormalParameter parameter, Variable variable) {
-		assert parameter != null;
+	ParameterTypeGoal(InvokableCodeObject invokable, Variable variable) {
 		assert variable != null;
-		assert parameter.codeObject().equals(variable.codeObject());
+		assert invokable.formalParameters().hasVariableBindingParameter(
+				variable);
 
-		this.parameter = parameter;
+		this.invokable = invokable;
 		this.variable = variable;
 	}
 
@@ -48,7 +48,10 @@ final class ParameterTypeGoal implements TypeGoal {
 
 	@Override
 	public Result<Type> recalculateSolution(SubgoalManager goalManager) {
-		return new ParameterTypeGoalSolver(parameter, variable, goalManager)
+		if (goalManager == null)
+			throw new NullPointerException("Goal manager required");
+
+		return new ParameterTypeGoalSolver(invokable, variable, goalManager)
 				.solution();
 	}
 
@@ -57,7 +60,9 @@ final class ParameterTypeGoal implements TypeGoal {
 		final int prime = 31;
 		int result = 1;
 		result = prime * result
-				+ ((parameter == null) ? 0 : parameter.hashCode());
+				+ ((invokable == null) ? 0 : invokable.hashCode());
+		result = prime * result
+				+ ((variable == null) ? 0 : variable.hashCode());
 		return result;
 	}
 
@@ -70,17 +75,23 @@ final class ParameterTypeGoal implements TypeGoal {
 		if (getClass() != obj.getClass())
 			return false;
 		ParameterTypeGoal other = (ParameterTypeGoal) obj;
-		if (parameter == null) {
-			if (other.parameter != null)
+		if (invokable == null) {
+			if (other.invokable != null)
 				return false;
-		} else if (!parameter.equals(other.parameter))
+		} else if (!invokable.equals(other.invokable))
+			return false;
+		if (variable == null) {
+			if (other.variable != null)
+				return false;
+		} else if (!variable.equals(other.variable))
 			return false;
 		return true;
 	}
 
 	@Override
 	public String toString() {
-		return "ParameterTypeGoal [parameter=" + parameter + "]";
+		return "ParameterTypeGoal [invokable=" + invokable + ", variable="
+				+ variable + "]";
 	}
 
 }
@@ -91,27 +102,27 @@ final class ParameterTypeGoalSolver {
 	private final SubgoalManager goalManager;
 	private final Variable variable;
 
-	ParameterTypeGoalSolver(FormalParameter parameter, Variable variable,
+	ParameterTypeGoalSolver(InvokableCodeObject invokable, Variable variable,
 			SubgoalManager goalManager) {
-		assert parameter != null;
 		assert variable != null;
-		assert parameter.codeObject().equals(variable.codeObject());
+		assert invokable.formalParameters().hasVariableBindingParameter(
+				variable);
 		assert goalManager != null;
 
 		this.goalManager = goalManager;
 		this.variable = variable;
 
 		Result<ModelSite<Call>> callSites = goalManager
-				.registerSubgoal(new FunctionSendersGoal(parameter.codeObject()));
+				.registerSubgoal(new FunctionSendersGoal(invokable));
 
-		solution = deriveParameterTypeFromCallsites(parameter, callSites);
+		solution = deriveParameterTypeFromCallsites(invokable, callSites);
 	}
 
 	private Result<Type> deriveParameterTypeFromCallsites(
-			FormalParameter parameter, Result<ModelSite<Call>> callSites) {
+			InvokableCodeObject invokable, Result<ModelSite<Call>> callSites) {
 
 		Concentrator<ModelSite<Call>, Type> processor = Concentrator
-				.newInstance(new CallArgumentTyper(parameter, variable,
+				.newInstance(new CallArgumentTyper(invokable, variable,
 						goalManager), TopT.INSTANCE);
 
 		callSites.actOnResult(processor);
@@ -130,18 +141,18 @@ final class ParameterTypeGoalSolver {
  */
 final class CallArgumentTyper implements DatumProcessor<ModelSite<Call>, Type> {
 
-	private final FormalParameter parameter;
+	private final InvokableCodeObject invokable;
 	private final SubgoalManager goalManager;
 	private final Variable variable;
 
-	CallArgumentTyper(FormalParameter parameter, Variable variable,
+	CallArgumentTyper(InvokableCodeObject invokable, Variable variable,
 			SubgoalManager goalManager) {
-		assert parameter != null;
 		assert variable != null;
-		assert parameter.codeObject().equals(variable.codeObject());
+		assert invokable.formalParameters().hasVariableBindingParameter(
+				variable);
 		assert goalManager != null;
 
-		this.parameter = parameter;
+		this.invokable = invokable;
 		this.variable = variable;
 		this.goalManager = goalManager;
 	}
@@ -171,7 +182,7 @@ final class CallArgumentTyper implements DatumProcessor<ModelSite<Call>, Type> {
 		 * object.
 		 */
 		return callableType.transformResult(new CallsiteToVariableTypeMapper(
-				callSite, variable, parameter, goalManager));
+				callSite, variable, invokable, goalManager));
 	}
 };
 
@@ -179,20 +190,20 @@ final class CallsiteToVariableTypeMapper implements
 		Transformer<Type, Result<Type>> {
 
 	private final ModelSite<Call> callSite;
-	private final FormalParameter parameter;
+	private final InvokableCodeObject invokable;
 	private final SubgoalManager goalManager;
 	private final Variable variable;
 
 	CallsiteToVariableTypeMapper(ModelSite<Call> callSite, Variable variable,
-			FormalParameter parameter, SubgoalManager goalManager) {
-		assert parameter != null;
+			InvokableCodeObject invokable, SubgoalManager goalManager) {
 		assert variable != null;
-		assert parameter.codeObject().equals(variable.codeObject());
+		assert invokable.formalParameters().hasVariableBindingParameter(
+				variable);
 		assert goalManager != null;
 
 		this.callSite = callSite;
 		this.variable = variable;
-		this.parameter = parameter;
+		this.invokable = invokable;
 		this.goalManager = goalManager;
 	}
 
@@ -235,6 +246,9 @@ final class CallsiteToVariableTypeMapper implements
 	private Result<Type> typeContributedByCallingCallable(TCallable callable) {
 
 		if (callingObjectMightInvokeOurCodeObject(callable)) {
+
+			FormalParameter parameter = invokable.formalParameters()
+					.variableBindingParameter(variable);
 
 			Result<Argument> arguments = callable.argumentsPassedToParameter(
 					parameter, callSite, goalManager);
@@ -283,8 +297,7 @@ final class CallsiteToVariableTypeMapper implements
 					public Boolean transformFiniteResult(
 							Set<InvokableCodeObject> codeObjectsInvokedByCall) {
 
-						return codeObjectsInvokedByCall.contains(parameter
-								.codeObject());
+						return codeObjectsInvokedByCall.contains(invokable);
 					}
 
 					@Override
