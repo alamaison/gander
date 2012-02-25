@@ -1091,7 +1091,7 @@ public class ZeroCfaTypeEngineTest {
 		Result<Type> a = engine.typeOf(test.printNode("a").site());
 		Set<Type> aExpected = typeJudgement(stringType);
 
-		assertEquals("An expanded iterable should prevent other "
+		assertEquals("An expanded iterable should not prevent other "
 				+ "parameter types being inferred correctly and precisely.",
 				aExpected, a);
 	}
