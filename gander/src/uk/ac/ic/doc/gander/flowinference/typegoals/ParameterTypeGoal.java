@@ -6,6 +6,7 @@ import org.python.pydev.parser.jython.ast.Call;
 import org.python.pydev.parser.jython.ast.exprType;
 
 import uk.ac.ic.doc.gander.flowinference.argument.Argument;
+import uk.ac.ic.doc.gander.flowinference.call.DefaultCall;
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
 import uk.ac.ic.doc.gander.flowinference.result.Concentrator;
 import uk.ac.ic.doc.gander.flowinference.result.Concentrator.DatumProcessor;
@@ -19,7 +20,6 @@ import uk.ac.ic.doc.gander.flowinference.types.Type;
 import uk.ac.ic.doc.gander.model.ModelSite;
 import uk.ac.ic.doc.gander.model.codeobject.InvokableCodeObject;
 import uk.ac.ic.doc.gander.model.name_binding.Variable;
-import uk.ac.ic.doc.gander.model.parameters.FormalParameter;
 
 /**
  * Find the types that the given parameter may bind to the given variable name.
@@ -247,11 +247,11 @@ final class CallsiteToVariableTypeMapper implements
 
 		if (callingObjectMightInvokeOurCodeObject(callable)) {
 
-			FormalParameter parameter = invokable.formalParameters()
-					.variableBindingParameter(variable);
+			uk.ac.ic.doc.gander.flowinference.call.Call call = new DefaultCall(
+					invokable, callable, callSite);
 
-			Result<Argument> arguments = callable.argumentsPassedToParameter(
-					parameter, callSite, goalManager);
+			Result<Argument> arguments = call.argumentsBoundToVariable(
+					variable, goalManager);
 
 			return arguments
 					.transformResult(new Transformer<Argument, Result<Type>>() {
