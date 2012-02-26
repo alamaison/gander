@@ -1,79 +1,26 @@
-package uk.ac.ic.doc.gander.flowinference.typegoals;
+package uk.ac.ic.doc.gander.flowinference.typegoals.namespacename;
 
 import java.util.Set;
 
 import org.python.pydev.parser.jython.ast.exprType;
 
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
-import uk.ac.ic.doc.gander.flowinference.result.FiniteResult;
 import uk.ac.ic.doc.gander.flowinference.result.RedundancyEliminator;
 import uk.ac.ic.doc.gander.flowinference.result.Result;
 import uk.ac.ic.doc.gander.flowinference.result.Result.Processor;
+import uk.ac.ic.doc.gander.flowinference.typegoals.expression.ExpressionTypeGoal;
 import uk.ac.ic.doc.gander.flowinference.types.TCodeObject;
 import uk.ac.ic.doc.gander.flowinference.types.Type;
 import uk.ac.ic.doc.gander.model.Class;
 import uk.ac.ic.doc.gander.model.ModelSite;
 import uk.ac.ic.doc.gander.model.NamespaceName;
 
-public final class NamespaceNameTypeGoal implements TypeGoal {
-
-	private NamespaceName name;
-
-	public NamespaceNameTypeGoal(NamespaceName name) {
-		if (name == null)
-			throw new NullPointerException(
-					"Can't find an name's type if we don't have a name");
-
-		this.name = name;
-	}
-
-	public Result<Type> initialSolution() {
-		return FiniteResult.bottom();
-	}
-
-	public Result<Type> recalculateSolution(SubgoalManager goalManager) {
-
-		return new NamespaceNameTypeGoalSolver(name, goalManager).solution();
-	}
-
-	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + ((name == null) ? 0 : name.hashCode());
-		return result;
-	}
-
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (obj == null)
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
-		NamespaceNameTypeGoal other = (NamespaceNameTypeGoal) obj;
-		if (name == null) {
-			if (other.name != null)
-				return false;
-		} else if (!name.equals(other.name))
-			return false;
-		return true;
-	}
-
-	@Override
-	public String toString() {
-		return "NamespaceNameTypeGoal [name=" + name + "]";
-	}
-
-}
-
 final class NamespaceNameTypeGoalSolver {
 
 	private final NamespaceName name;
 	private final SubgoalManager goalManager;
 
-	private RedundancyEliminator<Type> completeType = new RedundancyEliminator<Type>();
+	private final RedundancyEliminator<Type> completeType = new RedundancyEliminator<Type>();
 
 	NamespaceNameTypeGoalSolver(NamespaceName name, SubgoalManager goalManager) {
 		if (name == null)
@@ -98,10 +45,10 @@ final class NamespaceNameTypeGoalSolver {
 	}
 
 	private void addTypesFromNamespace() {
-		
+
 		completeType.add(new UnqualifiedNameDefinitionsPartialSolution(
 				goalManager, name).partialSolution());
-		
+
 		if (!completeType.isFinished()) {
 			completeType.add(new QualifiedNameDefinitionsPartialSolution(
 					goalManager, name).partialSolution());
@@ -139,10 +86,12 @@ final class NamespaceNameTypeGoalSolver {
 
 		completeType.result().actOnResult(new Processor<Type>() {
 
+			@Override
 			public void processInfiniteResult() {
 				found[0] = true;
 			}
 
+			@Override
 			public void processFiniteResult(Set<Type> result) {
 				for (Type type : result) {
 					if (isDeclaredType(type)) {
@@ -162,10 +111,12 @@ final class NamespaceNameTypeGoalSolver {
 
 	private final class MemberTyper implements Processor<Type> {
 
+		@Override
 		public void processInfiniteResult() {
 			// do nothing, no member found
 		}
 
+		@Override
 		public void processFiniteResult(Set<Type> result) {
 			for (Type supertypeType : result) {
 				if (completeType.isFinished())

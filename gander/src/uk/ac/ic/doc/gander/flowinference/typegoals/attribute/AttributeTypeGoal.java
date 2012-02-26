@@ -1,4 +1,4 @@
-package uk.ac.ic.doc.gander.flowinference.typegoals;
+package uk.ac.ic.doc.gander.flowinference.typegoals.attribute;
 
 import org.python.pydev.parser.jython.ast.Attribute;
 import org.python.pydev.parser.jython.ast.NameTok;
@@ -6,24 +6,29 @@ import org.python.pydev.parser.jython.ast.exprType;
 
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
 import uk.ac.ic.doc.gander.flowinference.result.Concentrator;
+import uk.ac.ic.doc.gander.flowinference.result.Concentrator.DatumProcessor;
 import uk.ac.ic.doc.gander.flowinference.result.FiniteResult;
 import uk.ac.ic.doc.gander.flowinference.result.Result;
-import uk.ac.ic.doc.gander.flowinference.result.Concentrator.DatumProcessor;
+import uk.ac.ic.doc.gander.flowinference.typegoals.TopT;
+import uk.ac.ic.doc.gander.flowinference.typegoals.TypeGoal;
+import uk.ac.ic.doc.gander.flowinference.typegoals.expression.ExpressionTypeGoal;
 import uk.ac.ic.doc.gander.flowinference.types.Type;
 import uk.ac.ic.doc.gander.model.ModelSite;
 
-final class AttributeTypeGoal implements TypeGoal {
+public final class AttributeTypeGoal implements TypeGoal {
 
 	private final ModelSite<Attribute> attribute;
 
-	AttributeTypeGoal(ModelSite<Attribute> attribute) {
+	public AttributeTypeGoal(ModelSite<Attribute> attribute) {
 		this.attribute = attribute;
 	}
 
+	@Override
 	public Result<Type> initialSolution() {
 		return FiniteResult.bottom();
 	}
 
+	@Override
 	public Result<Type> recalculateSolution(final SubgoalManager goalManager) {
 		ModelSite<exprType> lhs = new ModelSite<exprType>(
 				attribute.astNode().value, attribute.codeObject());
@@ -35,6 +40,7 @@ final class AttributeTypeGoal implements TypeGoal {
 		Concentrator<Type, Type> processor = Concentrator.newInstance(
 				new DatumProcessor<Type, Type>() {
 
+					@Override
 					public Result<Type> process(Type targetType) {
 						return targetType
 								.memberType(attributeName, goalManager);

@@ -1,4 +1,4 @@
-package uk.ac.ic.doc.gander.flowinference.typegoals;
+package uk.ac.ic.doc.gander.flowinference.typegoals.expression;
 
 import java.util.Collections;
 
@@ -39,6 +39,11 @@ import uk.ac.ic.doc.gander.ast.ExpressionVisitor;
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
 import uk.ac.ic.doc.gander.flowinference.result.FiniteResult;
 import uk.ac.ic.doc.gander.flowinference.result.Result;
+import uk.ac.ic.doc.gander.flowinference.typegoals.TopT;
+import uk.ac.ic.doc.gander.flowinference.typegoals.TypeGoal;
+import uk.ac.ic.doc.gander.flowinference.typegoals.attribute.AttributeTypeGoal;
+import uk.ac.ic.doc.gander.flowinference.typegoals.returns.ReturnTypeGoal;
+import uk.ac.ic.doc.gander.flowinference.typegoals.variable.VariableTypeGoal;
 import uk.ac.ic.doc.gander.flowinference.types.TObject;
 import uk.ac.ic.doc.gander.flowinference.types.Type;
 import uk.ac.ic.doc.gander.model.Model;

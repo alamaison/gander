@@ -1,4 +1,4 @@
-package uk.ac.ic.doc.gander.flowinference.typegoals;
+package uk.ac.ic.doc.gander.flowinference.typegoals.namespacename;
 
 import java.util.Arrays;
 import java.util.Set;

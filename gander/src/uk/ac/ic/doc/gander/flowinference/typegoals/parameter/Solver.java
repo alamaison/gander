@@ -1,4 +1,4 @@
-package uk.ac.ic.doc.gander.flowinference.typegoals;
+package uk.ac.ic.doc.gander.flowinference.typegoals.parameter;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -18,86 +18,13 @@ import uk.ac.ic.doc.gander.flowinference.result.Result;
 import uk.ac.ic.doc.gander.flowinference.result.Result.Transformer;
 import uk.ac.ic.doc.gander.flowinference.result.Top;
 import uk.ac.ic.doc.gander.flowinference.sendersgoals.FunctionSendersGoal;
+import uk.ac.ic.doc.gander.flowinference.typegoals.TopT;
+import uk.ac.ic.doc.gander.flowinference.typegoals.expression.ExpressionTypeGoal;
 import uk.ac.ic.doc.gander.flowinference.types.TCallable;
 import uk.ac.ic.doc.gander.flowinference.types.Type;
 import uk.ac.ic.doc.gander.model.ModelSite;
 import uk.ac.ic.doc.gander.model.codeobject.InvokableCodeObject;
 import uk.ac.ic.doc.gander.model.name_binding.Variable;
-
-/**
- * Find the types that the given parameter may bind to the given variable name.
- * 
- * In Python, a single parameter may bind more than one name which is why the
- * query is framed in this way.
- */
-final class ParameterTypeGoal implements TypeGoal {
-
-	private final InvokableCodeObject invokable;
-	private final Variable variable;
-
-	ParameterTypeGoal(InvokableCodeObject invokable, Variable variable) {
-		assert variable != null;
-		assert invokable.formalParameters().hasVariableBindingParameter(
-				variable);
-
-		this.invokable = invokable;
-		this.variable = variable;
-	}
-
-	@Override
-	public Result<Type> initialSolution() {
-		return FiniteResult.bottom();
-	}
-
-	@Override
-	public Result<Type> recalculateSolution(SubgoalManager goalManager) {
-		if (goalManager == null)
-			throw new NullPointerException("Goal manager required");
-
-		return new ParameterTypeGoalSolver(invokable, variable, goalManager)
-				.solution();
-	}
-
-	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result
-				+ ((invokable == null) ? 0 : invokable.hashCode());
-		result = prime * result
-				+ ((variable == null) ? 0 : variable.hashCode());
-		return result;
-	}
-
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (obj == null)
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
-		ParameterTypeGoal other = (ParameterTypeGoal) obj;
-		if (invokable == null) {
-			if (other.invokable != null)
-				return false;
-		} else if (!invokable.equals(other.invokable))
-			return false;
-		if (variable == null) {
-			if (other.variable != null)
-				return false;
-		} else if (!variable.equals(other.variable))
-			return false;
-		return true;
-	}
-
-	@Override
-	public String toString() {
-		return "ParameterTypeGoal [invokable=" + invokable + ", variable="
-				+ variable + "]";
-	}
-
-}
 
 final class ParameterTypeGoalSolver {
 
@@ -253,12 +180,7 @@ final class CalledObjectTyper implements DatumProcessor<ModelSite<Call>, Type> {
 };
 
 /**
- * Transforms a call-site into the types that may be bound to the given
- * variable.
- */
-/*
- * But now that we've got a set of types for the callsite, we don't want to
- * include all of them; only those that are implemented by our code object.
+ * Filters objects to include only those that can invoke the given code object.
  */
 final class CalledObjectFilter implements Transformer<Type, Result<TCallable>> {
 
@@ -385,7 +307,8 @@ final class CallPackager implements
 		Set<CallDispatch> calls = new HashSet<CallDispatch>();
 
 		for (TCallable callable : relevantCallables) {
-			calls.add(new DefaultCallDispatch(invokable, callable, senderCallSite));
+			calls.add(new DefaultCallDispatch(invokable, callable,
+					senderCallSite));
 		}
 
 		return new FiniteResult<CallDispatch>(calls);
