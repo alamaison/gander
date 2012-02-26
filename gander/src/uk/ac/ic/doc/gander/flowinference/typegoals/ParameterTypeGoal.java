@@ -7,7 +7,8 @@ import org.python.pydev.parser.jython.ast.Call;
 import org.python.pydev.parser.jython.ast.exprType;
 
 import uk.ac.ic.doc.gander.flowinference.argument.Argument;
-import uk.ac.ic.doc.gander.flowinference.call.DefaultCall;
+import uk.ac.ic.doc.gander.flowinference.call.CallDispatch;
+import uk.ac.ic.doc.gander.flowinference.call.DefaultCallDispatch;
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
 import uk.ac.ic.doc.gander.flowinference.result.Concentrator;
 import uk.ac.ic.doc.gander.flowinference.result.Concentrator.DatumProcessor;
@@ -160,8 +161,7 @@ final class ParameterTypeGoalSolver {
 		 * packaged up along with the call-site itself (for its arguments) as a
 		 * Call object that takes care of coordinating the dance.
 		 */
-		Result<uk.ac.ic.doc.gander.flowinference.call.Call> calls = packageCalls(
-				callables, senderCallSite);
+		Result<CallDispatch> calls = packageCalls(callables, senderCallSite);
 
 		/*
 		 * Dance.
@@ -192,15 +192,14 @@ final class ParameterTypeGoalSolver {
 				goalManager));
 	}
 
-	private Result<uk.ac.ic.doc.gander.flowinference.call.Call> packageCalls(
-			Result<TCallable> callables, final ModelSite<Call> senderCallSite) {
+	private Result<CallDispatch> packageCalls(Result<TCallable> callables,
+			final ModelSite<Call> senderCallSite) {
 
 		return callables.transformResult(new CallPackager(invokable,
 				senderCallSite));
 	}
 
-	private Result<Type> deriveParameterTypeFromCalls(
-			Result<uk.ac.ic.doc.gander.flowinference.call.Call> calls) {
+	private Result<Type> deriveParameterTypeFromCalls(Result<CallDispatch> calls) {
 
 		return calls.transformResult(new CallDancer(variable, goalManager));
 	}
@@ -369,9 +368,8 @@ final class CalledObjectFilter implements Transformer<Type, Result<TCallable>> {
 	}
 }
 
-final class CallPackager
-		implements
-		Transformer<TCallable, Result<uk.ac.ic.doc.gander.flowinference.call.Call>> {
+final class CallPackager implements
+		Transformer<TCallable, Result<CallDispatch>> {
 	private final ModelSite<Call> senderCallSite;
 	private final InvokableCodeObject invokable;
 
@@ -381,33 +379,31 @@ final class CallPackager
 	}
 
 	@Override
-	public Result<uk.ac.ic.doc.gander.flowinference.call.Call> transformFiniteResult(
+	public Result<CallDispatch> transformFiniteResult(
 			Set<TCallable> relevantCallables) {
 
-		Set<uk.ac.ic.doc.gander.flowinference.call.Call> calls = new HashSet<uk.ac.ic.doc.gander.flowinference.call.Call>();
+		Set<CallDispatch> calls = new HashSet<CallDispatch>();
 
 		for (TCallable callable : relevantCallables) {
-			calls.add(new DefaultCall(invokable, callable, senderCallSite));
+			calls.add(new DefaultCallDispatch(invokable, callable, senderCallSite));
 		}
 
-		return new FiniteResult<uk.ac.ic.doc.gander.flowinference.call.Call>(
-				calls);
+		return new FiniteResult<CallDispatch>(calls);
 	}
 
 	@Override
-	public Result<uk.ac.ic.doc.gander.flowinference.call.Call> transformInfiniteResult() {
-		return new Top<uk.ac.ic.doc.gander.flowinference.call.Call>() {
+	public Result<CallDispatch> transformInfiniteResult() {
+		return new Top<CallDispatch>() {
 
 			@Override
 			public String toString() {
-				return "⊤call";
+				return "⊤d";
 			}
 		};
 	}
 }
 
-final class CallDancer implements
-		Transformer<uk.ac.ic.doc.gander.flowinference.call.Call, Result<Type>> {
+final class CallDancer implements Transformer<CallDispatch, Result<Type>> {
 
 	private final Variable variable;
 	private final SubgoalManager goalManager;
@@ -418,12 +414,11 @@ final class CallDancer implements
 	}
 
 	@Override
-	public Result<Type> transformFiniteResult(
-			Set<uk.ac.ic.doc.gander.flowinference.call.Call> calls) {
+	public Result<Type> transformFiniteResult(Set<CallDispatch> calls) {
 
 		RedundancyEliminator<Type> type = new RedundancyEliminator<Type>();
 
-		for (uk.ac.ic.doc.gander.flowinference.call.Call call : calls) {
+		for (CallDispatch call : calls) {
 
 			Result<Argument> arguments = call.argumentsBoundToVariable(
 					variable, goalManager);

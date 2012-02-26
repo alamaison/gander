@@ -13,7 +13,7 @@ import uk.ac.ic.doc.gander.model.name_binding.Variable;
  * 
  * The code object receiving the call is already determined.
  */
-public interface Call {
+public interface CallDispatch {
 
 	/**
 	 * Returns the destinations to which the given argument is passed at this
