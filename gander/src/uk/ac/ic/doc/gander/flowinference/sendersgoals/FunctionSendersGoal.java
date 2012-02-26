@@ -73,12 +73,12 @@ final class FunctionSendersGoalSolver implements Processor<ModelSite<exprType>> 
 
 	private Result<ModelSite<Call>> callSites;
 
-	public FunctionSendersGoalSolver(InvokableCodeObject callable,
+	public FunctionSendersGoalSolver(InvokableCodeObject invokable,
 			SubgoalManager goalManager) {
 
 		Result<ModelSite<exprType>> callableObjectPositions = goalManager
 				.registerSubgoal(new FlowGoal(new CodeObjectDefinitionPosition(
-						callable)));
+						invokable)));
 		callableObjectPositions.actOnResult(this);
 	}
 
