@@ -2,6 +2,7 @@ package uk.ac.ic.doc.gander.model.parameters;
 
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import org.python.pydev.parser.jython.ast.NameTok;
@@ -9,7 +10,7 @@ import org.python.pydev.parser.jython.ast.argumentsType;
 
 import uk.ac.ic.doc.gander.flowinference.argument.Argument;
 import uk.ac.ic.doc.gander.flowinference.argument.ArgumentDestination;
-import uk.ac.ic.doc.gander.flowinference.callsite.InternalCallsite;
+import uk.ac.ic.doc.gander.flowinference.callframe.StackFrame;
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
 import uk.ac.ic.doc.gander.flowinference.flowgoals.FlowPosition;
 import uk.ac.ic.doc.gander.flowinference.flowgoals.TopFp;
@@ -55,44 +56,31 @@ final class StarargParameter implements FormalParameter {
 	}
 
 	@Override
-	public Set<Argument> argumentsPassedAtCall(InternalCallsite callsite,
+	public Set<Argument> argumentsPassedAtCall(StackFrame<Argument> callFrame,
 			SubgoalManager goalManager) {
 
-		Set<Argument> arguments = new HashSet<Argument>();
+		if (callFrame.includesUnknownPositions()) {
 
-		/*
-		 * The starargs parameter eats all the arguments passed to a position
-		 * equal or higher than the starargs parameter (basically the positions
-		 * where it has run out of positional parameters). So we ask keep asking
-		 * for positional arguments until there are no more to give (argument
-		 * becomes null)
-		 */
-		for (int i = starargIndex();; ++i) {
-			Argument argument = callsite.argumentExplicitlyPassedAtPosition(i);
-			if (argument != null) {
-				arguments.add(argument);
-			} else {
-				break;
-			}
-		}
+			/*
+			 * If the call includes arguments whose position is not known, we
+			 * give up because the stararg could contain anything.
+			 */
+			return Collections.<Argument> singleton(UnknownArgument.INSTANCE);
 
-		/*
-		 * Also, some or all of an expanded iterable argument's values may be
-		 * passed to the stararg parameter.
-		 * 
-		 * TODO: this is tricky because we should really keep track of the
-		 * offset into the expanded iterable somehow.
-		 */
-		Argument argument = callsite
-				.argumentThatCouldExpandIntoPosition(starargIndex());
-		if (argument != null) {
-			arguments.add(argument);
-		}
+		} else if (starargIndex() >= callFrame.knownPositions().size()) {
 
-		if (!arguments.isEmpty()) {
-			assert !arguments.contains(null);
-			return arguments;
+			/*
+			 * The starargs parameter eats all the arguments passed to a
+			 * position equal or higher than the starargs parameter (basically
+			 * the positions where it has run out of positional parameters).
+			 */
+
+			List<Argument> leftovers = callFrame.knownPositions().subList(
+					starargIndex(), callFrame.knownPositions().size());
+			return new HashSet<Argument>(leftovers);
+
 		} else {
+
 			/*
 			 * Even if nothing at the callsite ends up at the stararg, it must
 			 * still have a value. This is a default empty tuple.

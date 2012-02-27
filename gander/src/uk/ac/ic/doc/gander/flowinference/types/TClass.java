@@ -5,15 +5,17 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.python.pydev.parser.jython.ast.Call;
 import org.python.pydev.parser.jython.ast.exprType;
 
 import uk.ac.ic.doc.gander.flowinference.Namespace;
-import uk.ac.ic.doc.gander.flowinference.TopI;
 import uk.ac.ic.doc.gander.flowinference.argument.Argument;
 import uk.ac.ic.doc.gander.flowinference.argument.ArgumentDestination;
 import uk.ac.ic.doc.gander.flowinference.argument.CallsiteArgument;
 import uk.ac.ic.doc.gander.flowinference.argument.SelfCallsiteArgument;
+import uk.ac.ic.doc.gander.flowinference.call.CallDispatch;
+import uk.ac.ic.doc.gander.flowinference.call.TopD;
+import uk.ac.ic.doc.gander.flowinference.callframe.StackFrame;
+import uk.ac.ic.doc.gander.flowinference.callframe.StrategyBasedStackFrame;
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
 import uk.ac.ic.doc.gander.flowinference.flowgoals.FlowPosition;
 import uk.ac.ic.doc.gander.flowinference.flowgoals.TopFp;
@@ -24,7 +26,6 @@ import uk.ac.ic.doc.gander.flowinference.result.RedundancyEliminator;
 import uk.ac.ic.doc.gander.flowinference.result.Result;
 import uk.ac.ic.doc.gander.flowinference.result.Result.Processor;
 import uk.ac.ic.doc.gander.flowinference.result.Result.Transformer;
-import uk.ac.ic.doc.gander.flowinference.result.Top;
 import uk.ac.ic.doc.gander.flowinference.typegoals.expression.ExpressionTypeGoal;
 import uk.ac.ic.doc.gander.flowinference.typegoals.namespacename.NamespaceNameTypeGoal;
 import uk.ac.ic.doc.gander.model.Class;
@@ -32,8 +33,6 @@ import uk.ac.ic.doc.gander.model.Function;
 import uk.ac.ic.doc.gander.model.ModelSite;
 import uk.ac.ic.doc.gander.model.NamespaceName;
 import uk.ac.ic.doc.gander.model.codeobject.ClassCO;
-import uk.ac.ic.doc.gander.model.codeobject.InvokableCodeObject;
-import uk.ac.ic.doc.gander.model.parameters.FormalParameter;
 
 public class TClass implements TCodeObject, TCallable {
 
@@ -157,82 +156,6 @@ public class TClass implements TCodeObject, TCallable {
 		return classObject.fullyQualifiedNamespace();
 	}
 
-	@Override
-	public Result<Argument> argumentsPassedToParameter(
-			FormalParameter parameter, ModelSite<Call> callSite,
-			SubgoalManager goalManager) {
-
-		Result<Type> unboundInitMethodTypes = initMethodTypes(goalManager);
-
-		return unboundInitMethodTypes
-				.transformResult(new InitMethodArgumentPasser(parameter,
-						callSite, goalManager));
-	}
-
-	private class InitMethodArgumentPasser implements
-			Transformer<Type, Result<Argument>> {
-
-		private final FormalParameter parameter;
-		private final ModelSite<Call> callSite;
-		private final SubgoalManager goalManager;
-
-		InitMethodArgumentPasser(FormalParameter parameter,
-				ModelSite<Call> callSite, SubgoalManager goalManager) {
-			this.parameter = parameter;
-			this.callSite = callSite;
-			this.goalManager = goalManager;
-		}
-
-		@Override
-		public Result<Argument> transformFiniteResult(
-				Set<Type> unboundInitMethodTypes) {
-
-			RedundancyEliminator<Argument> arguments = new RedundancyEliminator<Argument>();
-
-			for (Type initType : unboundInitMethodTypes) {
-
-				if (initType instanceof TCallable) {
-
-					/*
-					 * The unbound init method has no idea what type it's self
-					 * argument might have. It knows nothing about self. For
-					 * that we need to bind it.
-					 */
-
-					TBoundMethod boundInitMethod = new TBoundMethod(
-							(TCallable) initType, new TObject(classObject));
-
-					arguments.add(boundInitMethod.argumentsPassedToParameter(
-							parameter, callSite, goalManager));
-				} else {
-					System.err.println("UNTYPABLE: __init__ member "
-							+ "appears not to be callable: " + initType);
-				}
-
-				if (arguments.isFinished()) {
-					break;
-				}
-			}
-
-			return arguments.result();
-		}
-
-		@Override
-		public Result<Argument> transformInfiniteResult() {
-			/*
-			 * Can't work out what __init__ implementations could be called so
-			 * we certainly can't work out the type of the self parameter
-			 */
-			return new Top<Argument>() {
-
-				@Override
-				public String toString() {
-					return "⊤a";
-				}
-			};
-		}
-	};
-
 	/**
 	 * {@inheritDoc}
 	 * 
@@ -269,7 +192,7 @@ public class TClass implements TCodeObject, TCallable {
 					"Goal manager required to resolve constructors");
 		}
 
-		Result<Type> initMethodTypes = initMethodTypes(goalManager);
+		Result<Type> initMethodTypes = initMemberTypes(goalManager);
 
 		return initMethodTypes.transformResult(new ReceivingParameterFinder(
 				argument, goalManager));
@@ -278,21 +201,21 @@ public class TClass implements TCodeObject, TCallable {
 	/**
 	 * {@inheritDoc}
 	 * 
-	 * The code object answering a call made on a class object may be any of the
-	 * code objects assigned to the {@code __init__} member of the code object's
-	 * namespace.
+	 * A call made on a class object is passed on to any of the objects assigned
+	 * to the {@code __init__} member of the class's namespace.
 	 */
 	@Override
-	public Result<InvokableCodeObject> codeObjectsInvokedByCall(
+	public Result<CallDispatch> dispatches(StackFrame<Argument> callFrame,
 			SubgoalManager goalManager) {
-		if (goalManager == null) {
+		if (callFrame == null)
+			throw new NullPointerException("Call frame required");
+		if (goalManager == null)
 			throw new NullPointerException("Goal manager required");
-		}
 
-		Result<Type> initObjects = initMethodTypes(goalManager);
+		Result<Type> initObjects = initMemberTypes(goalManager);
 
-		return initObjects
-				.transformResult(new InitCodeObjectFinder(goalManager));
+		return initObjects.transformResult(new InitDispatchFinder(callFrame,
+				classObject, goalManager));
 	}
 
 	/**
@@ -428,7 +351,7 @@ public class TClass implements TCodeObject, TCallable {
 	 * These are <em>not bound</em> to an instance of the class, they are the
 	 * unbound methods.
 	 */
-	private Result<Type> initMethodTypes(SubgoalManager goalManager) {
+	private Result<Type> initMemberTypes(SubgoalManager goalManager) {
 		return memberType("__init__", goalManager);
 	}
 
@@ -465,20 +388,25 @@ public class TClass implements TCodeObject, TCallable {
 
 }
 
-final class InitCodeObjectFinder implements
-		Transformer<Type, Result<InvokableCodeObject>> {
+final class InitDispatchFinder implements
+		Transformer<Type, Result<CallDispatch>> {
 
 	private final SubgoalManager goalManager;
+	private final StackFrame<Argument> callFrame;
+	private final ClassCO classObject;
 
-	InitCodeObjectFinder(SubgoalManager goalManager) {
+	InitDispatchFinder(StackFrame<Argument> callFrame, ClassCO classObject,
+			SubgoalManager goalManager) {
+		this.callFrame = callFrame;
+		this.classObject = classObject;
 		this.goalManager = goalManager;
 	}
 
 	@Override
-	public Result<InvokableCodeObject> transformFiniteResult(
+	public Result<CallDispatch> transformFiniteResult(
 			Set<Type> initImplementations) {
 
-		RedundancyEliminator<InvokableCodeObject> codeObjects = new RedundancyEliminator<InvokableCodeObject>();
+		RedundancyEliminator<CallDispatch> dispatches = new RedundancyEliminator<CallDispatch>();
 
 		for (Type initType : initImplementations) {
 
@@ -494,27 +422,38 @@ final class InitCodeObjectFinder implements
 
 			if (initType instanceof TCallable) {
 
-				codeObjects.add(((TCallable) initType)
-						.codeObjectsInvokedByCall(goalManager));
+				/*
+				 * The __init__ object is not a bound method (at least, not
+				 * bound to us) so we bind it here.
+				 * 
+				 * FIXME: This doesn't quite work like Python if the __init__
+				 * implementation was anything other than a plain function
+				 */
+				StackFrame<Argument> constructorCall = new StrategyBasedStackFrame(
+						callFrame, new MethodStylePassingStrategy(new TObject(
+								classObject)));
+
+				dispatches.add(((TCallable) initType).dispatches(
+						constructorCall, goalManager));
 
 			} else {
 				System.err.println("UNTYPABLE: __init__ member "
 						+ "appears to be implemented by a non-callable: "
 						+ initType);
-				return TopI.INSTANCE;
+				return TopD.INSTANCE;
 			}
 
-			if (codeObjects.isFinished()) {
+			if (dispatches.isFinished()) {
 				break;
 			}
 		}
 
-		return codeObjects.result();
+		return dispatches.result();
 	}
 
 	@Override
-	public Result<InvokableCodeObject> transformInfiniteResult() {
-		return TopI.INSTANCE;
+	public Result<CallDispatch> transformInfiniteResult() {
+		return TopD.INSTANCE;
 	}
 
 }

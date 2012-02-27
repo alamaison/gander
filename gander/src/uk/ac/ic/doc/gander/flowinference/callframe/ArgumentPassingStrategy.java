@@ -1,4 +1,4 @@
-package uk.ac.ic.doc.gander.flowinference.callsite;
+package uk.ac.ic.doc.gander.flowinference.callframe;
 
 import uk.ac.ic.doc.gander.flowinference.argument.Argument;
 

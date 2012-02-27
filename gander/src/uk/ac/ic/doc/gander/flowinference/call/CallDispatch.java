@@ -1,7 +1,6 @@
 package uk.ac.ic.doc.gander.flowinference.call;
 
 import uk.ac.ic.doc.gander.flowinference.argument.Argument;
-import uk.ac.ic.doc.gander.flowinference.argument.ArgumentDestination;
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
 import uk.ac.ic.doc.gander.flowinference.result.Result;
 import uk.ac.ic.doc.gander.model.name_binding.Variable;
@@ -23,8 +22,8 @@ public interface CallDispatch {
 	 * in the case of calling a class constructor where the constructor has been
 	 * multiply defined, there may be more than one receiving parameter.
 	 */
-	Result<ArgumentDestination> destinationsReceivingArgument(
-			Argument argument, SubgoalManager goalManager);
+	// Result<ArgumentDestination> destinationsReceivingArgument(
+	// Argument argument, SubgoalManager goalManager);
 
 	/**
 	 * Return the arguments that are passed to a parameter that binds them to
@@ -60,4 +59,6 @@ public interface CallDispatch {
 	 */
 	Result<Argument> argumentsBoundToVariable(Variable variable,
 			SubgoalManager goalManager);
+
+	Object receiver();
 }

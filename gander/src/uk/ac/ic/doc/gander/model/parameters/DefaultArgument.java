@@ -41,13 +41,13 @@ final class DefaultArgument implements Argument {
 	}
 
 	@Override
-	public boolean mayExpandIntoPosition(int position) {
+	public boolean mayExpandIntoPosition() {
 		// TODO Auto-generated method stub
 		return false;
 	}
 
 	@Override
-	public boolean mayExpandIntoKeyword(String keyword) {
+	public boolean mayExpandIntoKeyword() {
 		// TODO Auto-generated method stub
 		return false;
 	}

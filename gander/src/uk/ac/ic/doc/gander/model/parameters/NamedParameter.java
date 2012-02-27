@@ -1,7 +1,6 @@
 package uk.ac.ic.doc.gander.model.parameters;
 
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.Set;
 
 import org.python.pydev.parser.jython.ast.Name;
@@ -9,7 +8,8 @@ import org.python.pydev.parser.jython.ast.exprType;
 
 import uk.ac.ic.doc.gander.flowinference.argument.Argument;
 import uk.ac.ic.doc.gander.flowinference.argument.ArgumentDestination;
-import uk.ac.ic.doc.gander.flowinference.callsite.InternalCallsite;
+import uk.ac.ic.doc.gander.flowinference.argument.NullArgument;
+import uk.ac.ic.doc.gander.flowinference.callframe.StackFrame;
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
 import uk.ac.ic.doc.gander.flowinference.flowgoals.FlowPosition;
 import uk.ac.ic.doc.gander.flowinference.flowgoals.expressionflow.ExpressionPosition;
@@ -64,67 +64,68 @@ final class NamedParameter implements FormalParameter {
 	}
 
 	@Override
-	public Set<Argument> argumentsPassedAtCall(InternalCallsite callSite,
+	public Set<Argument> argumentsPassedAtCall(StackFrame<Argument> callFrame,
 			SubgoalManager goalManager) {
 
-		/*
-		 * Positional arguments are given a chance to pass to this parameter
-		 * first
-		 */
-		Argument argument = callSite.argumentExplicitlyPassedAtPosition(index);
-		if (argument == null) {
+		if (index < callFrame.knownPositions().size()) {
+
+			/*
+			 * Positional arguments are given a chance to pass to this parameter
+			 * first
+			 */
+			Argument argument = callFrame.knownPositions().get(index);
+
+			if (callFrame.knownKeywords().containsKey(name())) {
+				System.err.println("PROGRAM ERROR: cannot pass an argument "
+						+ "by position and keyword to the same parameter");
+			}
+
+			return Collections.singleton(argument);
+
+		} else if (callFrame.knownKeywords().containsKey(name())) {
 
 			/* Next explicit keywords get a go */
-			argument = callSite.argumentExplicitlyPassedToKeyword(name());
+			Argument argument = callFrame.knownKeywords().get(name());
 
-		} else if (callSite.argumentExplicitlyPassedToKeyword(name()) != null) {
-
-			System.err.println("PROGRAM ERROR: cannot pass an argument "
-					+ "by position and keyword to the same parameter");
-		}
-
-		if (argument != null) {
 			return Collections.singleton(argument);
+
 		} else {
 
 			/*
 			 * When neither an explicit positional nor keyword argument is
-			 * passed, any of the remaining argument types could potentially
-			 * arrive at this parameter (it is decided at runtime) so we combine
-			 * them.
+			 * passed, any of the unknown positional or keyword arguments could
+			 * potentially arrive at this parameter (it is decided at runtime).
+			 * If so, we give up as we have no idea what it is.
 			 */
 
-			Set<Argument> arguments = new HashSet<Argument>();
-
-			/* Perhaps an argument was passed using an unpacked iterable */
-			argument = callSite.argumentThatCouldExpandIntoPosition(index);
-			if (argument != null) {
-				arguments.add(argument);
-			}
-
-			/* Or perhaps there's an unpacked dictionary argument */
-			argument = callSite.argumentThatCouldExpandIntoKeyword(name());
-			if (argument != null) {
-				arguments.add(argument);
-			}
-
-			/*
-			 * We've exhausted arguments passed at the callsite. Now default
-			 * arguments come into play.
-			 */
-			if (defaultValue() != null) {
-				arguments.add(new DefaultArgument(defaultValue()));
+			if (callFrame.includesUnknownPositions()
+					|| callFrame.includesUnknownPositions()) {
+				return Collections
+						.<Argument> singleton(UnknownArgument.INSTANCE);
 			} else {
-				/*
-				 * Big no-no. We've run out of argument and there is no default
-				 * to plug the gap. The program is wrong.
-				 */
-				System.err
-						.println("PROGRAM ERROR: Too few arguments passed to "
-								+ parameter.codeObject() + " at " + callSite);
-			}
 
-			return arguments;
+				/*
+				 * We've exhausted arguments passed at the callsite. Now default
+				 * arguments come into play.
+				 */
+				if (defaultValue() != null) {
+					return Collections
+							.<Argument> singleton(new DefaultArgument(
+									defaultValue()));
+				} else {
+					/*
+					 * Big no-no. We've run out of argument and there is no
+					 * default to plug the gap. The program is wrong.
+					 */
+					System.err
+							.println("PROGRAM ERROR: Too few arguments passed to "
+									+ parameter.codeObject()
+									+ " at "
+									+ callFrame);
+					return Collections
+							.<Argument> singleton(NullArgument.INSTANCE);
+				}
+			}
 		}
 
 	}

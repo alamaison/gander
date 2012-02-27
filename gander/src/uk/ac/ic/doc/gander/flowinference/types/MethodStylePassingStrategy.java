@@ -2,7 +2,7 @@ package uk.ac.ic.doc.gander.flowinference.types;
 
 import uk.ac.ic.doc.gander.flowinference.argument.Argument;
 import uk.ac.ic.doc.gander.flowinference.argument.SelfArgument;
-import uk.ac.ic.doc.gander.flowinference.callsite.ArgumentPassingStrategy;
+import uk.ac.ic.doc.gander.flowinference.callframe.ArgumentPassingStrategy;
 
 /**
  * Model of the characteristics of passing arguments to a procedure using a

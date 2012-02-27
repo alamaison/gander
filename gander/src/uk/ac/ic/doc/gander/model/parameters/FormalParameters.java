@@ -76,6 +76,9 @@ public final class FormalParameters {
 	 * value to the given variable name.
 	 */
 	public boolean hasVariableBindingParameter(Variable variable) {
+		if (variable == null)
+			throw new NullPointerException("Variable required");
+
 		return findVariableBindingParameter(variable) != null;
 	}
 
@@ -83,6 +86,8 @@ public final class FormalParameters {
 	 * Returns the parameter that will bind a value to the given variable name.
 	 */
 	public FormalParameter variableBindingParameter(Variable variable) {
+		if (variable == null)
+			throw new NullPointerException("Variable required");
 
 		FormalParameter p = findVariableBindingParameter(variable);
 		if (p != null) {

@@ -2,7 +2,7 @@ package uk.ac.ic.doc.gander.flowinference.argument;
 
 import org.python.pydev.parser.jython.ast.exprType;
 
-import uk.ac.ic.doc.gander.flowinference.callsite.ArgumentPassingStrategy;
+import uk.ac.ic.doc.gander.flowinference.callframe.ArgumentPassingStrategy;
 import uk.ac.ic.doc.gander.model.ModelSite;
 
 /**
@@ -40,6 +40,10 @@ final class ExplicitPositionalCallsiteArgument implements
 
 		return new ExplicitPositionalArgument(argument,
 				argumentMapper.realPosition(position));
+	}
+
+	int position() {
+		return position;
 	}
 
 	@Override

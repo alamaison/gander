@@ -1,6 +1,6 @@
 package uk.ac.ic.doc.gander.flowinference.argument;
 
-import uk.ac.ic.doc.gander.flowinference.callsite.ArgumentPassingStrategy;
+import uk.ac.ic.doc.gander.flowinference.callframe.ArgumentPassingStrategy;
 
 /**
  * Models the magical self argument passed in the case of calling a bound object

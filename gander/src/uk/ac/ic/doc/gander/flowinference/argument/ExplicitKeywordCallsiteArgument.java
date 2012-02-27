@@ -4,7 +4,7 @@ import org.python.pydev.parser.jython.ast.NameTok;
 import org.python.pydev.parser.jython.ast.exprType;
 import org.python.pydev.parser.jython.ast.keywordType;
 
-import uk.ac.ic.doc.gander.flowinference.callsite.ArgumentPassingStrategy;
+import uk.ac.ic.doc.gander.flowinference.callframe.ArgumentPassingStrategy;
 import uk.ac.ic.doc.gander.model.ModelSite;
 
 /**
@@ -28,11 +28,10 @@ final class ExplicitKeywordCallsiteArgument implements KeywordCallsiteArgument {
 	@Override
 	public Argument mapToActualArgument(ArgumentPassingStrategy argumentMapper) {
 		keywordType node = argument.astNode();
-		String keyword = ((NameTok) node.arg).id;
 		ModelSite<exprType> value = new ModelSite<exprType>(node.value,
 				argument.codeObject());
 
-		return new ExplicitKeywordArgument(keyword, value);
+		return new ExplicitKeywordArgument(keyword(), value);
 	}
 
 	@Override
@@ -59,6 +58,11 @@ final class ExplicitKeywordCallsiteArgument implements KeywordCallsiteArgument {
 		} else if (!argument.equals(other.argument))
 			return false;
 		return true;
+	}
+
+	String keyword() {
+		keywordType node = argument.astNode();
+		return ((NameTok) node.arg).id;
 	}
 
 	@Override

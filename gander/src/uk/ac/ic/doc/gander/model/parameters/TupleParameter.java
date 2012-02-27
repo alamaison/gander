@@ -1,5 +1,6 @@
 package uk.ac.ic.doc.gander.model.parameters;
 
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -11,7 +12,8 @@ import org.python.pydev.parser.jython.ast.exprType;
 
 import uk.ac.ic.doc.gander.flowinference.argument.Argument;
 import uk.ac.ic.doc.gander.flowinference.argument.ArgumentDestination;
-import uk.ac.ic.doc.gander.flowinference.callsite.InternalCallsite;
+import uk.ac.ic.doc.gander.flowinference.argument.NullArgument;
+import uk.ac.ic.doc.gander.flowinference.callframe.StackFrame;
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
 import uk.ac.ic.doc.gander.model.ModelSite;
 import uk.ac.ic.doc.gander.model.codeobject.InvokableCodeObject;
@@ -94,29 +96,37 @@ final class TupleParameter implements FormalParameter {
 	}
 
 	@Override
-	public Set<Argument> argumentsPassedAtCall(InternalCallsite callsite,
+	public Set<Argument> argumentsPassedAtCall(StackFrame<Argument> callFrame,
 			SubgoalManager goalManager) {
 
-		Set<Argument> arguments = new HashSet<Argument>();
+		if (index < callFrame.knownPositions().size()) {
 
-		Argument argument = callsite.argumentExplicitlyPassedAtPosition(index);
-		if (argument != null) {
-			arguments.add(argument);
+			return Collections.singleton(callFrame.knownPositions().get(index));
+
+		} else if (callFrame.includesUnknownPositions()) {
+
+			return Collections.<Argument> singleton(UnknownArgument.INSTANCE);
+
 		} else if (defaultValue != null) {
 			/*
-			 * Default arguments are added regardless of whether there is an
-			 * expanded iterable that may pass something here because we can't
-			 * be sure it will statically.
+			 * Default arguments are (theoretically) added regardless of whether
+			 * there is an expanded iterable that may pass something here
+			 * because we can't be sure it will statically. We don't do that
+			 * here because the expanded iterable already made us give up
+			 * trying.
 			 */
-			arguments.add(new DefaultArgument(defaultValue));
-		}
+			return Collections.<Argument> singleton(new DefaultArgument(
+					defaultValue));
+		} else {
 
-		argument = callsite.argumentThatCouldExpandIntoPosition(index);
-		if (argument != null) {
-			arguments.add(argument);
+			/*
+			 * Big no-no. We've run out of argument and there is no default to
+			 * plug the gap. The program is wrong.
+			 */
+			System.err.println("PROGRAM ERROR: Too few arguments passed to "
+					+ parameter.codeObject() + " at " + callFrame);
+			return Collections.<Argument> singleton(NullArgument.INSTANCE);
 		}
-
-		return arguments;
 	}
 
 	@Override

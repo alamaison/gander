@@ -8,7 +8,7 @@ import org.python.pydev.parser.jython.ast.argumentsType;
 
 import uk.ac.ic.doc.gander.flowinference.argument.Argument;
 import uk.ac.ic.doc.gander.flowinference.argument.ArgumentDestination;
-import uk.ac.ic.doc.gander.flowinference.callsite.InternalCallsite;
+import uk.ac.ic.doc.gander.flowinference.callframe.StackFrame;
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
 import uk.ac.ic.doc.gander.flowinference.flowgoals.FlowPosition;
 import uk.ac.ic.doc.gander.flowinference.flowgoals.TopFp;
@@ -60,7 +60,7 @@ final class KwargParameter implements FormalParameter {
 	}
 
 	@Override
-	public Set<Argument> argumentsPassedAtCall(InternalCallsite callsite,
+	public Set<Argument> argumentsPassedAtCall(StackFrame<Argument> callFrame,
 			SubgoalManager goalManager) {
 		return Collections.emptySet();
 	}

@@ -21,9 +21,9 @@ public interface Argument {
 
 	boolean isPassedByKeyword(String keyword);
 
-	boolean mayExpandIntoPosition(int position);
+	boolean mayExpandIntoPosition();
 
-	boolean mayExpandIntoKeyword(String keyword);
+	boolean mayExpandIntoKeyword();
 
 	/**
 	 * FIXME: You can't really take the type of the argument, for example, what

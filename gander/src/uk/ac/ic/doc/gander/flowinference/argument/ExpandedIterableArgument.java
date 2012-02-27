@@ -48,14 +48,12 @@ final class ExpandedIterableArgument implements PositionalArgument {
 	}
 
 	@Override
-	public boolean mayExpandIntoPosition(int position) {
-		// FIXME: should look at other arguments, each binding name can only
-		// have one source argument
+	public boolean mayExpandIntoPosition() {
 		return true;
 	}
 
 	@Override
-	public boolean mayExpandIntoKeyword(String keyword) {
+	public boolean mayExpandIntoKeyword() {
 		return false;
 	}
 

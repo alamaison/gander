@@ -1,16 +1,13 @@
 package uk.ac.ic.doc.gander.flowinference.types;
 
-import org.python.pydev.parser.jython.ast.Call;
-
 import uk.ac.ic.doc.gander.flowinference.argument.Argument;
 import uk.ac.ic.doc.gander.flowinference.argument.ArgumentDestination;
 import uk.ac.ic.doc.gander.flowinference.argument.CallsiteArgument;
+import uk.ac.ic.doc.gander.flowinference.call.CallDispatch;
+import uk.ac.ic.doc.gander.flowinference.callframe.StackFrame;
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
 import uk.ac.ic.doc.gander.flowinference.flowgoals.FlowPosition;
 import uk.ac.ic.doc.gander.flowinference.result.Result;
-import uk.ac.ic.doc.gander.model.ModelSite;
-import uk.ac.ic.doc.gander.model.codeobject.InvokableCodeObject;
-import uk.ac.ic.doc.gander.model.parameters.FormalParameter;
 
 public interface TCallable extends Type {
 
@@ -21,39 +18,6 @@ public interface TCallable extends Type {
 	 *            allows us to determine the return type using type inference
 	 */
 	Result<Type> returnType(SubgoalManager goalManager);
-
-	/**
-	 * Return the arguments that are passed to the given parameter when called
-	 * from the given call-site.
-	 * 
-	 * The parameter must belong to one of the code objects that receives calls
-	 * to this callable.
-	 * 
-	 * The argument may be one of the arguments passed to the call, one of the
-	 * default arguments in the callable's declaration or (in the case of method
-	 * calls) the type of the bound objects whose method is being invoked.
-	 * 
-	 * This will almost always be a single argument (as the receiver, the formal
-	 * parameter, is already know). There <em>may</em> be an exceedingly unusal
-	 * case where there could be more than one argument: if the object being
-	 * called invokes the same code object but in different ways; once as, say,
-	 * a plain function and another time as a bound method. We weren't able to
-	 * reproduce any such case.
-	 * 
-	 * The main reason for returning a {@link Result} here rather than a single
-	 * argument is for the case where we couldn't determine the argument at all,
-	 * in which case we return an infinite result.
-	 * 
-	 * @param parameter
-	 *            the parameter declared in one of the callable's responding
-	 *            code objects
-	 * @param callSite
-	 *            an expression known to result in a call to this callable
-	 * @param goalManager
-	 *            allows us to solve the argument mapping using type inference
-	 */
-	Result<Argument> argumentsPassedToParameter(FormalParameter parameter,
-			ModelSite<Call> callSite, SubgoalManager goalManager);
 
 	/**
 	 * Returns the destinations to which the given argument is passed when
@@ -83,13 +47,6 @@ public interface TCallable extends Type {
 			Argument argument, SubgoalManager goalManager);
 
 	/**
-	 * Returns the codeObjects that might be invoked when this type of callable
-	 * object is called.
-	 */
-	Result<InvokableCodeObject> codeObjectsInvokedByCall(
-			SubgoalManager goalManager);
-
-	/**
 	 * Returns the flow positions that the result of calling an object of this
 	 * type can flow to in one step purely by virtue of being the result of a
 	 * call.
@@ -112,5 +69,20 @@ public interface TCallable extends Type {
 	 * In other words, where does the magically-inserted self argument flow.
 	 */
 	Result<FlowPosition> flowPositionsOfHiddenSelfArgument(
+			SubgoalManager goalManager);
+
+	/**
+	 * Returns the runtime calls that might be made when this callable object is
+	 * called.
+	 * 
+	 * @param callFrame
+	 *            the stack frame containing the arguments passed to the object
+	 *            when called; these may be modified before they appear at the
+	 *            receiving code object
+	 * @param goalManager
+	 *            the type inference engine as resolving when the call is
+	 *            dispatched requires type inference
+	 */
+	Result<CallDispatch> dispatches(StackFrame<Argument> callFrame,
 			SubgoalManager goalManager);
 }

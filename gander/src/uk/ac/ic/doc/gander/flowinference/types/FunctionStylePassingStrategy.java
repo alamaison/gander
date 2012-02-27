@@ -1,13 +1,14 @@
 package uk.ac.ic.doc.gander.flowinference.types;
 
 import uk.ac.ic.doc.gander.flowinference.argument.Argument;
-import uk.ac.ic.doc.gander.flowinference.callsite.ArgumentPassingStrategy;
+import uk.ac.ic.doc.gander.flowinference.callframe.ArgumentPassingStrategy;
 
 /**
  * Model of the characteristics of passing arguments to a procedure using a
  * function-style mechanism.
  */
-final class FunctionStylePassingStrategy implements ArgumentPassingStrategy {
+public final class FunctionStylePassingStrategy implements
+		ArgumentPassingStrategy {
 
 	@Override
 	public int realPosition(int position) {

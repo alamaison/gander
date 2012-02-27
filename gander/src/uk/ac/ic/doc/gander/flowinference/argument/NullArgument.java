@@ -10,7 +10,7 @@ import uk.ac.ic.doc.gander.model.codeobject.InvokableCodeObject;
 /**
  * A special argument that really signifies a value that isn't passed at all.
  */
-enum NullArgument implements Argument {
+public enum NullArgument implements Argument {
 
 	INSTANCE;
 
@@ -38,12 +38,12 @@ enum NullArgument implements Argument {
 	}
 
 	@Override
-	public boolean mayExpandIntoPosition(int position) {
+	public boolean mayExpandIntoPosition() {
 		return false;
 	}
 
 	@Override
-	public boolean mayExpandIntoKeyword(String keyword) {
+	public boolean mayExpandIntoKeyword() {
 		return false;
 	}
 

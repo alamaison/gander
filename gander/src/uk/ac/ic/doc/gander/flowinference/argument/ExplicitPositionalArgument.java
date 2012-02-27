@@ -71,12 +71,12 @@ final class ExplicitPositionalArgument implements PositionalArgument {
 	}
 
 	@Override
-	public boolean mayExpandIntoPosition(int position) {
+	public boolean mayExpandIntoPosition() {
 		return false;
 	}
 
 	@Override
-	public boolean mayExpandIntoKeyword(String keyword) {
+	public boolean mayExpandIntoKeyword() {
 		return false;
 	}
 

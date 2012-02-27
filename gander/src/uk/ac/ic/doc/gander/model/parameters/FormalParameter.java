@@ -4,7 +4,7 @@ import java.util.Set;
 
 import uk.ac.ic.doc.gander.flowinference.argument.Argument;
 import uk.ac.ic.doc.gander.flowinference.argument.ArgumentDestination;
-import uk.ac.ic.doc.gander.flowinference.callsite.InternalCallsite;
+import uk.ac.ic.doc.gander.flowinference.callframe.StackFrame;
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
 import uk.ac.ic.doc.gander.model.codeobject.InvokableCodeObject;
 import uk.ac.ic.doc.gander.model.name_binding.Variable;
@@ -17,7 +17,7 @@ public interface FormalParameter {
 
 	Set<Variable> boundVariables();
 
-	Set<Argument> argumentsPassedAtCall(InternalCallsite callsite,
+	Set<Argument> argumentsPassedAtCall(StackFrame<Argument> callsite,
 			SubgoalManager goalManager);
 
 	/**

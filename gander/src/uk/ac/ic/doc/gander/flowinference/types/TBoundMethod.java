@@ -2,23 +2,19 @@ package uk.ac.ic.doc.gander.flowinference.types;
 
 import java.util.Set;
 
-import org.python.pydev.parser.jython.ast.Call;
-
 import uk.ac.ic.doc.gander.flowinference.Namespace;
 import uk.ac.ic.doc.gander.flowinference.argument.Argument;
 import uk.ac.ic.doc.gander.flowinference.argument.ArgumentDestination;
 import uk.ac.ic.doc.gander.flowinference.argument.CallsiteArgument;
 import uk.ac.ic.doc.gander.flowinference.argument.SelfCallsiteArgument;
-import uk.ac.ic.doc.gander.flowinference.callsite.InternalCallsite;
-import uk.ac.ic.doc.gander.flowinference.callsite.StrategyBasedInternalCallsite;
+import uk.ac.ic.doc.gander.flowinference.call.CallDispatch;
+import uk.ac.ic.doc.gander.flowinference.callframe.StackFrame;
+import uk.ac.ic.doc.gander.flowinference.callframe.StrategyBasedStackFrame;
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
 import uk.ac.ic.doc.gander.flowinference.flowgoals.FlowPosition;
 import uk.ac.ic.doc.gander.flowinference.flowgoals.expressionflow.ReceivingParameterPositioner;
 import uk.ac.ic.doc.gander.flowinference.result.FiniteResult;
 import uk.ac.ic.doc.gander.flowinference.result.Result;
-import uk.ac.ic.doc.gander.model.ModelSite;
-import uk.ac.ic.doc.gander.model.codeobject.InvokableCodeObject;
-import uk.ac.ic.doc.gander.model.parameters.FormalParameter;
 
 public final class TBoundMethod implements TCallable {
 
@@ -86,20 +82,6 @@ public final class TBoundMethod implements TCallable {
 		return null;
 	}
 
-	@Override
-	public Result<Argument> argumentsPassedToParameter(
-			FormalParameter parameter, ModelSite<Call> callSite,
-			SubgoalManager goalManager) {
-
-		InternalCallsite methodCall = new StrategyBasedInternalCallsite(
-				callSite, new MethodStylePassingStrategy(instance));
-
-		Set<Argument> arguments = parameter.argumentsPassedAtCall(methodCall,
-				goalManager);
-
-		return new FiniteResult<Argument>(arguments);
-	}
-
 	/**
 	 * {@inheritDoc}
 	 * 
@@ -140,9 +122,13 @@ public final class TBoundMethod implements TCallable {
 	}
 
 	@Override
-	public Result<InvokableCodeObject> codeObjectsInvokedByCall(
+	public Result<CallDispatch> dispatches(StackFrame<Argument> callFrame,
 			SubgoalManager goalManager) {
-		return unboundMethod.codeObjectsInvokedByCall(goalManager);
+
+		StackFrame<Argument> methodCall = new StrategyBasedStackFrame(callFrame,
+				new MethodStylePassingStrategy(instance));
+
+		return unboundMethod.dispatches(methodCall, goalManager);
 	}
 
 	@Override

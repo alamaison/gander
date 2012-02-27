@@ -8,7 +8,9 @@ import org.python.pydev.parser.jython.ast.exprType;
 
 import uk.ac.ic.doc.gander.flowinference.argument.Argument;
 import uk.ac.ic.doc.gander.flowinference.call.CallDispatch;
-import uk.ac.ic.doc.gander.flowinference.call.DefaultCallDispatch;
+import uk.ac.ic.doc.gander.flowinference.call.TopD;
+import uk.ac.ic.doc.gander.flowinference.callframe.CallSiteStackFrame;
+import uk.ac.ic.doc.gander.flowinference.callframe.StackFrame;
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
 import uk.ac.ic.doc.gander.flowinference.result.Concentrator;
 import uk.ac.ic.doc.gander.flowinference.result.Concentrator.DatumProcessor;
@@ -16,7 +18,6 @@ import uk.ac.ic.doc.gander.flowinference.result.FiniteResult;
 import uk.ac.ic.doc.gander.flowinference.result.RedundancyEliminator;
 import uk.ac.ic.doc.gander.flowinference.result.Result;
 import uk.ac.ic.doc.gander.flowinference.result.Result.Transformer;
-import uk.ac.ic.doc.gander.flowinference.result.Top;
 import uk.ac.ic.doc.gander.flowinference.sendersgoals.FunctionSendersGoal;
 import uk.ac.ic.doc.gander.flowinference.typegoals.TopT;
 import uk.ac.ic.doc.gander.flowinference.typegoals.expression.ExpressionTypeGoal;
@@ -67,14 +68,16 @@ final class ParameterTypeGoalSolver {
 		Result<Type> callSiteTypes = inferObjectsCalledAtCallSite(senderCallSite);
 
 		/*
-		 * But now there may be all sorts of other objects in here that don't
-		 * invoke our code object when they are called. For example, if the
-		 * callsite that we tracked our code object's flow to is polymorphic and
-		 * also invokes other code objects.
+		 * But now we have all the objects syntactic call-site. Some of these
+		 * may invoke more than just our code object (an object whose call
+		 * reciever is decidable at runtime such as __init__ or __call__). Some
+		 * may not invoke our code object at all (a polymorphic call-site).
 		 * 
-		 * We filter those out now.
+		 * The calls we care about are those that are dispatched to our code
+		 * object. We extract those now.
 		 */
-		Result<TCallable> callables = filterOutUnrelatedObjects(callSiteTypes);
+		Result<CallDispatch> calls = extractRelevantCalls(callSiteTypes,
+				senderCallSite);
 
 		/*
 		 * Finally we can get on to inferring the type of the parameter. This
@@ -86,12 +89,7 @@ final class ParameterTypeGoalSolver {
 		 * call-site and each call affects the parameter type differently so the
 		 * code object receiver and the object it is being called as part of are
 		 * packaged up along with the call-site itself (for its arguments) as a
-		 * Call object that takes care of coordinating the dance.
-		 */
-		Result<CallDispatch> calls = packageCalls(callables, senderCallSite);
-
-		/*
-		 * Dance.
+		 * CallDispatch object that takes care of coordinating the dance.
 		 */
 		return deriveParameterTypeFromCalls(calls);
 	}
@@ -112,18 +110,11 @@ final class ParameterTypeGoalSolver {
 						.codeObject())));
 	}
 
-	private Result<TCallable> filterOutUnrelatedObjects(
-			Result<Type> callSiteTypes) {
+	private Result<CallDispatch> extractRelevantCalls(
+			Result<Type> callSiteTypes, ModelSite<Call> senderCallSite) {
 
-		return callSiteTypes.transformResult(new CalledObjectFilter(invokable,
-				goalManager));
-	}
-
-	private Result<CallDispatch> packageCalls(Result<TCallable> callables,
-			final ModelSite<Call> senderCallSite) {
-
-		return callables.transformResult(new CallPackager(invokable,
-				senderCallSite));
+		return callSiteTypes.transformResult(new RelevantCallFilter(invokable,
+				senderCallSite, goalManager));
 	}
 
 	private Result<Type> deriveParameterTypeFromCalls(Result<CallDispatch> calls) {
@@ -180,75 +171,56 @@ final class CalledObjectTyper implements DatumProcessor<ModelSite<Call>, Type> {
 };
 
 /**
- * Filters objects to include only those that can invoke the given code object.
+ * Extracts only relevant call from the callable objects.
  */
-final class CalledObjectFilter implements Transformer<Type, Result<TCallable>> {
+final class RelevantCallFilter implements
+		Transformer<Type, Result<CallDispatch>> {
 
 	private final InvokableCodeObject invokable;
 	private final SubgoalManager goalManager;
+	private final ModelSite<Call> senderCallSite;
 
-	CalledObjectFilter(InvokableCodeObject invokable, SubgoalManager goalManager) {
+	RelevantCallFilter(InvokableCodeObject invokable,
+			ModelSite<Call> senderCallSite, SubgoalManager goalManager) {
+		assert senderCallSite != null;
 		assert invokable != null;
 		assert goalManager != null;
 
 		this.invokable = invokable;
+		this.senderCallSite = senderCallSite;
 		this.goalManager = goalManager;
 	}
 
-	private class TopCallable extends Top<TCallable> {
-
-		@Override
-		public String toString() {
-			return "⊤callable";
-		}
-	}
-
 	@Override
-	public Result<TCallable> transformFiniteResult(Set<Type> objectsAtCallSite) {
+	public Result<CallDispatch> transformFiniteResult(
+			Set<Type> objectsAtCallSite) {
 
-		Set<TCallable> contributingCallables = new HashSet<TCallable>();
+		RedundancyEliminator<CallDispatch> calls = new RedundancyEliminator<CallDispatch>();
 
 		for (Type calledObject : objectsAtCallSite) {
 
 			if (calledObject instanceof TCallable) {
 
-				TCallable callable = (TCallable) calledObject;
-
-				switch (callingObjectMightInvokeOurCodeObject(callable)) {
-				case YES:
-					contributingCallables.add(callable);
-					break;
-
-				case NO:
-					/*
-					 * calling this callable never results in our code object
-					 * being invoked so it doesn't contribute to the type of the
-					 * parameter's bindings.
-					 */
-					break;
-
-				case NOT_A_CLUE:
-					return new TopCallable();
-
-				default:
-					throw new AssertionError();
-				}
+				calls.add(callsThatMightInvokeOurCodeObject((TCallable) calledObject));
 
 			} else {
 				System.err.println("UNTYPABLE: call site isn't "
 						+ "calling a callable: " + calledObject);
 			}
+
+			if (calls.isFinished())
+				break;
 		}
 
-		return new FiniteResult<TCallable>(contributingCallables);
+		return calls.result();
 	}
 
 	@Override
-	public Result<TCallable> transformInfiniteResult() {
+	public Result<CallDispatch> transformInfiniteResult() {
 		/*
-		 * No idea how we are being called so don't know what our parameter is
+		 * No idea how we are being called.
 		 */
-		return new TopCallable();
+		return TopD.INSTANCE;
 		/*
 		 * TODO: could take the union of the types of all the arguments passed
 		 * at the callsite as it is only which of them that gets passed that we
@@ -256,73 +228,41 @@ final class CalledObjectFilter implements Transformer<Type, Result<TCallable>> {
 		 */
 	}
 
-	private enum ObjectIsRelevant {
-		YES, NO, NOT_A_CLUE
-	}
-
-	private ObjectIsRelevant callingObjectMightInvokeOurCodeObject(
+	private Result<CallDispatch> callsThatMightInvokeOurCodeObject(
 			TCallable object) {
 
-		return object.codeObjectsInvokedByCall(goalManager).transformResult(
-				new Transformer<InvokableCodeObject, ObjectIsRelevant>() {
+		StackFrame<Argument> call = new CallSiteStackFrame(senderCallSite);
+
+		return object.dispatches(call, goalManager).transformResult(
+				new Transformer<CallDispatch, Result<CallDispatch>>() {
 
 					@Override
-					public ObjectIsRelevant transformFiniteResult(
-							Set<InvokableCodeObject> codeObjectsInvokedByCall) {
+					public Result<CallDispatch> transformFiniteResult(
+							Set<CallDispatch> dispatches) {
 
-						if (codeObjectsInvokedByCall.contains(invokable)) {
-							return ObjectIsRelevant.YES;
-						} else {
-							return ObjectIsRelevant.NO;
+						Set<CallDispatch> relevantDispatches = new HashSet<CallDispatch>();
+
+						for (CallDispatch dispatch : dispatches) {
+
+							if (dispatch.receiver().equals(invokable)) {
+								relevantDispatches.add(dispatch);
+							}
 						}
+
+						return new FiniteResult<CallDispatch>(
+								relevantDispatches);
 					}
 
 					@Override
-					public ObjectIsRelevant transformInfiniteResult() {
+					public Result<CallDispatch> transformInfiniteResult() {
 						/*
 						 * We can't tell if this possible receiver of the call
 						 * in question is implemented by the code object whose
 						 * parameter we are looking at.
 						 */
-						return ObjectIsRelevant.NOT_A_CLUE;
+						return TopD.INSTANCE;
 					}
 				});
-	}
-}
-
-final class CallPackager implements
-		Transformer<TCallable, Result<CallDispatch>> {
-	private final ModelSite<Call> senderCallSite;
-	private final InvokableCodeObject invokable;
-
-	CallPackager(InvokableCodeObject invokable, ModelSite<Call> senderCallSite) {
-		this.invokable = invokable;
-		this.senderCallSite = senderCallSite;
-	}
-
-	@Override
-	public Result<CallDispatch> transformFiniteResult(
-			Set<TCallable> relevantCallables) {
-
-		Set<CallDispatch> calls = new HashSet<CallDispatch>();
-
-		for (TCallable callable : relevantCallables) {
-			calls.add(new DefaultCallDispatch(invokable, callable,
-					senderCallSite));
-		}
-
-		return new FiniteResult<CallDispatch>(calls);
-	}
-
-	@Override
-	public Result<CallDispatch> transformInfiniteResult() {
-		return new Top<CallDispatch>() {
-
-			@Override
-			public String toString() {
-				return "⊤d";
-			}
-		};
 	}
 }
 
