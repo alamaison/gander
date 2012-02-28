@@ -3,7 +3,13 @@ package uk.ac.ic.doc.gander.flowinference.flowgoals.expressionflow;
 import java.util.Set;
 
 import org.python.pydev.parser.jython.ast.Attribute;
+import org.python.pydev.parser.jython.ast.Call;
 
+import uk.ac.ic.doc.gander.flowinference.argument.Argument;
+import uk.ac.ic.doc.gander.flowinference.argument.ArgumentDestination;
+import uk.ac.ic.doc.gander.flowinference.call.CallDispatch;
+import uk.ac.ic.doc.gander.flowinference.callframe.CallSiteStackFrame;
+import uk.ac.ic.doc.gander.flowinference.callframe.StackFrame;
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
 import uk.ac.ic.doc.gander.flowinference.flowgoals.FlowPosition;
 import uk.ac.ic.doc.gander.flowinference.flowgoals.TopFp;
@@ -18,9 +24,47 @@ import uk.ac.ic.doc.gander.model.ModelSite;
 
 final class AttributeCallReceiverSituation implements FlowSituation {
 
-	private final ModelSite<Attribute> receiver;
+	private final class SelfFinder implements
+			Transformer<CallDispatch, Result<FlowPosition>> {
 
-	AttributeCallReceiverSituation(ModelSite<Attribute> receiver) {
+		private final SubgoalManager goalManager;
+		private final Argument selfArgument;
+
+		public SelfFinder(Argument selfArgument, SubgoalManager goalManager) {
+			this.selfArgument = selfArgument;
+			this.goalManager = goalManager;
+		}
+
+		@Override
+		public Result<FlowPosition> transformFiniteResult(
+				Set<CallDispatch> calls) {
+
+			RedundancyEliminator<ArgumentDestination> destinations = new RedundancyEliminator<ArgumentDestination>();
+
+			for (CallDispatch call : calls) {
+
+				destinations.add(call.destinationsReceivingArgument(
+						selfArgument, goalManager));
+				if (destinations.isFinished())
+					break;
+			}
+
+			return destinations.result().transformResult(
+					new ReceivingParameterPositioner());
+		}
+
+		@Override
+		public Result<FlowPosition> transformInfiniteResult() {
+			return TopFp.INSTANCE;
+		}
+	}
+
+	private final ModelSite<Attribute> receiver;
+	private final ModelSite<Call> callSite;
+
+	AttributeCallReceiverSituation(ModelSite<Call> callSite,
+			ModelSite<Attribute> receiver) {
+		this.callSite = callSite;
 		this.receiver = receiver;
 	}
 
@@ -73,8 +117,16 @@ final class AttributeCallReceiverSituation implements FlowSituation {
 			SubgoalManager goalManager) {
 
 		if (receiver instanceof TCallable) {
-			return ((TCallable) receiver)
-					.flowPositionsOfHiddenSelfArgument(goalManager);
+
+			TCallable callable = (TCallable) receiver;
+
+			StackFrame<Argument> stackFrame = new CallSiteStackFrame(callSite);
+
+			Result<CallDispatch> calls = callable.dispatches(stackFrame,
+					goalManager);
+
+			return calls.transformResult(new SelfFinder(
+					callable.selfArgument(), goalManager));
 		} else {
 			/*
 			 * XXX: just because the analysis thinks this might be happening,

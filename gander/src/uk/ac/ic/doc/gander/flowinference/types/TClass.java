@@ -251,19 +251,6 @@ public class TClass implements TCodeObject, TCallable {
 		return positions.result();
 	}
 
-	/**
-	 * {@inheritDoc}
-	 * 
-	 * When a class object is called as an attribute of another object, nothing
-	 * special happens. That object doesn't flow anywhere.
-	 */
-	@Override
-	public Result<FlowPosition> flowPositionsOfHiddenSelfArgument(
-			SubgoalManager goalManager) {
-
-		return FiniteResult.bottom();
-	}
-
 	private void flowToMethodsOfClass(TClass klass, Set<String> doneMethods,
 			Set<TClass> doneClasses, SubgoalManager goalManager,
 			RedundancyEliminator<FlowPosition> positions) {
@@ -353,6 +340,13 @@ public class TClass implements TCodeObject, TCallable {
 	 */
 	private Result<Type> initMemberTypes(SubgoalManager goalManager) {
 		return memberType("__init__", goalManager);
+	}
+
+	@Override
+	public Argument selfArgument() {
+		return new SelfCallsiteArgument()
+				.mapToActualArgument(new FunctionStylePassingStrategy());
+		// XXX: or just return NullArgument.INSTANCE?
 	}
 
 	@Override

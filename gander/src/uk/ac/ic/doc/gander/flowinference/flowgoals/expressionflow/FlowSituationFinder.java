@@ -288,7 +288,8 @@ final class SituationMapper implements VisitorIF {
 			 */
 			ModelSite<Attribute> receiver = new ModelSite<Attribute>(
 					(Attribute) node.func, expression.codeObject());
-			return new AttributeCallReceiverSituation(receiver);
+			return new AttributeCallReceiverSituation(nodeToSite(node),
+					receiver);
 
 		} else {
 
@@ -297,8 +298,8 @@ final class SituationMapper implements VisitorIF {
 			 */
 
 			ModelSite<Call> callSite = nodeToSite(node);
-			CallsiteArgument argument = ArgumentFactory.INSTANCE.searchCallSite(
-					callSite, expression.astNode());
+			CallsiteArgument argument = ArgumentFactory.INSTANCE
+					.searchCallSite(callSite, expression.astNode());
 
 			if (argument != null) {
 

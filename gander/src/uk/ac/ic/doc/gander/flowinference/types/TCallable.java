@@ -63,13 +63,10 @@ public interface TCallable extends Type {
 	Result<FlowPosition> flowPositionsCausedByCalling(SubgoalManager goalManager);
 
 	/**
-	 * Returns the flow positions that the LHS of an attribute might flow to
-	 * when this callable is called as that attribute.
-	 * 
-	 * In other words, where does the magically-inserted self argument flow.
+	 * Returns the argument representing the potential for a hidden 'self' value
+	 * to be passed during calls.
 	 */
-	Result<FlowPosition> flowPositionsOfHiddenSelfArgument(
-			SubgoalManager goalManager);
+	Argument selfArgument();
 
 	/**
 	 * Returns the runtime calls that might be made when this callable object is

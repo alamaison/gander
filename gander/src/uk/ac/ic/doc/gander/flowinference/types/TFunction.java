@@ -7,6 +7,7 @@ import uk.ac.ic.doc.gander.flowinference.Namespace;
 import uk.ac.ic.doc.gander.flowinference.argument.Argument;
 import uk.ac.ic.doc.gander.flowinference.argument.ArgumentDestination;
 import uk.ac.ic.doc.gander.flowinference.argument.CallsiteArgument;
+import uk.ac.ic.doc.gander.flowinference.argument.SelfCallsiteArgument;
 import uk.ac.ic.doc.gander.flowinference.call.CallDispatch;
 import uk.ac.ic.doc.gander.flowinference.call.DefaultCallDispatch;
 import uk.ac.ic.doc.gander.flowinference.callframe.StackFrame;
@@ -153,19 +154,6 @@ public class TFunction implements TCodeObject, TCallable {
 		return FiniteResult.bottom();
 	}
 
-	/**
-	 * {@inheritDoc}
-	 * 
-	 * When an unbound function is called as an attribute of another object,
-	 * nothing special happens. That object doesn't flow anywhere.
-	 */
-	@Override
-	public Result<FlowPosition> flowPositionsOfHiddenSelfArgument(
-			SubgoalManager goalManager) {
-
-		return FiniteResult.bottom();
-	}
-
 	@Override
 	public int hashCode() {
 		final int prime = 31;
@@ -195,6 +183,13 @@ public class TFunction implements TCodeObject, TCallable {
 	@Override
 	public String toString() {
 		return "TFunction [" + getName() + "]";
+	}
+
+	@Override
+	public Argument selfArgument() {
+		return new SelfCallsiteArgument()
+				.mapToActualArgument(new FunctionStylePassingStrategy());
+		// XXX: or just return NullArgument.INSTANCE?
 	}
 
 }

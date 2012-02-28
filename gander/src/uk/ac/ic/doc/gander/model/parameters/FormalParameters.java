@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
@@ -284,19 +285,19 @@ public final class FormalParameters {
 
 		Set<Passage> passages = new HashSet<Passage>();
 
-		for (int i = 0; i < stackFrame.knownPositions().size(); ++i) {
+		List<Argument> positionals = stackFrame.knownPositions();
+		for (int i = 0; i < positionals.size(); ++i) {
 
 			for (FormalParameter p : parameters) {
 
 				if (p.acceptsArgumentByPosition(i)) {
-					passages.add(new DirectPassage(stackFrame.knownPositions()
-							.get(i), p));
+					passages.add(new DirectPassage(positionals.get(i), p));
 				}
 			}
 		}
 
-		for (Entry<String, Argument> keywordable : stackFrame.knownKeywords()
-				.entrySet()) {
+		Map<String, Argument> keywordables = stackFrame.knownKeywords();
+		for (Entry<String, Argument> keywordable : keywordables.entrySet()) {
 
 			for (FormalParameter p : parameters) {
 

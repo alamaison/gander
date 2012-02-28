@@ -12,7 +12,6 @@ import uk.ac.ic.doc.gander.flowinference.callframe.StackFrame;
 import uk.ac.ic.doc.gander.flowinference.callframe.StrategyBasedStackFrame;
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
 import uk.ac.ic.doc.gander.flowinference.flowgoals.FlowPosition;
-import uk.ac.ic.doc.gander.flowinference.flowgoals.expressionflow.ReceivingParameterPositioner;
 import uk.ac.ic.doc.gander.flowinference.result.FiniteResult;
 import uk.ac.ic.doc.gander.flowinference.result.Result;
 
@@ -125,8 +124,8 @@ public final class TBoundMethod implements TCallable {
 	public Result<CallDispatch> dispatches(StackFrame<Argument> callFrame,
 			SubgoalManager goalManager) {
 
-		StackFrame<Argument> methodCall = new StrategyBasedStackFrame(callFrame,
-				new MethodStylePassingStrategy(instance));
+		StackFrame<Argument> methodCall = new StrategyBasedStackFrame(
+				callFrame, new MethodStylePassingStrategy(instance));
 
 		return unboundMethod.dispatches(methodCall, goalManager);
 	}
@@ -137,21 +136,10 @@ public final class TBoundMethod implements TCallable {
 		return FiniteResult.bottom();
 	}
 
-	/**
-	 * {@inheritDoc}
-	 * 
-	 * When this method is called as an attribute of another object, that object
-	 * flows to its code object's self parameter.
-	 */
 	@Override
-	public Result<FlowPosition> flowPositionsOfHiddenSelfArgument(
-			SubgoalManager goalManager) {
-
-		Result<ArgumentDestination> selfDestinations = destinationsReceivingArgument(
-				new SelfCallsiteArgument(), goalManager);
-
-		return selfDestinations
-				.transformResult(new ReceivingParameterPositioner());
+	public Argument selfArgument() {
+		return new SelfCallsiteArgument()
+				.mapToActualArgument(new MethodStylePassingStrategy(instance));
 	}
 
 	@Override
