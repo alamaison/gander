@@ -14,7 +14,10 @@ import uk.ac.ic.doc.gander.flowinference.callframe.StackFrame;
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
 import uk.ac.ic.doc.gander.flowinference.flowgoals.FlowPosition;
 import uk.ac.ic.doc.gander.flowinference.flowgoals.TopFp;
+import uk.ac.ic.doc.gander.flowinference.result.FiniteResult;
 import uk.ac.ic.doc.gander.flowinference.result.Result;
+import uk.ac.ic.doc.gander.flowinference.types.TObject;
+import uk.ac.ic.doc.gander.flowinference.types.Type;
 import uk.ac.ic.doc.gander.model.ModelSite;
 import uk.ac.ic.doc.gander.model.codeobject.InvokableCodeObject;
 import uk.ac.ic.doc.gander.model.name_binding.Variable;
@@ -87,6 +90,27 @@ final class StarargParameter implements FormalParameter {
 			 */
 			return Collections
 					.<Argument> singleton(new DefaultStarargsArgument());
+		}
+	}
+
+	@Override
+	public Result<Type> objectsPassedAtCall(StackFrame<Argument> stackFrame,
+			Variable variable, SubgoalManager goalManager) {
+		if (variable == null)
+			throw new NullPointerException("Variable required");
+
+		/*
+		 * Regardless of what may be passed to the varargs parameter (even if
+		 * it's nothing) it will always bind a tuple to its variable.
+		 */
+		if (boundVariables().contains(variable)) {
+
+			Type tuple = new TObject(variable.codeObject().model()
+					.builtinTuple());
+
+			return new FiniteResult<Type>(Collections.singleton(tuple));
+		} else {
+			return FiniteResult.bottom();
 		}
 	}
 

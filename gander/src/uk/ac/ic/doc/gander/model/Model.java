@@ -20,4 +20,6 @@ public interface Model {
 
 	ClassCO builtinTuple();
 
+	ClassCO builtinDictionary();
+
 }

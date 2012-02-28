@@ -14,7 +14,9 @@ import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
 import uk.ac.ic.doc.gander.flowinference.flowgoals.FlowPosition;
 import uk.ac.ic.doc.gander.flowinference.flowgoals.expressionflow.ExpressionPosition;
 import uk.ac.ic.doc.gander.flowinference.result.FiniteResult;
+import uk.ac.ic.doc.gander.flowinference.result.RedundancyEliminator;
 import uk.ac.ic.doc.gander.flowinference.result.Result;
+import uk.ac.ic.doc.gander.flowinference.types.Type;
 import uk.ac.ic.doc.gander.model.ModelSite;
 import uk.ac.ic.doc.gander.model.codeobject.InvokableCodeObject;
 import uk.ac.ic.doc.gander.model.name_binding.Variable;
@@ -99,7 +101,7 @@ final class NamedParameter implements FormalParameter {
 			 */
 
 			if (callFrame.includesUnknownPositions()
-					|| callFrame.includesUnknownPositions()) {
+					|| callFrame.includesUnknownKeywords()) {
 				return Collections
 						.<Argument> singleton(UnknownArgument.INSTANCE);
 			} else {
@@ -128,6 +130,33 @@ final class NamedParameter implements FormalParameter {
 			}
 		}
 
+	}
+
+	@Override
+	public Result<Type> objectsPassedAtCall(StackFrame<Argument> stackFrame,
+			Variable variable, SubgoalManager goalManager) {
+		if (stackFrame == null)
+			throw new NullPointerException(
+					"Stack frame needed to infer argument type");
+		if (variable == null)
+			throw new NullPointerException("Variable required");
+		if (goalManager == null)
+			throw new NullPointerException(
+					"Goal manager required in order to do type inference");
+
+		if (boundVariables().contains(variable)) {
+			RedundancyEliminator<Type> objects = new RedundancyEliminator<Type>();
+
+			Set<Argument> arguments = argumentsPassedAtCall(stackFrame,
+					goalManager);
+			for (Argument argument : arguments) {
+				objects.add(argument.type(goalManager));
+			}
+
+			return objects.result();
+		} else {
+			return FiniteResult.bottom();
+		}
 	}
 
 	/**

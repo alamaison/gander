@@ -15,6 +15,10 @@ import uk.ac.ic.doc.gander.flowinference.argument.ArgumentDestination;
 import uk.ac.ic.doc.gander.flowinference.argument.NullArgument;
 import uk.ac.ic.doc.gander.flowinference.callframe.StackFrame;
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
+import uk.ac.ic.doc.gander.flowinference.result.FiniteResult;
+import uk.ac.ic.doc.gander.flowinference.result.Result;
+import uk.ac.ic.doc.gander.flowinference.typegoals.TopT;
+import uk.ac.ic.doc.gander.flowinference.types.Type;
 import uk.ac.ic.doc.gander.model.ModelSite;
 import uk.ac.ic.doc.gander.model.codeobject.InvokableCodeObject;
 import uk.ac.ic.doc.gander.model.name_binding.Variable;
@@ -126,6 +130,23 @@ final class TupleParameter implements FormalParameter {
 			System.err.println("PROGRAM ERROR: Too few arguments passed to "
 					+ parameter.codeObject() + " at " + callFrame);
 			return Collections.<Argument> singleton(NullArgument.INSTANCE);
+		}
+	}
+
+	@Override
+	public Result<Type> objectsPassedAtCall(StackFrame<Argument> stackFrame,
+			Variable variable, SubgoalManager goalManager) {
+		if (variable == null)
+			throw new NullPointerException("Variable required");
+
+		/*
+		 * Tuple arguments are extracted from the (possibly nested) iterable
+		 * passed to it. We can't reason about what might be in it.
+		 */
+		if (boundVariables().contains(variable)) {
+			return TopT.INSTANCE;
+		} else {
+			return FiniteResult.bottom();
 		}
 	}
 

@@ -170,4 +170,9 @@ public class DefaultModel implements MutableModel {
 	public ClassCO builtinTuple() {
 		return getTopLevel().getClasses().get("tuple").codeObject();
 	}
+
+	@Override
+	public ClassCO builtinDictionary() {
+		return getTopLevel().getClasses().get("dict").codeObject();
+	}
 }

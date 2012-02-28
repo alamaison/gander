@@ -6,6 +6,8 @@ import uk.ac.ic.doc.gander.flowinference.argument.Argument;
 import uk.ac.ic.doc.gander.flowinference.argument.ArgumentDestination;
 import uk.ac.ic.doc.gander.flowinference.callframe.StackFrame;
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
+import uk.ac.ic.doc.gander.flowinference.result.Result;
+import uk.ac.ic.doc.gander.flowinference.types.Type;
 import uk.ac.ic.doc.gander.model.codeobject.InvokableCodeObject;
 import uk.ac.ic.doc.gander.model.name_binding.Variable;
 
@@ -31,5 +33,8 @@ public interface FormalParameter {
 	 * keyword, will this parameter accept it?
 	 */
 	boolean acceptsArgumentByKeyword(String keyword);
+
+	Result<Type> objectsPassedAtCall(StackFrame<Argument> stackFrame,
+			Variable variable, SubgoalManager goalManager);
 
 }

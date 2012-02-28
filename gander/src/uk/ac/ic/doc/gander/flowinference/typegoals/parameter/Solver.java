@@ -283,12 +283,7 @@ final class CallDancer implements Transformer<CallDispatch, Result<Type>> {
 
 		for (CallDispatch call : calls) {
 
-			Result<Argument> arguments = call.argumentsBoundToVariable(
-					variable, goalManager);
-
-			type.add(arguments.transformResult(new ArgumentTyper(goalManager)));
-			if (type.isFinished())
-				break;
+			type.add(call.objectsBoundToVariable(variable, goalManager));
 		}
 
 		return type.result();

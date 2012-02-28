@@ -9,6 +9,7 @@ import uk.ac.ic.doc.gander.flowinference.callframe.StackFrame;
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
 import uk.ac.ic.doc.gander.flowinference.result.FiniteResult;
 import uk.ac.ic.doc.gander.flowinference.result.Result;
+import uk.ac.ic.doc.gander.flowinference.types.Type;
 import uk.ac.ic.doc.gander.model.codeobject.InvokableCodeObject;
 import uk.ac.ic.doc.gander.model.name_binding.Variable;
 import uk.ac.ic.doc.gander.model.parameters.FormalParameter;
@@ -51,7 +52,7 @@ public final class DefaultCallDispatch implements CallDispatch {
 	}
 
 	@Override
-	public Result<Argument> argumentsBoundToVariable(Variable variable,
+	public Result<Type> objectsBoundToVariable(Variable variable,
 			SubgoalManager goalManager) {
 		if (variable == null)
 			throw new NullPointerException("Variable required");
@@ -61,10 +62,7 @@ public final class DefaultCallDispatch implements CallDispatch {
 		FormalParameter parameter = receiver.formalParameters()
 				.variableBindingParameter(variable);
 
-		Set<Argument> arguments = parameter.argumentsPassedAtCall(stackFrame,
-				goalManager);
-
-		return new FiniteResult<Argument>(arguments);
+		return parameter.objectsPassedAtCall(stackFrame, variable, goalManager);
 	}
 
 	@Override
@@ -110,4 +108,5 @@ public final class DefaultCallDispatch implements CallDispatch {
 	 p.consumeCallFrame();
 	 }
 	 */
+
 }

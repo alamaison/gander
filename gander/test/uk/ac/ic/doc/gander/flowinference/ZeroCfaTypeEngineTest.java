@@ -1054,7 +1054,7 @@ public class ZeroCfaTypeEngineTest {
 		TestModule test = newTestModule("function_parameter_kwargs");
 
 		Result<Type> type = engine.typeOf(test.printNode("what_am_i").site());
-		Set<Type> expectedType = typeJudgement(tupleType);
+		Set<Type> expectedType = typeJudgement(dictType);
 
 		assertEquals("Kwargs parameter should always be a dictionary.",
 				expectedType, type);
@@ -1066,7 +1066,7 @@ public class ZeroCfaTypeEngineTest {
 		TestModule test = newTestModule("function_parameter_kwargs_default");
 
 		Result<Type> type = engine.typeOf(test.printNode("what_am_i").site());
-		Set<Type> expectedType = typeJudgement(tupleType);
+		Set<Type> expectedType = typeJudgement(dictType);
 
 		assertEquals("Kwargs parameter should always be a dictionary "
 				+ "even when nothing is passed at the callsite.", expectedType,
