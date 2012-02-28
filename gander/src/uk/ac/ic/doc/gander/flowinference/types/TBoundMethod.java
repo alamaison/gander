@@ -6,7 +6,7 @@ import org.python.pydev.parser.jython.ast.Call;
 
 import uk.ac.ic.doc.gander.flowinference.Namespace;
 import uk.ac.ic.doc.gander.flowinference.argument.Argument;
-import uk.ac.ic.doc.gander.flowinference.argument.SelfCallsiteArgument;
+import uk.ac.ic.doc.gander.flowinference.argument.SelfArgument;
 import uk.ac.ic.doc.gander.flowinference.call.CallDispatch;
 import uk.ac.ic.doc.gander.flowinference.callframe.StackFrame;
 import uk.ac.ic.doc.gander.flowinference.callframe.StrategyBasedStackFrame;
@@ -100,8 +100,7 @@ public final class TBoundMethod implements TCallable {
 
 	@Override
 	public Argument selfArgument() {
-		return new SelfCallsiteArgument()
-				.mapToActualArgument(new MethodStylePassingStrategy(instance));
+		return new SelfArgument(0, instance);
 	}
 
 	@Override

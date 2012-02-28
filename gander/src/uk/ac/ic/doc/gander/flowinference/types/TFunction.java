@@ -7,7 +7,7 @@ import org.python.pydev.parser.jython.ast.Call;
 
 import uk.ac.ic.doc.gander.flowinference.Namespace;
 import uk.ac.ic.doc.gander.flowinference.argument.Argument;
-import uk.ac.ic.doc.gander.flowinference.argument.SelfCallsiteArgument;
+import uk.ac.ic.doc.gander.flowinference.argument.NullArgument;
 import uk.ac.ic.doc.gander.flowinference.call.CallDispatch;
 import uk.ac.ic.doc.gander.flowinference.call.DefaultCallDispatch;
 import uk.ac.ic.doc.gander.flowinference.callframe.StackFrame;
@@ -149,9 +149,6 @@ public class TFunction implements TCodeObject, TCallable {
 
 	@Override
 	public Argument selfArgument() {
-		return new SelfCallsiteArgument()
-				.mapToActualArgument(new FunctionStylePassingStrategy());
-		// XXX: or just return NullArgument.INSTANCE?
+		return NullArgument.INSTANCE;
 	}
-
 }
