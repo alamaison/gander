@@ -28,26 +28,6 @@ public enum NullArgument implements Argument {
 	}
 
 	@Override
-	public boolean isPassedAtPosition(int position) {
-		return false;
-	}
-
-	@Override
-	public boolean isPassedByKeyword(String keyword) {
-		return false;
-	}
-
-	@Override
-	public boolean mayExpandIntoPosition() {
-		return false;
-	}
-
-	@Override
-	public boolean mayExpandIntoKeyword() {
-		return false;
-	}
-
-	@Override
 	public Result<Type> type(SubgoalManager goalManager) {
 		return FiniteResult.bottom();
 	}

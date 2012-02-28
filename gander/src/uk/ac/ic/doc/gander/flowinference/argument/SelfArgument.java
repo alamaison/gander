@@ -29,26 +29,6 @@ public final class SelfArgument implements PositionalArgument {
 	}
 
 	@Override
-	public boolean isPassedAtPosition(int position) {
-		return position == this.selfPosition;
-	}
-
-	@Override
-	public boolean isPassedByKeyword(String keyword) {
-		return false;
-	}
-
-	@Override
-	public boolean mayExpandIntoPosition() {
-		return false;
-	}
-
-	@Override
-	public boolean mayExpandIntoKeyword() {
-		return false;
-	}
-
-	@Override
 	public Result<Type> type(SubgoalManager goalManager) {
 		return new FiniteResult<Type>(Collections.singleton(instance));
 	}

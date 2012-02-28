@@ -17,14 +17,6 @@ public interface Argument {
 	 */
 	ArgumentDestination passArgumentAtCall(InvokableCodeObject receiver);
 
-	boolean isPassedAtPosition(int position);
-
-	boolean isPassedByKeyword(String keyword);
-
-	boolean mayExpandIntoPosition();
-
-	boolean mayExpandIntoKeyword();
-
 	/**
 	 * FIXME: You can't really take the type of the argument, for example, what
 	 * about when it is passed to a tuple parameter or it is an expanded

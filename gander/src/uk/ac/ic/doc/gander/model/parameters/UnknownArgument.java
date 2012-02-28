@@ -12,15 +12,14 @@ import uk.ac.ic.doc.gander.model.codeobject.InvokableCodeObject;
 
 enum UnknownArgument implements Argument {
 	INSTANCE;
-	
+
 	@Override
 	public Result<Type> type(SubgoalManager goalManager) {
 		return TopT.INSTANCE;
 	}
 
 	@Override
-	public ArgumentDestination passArgumentAtCall(
-			InvokableCodeObject receiver) {
+	public ArgumentDestination passArgumentAtCall(InvokableCodeObject receiver) {
 		return new ArgumentDestination() {
 
 			@Override
@@ -28,29 +27,5 @@ enum UnknownArgument implements Argument {
 				return FiniteResult.bottom();
 			}
 		};
-	}
-
-	@Override
-	public boolean mayExpandIntoPosition() {
-		// TODO Auto-generated method stub
-		return false;
-	}
-
-	@Override
-	public boolean mayExpandIntoKeyword() {
-		// TODO Auto-generated method stub
-		return false;
-	}
-
-	@Override
-	public boolean isPassedByKeyword(String keyword) {
-		// TODO Auto-generated method stub
-		return false;
-	}
-
-	@Override
-	public boolean isPassedAtPosition(int position) {
-		// TODO Auto-generated method stub
-		return false;
 	}
 }

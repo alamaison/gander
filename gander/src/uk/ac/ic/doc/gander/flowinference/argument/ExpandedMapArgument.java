@@ -37,26 +37,6 @@ final class ExpandedMapArgument implements KeywordArgument {
 	}
 
 	@Override
-	public boolean isPassedAtPosition(int position) {
-		return false;
-	}
-
-	@Override
-	public boolean isPassedByKeyword(String keyword) {
-		return false;
-	}
-
-	@Override
-	public boolean mayExpandIntoPosition() {
-		return false;
-	}
-
-	@Override
-	public boolean mayExpandIntoKeyword() {
-		return true;
-	}
-
-	@Override
 	public Result<Type> type(SubgoalManager goalManager) {
 		return TopT.INSTANCE;
 	}

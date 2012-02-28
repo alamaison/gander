@@ -61,26 +61,6 @@ final class ExplicitPositionalArgument implements PositionalArgument {
 	}
 
 	@Override
-	public boolean isPassedAtPosition(int position) {
-		return this.position == position;
-	}
-
-	@Override
-	public boolean isPassedByKeyword(String keyword) {
-		return false;
-	}
-
-	@Override
-	public boolean mayExpandIntoPosition() {
-		return false;
-	}
-
-	@Override
-	public boolean mayExpandIntoKeyword() {
-		return false;
-	}
-
-	@Override
 	public Result<Type> type(SubgoalManager goalManager) {
 		return goalManager.registerSubgoal(new ExpressionTypeGoal(value));
 	}

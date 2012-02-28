@@ -38,26 +38,6 @@ final class ExpandedIterableArgument implements PositionalArgument {
 	}
 
 	@Override
-	public boolean isPassedAtPosition(int position) {
-		return false;
-	}
-
-	@Override
-	public boolean isPassedByKeyword(String keyword) {
-		return false;
-	}
-
-	@Override
-	public boolean mayExpandIntoPosition() {
-		return true;
-	}
-
-	@Override
-	public boolean mayExpandIntoKeyword() {
-		return false;
-	}
-
-	@Override
 	public Result<Type> type(SubgoalManager goalManager) {
 		return TopT.INSTANCE;
 	}

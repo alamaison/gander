@@ -29,30 +29,6 @@ final class DefaultArgument implements Argument {
 	}
 
 	@Override
-	public boolean isPassedAtPosition(int position) {
-		// TODO Auto-generated method stub
-		return false;
-	}
-
-	@Override
-	public boolean isPassedByKeyword(String keyword) {
-		// TODO Auto-generated method stub
-		return false;
-	}
-
-	@Override
-	public boolean mayExpandIntoPosition() {
-		// TODO Auto-generated method stub
-		return false;
-	}
-
-	@Override
-	public boolean mayExpandIntoKeyword() {
-		// TODO Auto-generated method stub
-		return false;
-	}
-
-	@Override
 	public Result<Type> type(SubgoalManager goalManager) {
 		return goalManager
 				.registerSubgoal(new ExpressionTypeGoal(defaultValue));

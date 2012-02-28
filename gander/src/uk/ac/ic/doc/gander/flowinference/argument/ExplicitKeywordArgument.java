@@ -58,26 +58,6 @@ final class ExplicitKeywordArgument implements KeywordArgument {
 		}
 	}
 
-	@Override
-	public boolean isPassedAtPosition(int position) {
-		return false;
-	}
-
-	@Override
-	public boolean isPassedByKeyword(String keyword) {
-		return keyword.equals(this.keyword());
-	}
-
-	@Override
-	public boolean mayExpandIntoPosition() {
-		return false;
-	}
-
-	@Override
-	public boolean mayExpandIntoKeyword() {
-		return false;
-	}
-
 	private String keyword() {
 		return keyword;
 	}
