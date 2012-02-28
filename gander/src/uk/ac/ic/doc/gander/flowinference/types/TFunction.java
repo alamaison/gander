@@ -3,10 +3,10 @@ package uk.ac.ic.doc.gander.flowinference.types;
 import java.util.Collections;
 import java.util.Set;
 
+import org.python.pydev.parser.jython.ast.Call;
+
 import uk.ac.ic.doc.gander.flowinference.Namespace;
 import uk.ac.ic.doc.gander.flowinference.argument.Argument;
-import uk.ac.ic.doc.gander.flowinference.argument.ArgumentDestination;
-import uk.ac.ic.doc.gander.flowinference.argument.CallsiteArgument;
 import uk.ac.ic.doc.gander.flowinference.argument.SelfCallsiteArgument;
 import uk.ac.ic.doc.gander.flowinference.call.CallDispatch;
 import uk.ac.ic.doc.gander.flowinference.call.DefaultCallDispatch;
@@ -18,6 +18,7 @@ import uk.ac.ic.doc.gander.flowinference.result.FiniteResult;
 import uk.ac.ic.doc.gander.flowinference.result.Result;
 import uk.ac.ic.doc.gander.flowinference.typegoals.namespacename.NamespaceNameTypeGoal;
 import uk.ac.ic.doc.gander.model.Function;
+import uk.ac.ic.doc.gander.model.ModelSite;
 import uk.ac.ic.doc.gander.model.NamespaceName;
 import uk.ac.ic.doc.gander.model.codeobject.FunctionCO;
 
@@ -97,45 +98,6 @@ public class TFunction implements TCodeObject, TCallable {
 		return functionObject.fullyQualifiedNamespace();
 	}
 
-	/**
-	 * {@inheritDoc}
-	 * 
-	 * Positional arguments passed to a call to a plain function or an unbound
-	 * method are passed directly to the parameter of the receiver with the same
-	 * index.
-	 */
-	@Override
-	public Result<ArgumentDestination> destinationsReceivingArgument(
-			CallsiteArgument argument, SubgoalManager goalManager) {
-
-		if (argument == null) {
-			throw new NullPointerException("Argument is not optional");
-		}
-
-		Argument actualArgument = argument
-				.mapToActualArgument(new FunctionStylePassingStrategy());
-
-		return destinationsReceivingArgument(actualArgument, goalManager);
-	}
-
-	/**
-	 * {@inheritDoc}
-	 * 
-	 * Even if the function is invoked internally, rather than at an explicit
-	 * call-site, positional arguments are passed directly to the parameter of
-	 * the receiver with the same index.
-	 */
-	@Override
-	public Result<ArgumentDestination> destinationsReceivingArgument(
-			Argument argument, SubgoalManager goalManager) {
-
-		ArgumentDestination parameter = argument
-				.passArgumentAtCall(functionObject);
-
-		return new FiniteResult<ArgumentDestination>(
-				Collections.singleton(parameter));
-	}
-
 	@Override
 	public Result<CallDispatch> dispatches(StackFrame<Argument> callFrame,
 			SubgoalManager goalManager) {
@@ -150,7 +112,7 @@ public class TFunction implements TCodeObject, TCallable {
 
 	@Override
 	public Result<FlowPosition> flowPositionsCausedByCalling(
-			SubgoalManager goalManager) {
+			ModelSite<Call> syntacticCallSite, SubgoalManager goalManager) {
 		return FiniteResult.bottom();
 	}
 

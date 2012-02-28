@@ -6,7 +6,6 @@ import org.python.pydev.parser.jython.ast.Attribute;
 import org.python.pydev.parser.jython.ast.Call;
 
 import uk.ac.ic.doc.gander.flowinference.argument.Argument;
-import uk.ac.ic.doc.gander.flowinference.argument.ArgumentDestination;
 import uk.ac.ic.doc.gander.flowinference.call.CallDispatch;
 import uk.ac.ic.doc.gander.flowinference.callframe.CallSiteStackFrame;
 import uk.ac.ic.doc.gander.flowinference.callframe.StackFrame;
@@ -23,41 +22,6 @@ import uk.ac.ic.doc.gander.flowinference.types.Type;
 import uk.ac.ic.doc.gander.model.ModelSite;
 
 final class AttributeCallReceiverSituation implements FlowSituation {
-
-	private final class SelfFinder implements
-			Transformer<CallDispatch, Result<FlowPosition>> {
-
-		private final SubgoalManager goalManager;
-		private final Argument selfArgument;
-
-		public SelfFinder(Argument selfArgument, SubgoalManager goalManager) {
-			this.selfArgument = selfArgument;
-			this.goalManager = goalManager;
-		}
-
-		@Override
-		public Result<FlowPosition> transformFiniteResult(
-				Set<CallDispatch> calls) {
-
-			RedundancyEliminator<ArgumentDestination> destinations = new RedundancyEliminator<ArgumentDestination>();
-
-			for (CallDispatch call : calls) {
-
-				destinations.add(call.destinationsReceivingArgument(
-						selfArgument, goalManager));
-				if (destinations.isFinished())
-					break;
-			}
-
-			return destinations.result().transformResult(
-					new ReceivingParameterPositioner());
-		}
-
-		@Override
-		public Result<FlowPosition> transformInfiniteResult() {
-			return TopFp.INSTANCE;
-		}
-	}
 
 	private final ModelSite<Attribute> receiver;
 	private final ModelSite<Call> callSite;
@@ -125,7 +89,7 @@ final class AttributeCallReceiverSituation implements FlowSituation {
 			Result<CallDispatch> calls = callable.dispatches(stackFrame,
 					goalManager);
 
-			return calls.transformResult(new SelfFinder(
+			return calls.transformResult(new ArgumentFlower(
 					callable.selfArgument(), goalManager));
 		} else {
 			/*

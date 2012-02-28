@@ -7,9 +7,9 @@ import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
 import uk.ac.ic.doc.gander.flowinference.flowgoals.FlowPosition;
 import uk.ac.ic.doc.gander.flowinference.flowgoals.TopFp;
 import uk.ac.ic.doc.gander.flowinference.result.Concentrator;
+import uk.ac.ic.doc.gander.flowinference.result.Concentrator.DatumProcessor;
 import uk.ac.ic.doc.gander.flowinference.result.FiniteResult;
 import uk.ac.ic.doc.gander.flowinference.result.Result;
-import uk.ac.ic.doc.gander.flowinference.result.Concentrator.DatumProcessor;
 import uk.ac.ic.doc.gander.flowinference.typegoals.expression.ExpressionTypeGoal;
 import uk.ac.ic.doc.gander.flowinference.types.TCallable;
 import uk.ac.ic.doc.gander.flowinference.types.Type;
@@ -32,6 +32,7 @@ final class CallResultSituation implements FlowSituation {
 		this.expression = expression;
 	}
 
+	@Override
 	public Result<FlowPosition> nextFlowPositions(SubgoalManager goalManager) {
 		return new CallResultSituationSolver(expression, goalManager)
 				.solution();
@@ -83,7 +84,7 @@ final class CallResultSituationSolver {
 								expression.codeObject())));
 
 		Concentrator<Type, FlowPosition> action = Concentrator.newInstance(
-				new CallResultFlower(goalManager), TopFp.INSTANCE);
+				new CallResultFlower(goalManager, expression), TopFp.INSTANCE);
 		types.actOnResult(action);
 		solution = action.result();
 	}
@@ -99,18 +100,23 @@ final class CallResultSituationSolver {
 final class CallResultFlower implements DatumProcessor<Type, FlowPosition> {
 
 	private final SubgoalManager goalManager;
+	private final ModelSite<Call> syntacticCallSite;
 
-	CallResultFlower(SubgoalManager goalManager) {
+	CallResultFlower(SubgoalManager goalManager,
+			ModelSite<Call> syntacticCallSite) {
 		this.goalManager = goalManager;
+		this.syntacticCallSite = syntacticCallSite;
 	}
 
-	public Result<FlowPosition> process(Type callable) {
+	@Override
+	public Result<FlowPosition> process(Type object) {
 
-		if (callable instanceof TCallable) {
-			return ((TCallable) callable)
-					.flowPositionsCausedByCalling(goalManager);
+		if (object instanceof TCallable) {
+			TCallable callable = ((TCallable) object);
+			return callable.flowPositionsCausedByCalling(syntacticCallSite,
+					goalManager);
 		} else {
-			System.err.println("May call uncallable object:" + callable);
+			System.err.println("May call uncallable object:" + object);
 			return FiniteResult.bottom();
 		}
 

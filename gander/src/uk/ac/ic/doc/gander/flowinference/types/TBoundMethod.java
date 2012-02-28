@@ -2,10 +2,10 @@ package uk.ac.ic.doc.gander.flowinference.types;
 
 import java.util.Set;
 
+import org.python.pydev.parser.jython.ast.Call;
+
 import uk.ac.ic.doc.gander.flowinference.Namespace;
 import uk.ac.ic.doc.gander.flowinference.argument.Argument;
-import uk.ac.ic.doc.gander.flowinference.argument.ArgumentDestination;
-import uk.ac.ic.doc.gander.flowinference.argument.CallsiteArgument;
 import uk.ac.ic.doc.gander.flowinference.argument.SelfCallsiteArgument;
 import uk.ac.ic.doc.gander.flowinference.call.CallDispatch;
 import uk.ac.ic.doc.gander.flowinference.callframe.StackFrame;
@@ -14,6 +14,7 @@ import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
 import uk.ac.ic.doc.gander.flowinference.flowgoals.FlowPosition;
 import uk.ac.ic.doc.gander.flowinference.result.FiniteResult;
 import uk.ac.ic.doc.gander.flowinference.result.Result;
+import uk.ac.ic.doc.gander.model.ModelSite;
 
 public final class TBoundMethod implements TCallable {
 
@@ -81,45 +82,6 @@ public final class TBoundMethod implements TCallable {
 		return null;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 * 
-	 * Positional arguments passed to a call to a bound method are passed to the
-	 * parameter of the receiver that is one further along the parameter list
-	 * than the argument's position.
-	 */
-	@Override
-	public Result<ArgumentDestination> destinationsReceivingArgument(
-			CallsiteArgument argument, SubgoalManager goalManager) {
-
-		if (argument == null) {
-			throw new NullPointerException("Argument is not optional");
-		}
-
-		Argument actualArgument = argument
-				.mapToActualArgument(new MethodStylePassingStrategy(instance));
-
-		return destinationsReceivingArgument(actualArgument, goalManager);
-	}
-
-	/**
-	 * {@inheritDoc}
-	 * 
-	 * Internally, the adjusted positional arguments are passed on to the
-	 * unbound method.
-	 */
-	@Override
-	public Result<ArgumentDestination> destinationsReceivingArgument(
-			Argument argument, SubgoalManager goalManager) {
-
-		if (argument == null) {
-			throw new NullPointerException("Argument is not optional");
-		}
-
-		return unboundMethod.destinationsReceivingArgument(argument,
-				goalManager);
-	}
-
 	@Override
 	public Result<CallDispatch> dispatches(StackFrame<Argument> callFrame,
 			SubgoalManager goalManager) {
@@ -132,7 +94,7 @@ public final class TBoundMethod implements TCallable {
 
 	@Override
 	public Result<FlowPosition> flowPositionsCausedByCalling(
-			SubgoalManager goalManager) {
+			ModelSite<Call> syntacticCallSite, SubgoalManager goalManager) {
 		return FiniteResult.bottom();
 	}
 

@@ -1,13 +1,14 @@
 package uk.ac.ic.doc.gander.flowinference.types;
 
+import org.python.pydev.parser.jython.ast.Call;
+
 import uk.ac.ic.doc.gander.flowinference.argument.Argument;
-import uk.ac.ic.doc.gander.flowinference.argument.ArgumentDestination;
-import uk.ac.ic.doc.gander.flowinference.argument.CallsiteArgument;
 import uk.ac.ic.doc.gander.flowinference.call.CallDispatch;
 import uk.ac.ic.doc.gander.flowinference.callframe.StackFrame;
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
 import uk.ac.ic.doc.gander.flowinference.flowgoals.FlowPosition;
 import uk.ac.ic.doc.gander.flowinference.result.Result;
+import uk.ac.ic.doc.gander.model.ModelSite;
 
 public interface TCallable extends Type {
 
@@ -18,33 +19,6 @@ public interface TCallable extends Type {
 	 *            allows us to determine the return type using type inference
 	 */
 	Result<Type> returnType(SubgoalManager goalManager);
-
-	/**
-	 * Returns the destinations to which the given argument is passed when
-	 * calling this type of callable from a callsite.
-	 * 
-	 * This is effectively {@code parametersReceivingArgument()} but Python's,
-	 * weird and wonder parameter passing possibilities mean that an argument
-	 * may end up <em>inside</em> a parameter rather than at the parameter
-	 * itself. {@link ArgumentDestination} abstracts over that.
-	 * 
-	 * This will almost always be a single destination but very rarely, such as
-	 * in the case of calling a class constructor where the constructor has been
-	 * multiply defined, there may be more than one receiving parameter.
-	 */
-	Result<ArgumentDestination> destinationsReceivingArgument(
-			CallsiteArgument argument, SubgoalManager goalManager);
-
-	/**
-	 * Returns the destinations to which the given argument is passed when
-	 * calling this type of callable internally.
-	 * 
-	 * This will almost always be a single destination but very rarely, such as
-	 * in the case of calling a class constructor where the constructor has been
-	 * multiply defined, there may be more than one receiving parameter.
-	 */
-	Result<ArgumentDestination> destinationsReceivingArgument(
-			Argument argument, SubgoalManager goalManager);
 
 	/**
 	 * Returns the flow positions that the result of calling an object of this
@@ -60,7 +34,8 @@ public interface TCallable extends Type {
 	 * @param goalManager
 	 *            allows us to determine the flow positions using type inference
 	 */
-	Result<FlowPosition> flowPositionsCausedByCalling(SubgoalManager goalManager);
+	Result<FlowPosition> flowPositionsCausedByCalling(
+			ModelSite<Call> syntacticCallSite, SubgoalManager goalManager);
 
 	/**
 	 * Returns the argument representing the potential for a hidden 'self' value

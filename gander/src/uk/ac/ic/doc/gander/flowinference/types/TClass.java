@@ -1,89 +1,33 @@
 package uk.ac.ic.doc.gander.flowinference.types;
 
-import java.util.Collection;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.Set;
 
-import org.python.pydev.parser.jython.ast.exprType;
+import org.python.pydev.parser.jython.ast.Call;
 
 import uk.ac.ic.doc.gander.flowinference.Namespace;
 import uk.ac.ic.doc.gander.flowinference.argument.Argument;
-import uk.ac.ic.doc.gander.flowinference.argument.ArgumentDestination;
-import uk.ac.ic.doc.gander.flowinference.argument.CallsiteArgument;
+import uk.ac.ic.doc.gander.flowinference.argument.SelfArgument;
 import uk.ac.ic.doc.gander.flowinference.argument.SelfCallsiteArgument;
 import uk.ac.ic.doc.gander.flowinference.call.CallDispatch;
 import uk.ac.ic.doc.gander.flowinference.call.TopD;
+import uk.ac.ic.doc.gander.flowinference.callframe.CallSiteStackFrame;
 import uk.ac.ic.doc.gander.flowinference.callframe.StackFrame;
 import uk.ac.ic.doc.gander.flowinference.callframe.StrategyBasedStackFrame;
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
 import uk.ac.ic.doc.gander.flowinference.flowgoals.FlowPosition;
-import uk.ac.ic.doc.gander.flowinference.flowgoals.TopFp;
-import uk.ac.ic.doc.gander.flowinference.flowgoals.TopP;
-import uk.ac.ic.doc.gander.flowinference.flowgoals.expressionflow.ReceivingParameterPositioner;
+import uk.ac.ic.doc.gander.flowinference.flowgoals.expressionflow.ArgumentFlower;
 import uk.ac.ic.doc.gander.flowinference.result.FiniteResult;
 import uk.ac.ic.doc.gander.flowinference.result.RedundancyEliminator;
 import uk.ac.ic.doc.gander.flowinference.result.Result;
-import uk.ac.ic.doc.gander.flowinference.result.Result.Processor;
 import uk.ac.ic.doc.gander.flowinference.result.Result.Transformer;
-import uk.ac.ic.doc.gander.flowinference.typegoals.expression.ExpressionTypeGoal;
 import uk.ac.ic.doc.gander.flowinference.typegoals.namespacename.NamespaceNameTypeGoal;
 import uk.ac.ic.doc.gander.model.Class;
-import uk.ac.ic.doc.gander.model.Function;
 import uk.ac.ic.doc.gander.model.ModelSite;
 import uk.ac.ic.doc.gander.model.NamespaceName;
 import uk.ac.ic.doc.gander.model.codeobject.ClassCO;
 
 public class TClass implements TCodeObject, TCallable {
-
-	private final class ReceivingParameterFinder implements
-			Transformer<Type, Result<ArgumentDestination>> {
-
-		private final Argument argument;
-		private final SubgoalManager goalManager;
-
-		ReceivingParameterFinder(Argument argument, SubgoalManager goalManager) {
-			this.argument = argument;
-			this.goalManager = goalManager;
-		}
-
-		@Override
-		public Result<ArgumentDestination> transformFiniteResult(
-				Set<Type> initImplementations) {
-
-			RedundancyEliminator<ArgumentDestination> destinations = new RedundancyEliminator<ArgumentDestination>();
-
-			for (Type initType : initImplementations) {
-
-				if (initType instanceof TCallable) {
-
-					destinations.add(((TCallable) initType)
-							.destinationsReceivingArgument(argument,
-									goalManager));
-
-				} else {
-
-					// TODO: init might be a callable object
-
-					System.err.println("UNTYPABLE: __init__ "
-							+ "implementation appears not to be callable: "
-							+ initType);
-				}
-
-				if (destinations.isFinished()) {
-					break;
-				}
-			}
-
-			return destinations.result();
-		}
-
-		@Override
-		public Result<ArgumentDestination> transformInfiniteResult() {
-			return TopP.INSTANCE;
-		}
-
-	}
 
 	private final ClassCO classObject;
 
@@ -159,48 +103,6 @@ public class TClass implements TCodeObject, TCallable {
 	/**
 	 * {@inheritDoc}
 	 * 
-	 * Ordinal arguments passed to a call to constructor are passed to the
-	 * parameter of the receiver that is one further along the parameter list
-	 * than the ordinal.
-	 */
-	@Override
-	public Result<ArgumentDestination> destinationsReceivingArgument(
-			CallsiteArgument argument, SubgoalManager goalManager) {
-		if (argument == null) {
-			throw new NullPointerException("Argument is not optional");
-		}
-		if (goalManager == null) {
-			throw new NullPointerException(
-					"Goal manager required to resolve constructors");
-		}
-
-		Argument actualArgument = argument
-				.mapToActualArgument(new MethodStylePassingStrategy(
-						new TObject(classObject)));
-
-		return destinationsReceivingArgument(actualArgument, goalManager);
-	}
-
-	@Override
-	public Result<ArgumentDestination> destinationsReceivingArgument(
-			Argument argument, SubgoalManager goalManager) {
-		if (argument == null) {
-			throw new NullPointerException("Argument is not optional");
-		}
-		if (goalManager == null) {
-			throw new NullPointerException(
-					"Goal manager required to resolve constructors");
-		}
-
-		Result<Type> initMethodTypes = initMemberTypes(goalManager);
-
-		return initMethodTypes.transformResult(new ReceivingParameterFinder(
-				argument, goalManager));
-	}
-
-	/**
-	 * {@inheritDoc}
-	 * 
 	 * A call made on a class object is passed on to any of the objects assigned
 	 * to the {@code __init__} member of the class's namespace.
 	 */
@@ -222,114 +124,19 @@ public class TClass implements TCodeObject, TCallable {
 	 * {@inheritDoc}
 	 * 
 	 * We model this for results of constructor calls by flowing the value to
-	 * the positions of the {@code self} parameter in each method.
-	 * 
-	 * XXX: This is a bit of a hack. Really, the result should only be flowed at
-	 * the method call site except for {@code __init__}.
-	 * 
-	 * FIXME: Doesn't work if the method was added by assignment rather than
-	 * declaration.
+	 * the positions of the {@code self} parameter in the __init__ member.
 	 */
 	@Override
 	public Result<FlowPosition> flowPositionsCausedByCalling(
-			SubgoalManager goalManager) {
+			ModelSite<Call> syntacticCallSite, SubgoalManager goalManager) {
 
-		RedundancyEliminator<FlowPosition> positions = new RedundancyEliminator<FlowPosition>();
+		StackFrame<Argument> stackFrame = new CallSiteStackFrame(
+				syntacticCallSite);
 
-		/*
-		 * The value only flows to the most specific overload of each method so
-		 * we keep track of which methods we've seen already so we can ignore
-		 * them as we walk further up the inheritance tree.
-		 * 
-		 * XXX: I don't know if we walk the tree in the correct order.
-		 */
-		Set<String> doneMethods = new HashSet<String>();
+		Result<CallDispatch> calls = dispatches(stackFrame, goalManager);
 
-		flowToMethodsOfClass(this, doneMethods, new HashSet<TClass>(),
-				goalManager, positions);
-
-		return positions.result();
-	}
-
-	private void flowToMethodsOfClass(TClass klass, Set<String> doneMethods,
-			Set<TClass> doneClasses, SubgoalManager goalManager,
-			RedundancyEliminator<FlowPosition> positions) {
-
-		/*
-		 * This prevents a stack overflow in the case that the class appears to
-		 * inherit from itself or a grandparent.
-		 */
-		doneClasses.add(klass);
-
-		Collection<Function> methods = klass.codeObject()
-				.oldStyleConflatedNamespace().getFunctions().values();
-
-		for (Function method : methods) {
-
-			if (positions.isFinished())
-				break;
-
-			TBoundMethod boundMethod = new TBoundMethod(new TFunction(
-					method.codeObject()), new TObject(classObject));
-
-			Result<ArgumentDestination> selfDestinations = boundMethod
-					.destinationsReceivingArgument(new SelfCallsiteArgument(),
-							goalManager);
-
-			positions.add(selfDestinations
-					.transformResult(new ReceivingParameterPositioner()));
-		}
-
-		for (exprType base : klass.codeObject().ast().bases) {
-
-			flowToMethodsOfSuperClass(new ModelSite<exprType>(base, klass
-					.codeObject().parent()), doneMethods, doneClasses,
-					positions, goalManager);
-
-			if (positions.isFinished())
-				break;
-		}
-
-	}
-
-	private void flowToMethodsOfSuperClass(
-			final ModelSite<exprType> superclass,
-			final Set<String> doneMethods, final Set<TClass> doneClasses,
-			final RedundancyEliminator<FlowPosition> positions,
-			final SubgoalManager goalManager) {
-
-		Result<Type> superclassTypes = goalManager
-				.registerSubgoal(new ExpressionTypeGoal(superclass));
-
-		superclassTypes.actOnResult(new Processor<Type>() {
-
-			@Override
-			public void processInfiniteResult() {
-				positions.add(TopFp.INSTANCE);
-			}
-
-			@Override
-			public void processFiniteResult(Set<Type> possibleSuperclassTypes) {
-
-				for (Type supertype : possibleSuperclassTypes) {
-
-					if (supertype instanceof TClass) {
-						if (!doneClasses.contains(supertype)) {
-							TClass superclass = (TClass) supertype;
-							flowToMethodsOfClass(superclass, doneMethods,
-									doneClasses, goalManager, positions);
-						} else {
-							System.err.println("UNTYPABLE: " + classObject
-									+ " appears to inherit circularly");
-						}
-					} else {
-						System.err.println("UNTYPABLE: " + classObject
-								+ " appears to inherit from non-class "
-								+ superclass);
-					}
-				}
-			}
-		});
+		return calls.transformResult(new ArgumentFlower(
+				constructorSelfArgument(), goalManager));
 	}
 
 	/**
@@ -347,6 +154,10 @@ public class TClass implements TCodeObject, TCallable {
 		return new SelfCallsiteArgument()
 				.mapToActualArgument(new FunctionStylePassingStrategy());
 		// XXX: or just return NullArgument.INSTANCE?
+	}
+
+	private Argument constructorSelfArgument() {
+		return new SelfArgument(0, new TObject(classObject));
 	}
 
 	@Override
