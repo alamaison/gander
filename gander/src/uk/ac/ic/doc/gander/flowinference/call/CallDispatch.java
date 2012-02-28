@@ -1,8 +1,10 @@
 package uk.ac.ic.doc.gander.flowinference.call;
 
 import uk.ac.ic.doc.gander.flowinference.argument.Argument;
+import uk.ac.ic.doc.gander.flowinference.argument.ArgumentDestination;
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
 import uk.ac.ic.doc.gander.flowinference.result.Result;
+import uk.ac.ic.doc.gander.model.codeobject.InvokableCodeObject;
 import uk.ac.ic.doc.gander.model.name_binding.Variable;
 
 /**
@@ -22,8 +24,8 @@ public interface CallDispatch {
 	 * in the case of calling a class constructor where the constructor has been
 	 * multiply defined, there may be more than one receiving parameter.
 	 */
-	// Result<ArgumentDestination> destinationsReceivingArgument(
-	// Argument argument, SubgoalManager goalManager);
+	Result<ArgumentDestination> destinationsReceivingArgument(
+			Argument argument, SubgoalManager goalManager);
 
 	/**
 	 * Return the arguments that are passed to a parameter that binds them to
@@ -38,7 +40,7 @@ public interface CallDispatch {
 	 * invoked.
 	 * 
 	 * This will almost always be a single argument (as the receiver, the formal
-	 * parameter, is already know). There <em>may</em> be an exceedingly unusal
+	 * parameter, is already known). There <em>may</em> be an exceedingly unusal
 	 * case where there could be more than one argument: if the object being
 	 * called invokes the same code object but in different ways; once as, say,
 	 * a plain function and another time as a bound method. We weren't able to
@@ -60,5 +62,5 @@ public interface CallDispatch {
 	Result<Argument> argumentsBoundToVariable(Variable variable,
 			SubgoalManager goalManager);
 
-	Object receiver();
+	InvokableCodeObject receiver();
 }

@@ -1,8 +1,10 @@
 package uk.ac.ic.doc.gander.flowinference.call;
 
+import java.util.HashSet;
 import java.util.Set;
 
 import uk.ac.ic.doc.gander.flowinference.argument.Argument;
+import uk.ac.ic.doc.gander.flowinference.argument.ArgumentDestination;
 import uk.ac.ic.doc.gander.flowinference.callframe.StackFrame;
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
 import uk.ac.ic.doc.gander.flowinference.result.FiniteResult;
@@ -10,11 +12,12 @@ import uk.ac.ic.doc.gander.flowinference.result.Result;
 import uk.ac.ic.doc.gander.model.codeobject.InvokableCodeObject;
 import uk.ac.ic.doc.gander.model.name_binding.Variable;
 import uk.ac.ic.doc.gander.model.parameters.FormalParameter;
+import uk.ac.ic.doc.gander.model.parameters.FormalParameters;
 
 public final class DefaultCallDispatch implements CallDispatch {
 
 	private final InvokableCodeObject receiver;
-	private final StackFrame<Argument> functionCall;
+	private final StackFrame<Argument> stackFrame;
 
 	public DefaultCallDispatch(InvokableCodeObject receiver,
 			StackFrame<Argument> functionCall) {
@@ -28,7 +31,23 @@ public final class DefaultCallDispatch implements CallDispatch {
 							+ "with the parameters being passed");
 
 		this.receiver = receiver;
-		this.functionCall = functionCall;
+		this.stackFrame = functionCall;
+	}
+
+	@Override
+	public Result<ArgumentDestination> destinationsReceivingArgument(
+			Argument argument, SubgoalManager goalManager) {
+
+		FormalParameters parameters = receiver.formalParameters();
+		Set<Passage> passages = parameters.digestStackFrame(stackFrame);
+
+		Set<ArgumentDestination> destinations = new HashSet<ArgumentDestination>();
+
+		for (Passage passage : passages) {
+			destinations.addAll(passage.destinationsOf(argument));
+		}
+
+		return new FiniteResult<ArgumentDestination>(destinations);
 	}
 
 	@Override
@@ -42,7 +61,7 @@ public final class DefaultCallDispatch implements CallDispatch {
 		FormalParameter parameter = receiver.formalParameters()
 				.variableBindingParameter(variable);
 
-		Set<Argument> arguments = parameter.argumentsPassedAtCall(functionCall,
+		Set<Argument> arguments = parameter.argumentsPassedAtCall(stackFrame,
 				goalManager);
 
 		return new FiniteResult<Argument>(arguments);

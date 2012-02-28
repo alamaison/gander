@@ -3,7 +3,10 @@ package uk.ac.ic.doc.gander.model.parameters;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map.Entry;
+import java.util.Set;
 
 import org.python.pydev.parser.jython.SimpleNode;
 import org.python.pydev.parser.jython.ast.Name;
@@ -12,6 +15,9 @@ import org.python.pydev.parser.jython.ast.VisitorBase;
 import org.python.pydev.parser.jython.ast.argumentsType;
 import org.python.pydev.parser.jython.ast.exprType;
 
+import uk.ac.ic.doc.gander.flowinference.argument.Argument;
+import uk.ac.ic.doc.gander.flowinference.call.Passage;
+import uk.ac.ic.doc.gander.flowinference.callframe.StackFrame;
 import uk.ac.ic.doc.gander.model.ModelSite;
 import uk.ac.ic.doc.gander.model.codeobject.InvokableCodeObject;
 import uk.ac.ic.doc.gander.model.name_binding.Variable;
@@ -272,5 +278,34 @@ public final class FormalParameters {
 		}
 
 		return bp;
+	}
+
+	public Set<Passage> digestStackFrame(StackFrame<Argument> stackFrame) {
+
+		Set<Passage> passages = new HashSet<Passage>();
+
+		for (int i = 0; i < stackFrame.knownPositions().size(); ++i) {
+
+			for (FormalParameter p : parameters) {
+
+				if (p.acceptsArgumentByPosition(i)) {
+					passages.add(new DirectPassage(stackFrame.knownPositions()
+							.get(i), p));
+				}
+			}
+		}
+
+		for (Entry<String, Argument> keywordable : stackFrame.knownKeywords()
+				.entrySet()) {
+
+			for (FormalParameter p : parameters) {
+
+				if (p.acceptsArgumentByKeyword(keywordable.getKey())) {
+					passages.add(new DirectPassage(keywordable.getValue(), p));
+				}
+			}
+		}
+
+		return passages;
 	}
 }
