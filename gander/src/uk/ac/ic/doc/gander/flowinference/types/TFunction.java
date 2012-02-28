@@ -103,7 +103,7 @@ public class TFunction implements TCodeObject, TCallable {
 			SubgoalManager goalManager) {
 
 		StackFrame<Argument> functionCall = new StrategyBasedStackFrame(
-				callFrame, new FunctionStylePassingStrategy());
+				callFrame, FunctionStylePassingStrategy.INSTANCE);
 
 		return new FiniteResult<CallDispatch>(
 				Collections.singleton(new DefaultCallDispatch(functionObject,

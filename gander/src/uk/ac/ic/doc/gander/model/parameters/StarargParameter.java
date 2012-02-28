@@ -89,7 +89,7 @@ final class StarargParameter implements FormalParameter {
 			 * still have a value. This is a default empty tuple.
 			 */
 			return Collections
-					.<Argument> singleton(new DefaultStarargsArgument());
+					.<Argument> singleton(DefaultStarargsArgument.INSTANCE);
 		}
 	}
 

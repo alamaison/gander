@@ -69,6 +69,7 @@ public final class DefaultCallDispatch implements CallDispatch {
 	public InvokableCodeObject receiver() {
 		return receiver;
 	}
+
 	/*-
 	 private StackFrame<Argument> callFrame() {
 
@@ -108,5 +109,44 @@ public final class DefaultCallDispatch implements CallDispatch {
 	 p.consumeCallFrame();
 	 }
 	 */
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result
+				+ ((receiver == null) ? 0 : receiver.hashCode());
+		result = prime * result
+				+ ((stackFrame == null) ? 0 : stackFrame.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		DefaultCallDispatch other = (DefaultCallDispatch) obj;
+		if (receiver == null) {
+			if (other.receiver != null)
+				return false;
+		} else if (!receiver.equals(other.receiver))
+			return false;
+		if (stackFrame == null) {
+			if (other.stackFrame != null)
+				return false;
+		} else if (!stackFrame.equals(other.stackFrame))
+			return false;
+		return true;
+	}
+
+	@Override
+	public String toString() {
+		return "DefaultCallDispatch [receiver=" + receiver + ", stackFrame="
+				+ stackFrame + "]";
+	}
 
 }

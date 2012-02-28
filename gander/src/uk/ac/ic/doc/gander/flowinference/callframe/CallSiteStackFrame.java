@@ -19,7 +19,7 @@ public final class CallSiteStackFrame implements StackFrame<Argument> {
 		CallsiteArguments callSiteArguments = new CallsiteArguments(
 				senderCallSite);
 		arguments = new Arguments(callSiteArguments,
-				new FunctionStylePassingStrategy());
+				FunctionStylePassingStrategy.INSTANCE);
 	}
 
 	@Override
@@ -41,6 +41,37 @@ public final class CallSiteStackFrame implements StackFrame<Argument> {
 	@Override
 	public boolean includesUnknownKeywords() {
 		return arguments.expandedMapping() != null;
+	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result
+				+ ((arguments == null) ? 0 : arguments.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		CallSiteStackFrame other = (CallSiteStackFrame) obj;
+		if (arguments == null) {
+			if (other.arguments != null)
+				return false;
+		} else if (!arguments.equals(other.arguments))
+			return false;
+		return true;
+	}
+
+	@Override
+	public String toString() {
+		return "CallSiteStackFrame [arguments=" + arguments + "]";
 	}
 
 }

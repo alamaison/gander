@@ -52,4 +52,43 @@ public final class StrategyBasedStackFrame implements StackFrame<Argument> {
 		return callFrame.includesUnknownKeywords();
 	}
 
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result
+				+ ((callFrame == null) ? 0 : callFrame.hashCode());
+		result = prime * result
+				+ ((passingStrategy == null) ? 0 : passingStrategy.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		StrategyBasedStackFrame other = (StrategyBasedStackFrame) obj;
+		if (callFrame == null) {
+			if (other.callFrame != null)
+				return false;
+		} else if (!callFrame.equals(other.callFrame))
+			return false;
+		if (passingStrategy == null) {
+			if (other.passingStrategy != null)
+				return false;
+		} else if (!passingStrategy.equals(other.passingStrategy))
+			return false;
+		return true;
+	}
+
+	@Override
+	public String toString() {
+		return "StrategyBasedStackFrame [callFrame=" + callFrame
+				+ ", passingStrategy=" + passingStrategy + "]";
+	}
+
 }

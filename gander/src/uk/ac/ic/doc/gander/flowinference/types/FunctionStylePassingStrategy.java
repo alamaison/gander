@@ -7,8 +7,9 @@ import uk.ac.ic.doc.gander.flowinference.callframe.ArgumentPassingStrategy;
  * Model of the characteristics of passing arguments to a procedure using a
  * function-style mechanism.
  */
-public final class FunctionStylePassingStrategy implements
-		ArgumentPassingStrategy {
+public enum FunctionStylePassingStrategy implements ArgumentPassingStrategy {
+
+	INSTANCE;
 
 	@Override
 	public int realPosition(int position) {

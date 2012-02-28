@@ -33,4 +33,35 @@ final class DefaultArgument implements Argument {
 		return goalManager
 				.registerSubgoal(new ExpressionTypeGoal(defaultValue));
 	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result
+				+ ((defaultValue == null) ? 0 : defaultValue.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		DefaultArgument other = (DefaultArgument) obj;
+		if (defaultValue == null) {
+			if (other.defaultValue != null)
+				return false;
+		} else if (!defaultValue.equals(other.defaultValue))
+			return false;
+		return true;
+	}
+
+	@Override
+	public String toString() {
+		return "DefaultArgument [defaultValue=" + defaultValue + "]";
+	}
 }

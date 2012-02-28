@@ -105,7 +105,8 @@ final class CallArgumentSituation implements FlowSituation {
 	}
 
 	private Argument argument() {
-		return argument.mapToActualArgument(new FunctionStylePassingStrategy());
+		return argument
+				.mapToActualArgument(FunctionStylePassingStrategy.INSTANCE);
 	}
 
 	@Override

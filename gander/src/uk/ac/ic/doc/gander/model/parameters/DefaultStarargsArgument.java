@@ -8,7 +8,9 @@ import uk.ac.ic.doc.gander.flowinference.typegoals.TopT;
 import uk.ac.ic.doc.gander.flowinference.types.Type;
 import uk.ac.ic.doc.gander.model.codeobject.InvokableCodeObject;
 
-final class DefaultStarargsArgument implements Argument {
+enum DefaultStarargsArgument implements Argument {
+
+	INSTANCE;
 
 	@Override
 	public ArgumentDestination passArgumentAtCall(InvokableCodeObject receiver) {
