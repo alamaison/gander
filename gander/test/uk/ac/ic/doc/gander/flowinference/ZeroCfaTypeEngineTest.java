@@ -1836,8 +1836,13 @@ public class ZeroCfaTypeEngineTest {
 
 		ClassCO klassB = moduleLevelClass(node, "B");
 		FunctionCO unboundMethodB = nestedFunction(klassB, "m");
+		/*
+		 * Even though B's m overrides A's m we still flow A's m into B as B's m
+		 * might be deleted
+		 */
 		Set<Type> bm = typeJudgement(new TBoundMethod(new TFunction(
-				unboundMethodB), new TObject(klassB)));
+				unboundMethodA), new TObject(klassB)), new TBoundMethod(
+				new TFunction(unboundMethodB), new TObject(klassB)));
 
 		assertEquals("Didn't infer inherited method type correctly. "
 				+ "Overriding the method shouldn't change the "
@@ -1846,14 +1851,13 @@ public class ZeroCfaTypeEngineTest {
 		node = findPrintNode(testName, "what_am_i");
 		type = engine.typeOf(node.site());
 
-		assertEquals("Didn't infer inherited method type correctly. "
-				+ "Probably saw the inherited method and forgot "
-				+ "that it is excluded because it is overridden.", bm, type);
+		assertEquals("Didn't infer inherited method type correctly.", bm, type);
 
 		node = findPrintNode(testName, "what_am_i_parent");
 		ClassCO klassC = moduleLevelClass(node, "C");
 		Set<Type> cm = typeJudgement(new TBoundMethod(new TFunction(
-				unboundMethodB), new TObject(klassC)));
+				unboundMethodB), new TObject(klassC)), new TBoundMethod(
+				new TFunction(unboundMethodA), new TObject(klassC)));
 		type = engine.typeOf(node.site());
 
 		assertEquals("Didn't infer inherited method type correctly. "
@@ -1862,7 +1866,8 @@ public class ZeroCfaTypeEngineTest {
 		node = findPrintNode(testName, "what_am_i_grandparent");
 		ClassCO klassD = moduleLevelClass(node, "D");
 		Set<Type> dm = typeJudgement(new TBoundMethod(new TFunction(
-				unboundMethodB), new TObject(klassD)));
+				unboundMethodB), new TObject(klassD)), new TBoundMethod(
+				new TFunction(unboundMethodA), new TObject(klassD)));
 		type = engine.typeOf(node.site());
 
 		assertEquals("Didn't infer inherited method type correctly. "

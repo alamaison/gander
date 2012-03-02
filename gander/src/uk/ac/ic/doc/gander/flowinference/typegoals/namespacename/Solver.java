@@ -9,7 +9,6 @@ import uk.ac.ic.doc.gander.flowinference.result.RedundancyEliminator;
 import uk.ac.ic.doc.gander.flowinference.result.Result;
 import uk.ac.ic.doc.gander.flowinference.result.Result.Processor;
 import uk.ac.ic.doc.gander.flowinference.typegoals.expression.ExpressionTypeGoal;
-import uk.ac.ic.doc.gander.flowinference.types.TCodeObject;
 import uk.ac.ic.doc.gander.flowinference.types.Type;
 import uk.ac.ic.doc.gander.model.Class;
 import uk.ac.ic.doc.gander.model.ModelSite;
@@ -60,15 +59,11 @@ final class NamespaceNameTypeGoalSolver {
 		for (exprType supertype : klass.inheritsFrom()) {
 
 			/*
-			 * XXX: HACK: We don't to search the whole inheritance tree when
-			 * inferring the type of a member so we stop if they are methods or
-			 * nested classes which override anything in the superclass. There
-			 * must be a better way to do this that also takes account of data
-			 * members being specific to a sub class etc.
+			 * Methods in a subclass override those declared in a superclass but
+			 * we must flow both into the subclass's namespace as the subclass's
+			 * version could be deleted leading to calls invoking the superclass
+			 * version.
 			 */
-			if (foundDeclaredMember()) {
-				break;
-			}
 
 			Result<Type> supertypeTypes = goalManager
 					.registerSubgoal(new ExpressionTypeGoal(
@@ -78,35 +73,6 @@ final class NamespaceNameTypeGoalSolver {
 			MemberTyper memberTyper = new MemberTyper();
 			supertypeTypes.actOnResult(memberTyper);
 		}
-	}
-
-	private boolean foundDeclaredMember() {
-
-		final boolean found[] = { false };
-
-		completeType.result().actOnResult(new Processor<Type>() {
-
-			@Override
-			public void processInfiniteResult() {
-				found[0] = true;
-			}
-
-			@Override
-			public void processFiniteResult(Set<Type> result) {
-				for (Type type : result) {
-					if (isDeclaredType(type)) {
-						found[0] = true;
-						break;
-					}
-				}
-			}
-		});
-
-		return found[0];
-	}
-
-	protected boolean isDeclaredType(Type type) {
-		return type instanceof TCodeObject;
 	}
 
 	private final class MemberTyper implements Processor<Type> {
