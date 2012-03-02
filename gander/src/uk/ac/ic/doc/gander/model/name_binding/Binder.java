@@ -1,49 +1,9 @@
 package uk.ac.ic.doc.gander.model.name_binding;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import uk.ac.ic.doc.gander.model.LexicalResolver;
 import uk.ac.ic.doc.gander.model.codeblock.CodeBlock;
 import uk.ac.ic.doc.gander.model.codeobject.CodeObject;
 import uk.ac.ic.doc.gander.model.codeobject.ModuleCO;
-
-/**
- * Although what a name is bound to is dynamically determined and not generally
- * solvable in Python, what scope that binding is looked up in <em>is</em>
- * statically determined.
- * 
- * In other words, given a name {@code x} appearing in a block of code, that
- * name won't, on some run of the program, refer to the value assigned to
- * {@code x} earlier in the block and, on another run, refer to the global
- * {@code x} or an {@code x} defined in an enclosing code block. For any name
- * there is always exactly one scope whose version of the name binding that name
- * might refer to. This class determines what that scope
- */
-final class Binder {
-
-	private static final BindingScopeResolver RESOLVER = new BindingScopeResolver();
-	private static final Map<Variable, BindingLocation> locations = new HashMap<Variable, BindingLocation>();
-
-	public static BindingLocation resolveBindingLocation(Variable variable) {
-
-		BindingLocation location = locations.get(variable);
-		if (location == null) {
-			CodeObject bindingCodeObject = RESOLVER.resolveToken(variable
-					.name(), variable.codeObject());
-
-			location = new BindingLocation(variable.name(), bindingCodeObject);
-			locations.put(variable, location);
-		}
-
-		return location;
-	}
-
-	private Binder() {
-		throw new AssertionError();
-	}
-
-}
 
 /**
  * Determines the binding scope of names.
@@ -76,9 +36,9 @@ final class BindingScopeResolver extends LexicalResolver<CodeObject> {
 	 * @param scope
 	 *            the scope within which the variable might appear
 	 * @return The binding scope of the name (either the current scope or the
-	 *         global namespace) if that could be determined. If not, {@code
-	 *         null} indicating that the determination should be delegated to
-	 *         the enclosing scope.
+	 *         global namespace) if that could be determined. If not,
+	 *         {@code null} indicating that the determination should be
+	 *         delegated to the enclosing scope.
 	 */
 	@Override
 	protected CodeObject searchScopeForVariable(final String variableName,
