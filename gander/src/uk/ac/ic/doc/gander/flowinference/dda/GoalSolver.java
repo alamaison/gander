@@ -7,6 +7,7 @@ import java.util.Deque;
 import java.util.Stack;
 
 import uk.ac.ic.doc.gander.flowinference.result.FiniteResult;
+import uk.ac.ic.doc.gander.flowinference.result.Top;
 
 /**
  * Find the solution to a single goal.
@@ -65,6 +66,7 @@ public final class GoalSolver<T> {
 				return knowledgebase.getLastSolution(subgoal);
 			}
 
+			@Override
 			public <R> R registerSubgoal(Goal<R> newSubgoal) {
 				/*
 				 * Only add the subgoal to the worklist if it hasn't been seen
@@ -84,6 +86,12 @@ public final class GoalSolver<T> {
 
 		if (debugTrigger.exists()) {
 			System.out.println("-" + goal + ":");
+
+			if (oldSolution instanceof Top<?>) {
+				if (!(newSolution instanceof Top<?>)) {
+					throw new AssertionError("Non-monotonic behaviour detected");
+				}
+			}
 
 			if (newSolution instanceof FiniteResult<?>) {
 				if (((FiniteResult<?>) newSolution).isEmpty()) {
@@ -137,21 +145,25 @@ interface WorkList {
 final class StackBasedWorkList implements WorkList {
 	Stack<Goal<?>> workList = new Stack<Goal<?>>();
 
+	@Override
 	public boolean isEmpty() {
 		return workList.isEmpty();
 	}
 
+	@Override
 	public void add(Goal<?> goal) {
 		if (!workList.contains(goal))
 			workList.push(goal);
 	}
 
+	@Override
 	public void addAll(Collection<? extends Goal<?>> goals) {
 		for (Goal<?> goal : goals) {
 			add(goal);
 		}
 	}
 
+	@Override
 	public Goal<?> nextWorkItem() {
 		return workList.pop();
 	}
@@ -163,21 +175,25 @@ final class StackBasedWorkList implements WorkList {
 final class DequeBasedWorkList implements WorkList {
 	Deque<Goal<?>> workList = new ArrayDeque<Goal<?>>();
 
+	@Override
 	public boolean isEmpty() {
 		return workList.isEmpty();
 	}
 
+	@Override
 	public void add(Goal<?> goal) {
 		if (!workList.contains(goal))
 			workList.push(goal);
 	}
 
+	@Override
 	public void addAll(Collection<? extends Goal<?>> goals) {
 		for (Goal<?> goal : goals) {
 			workList.addFirst(goal);
 		}
 	}
 
+	@Override
 	public Goal<?> nextWorkItem() {
 		return workList.pop();
 	}
