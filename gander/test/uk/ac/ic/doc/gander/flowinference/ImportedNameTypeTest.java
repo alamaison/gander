@@ -6,13 +6,13 @@ import static org.junit.Assert.assertTrue;
 
 import java.io.File;
 import java.net.URL;
-import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 
 import org.junit.Before;
 import org.junit.Test;
 
+import uk.ac.ic.doc.gander.flowinference.result.Result;
+import uk.ac.ic.doc.gander.flowinference.result.Result.Transformer;
 import uk.ac.ic.doc.gander.flowinference.types.TClass;
 import uk.ac.ic.doc.gander.flowinference.types.TFunction;
 import uk.ac.ic.doc.gander.flowinference.types.TModule;
@@ -25,10 +25,12 @@ import uk.ac.ic.doc.gander.model.Function;
 import uk.ac.ic.doc.gander.model.Module;
 import uk.ac.ic.doc.gander.model.MutableModel;
 import uk.ac.ic.doc.gander.model.OldNamespace;
+import uk.ac.ic.doc.gander.model.codeobject.CodeObject;
+import uk.ac.ic.doc.gander.model.name_binding.Variable;
 
-public class SymbolTableTest {
+public class ImportedNameTypeTest {
 
-	private static final String TEST_FOLDER = "python_test_code/symbol_table";
+	private static final String TEST_FOLDER = "python_test_code/imported_names";
 	private MutableModel model;
 	private Hierarchy hierarchy;
 
@@ -40,17 +42,73 @@ public class SymbolTableTest {
 		model = new DefaultModel(hierarchy);
 	}
 
-	private Map<String, Type> symbols(OldNamespace scope) throws Exception {
-		return new SymbolTable(model).symbols(scope);
+	private class TypeGetter {
+
+		private final CodeObject scope;
+		private final ZeroCfaTypeEngine engine;
+
+		private final class Singletoniser implements Transformer<Type, Type> {
+
+			@Override
+			public Type transformFiniteResult(java.util.Set<Type> result) {
+				if (result.size() == 1) {
+					return result.iterator().next();
+				} else {
+					throw new AssertionError(
+							"Not a singleton; all tests assume "
+									+ "singleton type result:" + result);
+				}
+			}
+
+			@Override
+			public Type transformInfiniteResult() {
+				throw new AssertionError("Infinite result; not a singleton; "
+						+ "all tests assume singleton type result");
+			}
+		}
+
+		TypeGetter(MutableModel model, CodeObject scope) {
+
+			this.engine = new ZeroCfaTypeEngine();
+			this.scope = scope;
+		}
+
+		Type typeOf(String variableName) {
+			Result<Type> result = engine.typeOf(new Variable(variableName,
+					scope));
+			return result.transformResult(new Singletoniser());
+		}
+
+		boolean typeExistsFor(String variableName) {
+			Result<Type> result = engine.typeOf(new Variable(variableName,
+					scope));
+
+			return result.transformResult(new Transformer<Type, Boolean>() {
+
+				@Override
+				public Boolean transformFiniteResult(Set<Type> result) {
+					return !result.isEmpty();
+				}
+
+				@Override
+				public Boolean transformInfiniteResult() {
+					return true;
+				}
+			});
+		}
+	}
+
+	private TypeGetter typer(OldNamespace scope) throws Exception {
+		return new TypeGetter(model, scope.codeObject());
 	}
 
 	@Test
 	public void localFunction() throws Throwable {
 		Module start = model.loadModule("start");
-		assertTrue("start's symbol table doesn't contain 'alice'", symbols(
-				start).containsKey("alice"));
+		assertTrue("start's symbol table doesn't contain 'alice'", typer(start)
+				.typeExistsFor("alice"));
 
-		Type type = symbols(start).get("alice");
+		Type type = typer(start).typeOf("alice");
 		assertTrue("start's symbol table contains 'alice' but it isn't "
 				+ "recognised as referring to a function",
 				type instanceof TFunction);
@@ -65,10 +123,10 @@ public class SymbolTableTest {
 	@Test
 	public void localClass() throws Throwable {
 		Module start = model.loadModule("start");
-		assertTrue("start's symbol table doesn't contain 'Bob'", symbols(start)
-				.containsKey("Bob"));
+		assertTrue("start's symbol table doesn't contain 'Bob'", typer(start)
+				.typeExistsFor("Bob"));
 
-		Type type = symbols(start).get("Bob");
+		Type type = typer(start).typeOf("Bob");
 		assertTrue("start's symbol table contains 'Bob' but it isn't "
 				+ "recognised as referring to a class", type instanceof TClass);
 
@@ -79,21 +137,6 @@ public class SymbolTableTest {
 	}
 
 	/**
-	 * Methods do <b>not</b> appear in their parent class's symbol table.
-	 */
-	@Test
-	public void localClassMethod() throws Throwable {
-		Module start = model.loadModule("start");
-
-		Class bob = start.getClasses().get("Bob");
-		assertFalse("start.Bob's symbol table must not contain "
-				+ "'charles' - it can only be accessed via self", symbols(bob)
-				.containsKey("charles"));
-		assertTrue("start.Bob's symbol table should be empty", symbols(bob)
-				.isEmpty());
-	}
-
-	/**
 	 * Symbols bound by a nested import should only exist in the scope of the
 	 * import.
 	 */
@@ -101,16 +144,16 @@ public class SymbolTableTest {
 	public void nestedImport() throws Throwable {
 		Module start = model.loadModule("start");
 
-		Function charles = start.getClasses().get("Bob").getFunctions().get(
-				"charles");
+		Function charles = start.getClasses().get("Bob").getFunctions()
+				.get("charles");
 
 		// import mercurial
 
 		assertTrue("start.Bob.charles's symbol table should contain "
-				+ "'mercurial' imported locally", symbols(charles).containsKey(
-				"mercurial"));
+				+ "'mercurial' imported locally",
+				typer(charles).typeExistsFor("mercurial"));
 
-		Type type = symbols(charles).get("mercurial");
+		Type type = typer(charles).typeOf("mercurial");
 		assertTrue("start.Bob.charles's symbol table contains 'mercurial' but"
 				+ " it isn't recognised as referring to a module",
 				type instanceof TModule);
@@ -122,10 +165,10 @@ public class SymbolTableTest {
 		// from gertrude import Iris
 
 		assertTrue("start.Bob.charles's symbol table should contain "
-				+ "'Iris' imported locally", symbols(charles).containsKey(
-				"Iris"));
+				+ "'Iris' imported locally",
+				typer(charles).typeExistsFor("Iris"));
 
-		type = symbols(charles).get("Iris");
+		type = typer(charles).typeOf("Iris");
 		assertTrue("start.Bob.charles's symbol table contains 'Iris' but"
 				+ " it isn't recognised as referring to a class",
 				type instanceof TClass);
@@ -133,18 +176,15 @@ public class SymbolTableTest {
 		Class iris = model.lookup("gertrude").getClasses().get("Iris");
 		assertEquals("Type resolved to a class but not to 'Iris'", iris,
 				((TClass) type).getClassInstance());
-
-		// only two symbols
-		assertEquals(2, symbols(charles).size());
 	}
 
 	@Test
 	public void siblingImport() throws Throwable {
 		Module start = model.loadModule("start");
-		assertTrue("start's symbol table doesn't include 'gertrude'", symbols(
-				start).containsKey("gertrude"));
+		assertTrue("start's symbol table doesn't include 'gertrude'",
+				typer(start).typeExistsFor("gertrude"));
 
-		Type type = symbols(start).get("gertrude");
+		Type type = typer(start).typeOf("gertrude");
 		assertTrue("start's symbol table contains 'gertrude' but it isn't "
 				+ "recognised as referring to a module",
 				type instanceof TModule);
@@ -163,9 +203,9 @@ public class SymbolTableTest {
 	public void packageImport() throws Throwable {
 		Module start = model.loadModule("start");
 		assertTrue("start's symbol table doesn't contain 'stepchildren'",
-				symbols(start).containsKey("stepchildren"));
+				typer(start).typeExistsFor("stepchildren"));
 
-		Type type = symbols(start).get("stepchildren");
+		Type type = typer(start).typeOf("stepchildren");
 		assertTrue("start's symbol table contains 'stepchildren' but it isn't "
 				+ "recognised as referring to a module",
 				type instanceof TModule);
@@ -175,9 +215,9 @@ public class SymbolTableTest {
 				stepchildren, ((TModule) type).getModuleInstance());
 
 		assertTrue("stepchildren's symbol table doesn't contain 'gertrude'",
-				symbols(stepchildren).containsKey("gertrude"));
+				typer(stepchildren).typeExistsFor("gertrude"));
 
-		type = symbols(stepchildren).get("gertrude");
+		type = typer(stepchildren).typeOf("gertrude");
 		assertTrue("stepchildren's symbol table contains 'gertrude' but"
 				+ " it isn't recognised as referring to a module",
 				type instanceof TModule);
@@ -190,20 +230,16 @@ public class SymbolTableTest {
 	@Test
 	public void childImport() throws Throwable {
 		Module start = model.loadModule("start");
-		assertTrue("start's symbol table doesn't contain 'children'", symbols(
-				start).containsKey("children"));
+		assertTrue("start's symbol table doesn't contain 'children'",
+				typer(start).typeExistsFor("children"));
 
 		Module children = model.getTopLevel().getModules().get("children");
-		assertTrue("SourceFile 'children' not in model", children != null);
-
-		Map<String, Type> childrenTable = symbols(children);
-		assertTrue("No symbol table for top-level package 'children'",
-				childrenTable != null);
+		assertTrue("Module 'children' not in model", children != null);
 
 		assertTrue("children's symbol table doesn't contain 'bobby'",
-				childrenTable.containsKey("bobby"));
+				typer(children).typeExistsFor("bobby"));
 
-		Type type = symbols(children).get("bobby");
+		Type type = typer(children).typeOf("bobby");
 		assertTrue("children's symbol table contains 'bobby' but it isn't "
 				+ "recognised as referring to a module",
 				type instanceof TModule);
@@ -221,10 +257,10 @@ public class SymbolTableTest {
 	public void relativeSiblingImport() throws Throwable {
 		Module maggie = model.loadModule("children.maggie");
 
-		assertTrue("maggie's symbol table doesn't include 'bobby'", symbols(
-				maggie).containsKey("bobby"));
+		assertTrue("maggie's symbol table doesn't include 'bobby'",
+				typer(maggie).typeExistsFor("bobby"));
 
-		Type type = symbols(maggie).get("bobby");
+		Type type = typer(maggie).typeOf("bobby");
 		assertTrue("maggie's symbol table contains 'bobby' but it isn't "
 				+ "recognised as referring to a module",
 				type instanceof TModule);
@@ -242,10 +278,10 @@ public class SymbolTableTest {
 	public void relativeNephewImport() throws Throwable {
 		Module maggie = model.loadModule("children.maggie");
 
-		assertTrue("maggie's symbol table doesn't include 'children'", symbols(
-				maggie).containsKey("children"));
+		assertTrue("maggie's symbol table doesn't include 'children'",
+				typer(maggie).typeExistsFor("children"));
 
-		Type type = symbols(maggie).get("children");
+		Type type = typer(maggie).typeOf("children");
 		assertTrue("maggie's symbol table contains 'children' but it isn't "
 				+ "recognised as referring to a module",
 				type instanceof TModule);
@@ -256,9 +292,9 @@ public class SymbolTableTest {
 				children, ((TModule) type).getModuleInstance());
 
 		assertTrue("children.children's symbol table doesn't include "
-				+ "'grandchild'", symbols(children).containsKey("grandchild"));
+				+ "'grandchild'", typer(children).typeExistsFor("grandchild"));
 
-		type = symbols(children).get("grandchild");
+		type = typer(children).typeOf("grandchild");
 		assertTrue("children.children's symbol table contains 'grandchild' "
 				+ "but it isn't recognised as referring to a module",
 				type instanceof TModule);
@@ -272,10 +308,10 @@ public class SymbolTableTest {
 	public void relativeNephewImportAs() throws Throwable {
 		Module maggie = model.loadModule("children.maggie");
 
-		assertTrue("maggie's symbol table doesn't include 'iris'", symbols(
-				maggie).containsKey("iris"));
+		assertTrue("maggie's symbol table doesn't include 'iris'",
+				typer(maggie).typeExistsFor("iris"));
 
-		Type type = symbols(maggie).get("iris");
+		Type type = typer(maggie).typeOf("iris");
 		assertTrue("maggie's symbol table contains 'iris' but it isn't "
 				+ "recognised as referring to a module",
 				type instanceof TModule);
@@ -292,27 +328,27 @@ public class SymbolTableTest {
 
 		Module start = model.loadModule("start");
 
-		assertTrue("start's symbol table doesn't include 'william'", symbols(
-				start).containsKey("william"));
+		assertTrue("start's symbol table doesn't include 'william'",
+				typer(start).typeExistsFor("william"));
 
-		Type type = symbols(start).get("william");
+		Type type = typer(start).typeOf("william");
 		assertTrue("start's symbol table contains 'william' but it isn't "
 				+ "recognised as referring to a module",
 				type instanceof TModule);
 
 		Module uglychild = model.lookup("stepchildren.uglychild");
 		assertEquals("william's type resolved to a module but not to "
-				+ "'stepchildren.uglychild'", uglychild, ((TModule) type)
-				.getModuleInstance());
+				+ "'stepchildren.uglychild'", uglychild,
+				((TModule) type).getModuleInstance());
 
 		Module stepchildren = model.lookup("stepchildren");
 		assertTrue("stepchildren's symbol table doesn't include 'uglychild'",
-				symbols(stepchildren).containsKey("uglychild"));
+				typer(stepchildren).typeExistsFor("uglychild"));
 
-		Type uglyType = symbols(stepchildren).get("uglychild");
+		Type uglyType = typer(stepchildren).typeOf("uglychild");
 		assertEquals("Type of 'stepchildren.uglychild' resolved to a module "
-				+ "but not to 'uglychild'", uglychild, ((TModule) uglyType)
-				.getModuleInstance());
+				+ "but not to 'uglychild'", uglychild,
+				((TModule) uglyType).getModuleInstance());
 	}
 
 	@Test
@@ -320,13 +356,13 @@ public class SymbolTableTest {
 		Module jake = model.loadModule("adopted_children.jake");
 		assertFalse("jake's symbol table includes 'adopted_children' "
 				+ "but shouldn't as its import is nested in a function",
-				symbols(jake).containsKey("adopted_children"));
+				typer(jake).typeExistsFor("adopted_children"));
 
 		Function fatty = jake.getFunctions().get("fatty");
 		assertTrue("fatty's symbol table doesn't include 'adopted_children'",
-				symbols(fatty).containsKey("adopted_children"));
+				typer(fatty).typeExistsFor("adopted_children"));
 
-		Type type = symbols(fatty).get("adopted_children");
+		Type type = typer(fatty).typeOf("adopted_children");
 		assertTrue("fatty's symbol table contains 'adopted_children' but it "
 				+ "isn't recognised as referring to a module",
 				type instanceof TModule);
@@ -340,28 +376,28 @@ public class SymbolTableTest {
 	public void fromImportFirstItem() throws Throwable {
 		Module fetch = model.loadModule("hgext.fetch");
 
-		assertTrue("fetch's symbol table doesn't include 'commands'", symbols(
-				fetch).containsKey("commands"));
+		assertTrue("fetch's symbol table doesn't include 'commands'",
+				typer(fetch).typeExistsFor("commands"));
 
-		Type type = symbols(fetch).get("commands");
+		Type type = typer(fetch).typeOf("commands");
 		assertTrue("fetch's symbol table contains 'commands' but it isn't "
 				+ "recognised as referring to a module",
 				type instanceof TModule);
 
 		Module commands = model.lookup("mercurial.commands");
 		assertEquals("Type resolved to a module but not to "
-				+ "'mercurial.commands'", commands, ((TModule) type)
-				.getModuleInstance());
+				+ "'mercurial.commands'", commands,
+				((TModule) type).getModuleInstance());
 	}
 
 	@Test
 	public void fromImportSubsequentItem() throws Throwable {
 		Module fetch = model.loadModule("hgext.fetch");
 
-		assertTrue("fetch's symbol table doesn't include 'hg'", symbols(fetch)
-				.containsKey("hg"));
+		assertTrue("fetch's symbol table doesn't include 'hg'", typer(fetch)
+				.typeExistsFor("hg"));
 
-		Type type = symbols(fetch).get("hg");
+		Type type = typer(fetch).typeOf("hg");
 		assertTrue("fetch's symbol table contains 'hg' but it isn't "
 				+ "recognised as referring to a module",
 				type instanceof TModule);
@@ -375,10 +411,10 @@ public class SymbolTableTest {
 	public void fromImportAs() throws Throwable {
 		Module fetch = model.loadModule("hgext.fetch");
 
-		assertTrue("fetch's symbol table doesn't include 'droid'", symbols(
-				fetch).containsKey("droid"));
+		assertTrue("fetch's symbol table doesn't include 'droid'", typer(fetch)
+				.typeExistsFor("droid"));
 
-		Type type = symbols(fetch).get("droid");
+		Type type = typer(fetch).typeOf("droid");
 		assertTrue("fetch's symbol table contains 'droid' but it isn't "
 				+ "recognised as referring to a module",
 				type instanceof TModule);
@@ -395,10 +431,10 @@ public class SymbolTableTest {
 	public void fromImportModuleFromPackageRelative() throws Throwable {
 		Module fetch = model.loadModule("hgext.fetch");
 
-		assertTrue("fetch's symbol table doesn't include 'me'", symbols(fetch)
-				.containsKey("me"));
+		assertTrue("fetch's symbol table doesn't include 'me'", typer(fetch)
+				.typeExistsFor("me"));
 
-		Type type = symbols(fetch).get("me");
+		Type type = typer(fetch).typeOf("me");
 		assertTrue("fetch's symbol table contains 'me' but it isn't "
 				+ "recognised as referring to a module",
 				type instanceof TModule);
@@ -415,16 +451,16 @@ public class SymbolTableTest {
 	public void fromImportFunctionFromModuleRelative() throws Throwable {
 		Module fetch = model.loadModule("hgext.fetch");
 
-		assertTrue("fetch's symbol table doesn't include 'hamstring'", symbols(
-				fetch).containsKey("hamstring"));
+		assertTrue("fetch's symbol table doesn't include 'hamstring'",
+				typer(fetch).typeExistsFor("hamstring"));
 
-		Type type = symbols(fetch).get("hamstring");
+		Type type = typer(fetch).typeOf("hamstring");
 		assertTrue("fetch's symbol table contains 'hamstring' but it isn't "
 				+ "recognised as referring to a function",
 				type instanceof TFunction);
 
-		Function hamstring = model.lookup("hgext.stretch").getFunctions().get(
-				"hamstring");
+		Function hamstring = model.lookup("hgext.stretch").getFunctions()
+				.get("hamstring");
 		assertEquals("Type resolved to a function but not to "
 				+ "'hamstring' in 'hgext.stretch'", hamstring,
 				((TFunction) type).getFunctionInstance());
@@ -433,20 +469,16 @@ public class SymbolTableTest {
 	@Test
 	public void libraryImport() throws Throwable {
 		Module libby = model.loadModule("libby");
-		assertTrue("libby's symbol table doesn't contain 'base64'", symbols(
-				libby).containsKey("base64"));
+		assertTrue("libby's symbol table doesn't contain 'base64'",
+				typer(libby).typeExistsFor("base64"));
 
 		Module base64 = model.getTopLevel().getModules().get("base64");
 		assertTrue("SourceFile 'base64' not in model", base64 != null);
 
-		Map<String, Type> base64Table = symbols(base64);
-		assertTrue("No symbol table for library package 'base64'",
-				base64Table != null);
-
 		assertTrue("base64's symbol table doesn't contain 'b64encode'",
-				base64Table.containsKey("b64encode"));
+				typer(base64).typeExistsFor("b64encode"));
 
-		Type type = symbols(base64).get("b64encode");
+		Type type = typer(base64).typeOf("b64encode");
 		assertTrue("base64's symbol table contains 'b64encode' but it isn't "
 				+ "recognised as referring to a function",
 				type instanceof TFunction);
@@ -463,10 +495,10 @@ public class SymbolTableTest {
 	@Test
 	public void astTraversalImport() throws Throwable {
 		Module start = model.loadModule("traversal");
-		assertTrue("traversal's symbol table doesn't include 'p'", symbols(
-				start).containsKey("p"));
+		assertTrue("traversal's symbol table doesn't include 'p'", typer(start)
+				.typeExistsFor("p"));
 
-		Type type = symbols(start).get("p");
+		Type type = typer(start).typeOf("p");
 		assertTrue("start's symbol table contains 'p' but it isn't "
 				+ "recognised as referring to a module",
 				type instanceof TModule);
@@ -476,7 +508,7 @@ public class SymbolTableTest {
 				gertrude, ((TModule) type).getModuleInstance());
 
 		assertFalse("traversal's symbol table mustn't include 'gertrude'",
-				symbols(start).containsKey("gertrude"));
+				typer(start).typeExistsFor("gertrude"));
 	}
 
 	/**
@@ -488,13 +520,13 @@ public class SymbolTableTest {
 	public void astNonTraversalImport() throws Throwable {
 		Module start = model.loadModule("traversal");
 
-		assertFalse("traversal's symbol table mustn't include 'q'", symbols(
-				start).containsKey("q"));
-		assertFalse("traversal's symbol table mustn't include 'r'", symbols(
-				start).containsKey("r"));
+		assertFalse("traversal's symbol table mustn't include 'q'",
+				typer(start).typeExistsFor("q"));
+		assertFalse("traversal's symbol table mustn't include 'r'",
+				typer(start).typeExistsFor("r"));
 
 		assertFalse("traversal's symbol table mustn't include 'gertrude'",
-				symbols(start).containsKey("gertrude"));
+				typer(start).typeExistsFor("gertrude"));
 	}
 
 	// ./children/maggie.py: import bobby
@@ -510,7 +542,6 @@ public class SymbolTableTest {
 	public void symbolsTopLevel() throws Throwable {
 		Module module = model.load("");
 		assertEquals(model.getTopLevel(), module);
-		Set<String> topLevelSymbols = symbols(module).keySet();
 
 		// We can't reliably specify an exhaustive list so we'll test for some
 		// likely suspects.
@@ -530,72 +561,8 @@ public class SymbolTableTest {
 				"vars", "xrange", "zip", "Exception", "types" };
 		for (String suspect : likelySuspects) {
 			assertTrue("Expected symbol '" + suspect
-					+ "' not found in top-level.", topLevelSymbols
-					.contains(suspect));
+					+ "' not found in top-level.",
+					typer(module).typeExistsFor(suspect));
 		}
-	}
-
-	@Test
-	public void symbolsStart() throws Throwable {
-		Module module = model.load("start");
-		assertSymbols(module, "gertrude", "children", "stepchildren",
-				"william", "alice", "Bob");
-	}
-
-	@Test
-	public void symbolsGertrude() throws Throwable {
-		Module module = model.load("gertrude");
-		assertSymbols(module, "harry", "Iris");
-	}
-
-	@Test
-	public void symbolsChildren() throws Throwable {
-		Module module = model.load("children");
-		assertSymbols(module);
-	}
-
-	@Test
-	public void symbolsChildrenBobby() throws Throwable {
-		Module module = model.load("children.bobby");
-		assertSymbols(module);
-	}
-
-	@Test
-	public void symbolsChildrenMaggie() throws Throwable {
-		Module module = model.load("children.maggie");
-		assertSymbols(module, "bobby", "children", "iris");
-	}
-
-	@Test
-	public void symbolsChildrenChildren() throws Throwable {
-		Module module = model.load("children.children");
-		assertSymbols(module);
-	}
-
-	@Test
-	public void symbolsChildrenChildrenGrandchild() throws Throwable {
-		Module module = model.load("children.children.grandchild");
-		assertSymbols(module);
-	}
-
-	@Test
-	public void symbolsStepchildren() throws Throwable {
-		Module module = model.load("stepchildren");
-		assertSymbols(module, "gertrude");
-	}
-
-	@Test
-	public void symbolsStepchildrenUglyChild() throws Throwable {
-		Module module = model.load("stepchildren.uglycild");
-		assertSymbols(module);
-	}
-
-	private void assertSymbols(Module module, String... expected)
-			throws Exception {
-		Set<String> ex = new HashSet<String>();
-		for (String token : expected)
-			ex.add(token);
-		assertEquals("Symbols don't match expected", ex, symbols(module)
-				.keySet());
 	}
 }

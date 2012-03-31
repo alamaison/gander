@@ -11,7 +11,6 @@ def alice():
 	pass
 
 class Bob:
-	# Bob's symbols do not include charles. charles is only accessible via self.
 	def charles(self):
 		# nested imports appear in the local scope but not outside it
 		import mercurial
