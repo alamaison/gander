@@ -1,30 +1,20 @@
 package uk.ac.ic.doc.gander.flowinference.typegoals.namespacename;
 
-import java.util.HashSet;
 import java.util.Set;
 
 import org.python.pydev.parser.jython.ast.exprType;
 
-import uk.ac.ic.doc.gander.flowinference.Namespace;
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
 import uk.ac.ic.doc.gander.flowinference.result.FiniteResult;
 import uk.ac.ic.doc.gander.flowinference.result.RedundancyEliminator;
 import uk.ac.ic.doc.gander.flowinference.result.Result;
 import uk.ac.ic.doc.gander.flowinference.result.Result.Processor;
 import uk.ac.ic.doc.gander.flowinference.typegoals.expression.ExpressionTypeGoal;
-import uk.ac.ic.doc.gander.flowinference.types.TModule;
-import uk.ac.ic.doc.gander.flowinference.types.TUnresolvedImport;
 import uk.ac.ic.doc.gander.flowinference.types.Type;
-import uk.ac.ic.doc.gander.importing.Import;
-import uk.ac.ic.doc.gander.importing.ImportSimulator.Binder;
-import uk.ac.ic.doc.gander.importing.WholeModelImportSimulation;
 import uk.ac.ic.doc.gander.model.Class;
 import uk.ac.ic.doc.gander.model.ModelSite;
 import uk.ac.ic.doc.gander.model.ModuleNamespace;
 import uk.ac.ic.doc.gander.model.NamespaceName;
-import uk.ac.ic.doc.gander.model.codeobject.CodeObject;
-import uk.ac.ic.doc.gander.model.codeobject.ModuleCO;
-import uk.ac.ic.doc.gander.model.name_binding.Variable;
 
 final class NamespaceNameTypeGoalSolver {
 
@@ -52,8 +42,7 @@ final class NamespaceNameTypeGoalSolver {
 		}
 
 		if (name.namespace() instanceof ModuleNamespace) {
-			addTypesFromIntermediateModuleImport((ModuleNamespace) name
-					.namespace());
+			addTypesFromIntermediateModuleImport();
 		}
 	}
 
@@ -97,89 +86,14 @@ final class NamespaceNameTypeGoalSolver {
 	 * Modules can be very sneakily bound to a token in another module by an
 	 * import statement in a third module. This method catches those kinds of
 	 * import.
-	 * 
-	 * @param namespace
-	 *            the target namespace that might get a name bound to a module
-	 *            type in this sneaky way
 	 */
-	private void addTypesFromIntermediateModuleImport(
-			final ModuleNamespace namespace) {
-		if (completeType.isFinished())
-			return;
+	private void addTypesFromIntermediateModuleImport() {
 
-		final Set<Type> type = new HashSet<Type>();
+		if (!completeType.isFinished()) {
 
-		new WholeModelImportSimulation(namespace.model(),
-				new Binder<NamespaceName, Namespace, CodeObject, ModuleCO>() {
-
-					@Override
-					public void bindModuleToLocalName(ModuleCO loadedModule,
-							String name, CodeObject container) {
-						// Handled by UnqualifiedNameDefinitionsPartialSolution
-					}
-
-					@Override
-					public void bindObjectToLocalName(
-							NamespaceName importedObject, String name,
-							CodeObject container) {
-						// Handled by UnqualifiedNameDefinitionsPartialSolution
-					}
-
-					@Override
-					public void bindModuleToName(ModuleCO loadedModule,
-							String importName, ModuleCO receivingModule) {
-
-						NamespaceName bindingName = new NamespaceName(
-								new Variable(importName, receivingModule)
-										.bindingLocation());
-
-						if (bindingName.equals(name)) {
-							type.add(new TModule(loadedModule));
-						}
-					}
-
-					@Override
-					public void bindObjectToName(NamespaceName importedObject,
-							String name, ModuleCO receivingModule) {
-						/*
-						 * It's not possible for an object to be the
-						 * intermediate segment of an import statement
-						 */
-					}
-
-					@Override
-					public void bindAllNamespaceMembers(Namespace allMembers,
-							CodeObject container) {
-						/*
-						 * It's not possible for an object to be the
-						 * intermediate segment of an import statement
-						 */
-					}
-
-					@Override
-					public void onUnresolvedImport(
-							Import<CodeObject, ModuleCO> importInstance,
-							String importName, ModuleCO receivingModule) {
-
-						NamespaceName bindingName = new NamespaceName(
-								new Variable(importName, receivingModule)
-										.bindingLocation());
-
-						if (bindingName.equals(name)) {
-							type.add(new TUnresolvedImport(importInstance));
-						}
-					}
-
-					@Override
-					public void onUnresolvedLocalImport(
-							Import<CodeObject, ModuleCO> importInstance,
-							String name) {
-
-						// Handled by UnqualifiedNameDefinitionsPartialSolution
-					}
-				});
-
-		completeType.add(new FiniteResult<Type>(type));
+			completeType.add(new FiniteResult<Type>(name.namespace().model()
+					.importTable().explicitBindings(name)));
+		}
 	}
 
 	private final class MemberTyper implements Processor<Type> {

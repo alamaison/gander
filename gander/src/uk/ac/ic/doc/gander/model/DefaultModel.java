@@ -22,6 +22,7 @@ public class DefaultModel implements MutableModel {
 
 	protected Module topLevelPackage;
 	protected Hierarchy hierarchy;
+	private ImportTable importTable = null;
 
 	public DefaultModel(Hierarchy hierarchy) throws ParseException, IOException {
 		this.hierarchy = hierarchy;
@@ -174,5 +175,21 @@ public class DefaultModel implements MutableModel {
 	@Override
 	public ClassCO builtinDictionary() {
 		return getTopLevel().getClasses().get("dict").codeObject();
+	}
+
+	/**
+	 * Return the import bindings for a snapshot of the model.
+	 * 
+	 * FIXME: This is a total hack. The first time this is called it builds a
+	 * table from the snapshot as it is. After that, it will always return that
+	 * table regardless of any subsequent module loading.
+	 */
+	@Override
+	public ImportTable importTable() {
+		if (importTable == null) {
+			importTable = new ImportTable(this);
+		}
+
+		return importTable;
 	}
 }
