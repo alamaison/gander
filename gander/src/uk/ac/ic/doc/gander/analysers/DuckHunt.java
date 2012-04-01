@@ -13,22 +13,23 @@ import uk.ac.ic.doc.gander.analysis.signatures.SignatureHelper;
 import uk.ac.ic.doc.gander.cfg.BasicBlock;
 import uk.ac.ic.doc.gander.duckinference.DuckTyper;
 import uk.ac.ic.doc.gander.flowinference.TypeResolver;
+import uk.ac.ic.doc.gander.flowinference.ZeroCfaTypeEngine;
 import uk.ac.ic.doc.gander.flowinference.types.Type;
 import uk.ac.ic.doc.gander.hierarchy.Hierarchy;
 import uk.ac.ic.doc.gander.hierarchy.HierarchyWalker;
-import uk.ac.ic.doc.gander.hierarchy.SourceFile;
 import uk.ac.ic.doc.gander.hierarchy.Package;
+import uk.ac.ic.doc.gander.hierarchy.SourceFile;
+import uk.ac.ic.doc.gander.model.DefaultModel;
 import uk.ac.ic.doc.gander.model.Function;
 import uk.ac.ic.doc.gander.model.ModelWalker;
-import uk.ac.ic.doc.gander.model.DefaultModel;
 import uk.ac.ic.doc.gander.model.MutableModel;
 import uk.ac.ic.doc.gander.model.OldNamespace;
 
 public class DuckHunt {
 
-	private MutableModel model;
-	private Tallies counts;
-	private TypeResolver typer;
+	private final MutableModel model;
+	private final Tallies counts;
+	private final TypeResolver typer;
 
 	public DuckHunt(Hierarchy hierarchy) throws Exception {
 		System.out.println("Creating model from hierarchy");
@@ -37,7 +38,7 @@ public class DuckHunt {
 		System.out.println("Loading all non-system modules in hierarchy");
 		new HierarchyLoader().walk(hierarchy);
 		System.out.println("Performing flow-based type inference");
-		this.typer = new TypeResolver(model);
+		this.typer = new TypeResolver(new ZeroCfaTypeEngine());
 		System.out.println("Running signature analysis");
 		new ModelDucker().walk(model);
 	}

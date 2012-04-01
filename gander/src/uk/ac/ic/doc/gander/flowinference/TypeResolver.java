@@ -5,21 +5,19 @@ import org.python.pydev.parser.jython.ast.exprType;
 import uk.ac.ic.doc.gander.flowinference.result.Result;
 import uk.ac.ic.doc.gander.flowinference.result.Result.Transformer;
 import uk.ac.ic.doc.gander.flowinference.types.Type;
-import uk.ac.ic.doc.gander.model.Model;
 import uk.ac.ic.doc.gander.model.ModelSite;
-import uk.ac.ic.doc.gander.model.OldNamespace;
 
 public class TypeResolver {
 
-	private final Model model;
+	private final TypeEngine engine;
 
-	public TypeResolver(Model model) {
-		this.model = model;
+	public TypeResolver(TypeEngine engine) {
+		this.engine = engine;
 	}
 
 	public Type typeOf(ModelSite<exprType> expression) {
 
-		Result<Type> types = new ZeroCfaTypeEngine().typeOf(expression);
+		Result<Type> types = engine.typeOf(expression);
 
 		return types.transformResult(new Singletoniser());
 	}

@@ -16,11 +16,12 @@ import org.python.pydev.parser.jython.ast.Str;
 import org.python.pydev.parser.jython.ast.VisitorBase;
 
 import uk.ac.ic.doc.gander.flowinference.TypeResolver;
+import uk.ac.ic.doc.gander.flowinference.ZeroCfaTypeEngine;
 import uk.ac.ic.doc.gander.hierarchy.Hierarchy;
 import uk.ac.ic.doc.gander.hierarchy.HierarchyFactory;
+import uk.ac.ic.doc.gander.model.DefaultModel;
 import uk.ac.ic.doc.gander.model.Function;
 import uk.ac.ic.doc.gander.model.Module;
-import uk.ac.ic.doc.gander.model.DefaultModel;
 import uk.ac.ic.doc.gander.model.MutableModel;
 
 public class FunctionResolverTest {
@@ -126,9 +127,10 @@ public class FunctionResolverTest {
 		assertTrue("Unable to find tagged call in test: '" + callTag + "'",
 				call != null);
 
-		resolver = new FunctionResolver(call, function, new TypeResolver(model));
-		assertTrue("Function wasn't resolved: '" + call + "'", resolver
-				.getFunction() != null);
+		resolver = new FunctionResolver(call, function, new TypeResolver(
+				new ZeroCfaTypeEngine()));
+		assertTrue("Function wasn't resolved: '" + call + "'",
+				resolver.getFunction() != null);
 
 		FunctionDef resolvedFunction = resolver.getFunction().getAst();
 		assertEquals("Resolved function takes more than one parameter.  This "
@@ -146,7 +148,7 @@ public class FunctionResolverTest {
 	 */
 	private static class CallFinderByCallTag extends VisitorBase {
 		private Call call = null;
-		private String callTag;
+		private final String callTag;
 
 		public CallFinderByCallTag(String callTag, Function function)
 				throws Exception {

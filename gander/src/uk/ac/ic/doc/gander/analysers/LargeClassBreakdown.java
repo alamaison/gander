@@ -6,20 +6,21 @@ import uk.ac.ic.doc.gander.analysis.inheritance.FreshInheritanceTree;
 import uk.ac.ic.doc.gander.analysis.inheritance.InheritedMethods;
 import uk.ac.ic.doc.gander.analysis.inheritance.Node;
 import uk.ac.ic.doc.gander.flowinference.TypeResolver;
+import uk.ac.ic.doc.gander.flowinference.ZeroCfaTypeEngine;
 import uk.ac.ic.doc.gander.hierarchy.Hierarchy;
 import uk.ac.ic.doc.gander.model.Class;
-import uk.ac.ic.doc.gander.model.Module;
 import uk.ac.ic.doc.gander.model.DefaultModel;
+import uk.ac.ic.doc.gander.model.Module;
 import uk.ac.ic.doc.gander.model.MutableModel;
 
 public class LargeClassBreakdown {
 
-	private MutableModel model;
-	private TypeResolver resolver;
+	private final MutableModel model;
+	private final TypeResolver resolver;
 
 	public LargeClassBreakdown(Hierarchy hierarchy) throws Exception {
 		this.model = new DefaultModel(hierarchy);
-		this.resolver = new TypeResolver(model);
+		this.resolver = new TypeResolver(new ZeroCfaTypeEngine());
 		uk.ac.ic.doc.gander.hierarchy.Package pack = hierarchy
 				.getTopLevelPackage();
 		analysePackage(pack);
@@ -27,8 +28,8 @@ public class LargeClassBreakdown {
 
 	private void analysePackage(uk.ac.ic.doc.gander.hierarchy.Package pack)
 			throws Exception {
-		for (uk.ac.ic.doc.gander.hierarchy.SourceFile module : pack.getSourceFiles()
-				.values())
+		for (uk.ac.ic.doc.gander.hierarchy.SourceFile module : pack
+				.getSourceFiles().values())
 			analyseModule(module.getFullyQualifiedName());
 		for (uk.ac.ic.doc.gander.hierarchy.Package subpackage : pack
 				.getPackages().values())

@@ -13,14 +13,15 @@ import uk.ac.ic.doc.gander.Statement;
 import uk.ac.ic.doc.gander.TaggedBlockFinder;
 import uk.ac.ic.doc.gander.cfg.Cfg;
 import uk.ac.ic.doc.gander.flowinference.TypeResolver;
+import uk.ac.ic.doc.gander.flowinference.ZeroCfaTypeEngine;
 import uk.ac.ic.doc.gander.flowinference.types.TClass;
 import uk.ac.ic.doc.gander.flowinference.types.Type;
 import uk.ac.ic.doc.gander.hierarchy.Hierarchy;
 import uk.ac.ic.doc.gander.hierarchy.HierarchyFactory;
 import uk.ac.ic.doc.gander.model.Class;
+import uk.ac.ic.doc.gander.model.DefaultModel;
 import uk.ac.ic.doc.gander.model.Function;
 import uk.ac.ic.doc.gander.model.Module;
-import uk.ac.ic.doc.gander.model.DefaultModel;
 import uk.ac.ic.doc.gander.model.MutableModel;
 import uk.ac.ic.doc.gander.model.OldNamespace;
 
@@ -43,7 +44,8 @@ public class DuckTyperTest {
 		Statement stmt = findCall(enclosingFunction.getCfg(), tag);
 		assertTrue("TEST ERROR: tag not found", stmt != null);
 
-		DuckTyper typer = new DuckTyper(model, new TypeResolver(model));
+		DuckTyper typer = new DuckTyper(model, new TypeResolver(
+				new ZeroCfaTypeEngine()));
 		return typer.typeOf(stmt.getCall(), stmt.getBlock(), enclosingFunction);
 	}
 
@@ -156,9 +158,8 @@ public class DuckTyperTest {
 				new TClass(start.getClasses().get("A")));
 	}
 
-
-	private void assertInference(String tag, OldNamespace scope, Type... expected)
-			throws Exception {
+	private void assertInference(String tag, OldNamespace scope,
+			Type... expected) throws Exception {
 		Set<Type> type = typeOf(tag, (Function) scope);
 
 		assertEquals("'" + tag
@@ -175,8 +176,8 @@ public class DuckTyperTest {
 
 			Class c = ((TClass) t).getClassInstance();
 			assertTrue("'" + tag + "' was inferred to a class "
-					+ "but not an expected one: " + c, isClassInTypeSet(
-					expected, c));
+					+ "but not an expected one: " + c,
+					isClassInTypeSet(expected, c));
 		}
 	}
 

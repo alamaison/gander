@@ -67,10 +67,12 @@ public class CallTargetTypeDiff {
 		public boolean resultsMatch() {
 			return flowType.transformResult(new Transformer<Type, Boolean>() {
 
+				@Override
 				public Boolean transformFiniteResult(Set<Type> result) {
 					return result.equals(duckType);
 				}
 
+				@Override
 				public Boolean transformInfiniteResult() {
 					return Boolean.FALSE;
 				}
@@ -80,12 +82,14 @@ public class CallTargetTypeDiff {
 		public boolean resultsAreDisjoint() {
 			return flowType.transformResult(new Transformer<Type, Boolean>() {
 
+				@Override
 				public Boolean transformFiniteResult(Set<Type> result) {
 					Set<Type> intersection = new HashSet<Type>(result);
 					intersection.retainAll(duckType);
 					return intersection.isEmpty();
 				}
 
+				@Override
 				public Boolean transformInfiniteResult() {
 					return false;
 				}
@@ -102,8 +106,7 @@ public class CallTargetTypeDiff {
 			Set<Type> typesOut = new HashSet<Type>();
 			for (Type type : duckType) {
 				if (type instanceof TClass)
-					typesOut
-							.add(new TObject(((TClass) type).getClassInstance()));
+					typesOut.add(new TObject(((TClass) type).getClassInstance()));
 				else
 					throw new AssertionError("Non-class type in ducking result");
 			}
@@ -127,6 +130,7 @@ public class CallTargetTypeDiff {
 
 		this.observers.add(new ResultObserver() {
 
+			@Override
 			public void resultReady(DiffResult result) {
 
 				duckTypes.add(result);
@@ -138,8 +142,8 @@ public class CallTargetTypeDiff {
 		System.out.println("Loading all non-system modules in hierarchy");
 		new HierarchyLoader().walk(hierarchy);
 		System.out.println("Performing flow-based type inference");
-		this.typer = new TypeResolver(model);
 		engine = new ZeroCfaTypeEngine();
+		this.typer = new TypeResolver(engine);
 		System.out.println("Running signature analysis");
 		new ModelDucker().walk(model);
 	}
@@ -170,8 +174,9 @@ public class CallTargetTypeDiff {
 
 					Set<Type> duckType = new DuckTyper(model, typer).typeOf(
 							call, block, function);
-					Result<Type> flowType = engine.typeOf(CallHelper
-							.indirectCallTarget(call), function.codeObject());
+					Result<Type> flowType = engine.typeOf(
+							CallHelper.indirectCallTarget(call),
+							function.codeObject());
 
 					informObservers(new DiffResult(callsite, duckType, flowType));
 				}
