@@ -4,7 +4,6 @@ import static org.junit.Assert.assertEquals;
 
 import java.io.File;
 import java.net.URL;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
@@ -14,10 +13,11 @@ import org.junit.Test;
 import uk.ac.ic.doc.gander.hierarchy.Hierarchy;
 import uk.ac.ic.doc.gander.hierarchy.HierarchyFactory;
 import uk.ac.ic.doc.gander.model.Class;
+import uk.ac.ic.doc.gander.model.DefaultModel;
 import uk.ac.ic.doc.gander.model.ModelWalker;
 import uk.ac.ic.doc.gander.model.Module;
-import uk.ac.ic.doc.gander.model.DefaultModel;
 import uk.ac.ic.doc.gander.model.MutableModel;
+import uk.ac.ic.doc.gander.model.codeobject.ClassCO;
 
 public class TypeDefinitionsTest {
 
@@ -59,27 +59,29 @@ public class TypeDefinitionsTest {
 	}
 
 	private void assertCollectedClasses(Class[] specifiedExpected) {
-		Collection<Class> builtins = collectBuiltinClasses();
-		Set<Class> expected = new HashSet<Class>(Arrays
-				.asList(specifiedExpected));
+		Set<ClassCO> expected = new HashSet<ClassCO>();
+		for (Class klass : specifiedExpected) {
+			expected.add(klass.codeObject());
+		}
+
+		Collection<ClassCO> builtins = collectBuiltinClasses();
 		expected.addAll(builtins);
 
 		assertEquals("Types collected don't match expected classes", expected,
-				new HashSet<Class>(new LoadedTypeDefinitions(model)
-						.getDefinitions()));
+				new LoadedTypeDefinitions(model).getDefinitions());
 	}
 
-	private Collection<Class> collectBuiltinClasses() {
-		final Set<Class> classes = new HashSet<Class>();
-		
+	private Collection<ClassCO> collectBuiltinClasses() {
+		final Set<ClassCO> classes = new HashSet<ClassCO>();
+
 		new ModelWalker() {
 
 			@Override
 			protected void visitClass(Class klass) {
-				classes.add(klass);
+				classes.add(klass.codeObject());
 			}
 		}.walk(model);
-		
+
 		return classes;
 	}
 }

@@ -57,9 +57,33 @@ final class SqlLiteDumper implements ResultObserver {
 	private void insertResult(final DiffResult result) throws SQLException {
 
 		/* Duck types */
-		for (Type type : result.duckType()) {
-			insertDuckType(result, type);
-		}
+		result.duckType().actOnResult(new Processor<Type>() {
+
+			public void processInfiniteResult() {
+
+				try {
+					PreparedStatement statement = connection
+							.prepareStatement("insert into "
+									+ duckResultsTableName
+									+ " values(?, NULL);");
+					statement.setString(1, result.callSite().toString());
+					statement.execute();
+				} catch (SQLException e) {
+					throw new RuntimeException(e);
+				}
+			}
+
+			public void processFiniteResult(Set<Type> flowTypes) {
+				for (Type type : flowTypes) {
+
+					try {
+						insertDuckType(result, type);
+					} catch (SQLException e) {
+						throw new RuntimeException(e);
+					}
+				}
+			}
+		});
 
 		/* Flow types */
 		result.flowType().actOnResult(new Processor<Type>() {
@@ -138,7 +162,7 @@ final class SqlLiteDumper implements ResultObserver {
 	private void readyDuckResultsTable(Statement statement) throws SQLException {
 		statement.executeUpdate("drop table if exists " + duckResultsTableName);
 		statement.executeUpdate("create table " + duckResultsTableName + " ("
-				+ "call_site_name string NOT NULL, " + "type string NOT NULL)");
+				+ "call_site_name string NOT NULL, " + "type string)");
 	}
 
 	private void readyFlowResultsTable(Statement statement) throws SQLException {

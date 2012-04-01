@@ -14,6 +14,8 @@ import uk.ac.ic.doc.gander.cfg.BasicBlock;
 import uk.ac.ic.doc.gander.duckinference.DuckTyper;
 import uk.ac.ic.doc.gander.flowinference.TypeResolver;
 import uk.ac.ic.doc.gander.flowinference.ZeroCfaTypeEngine;
+import uk.ac.ic.doc.gander.flowinference.result.Result;
+import uk.ac.ic.doc.gander.flowinference.result.Result.Transformer;
 import uk.ac.ic.doc.gander.flowinference.types.Type;
 import uk.ac.ic.doc.gander.hierarchy.Hierarchy;
 import uk.ac.ic.doc.gander.hierarchy.HierarchyWalker;
@@ -73,19 +75,35 @@ public class DuckHunt {
 
 	private void countNumberOfTypesInferredFor(Call call, Function function,
 			BasicBlock block) {
-		Set<Type> type = new DuckTyper(model, typer).typeOf(call, block,
+		Result<Type> type = new DuckTyper(model, typer).typeOf(call, block,
 				function);
-		counts.addTally(type.size());
 
-		if (type.size() == 0) {
+		int size = type.transformResult(new Transformer<Type, Integer>() {
+
+			@Override
+			public Integer transformFiniteResult(Set<Type> result) {
+				return result.size();
+			}
+
+			@Override
+			public Integer transformInfiniteResult() {
+				throw new AssertionError("This code wasn't "
+						+ "written to cope with an "
+						+ "infinite type.  Update it.");
+			}
+		});
+
+		counts.addTally(size);
+
+		if (size == 0) {
 			System.out.println("unable to infer type from " + call + " in "
 					+ function.getFullName() + "(signature "
 					+ calculateDependentMethodNames(call, block, function)
 					+ ")");
 		}
 
-		if (type.size() > 80) {
-			System.out.println("large number (" + type.size()
+		if (size > 80) {
+			System.out.println("large number (" + size
 					+ ") of types inferred from " + call + " in "
 					+ function.getFullName() + " \n\t(signature "
 					+ calculateDependentMethodNames(call, block, function)

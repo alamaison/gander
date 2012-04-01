@@ -6,7 +6,6 @@ import java.util.Set;
 import uk.ac.ic.doc.gander.analysers.CallTargetTypeDiff;
 import uk.ac.ic.doc.gander.analysers.CallTargetTypeDiff.DiffResult;
 import uk.ac.ic.doc.gander.analysers.CallTargetTypeDiff.ResultObserver;
-import uk.ac.ic.doc.gander.flowinference.types.Type;
 import uk.ac.ic.doc.gander.hierarchy.HierarchyFactory;
 
 public final class RunCallTypeDiff extends MultiProjectRunner {
@@ -29,9 +28,7 @@ final class DiffPrinter {
 
 		if (!result.resultsMatch()) {
 			System.out.println("DUCKING TYPES:");
-			for (Type type : result.duckType()) {
-				System.out.println("\t" + type.getName());
-			}
+			System.out.println("\t" + result.duckType());
 			System.out.println("FLOW TYPES:");
 			System.out.println("\t" + result.flowType());
 
@@ -40,9 +37,7 @@ final class DiffPrinter {
 			}
 		} else {
 			System.out.println("**TYPES MATCH**");
-			for (Type type : result.duckType()) {
-				System.out.println("\t" + type.getName());
-			}
+			System.out.println("\t" + result.duckType());
 		}
 	}
 }
@@ -58,9 +53,9 @@ final class DiffObserver implements ResultObserver {
 final class RunCallTypeDiffProjectAnalyser {
 
 	RunCallTypeDiffProjectAnalyser(File projectRoot) throws Exception {
-		CallTargetTypeDiff analysis = new CallTargetTypeDiff(HierarchyFactory
-				.createHierarchy(projectRoot), projectRoot, new DiffObserver(),
-				new SqlLiteDumper());
+		CallTargetTypeDiff analysis = new CallTargetTypeDiff(
+				HierarchyFactory.createHierarchy(projectRoot), projectRoot,
+				new DiffObserver(), new SqlLiteDumper());
 
 		Set<DiffResult> duckTypes = analysis.result();
 

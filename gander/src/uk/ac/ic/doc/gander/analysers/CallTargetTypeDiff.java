@@ -17,8 +17,6 @@ import uk.ac.ic.doc.gander.flowinference.TypeResolver;
 import uk.ac.ic.doc.gander.flowinference.ZeroCfaTypeEngine;
 import uk.ac.ic.doc.gander.flowinference.result.Result;
 import uk.ac.ic.doc.gander.flowinference.result.Result.Transformer;
-import uk.ac.ic.doc.gander.flowinference.types.TClass;
-import uk.ac.ic.doc.gander.flowinference.types.TObject;
 import uk.ac.ic.doc.gander.flowinference.types.Type;
 import uk.ac.ic.doc.gander.hierarchy.Hierarchy;
 import uk.ac.ic.doc.gander.hierarchy.HierarchyWalker;
@@ -41,14 +39,14 @@ public class CallTargetTypeDiff {
 
 	public final class DiffResult {
 		private final CallSite callsite;
-		private final Set<Type> duckType;
+		private final Result<Type> duckType;
 		private final Result<Type> flowType;
 
-		private DiffResult(CallSite callsite, Set<Type> duckType,
+		private DiffResult(CallSite callsite, Result<Type> duckType,
 				Result<Type> flowType) {
 			this.callsite = callsite;
 			// XXX: HACK
-			this.duckType = duckTypesToSetOfInstances(duckType);
+			this.duckType = duckType;
 			this.flowType = flowType;
 		}
 
@@ -56,7 +54,7 @@ public class CallTargetTypeDiff {
 			return callsite;
 		}
 
-		public Set<Type> duckType() {
+		public Result<Type> duckType() {
 			return duckType;
 		}
 
@@ -83,10 +81,24 @@ public class CallTargetTypeDiff {
 			return flowType.transformResult(new Transformer<Type, Boolean>() {
 
 				@Override
-				public Boolean transformFiniteResult(Set<Type> result) {
-					Set<Type> intersection = new HashSet<Type>(result);
-					intersection.retainAll(duckType);
-					return intersection.isEmpty();
+				public Boolean transformFiniteResult(final Set<Type> flowResult) {
+					return duckType
+							.transformResult(new Transformer<Type, Boolean>() {
+
+								@Override
+								public Boolean transformFiniteResult(
+										Set<Type> duckResult) {
+									Set<Type> intersection = new HashSet<Type>(
+											flowResult);
+									intersection.retainAll(duckResult);
+									return intersection.isEmpty();
+								}
+
+								@Override
+								public Boolean transformInfiniteResult() {
+									return false;
+								}
+							});
 				}
 
 				@Override
@@ -94,24 +106,6 @@ public class CallTargetTypeDiff {
 					return false;
 				}
 			});
-		}
-
-		/**
-		 * Duck typing returns instances as classes (bad!) but flow typing uses
-		 * instances so we convert the duck typing result to use instances.
-		 * 
-		 * XXX: HACK.
-		 */
-		private Set<Type> duckTypesToSetOfInstances(Set<Type> duckType) {
-			Set<Type> typesOut = new HashSet<Type>();
-			for (Type type : duckType) {
-				if (type instanceof TClass)
-					typesOut.add(new TObject(((TClass) type).getClassInstance()));
-				else
-					throw new AssertionError("Non-class type in ducking result");
-			}
-
-			return typesOut;
 		}
 	}
 
@@ -172,7 +166,7 @@ public class CallTargetTypeDiff {
 
 					CallSite callsite = new CallSite(call, function, block);
 
-					Set<Type> duckType = new DuckTyper(model, typer).typeOf(
+					Result<Type> duckType = new DuckTyper(model, typer).typeOf(
 							call, block, function);
 					Result<Type> flowType = engine.typeOf(
 							CallHelper.indirectCallTarget(call),

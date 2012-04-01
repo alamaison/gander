@@ -11,15 +11,18 @@ import uk.ac.ic.doc.gander.analysis.signatures.CallTargetSignatureBuilder;
 import uk.ac.ic.doc.gander.analysis.signatures.SignatureHelper;
 import uk.ac.ic.doc.gander.cfg.BasicBlock;
 import uk.ac.ic.doc.gander.flowinference.TypeResolver;
-import uk.ac.ic.doc.gander.flowinference.types.TClass;
+import uk.ac.ic.doc.gander.flowinference.result.FiniteResult;
+import uk.ac.ic.doc.gander.flowinference.result.Result;
+import uk.ac.ic.doc.gander.flowinference.typegoals.TopT;
+import uk.ac.ic.doc.gander.flowinference.types.TObject;
 import uk.ac.ic.doc.gander.flowinference.types.Type;
-import uk.ac.ic.doc.gander.model.Class;
 import uk.ac.ic.doc.gander.model.Model;
 import uk.ac.ic.doc.gander.model.OldNamespace;
+import uk.ac.ic.doc.gander.model.codeobject.ClassCO;
 
 public class DuckTyper {
 	private final LoadedTypeDefinitions definitions;
-	private TypeResolver resolver;
+	private final TypeResolver resolver;
 
 	public DuckTyper(Model model, TypeResolver resolver) {
 		this.resolver = resolver;
@@ -41,25 +44,32 @@ public class DuckTyper {
 	 *            The Python scope in which the call occurs.
 	 * @return A type judgement as a set of {@link Type}s.
 	 */
-	public Set<Type> typeOf(Call call, BasicBlock containingBlock,
+	public Result<Type> typeOf(Call call, BasicBlock containingBlock,
 			OldNamespace scope) {
 
 		Set<String> methods = calculateDependentMethodNames(call,
 				containingBlock, scope);
 
-		Set<Type> type = new HashSet<Type>();
+		if (methods.isEmpty()) {
+			return TopT.INSTANCE;
 
-		for (Class klass : definitions.getDefinitions()) {
-			InheritedMethods inheritance = new InheritedMethods(
-					new CachingInheritanceTree(klass, resolver));
+		} else {
 
-			// TODO: We only compare by name. Matching parameter numbers etc
-			// will require more complex logic.
-			if (inheritance.methodsInTree().containsAll(methods))
-				type.add(new TClass(klass));
+			Set<Type> type = new HashSet<Type>();
+
+			for (ClassCO klass : definitions.getDefinitions()) {
+				InheritedMethods inheritance = new InheritedMethods(
+						new CachingInheritanceTree(
+								klass.oldStyleConflatedNamespace(), resolver));
+
+				// TODO: We only compare by name. Matching parameter numbers etc
+				// will require more complex logic.
+				if (inheritance.methodsInTree().containsAll(methods))
+					type.add(new TObject(klass));
+			}
+
+			return new FiniteResult<Type>(type);
 		}
-
-		return type;
 	}
 
 	private Set<String> calculateDependentMethodNames(Call call,

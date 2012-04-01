@@ -5,6 +5,7 @@ import static org.junit.Assert.assertTrue;
 
 import java.io.File;
 import java.net.URL;
+import java.util.Arrays;
 import java.util.Set;
 
 import org.junit.Test;
@@ -14,11 +15,12 @@ import uk.ac.ic.doc.gander.TaggedBlockFinder;
 import uk.ac.ic.doc.gander.cfg.Cfg;
 import uk.ac.ic.doc.gander.flowinference.TypeResolver;
 import uk.ac.ic.doc.gander.flowinference.ZeroCfaTypeEngine;
-import uk.ac.ic.doc.gander.flowinference.types.TClass;
+import uk.ac.ic.doc.gander.flowinference.result.Result;
+import uk.ac.ic.doc.gander.flowinference.result.Result.Transformer;
+import uk.ac.ic.doc.gander.flowinference.types.TObject;
 import uk.ac.ic.doc.gander.flowinference.types.Type;
 import uk.ac.ic.doc.gander.hierarchy.Hierarchy;
 import uk.ac.ic.doc.gander.hierarchy.HierarchyFactory;
-import uk.ac.ic.doc.gander.model.Class;
 import uk.ac.ic.doc.gander.model.DefaultModel;
 import uk.ac.ic.doc.gander.model.Function;
 import uk.ac.ic.doc.gander.model.Module;
@@ -46,7 +48,22 @@ public class DuckTyperTest {
 
 		DuckTyper typer = new DuckTyper(model, new TypeResolver(
 				new ZeroCfaTypeEngine()));
-		return typer.typeOf(stmt.getCall(), stmt.getBlock(), enclosingFunction);
+		Result<Type> type = typer.typeOf(stmt.getCall(), stmt.getBlock(),
+				enclosingFunction);
+		return type.transformResult(new Transformer<Type, Set<Type>>() {
+
+			@Override
+			public Set<Type> transformFiniteResult(Set<Type> result) {
+				return result;
+			}
+
+			@Override
+			public Set<Type> transformInfiniteResult() {
+				throw new AssertionError("This code wasn't "
+						+ "written to cope with an "
+						+ "infinite type.  Update it.");
+			}
+		});
 	}
 
 	private Statement findCall(Cfg graph, String tag) throws Exception {
@@ -60,13 +77,13 @@ public class DuckTyperTest {
 		Module start = model.loadModule("start");
 
 		assertInference("x.a(tag1)", start.getFunctions().get("main"),
-				new TClass(start.getClasses().get("A")));
+				new TObject(start.getClasses().get("A")));
 
 		assertInference("x.b(tag2)", start.getFunctions().get("main"),
-				new TClass(start.getClasses().get("A")));
+				new TObject(start.getClasses().get("A")));
 
 		assertInference("x.c(tag3)", start.getFunctions().get("main"),
-				new TClass(start.getClasses().get("A")));
+				new TObject(start.getClasses().get("A")));
 	}
 
 	@Test
@@ -76,15 +93,15 @@ public class DuckTyperTest {
 		Module start = model.loadModule("start");
 
 		assertInference("x.a(tag1)", start.getFunctions().get("main"),
-				new TClass(start.getClasses().get("A")), new TClass(start
+				new TObject(start.getClasses().get("A")), new TObject(start
 						.getClasses().get("B")));
 
 		assertInference("x.b(tag2)", start.getFunctions().get("main"),
-				new TClass(start.getClasses().get("A")), new TClass(start
+				new TObject(start.getClasses().get("A")), new TObject(start
 						.getClasses().get("B")));
 
 		assertInference("x.c(tag3)", start.getFunctions().get("main"),
-				new TClass(start.getClasses().get("A")), new TClass(start
+				new TObject(start.getClasses().get("A")), new TObject(start
 						.getClasses().get("B")));
 	}
 
@@ -96,13 +113,13 @@ public class DuckTyperTest {
 		Module sibling = model.lookup("sibling");
 
 		assertInference("x.a(tag1)", start.getFunctions().get("main"),
-				new TClass(sibling.getClasses().get("A")));
+				new TObject(sibling.getClasses().get("A")));
 
 		assertInference("x.b(tag2)", start.getFunctions().get("main"),
-				new TClass(sibling.getClasses().get("A")));
+				new TObject(sibling.getClasses().get("A")));
 
 		assertInference("x.c(tag3)", start.getFunctions().get("main"),
-				new TClass(sibling.getClasses().get("A")));
+				new TObject(sibling.getClasses().get("A")));
 	}
 
 	@Test
@@ -113,13 +130,13 @@ public class DuckTyperTest {
 		Module sibling = model.lookup("sibling");
 
 		assertInference("x.a(tag1)", start.getFunctions().get("main"),
-				new TClass(sibling.getClasses().get("A")));
+				new TObject(sibling.getClasses().get("A")));
 
 		assertInference("x.b(tag2)", start.getFunctions().get("main"),
-				new TClass(sibling.getClasses().get("A")));
+				new TObject(sibling.getClasses().get("A")));
 
 		assertInference("x.c(tag3)", start.getFunctions().get("main"),
-				new TClass(sibling.getClasses().get("A")));
+				new TObject(sibling.getClasses().get("A")));
 	}
 
 	@Test
@@ -129,17 +146,17 @@ public class DuckTyperTest {
 		Module start = model.loadModule("start");
 
 		assertInference("x.a(tag1)", start.getFunctions().get("main"),
-				new TClass(start.getClasses().get("A")), new TClass(start
-						.getClasses().get("B")), new TClass(start.getClasses()
+				new TObject(start.getClasses().get("A")), new TObject(start
+						.getClasses().get("B")), new TObject(start.getClasses()
 						.get("C")));
 
 		assertInference("x.b(tag2)", start.getFunctions().get("main"),
-				new TClass(start.getClasses().get("A")), new TClass(start
-						.getClasses().get("B")), new TClass(start.getClasses()
+				new TObject(start.getClasses().get("A")), new TObject(start
+						.getClasses().get("B")), new TObject(start.getClasses()
 						.get("C")));
 
 		assertInference("x.c(tag3)", start.getFunctions().get("main"),
-				new TClass(start.getClasses().get("A")));
+				new TObject(start.getClasses().get("A")));
 	}
 
 	@Test
@@ -149,13 +166,13 @@ public class DuckTyperTest {
 		Module start = model.loadModule("start");
 
 		assertInference("x.a(tag1)", start.getFunctions().get("main"),
-				new TClass(start.getClasses().get("A")));
+				new TObject(start.getClasses().get("A")));
 
 		assertInference("x.b(tag2)", start.getFunctions().get("main"),
-				new TClass(start.getClasses().get("A")));
+				new TObject(start.getClasses().get("A")));
 
 		assertInference("x.c(tag3)", start.getFunctions().get("main"),
-				new TClass(start.getClasses().get("A")));
+				new TObject(start.getClasses().get("A")));
 	}
 
 	private void assertInference(String tag, OldNamespace scope,
@@ -166,28 +183,9 @@ public class DuckTyperTest {
 				+ "' was inferred to an unexpected number of types",
 				expected.length, type.size());
 
-		for (Type t : type) {
-			// FIXME: This is wrong. Should be of type object (instance of
-			// class)
-			// not a class itself.
-
-			assertTrue("'" + tag + "' was not inferred to a class type",
-					t instanceof TClass);
-
-			Class c = ((TClass) t).getClassInstance();
-			assertTrue("'" + tag + "' was inferred to a class "
-					+ "but not an expected one: " + c,
-					isClassInTypeSet(expected, c));
-		}
-	}
-
-	private boolean isClassInTypeSet(Type expected[], Class klass) {
-		for (Type e : expected) {
-			if (((TClass) e).getClassInstance().equals(klass))
-				return true;
-		}
-
-		return false;
+		assertTrue("Not all inferred concrete types were expected; inferred: "
+				+ type + " expected: " + Arrays.asList(expected), Arrays
+				.asList(expected).containsAll(type));
 	}
 
 }
