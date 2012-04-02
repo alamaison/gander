@@ -22,6 +22,4 @@ public interface Model {
 
 	ClassCO builtinDictionary();
 
-	ImportTable importTable();
-
 }
