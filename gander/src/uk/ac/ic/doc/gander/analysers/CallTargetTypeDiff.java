@@ -6,10 +6,11 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.python.pydev.parser.jython.ParseException;
+import org.python.pydev.parser.jython.ast.Attribute;
 import org.python.pydev.parser.jython.ast.Call;
 
-import uk.ac.ic.doc.gander.CallHelper;
-import uk.ac.ic.doc.gander.analysis.MethodFinder;
+import uk.ac.ic.doc.gander.analysis.CallFinder;
+import uk.ac.ic.doc.gander.analysis.CallFinder.EventHandler;
 import uk.ac.ic.doc.gander.calls.CallSite;
 import uk.ac.ic.doc.gander.cfg.BasicBlock;
 import uk.ac.ic.doc.gander.duckinference.DuckTyper;
@@ -155,26 +156,51 @@ public class CallTargetTypeDiff {
 				return;
 
 			for (BasicBlock block : function.getCfg().getBlocks()) {
-				for (Call call : new MethodFinder(block).calls()) {
 
-					// if function is a method of a class, skip calls to self
-					// (or whatever the first parameter to a method
-					// is called. We already know the type of these.
-					if (!CallHelper.isExternalMethodCallOnName(call, function,
-							typer))
-						continue;
+				for (Call call : calls(block)) {
 
 					CallSite callsite = new CallSite(call, function, block);
 
 					Result<Type> duckType = new DuckTyper(model, typer).typeOf(
 							call, block, function);
-					Result<Type> flowType = engine.typeOf(
-							CallHelper.indirectCallTarget(call),
+					Result<Type> flowType = engine.typeOf(call.func,
 							function.codeObject());
 
 					informObservers(new DiffResult(callsite, duckType, flowType));
 				}
 			}
+		}
+
+		private Set<Call> calls(BasicBlock block) {
+
+			final Set<Call> calls = new HashSet<Call>();
+
+			new CallFinder(block, new EventHandler() {
+
+				@Override
+				public void foundCall(Call call) {
+					calls.add(call);
+				}
+			});
+
+			return calls;
+		}
+
+		private Set<Call> attributeCalls(BasicBlock block) {
+
+			final Set<Call> calls = new HashSet<Call>();
+
+			new CallFinder(block, new EventHandler() {
+
+				@Override
+				public void foundCall(Call call) {
+					if (call.func instanceof Attribute) {
+						calls.add(call);
+					}
+				}
+			});
+
+			return calls;
 		}
 
 		private void informObservers(DiffResult diffResult) {
