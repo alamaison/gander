@@ -64,6 +64,12 @@ public class CallTargetSignatureBuilderTest {
 	}
 
 	@Test
+	public void attributeDeep() throws Throwable {
+		setup("attribute_deep");
+		checkSignature("b");
+	}
+
+	@Test
 	public void callResult() throws Throwable {
 		setup("call_result");
 		checkSignature("b");

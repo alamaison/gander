@@ -8,6 +8,7 @@ import java.util.Set;
 import org.python.pydev.parser.jython.ParseException;
 import org.python.pydev.parser.jython.ast.Attribute;
 import org.python.pydev.parser.jython.ast.Call;
+import org.python.pydev.parser.jython.ast.exprType;
 
 import uk.ac.ic.doc.gander.analysis.CallFinder;
 import uk.ac.ic.doc.gander.analysis.CallFinder.EventHandler;
@@ -18,6 +19,9 @@ import uk.ac.ic.doc.gander.flowinference.TypeResolver;
 import uk.ac.ic.doc.gander.flowinference.ZeroCfaTypeEngine;
 import uk.ac.ic.doc.gander.flowinference.result.Result;
 import uk.ac.ic.doc.gander.flowinference.result.Result.Transformer;
+import uk.ac.ic.doc.gander.flowinference.typegoals.TopT;
+import uk.ac.ic.doc.gander.flowinference.types.TModule;
+import uk.ac.ic.doc.gander.flowinference.types.TUnresolvedImport;
 import uk.ac.ic.doc.gander.flowinference.types.Type;
 import uk.ac.ic.doc.gander.hierarchy.Hierarchy;
 import uk.ac.ic.doc.gander.hierarchy.HierarchyWalker;
@@ -161,14 +165,50 @@ public class CallTargetTypeDiff {
 
 					CallSite callsite = new CallSite(call, function, block);
 
-					Result<Type> duckType = new DuckTyper(model, typer).typeOf(
-							call, block, function);
-					Result<Type> flowType = engine.typeOf(call.func,
-							function.codeObject());
+					if (call.func instanceof Attribute) {
 
-					informObservers(new DiffResult(callsite, duckType, flowType));
+						exprType lhs = ((Attribute) call.func).value;
+
+						Result<Type> flowType = engine.typeOf(lhs,
+								function.codeObject());
+
+						Result<Type> duckType;
+						if (!flowResultIncludesModule(flowType)) {
+							duckType = new DuckTyper(model, typer).typeOf(lhs,
+									block, function);
+						} else {
+							duckType = TopT.INSTANCE;
+						}
+
+						informObservers(new DiffResult(callsite, duckType,
+								flowType));
+					}
+
 				}
 			}
+		}
+
+		private boolean flowResultIncludesModule(Result<Type> flowType) {
+			return flowType.transformResult(new Transformer<Type, Boolean>() {
+
+				@Override
+				public Boolean transformFiniteResult(Set<Type> result) {
+					for (Type type : result) {
+						if (type instanceof TModule
+								|| type instanceof TUnresolvedImport) {
+							return true;
+						}
+					}
+
+					return false;
+				}
+
+				@Override
+				public Boolean transformInfiniteResult() {
+					// FIXME: This is a lie!
+					return false;
+				}
+			});
 		}
 
 		private Set<Call> calls(BasicBlock block) {

@@ -4,6 +4,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.python.pydev.parser.jython.ast.Call;
+import org.python.pydev.parser.jython.ast.exprType;
 
 import uk.ac.ic.doc.gander.analysis.inheritance.CachingInheritanceTree;
 import uk.ac.ic.doc.gander.analysis.inheritance.InheritedMethods;
@@ -44,11 +45,14 @@ public class DuckTyper {
 	 *            The Python scope in which the call occurs.
 	 * @return A type judgement as a set of {@link Type}s.
 	 */
-	public Result<Type> typeOf(Call call, BasicBlock containingBlock,
+	public Result<Type> typeOf(exprType expression, BasicBlock containingBlock,
 			OldNamespace scope) {
 
-		Set<String> methods = calculateDependentMethodNames(call,
-				containingBlock, scope);
+		Set<Call> dependentCalls = new CallTargetSignatureBuilder()
+				.interfaceType(expression, containingBlock, scope, resolver);
+
+		Set<String> methods = SignatureHelper
+				.convertSignatureToMethodNames(dependentCalls);
 
 		if (methods.isEmpty()) {
 			return TopT.INSTANCE;
@@ -70,14 +74,5 @@ public class DuckTyper {
 
 			return new FiniteResult<Type>(type);
 		}
-	}
-
-	private Set<String> calculateDependentMethodNames(Call call,
-			BasicBlock containingBlock, OldNamespace scope) {
-
-		Set<Call> dependentCalls = new CallTargetSignatureBuilder()
-				.signatureOfTarget(call, containingBlock, scope, resolver);
-
-		return SignatureHelper.convertSignatureToMethodNames(dependentCalls);
 	}
 }
