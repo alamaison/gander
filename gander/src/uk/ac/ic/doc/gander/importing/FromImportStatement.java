@@ -61,8 +61,6 @@ final class FromImportStatement implements StaticImportStatement {
 	private FromImportStatement(ImportPath moduleImportPath, String itemName) {
 		if (moduleImportPath == null)
 			throw new NullPointerException("Module path is not optional");
-		if (moduleImportPath.isEmpty())
-			throw new IllegalArgumentException("Module path cannot be empty");
 		if (itemName == null)
 			throw new NullPointerException("Item name is not optional");
 		if (itemName.isEmpty())

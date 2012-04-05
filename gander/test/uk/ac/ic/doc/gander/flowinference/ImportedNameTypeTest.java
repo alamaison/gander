@@ -466,6 +466,53 @@ public class ImportedNameTypeTest {
 				((TFunction) type).getFunctionInstance());
 	}
 
+	/**
+	 * Modules can import from their siblings explicitly using a preceding dot.
+	 */
+	@Test
+	public void explicitRelativeImport() throws Throwable {
+		Module start = model.loadModule("rude_children.start");
+
+		Type type = typer(start).typeOf("gareth");
+		assertTrue("'gareth' should be a module", type instanceof TModule);
+
+		Module gareth = model.lookup("rude_children.gareth");
+		assertEquals("Type resolved to a module but not to 'gareth'", gareth,
+				((TModule) type).getModuleInstance());
+	}
+
+	/**
+	 * Modules can import from their nephews explicitly using a preceding dot
+	 * followed the nephew's name.
+	 */
+	@Test
+	public void explicitRelativeImportDown() throws Throwable {
+		Module start = model.loadModule("rude_children.start");
+
+		Type type = typer(start).typeOf("aisha");
+		assertTrue("'aisha' should be a module", type instanceof TModule);
+
+		Module aisha = model.lookup("rude_children.gareth.aisha");
+		assertEquals("Type resolved to a module but not to 'aisha'", aisha,
+				((TModule) type).getModuleInstance());
+	}
+
+	/**
+	 * Modules can import from their aunts explicitly using a preceding dot
+	 * followed the aunt's name.
+	 */
+	@Test
+	public void explicitRelativeImportUp() throws Throwable {
+		Module start = model.loadModule("rude_children.gareth.aisha");
+
+		Type type = typer(start).typeOf("george");
+		assertTrue("'george' should be a module", type instanceof TModule);
+
+		Module george = model.lookup("rude_children.george");
+		assertEquals("Type resolved to a module but not to 'george'", george,
+				((TModule) type).getModuleInstance());
+	}
+
 	@Test
 	public void libraryImport() throws Throwable {
 		Module libby = model.loadModule("libby");

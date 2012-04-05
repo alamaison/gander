@@ -170,7 +170,7 @@ public final class ImportSimulator<O, A, C, M> {
 		BindingScheme binder = importInstance.statement().bindingScheme();
 		BindingBehaviour behaviour = binder.modulePathBindingBehaviour();
 
-		M previouslyLoadedModule = null;
+		M previouslyLoadedModule = importInstance.relativeTo();
 		List<String> processed = new LinkedList<String>();
 
 		for (int i = 0; i < importPath.size(); ++i) {
@@ -187,7 +187,7 @@ public final class ImportSimulator<O, A, C, M> {
 
 			Behaviour bindingAction;
 			if (i == 0) {
-				assert previouslyLoadedModule == null;
+				// assert previouslyLoadedModule == null;
 				if (importPath.size() == 1) {
 					bindingAction = behaviour.bindSolitaryToken();
 				} else {
