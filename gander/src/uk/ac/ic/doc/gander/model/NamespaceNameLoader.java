@@ -32,7 +32,32 @@ public final class NamespaceNameLoader implements
 		List<String> name = new ArrayList<String>(
 				DottedName.toImportTokens(relativeToModule
 						.oldStyleConflatedNamespace().getFullName()));
-		name.addAll(importPath);
+
+		boolean skippedInitialEmpty = false;
+		for (String token : importPath) {
+
+			if (token.isEmpty()) {
+				/*
+				 * Empty token signify an explicit relative path and every empty
+				 * segment means the import climbs one level in the hierarchy.
+				 * So we delete parts of the relative name.
+				 */
+				if (skippedInitialEmpty) {
+					if (name.isEmpty()) {
+						throw new IllegalArgumentException(
+								"Relative segments cannot take import "
+										+ "above top level");
+					} else {
+						name.remove(name.size() - 1);
+					}
+				} else {
+					skippedInitialEmpty = true;
+				}
+
+			} else {
+				name.add(token);
+			}
+		}
 
 		// The imported module/package will always exist in the model
 		// already if it exists (on disk) at all as the model must have

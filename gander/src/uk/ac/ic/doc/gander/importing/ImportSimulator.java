@@ -170,7 +170,7 @@ public final class ImportSimulator<O, A, C, M> {
 		BindingScheme binder = importInstance.statement().bindingScheme();
 		BindingBehaviour behaviour = binder.modulePathBindingBehaviour();
 
-		M previouslyLoadedModule = importInstance.relativeTo();
+		M previouslyLoadedModule = null;
 		List<String> processed = new LinkedList<String>();
 
 		for (int i = 0; i < importPath.size(); ++i) {
@@ -187,7 +187,7 @@ public final class ImportSimulator<O, A, C, M> {
 
 			Behaviour bindingAction;
 			if (i == 0) {
-				// assert previouslyLoadedModule == null;
+				assert previouslyLoadedModule == null;
 				if (importPath.size() == 1) {
 					bindingAction = behaviour.bindSolitaryToken();
 				} else {
@@ -222,8 +222,10 @@ public final class ImportSimulator<O, A, C, M> {
 		switch (behaviour) {
 		case BINDS_IN_BOTH:
 			if (module != null) {
-				eventHandler.bindModuleToName(module, token,
-						previouslyLoadedModule);
+				if (!token.isEmpty()) {
+					eventHandler.bindModuleToName(module, token,
+							previouslyLoadedModule);
+				}
 				eventHandler.bindModuleToLocalName(module,
 						((StaticImportStatement) importInstance.statement())
 								.bindingName(), importInstance.container());
@@ -235,8 +237,10 @@ public final class ImportSimulator<O, A, C, M> {
 
 		case BINDS_IN_PREVIOUS_MODULE:
 			if (module != null) {
-				eventHandler.bindModuleToName(module, token,
-						previouslyLoadedModule);
+				if (!token.isEmpty()) {
+					eventHandler.bindModuleToName(module, token,
+							previouslyLoadedModule);
+				}
 			} else {
 				eventHandler.onUnresolvedImport(importInstance, token,
 						previouslyLoadedModule);

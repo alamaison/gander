@@ -10,7 +10,7 @@ public class DottedName {
 	public static List<String> toImportTokens(String importPath) {
 		if ("".equals(importPath))
 			return Collections.emptyList();
-		return Arrays.asList(importPath.split("\\."));
+		return Arrays.asList(importPath.split("\\.", -1));
 	}
 
 	public static String toDottedName(List<String> importTokens) {
