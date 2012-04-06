@@ -15,6 +15,7 @@ import uk.ac.ic.doc.gander.flowinference.TypeResolver;
 import uk.ac.ic.doc.gander.flowinference.result.FiniteResult;
 import uk.ac.ic.doc.gander.flowinference.result.Result;
 import uk.ac.ic.doc.gander.flowinference.typegoals.TopT;
+import uk.ac.ic.doc.gander.flowinference.types.TClass;
 import uk.ac.ic.doc.gander.flowinference.types.TObject;
 import uk.ac.ic.doc.gander.flowinference.types.Type;
 import uk.ac.ic.doc.gander.model.Model;
@@ -68,8 +69,14 @@ public class DuckTyper {
 
 				// TODO: We only compare by name. Matching parameter numbers etc
 				// will require more complex logic.
-				if (inheritance.methodsInTree().containsAll(methods))
+				if (inheritance.methodsInTree().containsAll(methods)) {
 					type.add(new TObject(klass));
+					/*
+					 * TODO: without look at the parameters, can't tell class
+					 * and instance apart
+					 */
+					type.add(new TClass(klass));
+				}
 			}
 
 			return new FiniteResult<Type>(type);
