@@ -72,6 +72,7 @@ public final class ModuleNamespace implements Module, Namespace {
 	 * A module's execution namespace is accessible by attribute access on any
 	 * expression that the module code object can reach.
 	 */
+	@Override
 	public Result<ModelSite<exprType>> references(SubgoalManager goalManager) {
 
 		return goalManager.registerSubgoal(new FlowGoal(
@@ -83,11 +84,13 @@ public final class ModuleNamespace implements Module, Namespace {
 	 * 
 	 * A module's execution namespace is writeable everywhere it is readable.
 	 */
+	@Override
 	public Result<ModelSite<exprType>> writeableReferences(
 			SubgoalManager goalManager) {
 		return references(goalManager);
 	}
 
+	@Override
 	public Set<Variable> variablesInScope(String name) {
 		return new InScopeVariableFinder(codeObject, name).variables();
 	}
@@ -97,7 +100,13 @@ public final class ModuleNamespace implements Module, Namespace {
 	 * 
 	 * For global (module) variables, all in-scope variables are writeable.
 	 */
+	@Override
 	public Set<Variable> variablesWriteableInScope(String name) {
+		/*
+		 * FIXME: Really this should return an empty set for the top-level
+		 * (builtin) module but then we can't use the results of this call to
+		 * infer types for the names in that module itself.
+		 */
 		return variablesInScope(name);
 	}
 

@@ -739,6 +739,18 @@ public class FlowGoalExpressionTest {
 						+ "of an object's attributes.", result);
 	}
 
+	@Test
+	public void builtIn() throws Throwable {
+
+		TestModule test = newTestModule("built_in");
+
+		Result<ModelSite<exprType>> result = solveBlastoff(test);
+
+		TestModule.assertResultIncludes(
+				"x did not flow through builtin function",
+				test.printables("x flows here"), result);
+	}
+
 	private TestModule newTestModule(String testName) throws Throwable {
 		return new TestModule(testName, model);
 	}
