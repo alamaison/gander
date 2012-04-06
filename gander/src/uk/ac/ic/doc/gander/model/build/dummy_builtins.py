@@ -21,8 +21,8 @@ def any(iterable):
             return True
     return False
 
-def apply():
-    pass
+def apply(function, args, keywords={}):
+    return function(*args, **keywords)
 
 def bin(x):
     return ""
@@ -33,11 +33,13 @@ def bool(x=False):
     else:
         return False
 
-def buffer():
-    pass
+class buffer(str):
+    def __init__(self, obj, offset=0, size=0):
+        pass
 
-def bytearray():
-    pass
+class bytearray(list):
+    def __init__(self, source=None, encoding=None, errors=None):
+        pass
 
 def bytes():
     pass
@@ -48,8 +50,8 @@ def callable(object):
 def chr(i):
     pass
 
-def classmethod():
-    pass
+def classmethod(meth):
+    return meth
 
 def cmp(lhs, rhs):
     pass #lhs.__eq__(rhs)
@@ -57,11 +59,12 @@ def cmp(lhs, rhs):
 def coerce():
     pass
 
-def compile():
-    pass
+def compile(source, filename, mode, flags=None, dont_inherit=None):
+    return None
 
-def complex():
-    pass
+class complex:
+    def __init__(self, real=0, imag=0):
+        pass
 
 def copyright():
     pass
@@ -69,41 +72,44 @@ def copyright():
 def credits():
     pass
 
-def delattr():
+def delattr(object, name):
     pass
 
-def dir():
+def dir(object=None):
+    return []
+
+def divmod(a, b):
+    return (a // b, a % b)
+
+def enumerate(sequence, start=0):
+    return []
+
+def eval(expression, globals=None, locals=None):
     pass
 
-def divmod():
-    pass
-
-def enumerate():
-    pass
-
-def eval():
-    pass
-
-def execfile():
+def execfile(filename, globals=None, locals=None):
     pass
 
 def exit():
     pass
 
-def file():
-    pass
+class file:
+    def __init__(self, name):
+        pass
 
-def filter():
-    pass
+def filter(function, iterable):
+    return [item for item in iterable if function(item)]
 
 class float(type):
-    pass
+    def __init__(self, x=0.0):
+        pass
 
-def format():
-    pass
+def format(value, format_spec=""):
+    return value.__format__(format_spec)
 
-def frozenset():
-    pass
+class frozenset(set):
+    def __init__(self, iterable=[]):
+        pass
 
 def getattr(obj, name, default=None):
     if hasattr(obj, name):
@@ -120,7 +126,7 @@ def hasattr(obj, name):
 def hash(obj):
     return 42
 
-def help():
+def help(object=None):
     pass
 
 def hex(x):
@@ -129,11 +135,12 @@ def hex(x):
 def id(object):
     pass
 
-def input():
+def input(prompt=None):
     pass
 
 class int(type):
-    pass
+    def __init__(self, x=0, base=10):
+        pass
 
 def intern():
     pass
@@ -144,8 +151,11 @@ def isinstance(object, classinfo):
 def issubclass(klass, classinfo):
     return True
 
-def iter():
-    pass
+def iter(o, sentinel=None):
+    if sentinel is None:
+        return o.__iter__()
+    else:
+        yield o()
 
 def len(iterable):
     return iterable.__len__()
@@ -157,31 +167,32 @@ def locals():
     pass
 
 class long(type):
-    pass
+    def __init__(self, x=0L, base=10):
+        pass
 
-def map():
-    pass
+def map(function, iterable, *args):
+    return [function(x) for x in iterable]
 
-def max():
-    pass
+def max(iterable, *args):
+    return iterable[0]
 
-def min():
-    pass
+def min(iterable, *args):
+    return iterable[0]
 
-def next():
-    pass
+def next(iterator, default=None):
+    return iterator.next()
 
-def oct():
-    pass
+def oct(x):
+    return ""
 
-def open():
-    pass
+def open(name, mode="r+", buffering=0):
+    return file(name)
 
-def ord():
-    pass
+def ord(c):
+    return 0
 
-def pow():
-    pass
+def pow(x,y,z=0):
+    return x
 
 #def print():
 #    pass
@@ -192,62 +203,72 @@ def property():
 def quit():
     pass
 
-def range():
+def range(start, stop=None, step=None):
+    return [0]
+
+def raw_input(prompt=None):
     pass
 
-def raw_input():
+def reduce(function, iterable, initializer=None):
+    it = iter(iterable)
+    if initializer is None:
+        try:
+            initializer = next(it)
+        except StopIteration:
+            raise TypeError('reduce() of empty sequence with no initial value')
+    accum_value = initializer
+    for x in iterable:
+        accum_value = function(accum_value, x)
+    return accum_value
+
+def reload(module):
     pass
 
-def reduce():
+def repr(object):
+    return ""
+
+def reversed(seq):
+    return seq
+
+def round(x, n=0):
+    return 0.0
+
+def setattr(object, name, value):
     pass
 
-def reload():
-    pass
+def slice(start, stop=None, step=None):
+    return range(start,stop,step)
 
-def repr():
-    pass
+def sorted(iterable, cmp=None, key=None, reverse=None):
+    return []
 
-def reversed():
-    pass
+def staticmethod(function):
+    return function
 
-def round():
-    pass
+def sum(iterable, start=0):
+    return 0
 
-def setattr():
-    pass
-
-def slice():
-    pass
-
-def sorted():
-    pass
-
-def staticmethod():
-    pass
-
-def sum():
-    pass
-
-def super():
+def super(object, object_or_type=None):
     pass
 
 class tuple(type):
-    pass
+    def __init__(self, iterable):
+        pass
 
 class type:
     pass
 
-def unichr():
-    pass
+def unichr(i):
+    return u''
 
-def vars():
-    pass
+def vars(object=None):
+    return {}
 
-def xrange():
-    pass
+def xrange(start, stop=None, step=None):
+    return range(start, stop, step)
 
-def zip():
-    pass
+def zip(iterable=[], *args):
+    return []
 
 class object:
     
@@ -500,42 +521,42 @@ class unicode(str): # really inherits from basestring and duplicates str methods
 class dict(object):
 # was class UserDict:
     def __init__(self, dict=None, **kwargs):
-    	pass
+        pass
     def __repr__(self):
-    	return repr(self.data)
+        return repr(self.data)
     def __cmp__(self, dict):
-    	return -1
+        return -1
     def __len__(self):
-    	return 1
+        return 1
     def __getitem__(self, key):
         return self.data
     def __setitem__(self, key, item):
-    	self.data = item
-    	self.key = key
+        self.data = item
+        self.key = key
     def __delitem__(self, key):
-    	pass
+        pass
     def clear(self):
-    	pass
+        pass
     def copy(self):
         return dict()
     def keys(self):
-    	return [self.key]
+        return [self.key]
     def items(self):
-    	return [(self.key, self.data)]
+        return [(self.key, self.data)]
     def iteritems(self):
-    	return self.items().__iter__()
+        return self.items().__iter__()
     def iterkeys(self):
-    	return self.keys().__iter__()
+        return self.keys().__iter__()
     def itervalues(self): 
-    	return self.values().__iter__()
+        return self.values().__iter__()
     def values(self):
-    	return [self.data]
+        return [self.data]
     def has_key(self, key):
-    	return key == self.key
+        return key == self.key
     def update(self, dict=None, **kwargs):
         #for k, v in dict.items():
         #    self[k] = v
-    	pass
+        pass
     def get(self, key, failobj=None):
         if key != self.key:
             return failobj
@@ -554,7 +575,7 @@ class dict(object):
 class list(object):
 # was class UserList(collections.MutableSequence):
     def __init__(self, initlist=None):
-    	pass
+        pass
     
     def __repr__(self): return repr(self.data)
     def __lt__(self, other): return self.data <  self.__cast(other)
@@ -569,51 +590,51 @@ class list(object):
     def __cmp__(self, other):
         return cmp(self.data, self.__cast(other))
     def __contains__(self, item):
-    	return self.data == item
+        return self.data == item
     def __len__(self):
-    	return 1
+        return 1
     def __getitem__(self, i):
-    	return self.data
+        return self.data
     def __setitem__(self, i, item):
-    	self.data = item
+        self.data = item
     def __delitem__(self, i):
-    	pass
+        pass
     def __getslice__(self, i, j):
         return list()
     def __setslice__(self, i, j, other):
-    	pass
+        pass
     def __delslice__(self, i, j):
-    	pass
+        pass
     def __add__(self, other):
-    	return list()
+        return list()
     def __radd__(self, other):
-    	return list()
+        return list()
     def __iadd__(self, other):
         return self
     def __mul__(self, n):
         return list()
     def __rmul__(self, n):
-    	return list()
+        return list()
     def __imul__(self, n):
         return self
     def append(self, item):
-    	pass
+        pass
     def insert(self, i, item):
-    	pass
+        pass
     def pop(self, i=-1):
-    	return self.data
+        return self.data
     def remove(self, item):
-    	pass
+        pass
     def count(self, item):
-    	return 1
+        return 1
     def index(self, item, *args):
-    	return 0
+        return 0
     def reverse(self):
-    	pass
+        pass
     def sort(self, *args, **kwds):
-    	pass
+        pass
     def extend(self, other):
-    	pass
+        pass
     
     # MutableSequence
     
@@ -845,6 +866,6 @@ class set(object):
 # define in the interpreter alone.  The NoneType in 'types' is defined
 # as 'NoneType = type(None)' which is pretty circular reasoning
 class __BuiltinNoneType__:
-	pass
+    pass
 
 None = __BuiltinNoneType__()
