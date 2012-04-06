@@ -333,6 +333,32 @@ public class FlowGoalExpressionTest {
 	}
 
 	@Test
+	public void index() throws Throwable {
+
+		TestModule test = newTestModule("index");
+
+		Result<ModelSite<exprType>> result = solveBlastoff(test);
+
+		TestModule.assertResultIsTop(
+				"Flow should have escaped on being used as an index", result);
+	}
+
+	@Test
+	public void indexNot() throws Throwable {
+
+		TestModule test = newTestModule("index_not");
+
+		Result<ModelSite<exprType>> result = solveBlastoff(test);
+
+		TestModule.assertResultIsNotTop(
+				"Flow should NOT have escaped as something "
+						+ "else entirely was being used as an index", result);
+
+		TestModule.assertResultIncludes("Expression did not flow as expected.",
+				test.printables("x flows here"), result);
+	}
+
+	@Test
 	public void forLoop() throws Throwable {
 
 		TestModule test = newTestModule("for_loop");
