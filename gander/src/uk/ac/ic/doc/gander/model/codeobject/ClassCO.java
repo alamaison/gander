@@ -36,7 +36,7 @@ public final class ClassCO implements NamedCodeObject, NestedCodeObject {
 	 * @param parent
 	 *            the code object that this class is declared within
 	 */
-	public ClassCO(ClassDef ast, CodeObject parent) {
+	ClassCO(ClassDef ast, CodeObject parent) {
 		if (ast == null) {
 			throw new NullPointerException(
 					"Code objects must have code associated with them");
