@@ -553,6 +553,25 @@ public class FlowGoalExpressionTest {
 				test.printables("not b in B", "nor a in C"), result);
 	}
 
+	/**
+	 * Test that inheriting from object doesn't do anything funny to the
+	 * constructor.
+	 */
+	@Test
+	public void constructorArgumentObject() throws Throwable {
+
+		TestModule test = newTestModule("constructor_argument_object");
+
+		Result<ModelSite<exprType>> result = solveBlastoff(test);
+
+		TestModule.assertResultIncludes("Call did not flow instance to "
+				+ "parameters a of A's constructor.",
+				test.printables("a in A"), result);
+
+		TestModule.assertResultExcludes("Call shouldn't have flowed x to "
+				+ "self parameter.", test.printables("not self in A"), result);
+	}
+
 	@Test
 	public void constructorKeywordArgument() throws Throwable {
 
