@@ -96,6 +96,34 @@ def exit():
 class file:
     def __init__(self, name):
         pass
+    def close(self):
+        pass
+    def fileno(self):
+        return 0
+    def flush(self):
+        pass
+    def isatty(self):
+        return False
+    def next(self):
+        return ""
+    def read(self, size=0):
+        return ""
+    def readline(self, size=0):
+        return ""
+    def readlines(self, sizehint=0):
+        return [""]
+    def seek(self, offset, whence=0):
+        pass
+    def tell(self):
+        return 0
+    def truncate(self, size=0):
+        pass
+    def write(self, str):
+        pass
+    def writelines(self, sequence):
+        pass
+    def xreadlines(self):
+        return iter(self)
 
 def filter(function, iterable):
     return [item for item in iterable if function(item)]
