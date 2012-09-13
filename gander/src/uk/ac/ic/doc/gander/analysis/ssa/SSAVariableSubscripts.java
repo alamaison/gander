@@ -13,7 +13,7 @@ import uk.ac.ic.doc.gander.cfg.BasicBlock;
 import uk.ac.ic.doc.gander.cfg.Cfg;
 
 /**
- * Based on Figure 9.13, p169 Engineering a Compiler.
+ * Based on Figure 9.13, p469 Engineering a Compiler.
  */
 public class SSAVariableSubscripts {
 
@@ -70,11 +70,11 @@ public class SSAVariableSubscripts {
 		}
 	}
 
-	private Map<Name, Integer> subscripts = new HashMap<Name, Integer>();
-	private Map<String, Integer> counters = new HashMap<String, Integer>();
-	private Map<String, Stack<Integer>> stacks = new HashMap<String, Stack<Integer>>();
-	private Map<BasicBlock, Set<BasicBlock>> domSuccessors = new HashMap<BasicBlock, Set<BasicBlock>>();
-	private PhiPlacement phis;
+	private final Map<Name, Integer> subscripts = new HashMap<Name, Integer>();
+	private final Map<String, Integer> counters = new HashMap<String, Integer>();
+	private final Map<String, Stack<Integer>> stacks = new HashMap<String, Stack<Integer>>();
+	private final Map<BasicBlock, Set<BasicBlock>> domSuccessors = new HashMap<BasicBlock, Set<BasicBlock>>();
+	private final PhiPlacement phis;
 
 	public SSAVariableSubscripts(Cfg graph) {
 		phis = new PhiPlacement(graph);
