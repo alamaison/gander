@@ -11,22 +11,19 @@ import org.python.pydev.parser.jython.ast.exprType;
 import org.python.pydev.parser.jython.ast.keywordType;
 
 import uk.ac.ic.doc.gander.analysis.BasicBlockTraverser;
-import uk.ac.ic.doc.gander.cfg.BasicBlock;
 
 /**
  * Find where the given variable is passed to calls as a parameter.
  */
 class PassedVariableFinder {
 
-	PassedVariableFinder(String variable, Iterable<BasicBlock> blocks) {
+	PassedVariableFinder(String variable, Set<SimpleNode> nodes) {
 		this.variable = variable;
-		for (BasicBlock block : blocks) {
-			for (SimpleNode node : block) {
-				try {
-					node.accept(new FinderVisitor());
-				} catch (Exception e) {
-					throw new RuntimeException(e);
-				}
+		for (SimpleNode node : nodes) {
+			try {
+				node.accept(new FinderVisitor());
+			} catch (Exception e) {
+				throw new RuntimeException(e);
 			}
 		}
 	}
@@ -43,9 +40,9 @@ class PassedVariableFinder {
 	 */
 	final class PassedVar {
 
-		private Set<Integer> positions = new HashSet<Integer>();
-		private Set<String> keywords = new HashSet<String>();
-		private Call function;
+		private final Set<Integer> positions = new HashSet<Integer>();
+		private final Set<String> keywords = new HashSet<String>();
+		private final Call function;
 
 		public PassedVar(Call call) {
 			function = call;
@@ -70,8 +67,8 @@ class PassedVariableFinder {
 		}
 	}
 
-	private Set<PassedVar> calls = new HashSet<PassedVar>();
-	private String variable;
+	private final Set<PassedVar> calls = new HashSet<PassedVar>();
+	private final String variable;
 
 	private final class FinderVisitor extends BasicBlockTraverser {
 

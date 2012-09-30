@@ -2,7 +2,7 @@ def basic():
 	y = x
 	y.a()
 	y.b("tag")
-	y.a()
+	y.c()
 
 def kills_in_same_block():
 	y = x
@@ -147,20 +147,44 @@ def callme(z):
 	z.p()
 	z.q()
 
-def dig_into_call():
+def dig_into_call_after():
 	y.a()
 	y.b("tag")
 	callme(y)
 
+def dig_into_call_before():
+	callme(y)
+	y.a()
+	y.b("tag")
+
+def dig_into_call_other_block_after():
+	y.a()
+	y.b("tag")
+	if x: # force new block
+		print y
+	callme(y)
+	
+def dig_into_call_other_block_before():
+	callme(y)
+	if x: # force new block
+		print y
+	y.a()
+	y.b("tag")
+	
 def callme_not_all_postdom(w):
 	if w.r():
 		w.s()
 	w.t()
 
-def dig_into_call_with_some_non_postdom_statements():
+def dig_into_call_after_with_some_non_postdom_statements():
 	g.a()
 	g.b("tag")
 	callme_not_all_postdom(g)
+	
+def dig_into_call_before_with_some_non_postdom_statements():
+	callme_not_all_postdom(g)
+	g.a()
+	g.b("tag")
 	
 def call_me_and_i_call_someone_else(t):
 	t.bob()

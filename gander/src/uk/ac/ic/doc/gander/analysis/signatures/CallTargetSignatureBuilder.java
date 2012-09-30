@@ -49,7 +49,7 @@ public class CallTargetSignatureBuilder {
 
 		try {
 			return (Set<Call>) expression.accept(new SignatureMapper(
-					containingBlock, scope, resolver));
+					containingBlock, scope, resolver, true, true));
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}
@@ -60,38 +60,47 @@ public class CallTargetSignatureBuilder {
 		private final OldNamespace scope;
 		private final BasicBlock containingBlock;
 		private final TypeResolver resolver;
+		private final boolean includeRequiredFeatures;
+		private final boolean includeFstr;
 
 		SignatureMapper(BasicBlock containingBlock, OldNamespace scope,
-				TypeResolver resolver) {
+				TypeResolver resolver, boolean includeRequiredFeatures,
+				boolean includeFstr) {
 			this.containingBlock = containingBlock;
 			this.scope = scope;
 			this.resolver = resolver;
+			this.includeRequiredFeatures = includeRequiredFeatures;
+			this.includeFstr = includeFstr;
 		}
 
 		@Override
 		public Object visitName(Name node) throws Exception {
 			SignatureBuilder builder = new SignatureBuilder();
-			return builder.signature(node, containingBlock, scope, resolver);
+			return builder.signature(node, containingBlock, scope, resolver,
+					includeRequiredFeatures, includeFstr);
 		}
 
 		@Override
 		protected Object unhandled_node(SimpleNode node) throws Exception {
 
-			/*
-			 * TODO: if the call target isn't a simple variable name, we can
-			 * still use the name of the method being called as a single-item
-			 * signature
-			 */
-			SimpleNode parent = AstParentNodeFinder.findParent(node,
-					scope.getAst());
-			if (parent instanceof Call) {
-				/* TODO: support direct-callability as a constraint */
-			} else if (parent instanceof Attribute) {
-
-				SimpleNode grandparent = AstParentNodeFinder.findParent(parent,
+			if (includeRequiredFeatures) {
+				/*
+				 * if the call target isn't a simple variable name, we can still
+				 * use the name of the method being called as a single-item
+				 * signature (but not for FSTR as that wouldn't be a dominating
+				 * method call).
+				 */
+				SimpleNode parent = AstParentNodeFinder.findParent(node,
 						scope.getAst());
-				if (grandparent instanceof Call) {
-					return Collections.singleton((Call) grandparent);
+				if (parent instanceof Call) {
+					/* TODO: support direct-callability as a constraint */
+				} else if (parent instanceof Attribute) {
+
+					SimpleNode grandparent = AstParentNodeFinder.findParent(
+							parent, scope.getAst());
+					if (grandparent instanceof Call) {
+						return Collections.singleton((Call) grandparent);
+					}
 				}
 			}
 

@@ -25,6 +25,7 @@ import uk.ac.ic.doc.gander.model.codeobject.ClassCO;
 public class DuckTyper {
 	private final LoadedTypeDefinitions definitions;
 	private final TypeResolver resolver;
+	private long duckTimeSheet = 0;
 
 	public DuckTyper(Model model, TypeResolver resolver) {
 		this.resolver = resolver;
@@ -49,14 +50,19 @@ public class DuckTyper {
 	public Result<Type> typeOf(exprType expression, BasicBlock containingBlock,
 			OldNamespace scope) {
 
+		long oldFlowCost = resolver.flowCost();
+
+		long start = System.currentTimeMillis();
+
 		Set<Call> dependentCalls = new CallTargetSignatureBuilder()
 				.interfaceType(expression, containingBlock, scope, resolver);
 
 		Set<String> methods = SignatureHelper
 				.convertSignatureToMethodNames(dependentCalls);
 
+		Result<Type> result;
 		if (methods.isEmpty()) {
-			return TopT.INSTANCE;
+			result = TopT.INSTANCE;
 
 		} else {
 
@@ -79,7 +85,16 @@ public class DuckTyper {
 				}
 			}
 
-			return new FiniteResult<Type>(type);
+			result = new FiniteResult<Type>(type);
 		}
+
+		long now = System.currentTimeMillis();
+		duckTimeSheet += (now - start) - (resolver.flowCost() - oldFlowCost);
+
+		return result;
+	}
+
+	public long duckCost() {
+		return duckTimeSheet;
 	}
 }

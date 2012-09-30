@@ -10,7 +10,6 @@ import org.python.pydev.parser.jython.ast.Name;
 
 import uk.ac.ic.doc.gander.analysis.BasicBlockTraverser;
 import uk.ac.ic.doc.gander.analysis.ssa.SSAVariableSubscripts;
-import uk.ac.ic.doc.gander.cfg.BasicBlock;
 import uk.ac.ic.doc.gander.cfg.Cfg;
 
 /**
@@ -20,39 +19,35 @@ import uk.ac.ic.doc.gander.cfg.Cfg;
 final class PartialSignatureFromUsingVariable {
 
 	Set<Call> buildSignature(Name variableAtLocation,
-			Set<BasicBlock> blocksToSearch, Cfg graph) {
+			Set<SimpleNode> nodesToSearch, Cfg graph) {
 		Set<Call> calls = new HashSet<Call>();
 
 		SSAVariableSubscripts ssa = new SSAVariableSubscripts(graph);
 		int permittedSubscript = ssa.subscript(variableAtLocation);
 
-		for (BasicBlock block : blocksToSearch) {
-			PartialSignatureFromUsingVariable.IntraBlockVariableMatcher matcher = new IntraBlockVariableMatcher(
-					block, variableAtLocation, permittedSubscript, ssa);
-			calls.addAll(matcher.matchingCalls());
-		}
+		VariableMatcher matcher = new VariableMatcher(nodesToSearch,
+				variableAtLocation, permittedSubscript, ssa);
+		calls.addAll(matcher.matchingCalls());
 
 		return calls;
-
 	}
 
 	/**
-	 * Finds calls that target a given SSA subscripted variable in a single
-	 * basic block.
+	 * Finds calls that target a given SSA subscripted variable.
 	 */
-	private static class IntraBlockVariableMatcher {
+	private static class VariableMatcher {
 
-		private Set<Call> calls = new HashSet<Call>();
-		private Name target;
-		private int subscript;
-		private SSAVariableSubscripts renamer;
+		private final Set<Call> calls = new HashSet<Call>();
+		private final Name target;
+		private final int subscript;
+		private final SSAVariableSubscripts renamer;
 
-		public IntraBlockVariableMatcher(BasicBlock containingBlock,
-				Name target, int subscript, SSAVariableSubscripts renamer) {
+		public VariableMatcher(Set<SimpleNode> nodes, Name target,
+				int subscript, SSAVariableSubscripts renamer) {
 			this.target = target;
 			this.subscript = subscript;
 			this.renamer = renamer;
-			for (SimpleNode node : containingBlock) {
+			for (SimpleNode node : nodes) {
 				try {
 					node.accept(new VariableMatcherVisitor());
 				} catch (Exception e) {

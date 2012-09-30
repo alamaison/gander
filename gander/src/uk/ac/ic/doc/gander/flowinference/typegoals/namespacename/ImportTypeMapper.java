@@ -83,7 +83,7 @@ final class ImportTypeMapper {
 		@Override
 		public void bindModuleToName(ModuleCO loadedModule, String name,
 				ModuleCO receivingModule) {
-			assert !receivingModule.equals(variable.codeObject());
+			// assert !receivingModule.equals(variable.codeObject());
 		}
 
 		@Override
@@ -115,8 +115,9 @@ final class ImportTypeMapper {
 		public void onUnresolvedImport(
 				Import<CodeObject, ModuleCO> importInstance, String name,
 				ModuleCO receivingModule) {
-			assert !receivingModule.equals(variable.codeObject()) : "Receiving module: "
-					+ receivingModule + " Variable: " + variable;
+			// assert !receivingModule.equals(variable.codeObject()) :
+			// "Receiving module: "
+			// + receivingModule + " Variable: " + variable;
 		}
 
 		@Override

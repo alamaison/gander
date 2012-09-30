@@ -9,9 +9,9 @@ import uk.ac.ic.doc.gander.model.ModelSite;
 
 public class TypeResolver {
 
-	private final TypeEngine engine;
+	private final TimingTypeEngine engine;
 
-	public TypeResolver(TypeEngine engine) {
+	public TypeResolver(TimingTypeEngine engine) {
 		this.engine = engine;
 	}
 
@@ -39,5 +39,9 @@ public class TypeResolver {
 			System.err.println("Oh dear, Top");
 			return null;
 		}
+	}
+
+	public long flowCost() {
+		return engine.milliseconds();
 	}
 }

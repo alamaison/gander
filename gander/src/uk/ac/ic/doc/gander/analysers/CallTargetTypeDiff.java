@@ -15,6 +15,7 @@ import uk.ac.ic.doc.gander.analysis.CallFinder.EventHandler;
 import uk.ac.ic.doc.gander.calls.CallSite;
 import uk.ac.ic.doc.gander.cfg.BasicBlock;
 import uk.ac.ic.doc.gander.duckinference.DuckTyper;
+import uk.ac.ic.doc.gander.flowinference.TimingTypeEngine;
 import uk.ac.ic.doc.gander.flowinference.TypeResolver;
 import uk.ac.ic.doc.gander.flowinference.ZeroCfaTypeEngine;
 import uk.ac.ic.doc.gander.flowinference.result.Result;
@@ -34,13 +35,18 @@ import uk.ac.ic.doc.gander.model.MutableModel;
 
 public class CallTargetTypeDiff {
 
-	private final MutableModel model;
-	private final TypeResolver typer;
+	private final TimingTypeEngine totalFlowCountingEngine = new TimingTypeEngine(
+			new ZeroCfaTypeEngine());
+	private final TimingTypeEngine pureFlowCountingEngine = new TimingTypeEngine(
+			totalFlowCountingEngine);
+	private final DuckTyper duckTyper;
+
 	private final Set<DiffResult> duckTypes = new HashSet<DiffResult>();
 	private final File projectRoot;
+	private final MutableModel model;
 	private final Hierarchy hierarchy;
-	private final ZeroCfaTypeEngine engine;
 	private final Set<ResultObserver> observers = new HashSet<ResultObserver>();
+	private long observerTimeSheet = 0;
 
 	public final class DiffResult {
 		private final CallSite callsite;
@@ -136,15 +142,40 @@ public class CallTargetTypeDiff {
 			}
 		});
 
+		// Get current time
+		long start = System.currentTimeMillis();
+
 		System.out.println("Creating model from hierarchy");
 		this.model = new DefaultModel(hierarchy);
 		System.out.println("Loading all non-system modules in hierarchy");
 		new HierarchyLoader().walk(hierarchy);
+
 		System.out.println("Performing flow-based type inference");
-		engine = new ZeroCfaTypeEngine();
-		this.typer = new TypeResolver(engine);
+
+		final TimingTypeEngine contraFlowCountingEngine = new TimingTypeEngine(
+				totalFlowCountingEngine);
+		final TypeResolver typer = new TypeResolver(contraFlowCountingEngine);
+		this.duckTyper = new DuckTyper(model, typer);
+
+		long flowEngineCreationTime = System.currentTimeMillis();
+
 		System.out.println("Running signature analysis");
 		new ModelDucker().walk(model);
+
+		long analysisTime = System.currentTimeMillis();
+		long analysisDuration = analysisTime - flowEngineCreationTime;
+
+		long totalMilli = System.currentTimeMillis();
+		System.out.printf("Total time (ms): %d\n", totalMilli - start);
+		System.out.printf("Analysis time (ms) %d\n", analysisDuration);
+		System.out.printf("    Flow time (ms): %d of which\n",
+				totalFlowCountingEngine.milliseconds());
+		System.out.printf("        Flow phase (ms): %d\n",
+				pureFlowCountingEngine.milliseconds());
+		System.out.printf("        Contra phase (ms): %d\n",
+				contraFlowCountingEngine.milliseconds());
+		System.out.printf("    Contra time (ms): %d\n", duckTyper.duckCost());
+		System.out.printf("    Observer time (ms): %d\n", observerTimeSheet);
 	}
 
 	public Set<DiffResult> result() {
@@ -169,19 +200,21 @@ public class CallTargetTypeDiff {
 
 						exprType lhs = ((Attribute) call.func).value;
 
-						Result<Type> flowType = engine.typeOf(lhs,
-								function.codeObject());
+						Result<Type> flowType = pureFlowCountingEngine.typeOf(
+								lhs, function.codeObject());
 
 						Result<Type> duckType;
 						if (!flowResultIncludesModule(flowType)) {
-							duckType = new DuckTyper(model, typer).typeOf(lhs,
-									block, function);
+							duckType = duckTyper.typeOf(lhs, block, function);
 						} else {
 							duckType = TopT.INSTANCE;
 						}
 
-						informObservers(new DiffResult(callsite, duckType,
-								flowType));
+						long startObserverTime = System.currentTimeMillis();
+						// informObservers(new DiffResult(callsite, duckType,
+						// flowType));
+						observerTimeSheet += System.currentTimeMillis()
+								- startObserverTime;
 					}
 
 				}
