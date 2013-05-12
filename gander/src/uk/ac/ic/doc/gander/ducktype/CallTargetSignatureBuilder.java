@@ -29,7 +29,7 @@ import uk.ac.ic.doc.gander.model.OldNamespace;
  * 
  * Using this class to generate signatures for direct calls is an error.
  */
-public class CallTargetSignatureBuilder {
+final class CallTargetSignatureBuilder {
 
 	public Set<Call> signatureOfTarget(Call call, BasicBlock containingBlock,
 			OldNamespace scope, TypeResolver resolver,
@@ -43,6 +43,7 @@ public class CallTargetSignatureBuilder {
 					containingBlock, scope, resolver, excludeCurrentFeature);
 		}
 	}
+
 	public Set<Call> signatureOfTarget(Call call, BasicBlock containingBlock,
 			OldNamespace scope, TypeResolver resolver) {
 		return signatureOfTarget(call, containingBlock, scope, resolver, false);
@@ -84,9 +85,10 @@ public class CallTargetSignatureBuilder {
 		@Override
 		public Object visitName(Name node) throws Exception {
 			SignatureBuilder builder = new SignatureBuilder();
-			return builder.signature(node, containingBlock, scope, resolver,
-					includeRequiredFeatures, includeFstr,
-					excludeCurrentFeature);
+			return builder
+					.signature(node, containingBlock, scope, resolver,
+							includeRequiredFeatures, includeFstr,
+							excludeCurrentFeature);
 		}
 
 		@Override

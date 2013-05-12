@@ -6,9 +6,11 @@ import java.util.Set;
 import org.python.pydev.parser.jython.ast.Call;
 import org.python.pydev.parser.jython.ast.exprType;
 
+import uk.ac.ic.doc.gander.CallHelper;
 import uk.ac.ic.doc.gander.cfg.BasicBlock;
 import uk.ac.ic.doc.gander.flowinference.TypeResolver;
 import uk.ac.ic.doc.gander.interfacetype.Feature;
+import uk.ac.ic.doc.gander.interfacetype.InterfaceType;
 import uk.ac.ic.doc.gander.model.OldNamespace;
 
 /**
@@ -30,7 +32,7 @@ public final class InterfaceRecovery {
 		this.resolver = resolver;
 	}
 
-	public DuckType inferDuckType(exprType expression,
+	public InterfaceType inferDuckType(exprType expression,
 			BasicBlock containingBlock, OldNamespace scope,
 			boolean excludeCurrentFeature) {
 
@@ -38,12 +40,10 @@ public final class InterfaceRecovery {
 				.interfaceType(expression, containingBlock, scope, resolver,
 						excludeCurrentFeature);
 
-		Set<String> methods = SignatureHelper
-				.convertSignatureToMethodNames(dependentCalls);
-
 		Set<Feature> features = new HashSet<Feature>();
-		for (String name : methods) {
-			features.add(new NamedMethodFeature(name));
+		for (Call call : dependentCalls) {
+			features.add(new NamedMethodFeature(CallHelper
+					.indirectCallName(call)));
 		}
 
 		return new DuckType(features);

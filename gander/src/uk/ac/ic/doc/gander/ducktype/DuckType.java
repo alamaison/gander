@@ -13,7 +13,7 @@ import uk.ac.ic.doc.gander.interfacetype.InterfaceType;
 /**
  * Interface type inferred from feature-usage in Python.
  */
-public final class DuckType extends AbstractSet<Feature> implements
+final class DuckType extends AbstractSet<Feature> implements
 		InterfaceType {
 
 	private final Set<Feature> features;

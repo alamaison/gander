@@ -8,7 +8,6 @@ import org.python.pydev.parser.jython.ast.exprType;
 import uk.ac.ic.doc.gander.analysis.inheritance.CachingInheritanceTree;
 import uk.ac.ic.doc.gander.analysis.inheritance.InheritedMethods;
 import uk.ac.ic.doc.gander.cfg.BasicBlock;
-import uk.ac.ic.doc.gander.ducktype.DuckType;
 import uk.ac.ic.doc.gander.ducktype.InterfaceRecovery;
 import uk.ac.ic.doc.gander.ducktype.NamedMethodFeature;
 import uk.ac.ic.doc.gander.flowinference.TypeResolver;
@@ -19,6 +18,7 @@ import uk.ac.ic.doc.gander.flowinference.types.TClass;
 import uk.ac.ic.doc.gander.flowinference.types.TObject;
 import uk.ac.ic.doc.gander.flowinference.types.Type;
 import uk.ac.ic.doc.gander.interfacetype.Feature;
+import uk.ac.ic.doc.gander.interfacetype.InterfaceType;
 import uk.ac.ic.doc.gander.model.Model;
 import uk.ac.ic.doc.gander.model.OldNamespace;
 import uk.ac.ic.doc.gander.model.codeobject.ClassCO;
@@ -56,14 +56,12 @@ public class DuckTyper {
 		long start = System.currentTimeMillis();
 
 		InterfaceRecovery inferenceEngine = new InterfaceRecovery(resolver);
-		DuckType recoveredInterface = inferenceEngine.inferDuckType(expression,
-				containingBlock, scope, excludeCurrentFeature);
+		InterfaceType recoveredInterface = inferenceEngine.inferDuckType(
+				expression, containingBlock, scope, excludeCurrentFeature);
 
 		Set<String> methods = new HashSet<String>();
-		for (Feature feature : recoveredInterface)
-		{
-			if (feature instanceof NamedMethodFeature)
-			{
+		for (Feature feature : recoveredInterface) {
+			if (feature instanceof NamedMethodFeature) {
 				methods.add(((NamedMethodFeature) feature).name());
 			}
 		}

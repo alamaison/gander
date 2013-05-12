@@ -1,6 +1,7 @@
 package uk.ac.ic.doc.gander.analysers;
 
 import java.io.IOException;
+import java.util.HashSet;
 import java.util.Set;
 
 import org.python.pydev.parser.jython.ParseException;
@@ -10,8 +11,8 @@ import uk.ac.ic.doc.gander.CallHelper;
 import uk.ac.ic.doc.gander.analysis.MethodFinder;
 import uk.ac.ic.doc.gander.cfg.BasicBlock;
 import uk.ac.ic.doc.gander.duckinference.DuckTyper;
-import uk.ac.ic.doc.gander.ducktype.CallTargetSignatureBuilder;
-import uk.ac.ic.doc.gander.ducktype.SignatureHelper;
+import uk.ac.ic.doc.gander.ducktype.InterfaceRecovery;
+import uk.ac.ic.doc.gander.ducktype.NamedMethodFeature;
 import uk.ac.ic.doc.gander.flowinference.TypeResolver;
 import uk.ac.ic.doc.gander.flowinference.ZeroCfaTypeEngine;
 import uk.ac.ic.doc.gander.flowinference.result.Result;
@@ -21,6 +22,8 @@ import uk.ac.ic.doc.gander.hierarchy.Hierarchy;
 import uk.ac.ic.doc.gander.hierarchy.HierarchyWalker;
 import uk.ac.ic.doc.gander.hierarchy.Package;
 import uk.ac.ic.doc.gander.hierarchy.SourceFile;
+import uk.ac.ic.doc.gander.interfacetype.Feature;
+import uk.ac.ic.doc.gander.interfacetype.InterfaceType;
 import uk.ac.ic.doc.gander.model.DefaultModel;
 import uk.ac.ic.doc.gander.model.Function;
 import uk.ac.ic.doc.gander.model.ModelWalker;
@@ -114,10 +117,16 @@ public class DuckHunt {
 	private Set<String> calculateDependentMethodNames(Call call,
 			BasicBlock containingBlock, OldNamespace scope) {
 
-		Set<Call> dependentCalls = new CallTargetSignatureBuilder()
-				.signatureOfTarget(call, containingBlock, scope, typer);
+		InterfaceType recoveredInterface = new InterfaceRecovery(typer)
+				.inferDuckType(call, containingBlock, scope, false);
 
-		return SignatureHelper.convertSignatureToMethodNames(dependentCalls);
+		Set<String> methods = new HashSet<String>();
+		for (Feature feature : recoveredInterface) {
+			if (feature instanceof NamedMethodFeature) {
+				methods.add(((NamedMethodFeature) feature).name());
+			}
+		}
+		return methods;
 	}
 
 	/**

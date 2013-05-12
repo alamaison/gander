@@ -15,20 +15,20 @@ import org.python.pydev.parser.jython.ast.Call;
 import uk.ac.ic.doc.gander.CallHelper;
 import uk.ac.ic.doc.gander.TaggedCallAndScopeFinder;
 import uk.ac.ic.doc.gander.cfg.BasicBlock;
-import uk.ac.ic.doc.gander.ducktype.CallTargetSignatureBuilder;
 import uk.ac.ic.doc.gander.flowinference.TypeResolver;
 import uk.ac.ic.doc.gander.flowinference.ZeroCfaTypeEngine;
 import uk.ac.ic.doc.gander.hierarchy.Hierarchy;
 import uk.ac.ic.doc.gander.hierarchy.HierarchyFactory;
+import uk.ac.ic.doc.gander.interfacetype.Feature;
+import uk.ac.ic.doc.gander.interfacetype.InterfaceType;
 import uk.ac.ic.doc.gander.model.DefaultModel;
 import uk.ac.ic.doc.gander.model.Module;
 import uk.ac.ic.doc.gander.model.MutableModel;
 import uk.ac.ic.doc.gander.model.OldNamespace;
 
-public class CallTargetSignatureBuilderTest {
+public class InterfaceRecoveryTest {
 
-	private final CallTargetSignatureBuilder analyser = new CallTargetSignatureBuilder();
-	private TypeResolver typer;
+	private InterfaceRecovery analyser;
 	private OldNamespace scope;
 	private Call call;
 
@@ -44,7 +44,9 @@ public class CallTargetSignatureBuilderTest {
 		MutableModel model = new DefaultModel(hierarchy);
 
 		Module start = model.loadModule("start");
-		typer = new TypeResolver(new ZeroCfaTypeEngine());
+
+		analyser = new InterfaceRecovery(new TypeResolver(
+				new ZeroCfaTypeEngine()));
 
 		TaggedCallAndScopeFinder tagFinder = new TaggedCallAndScopeFinder(
 				start, "tag");
@@ -88,13 +90,13 @@ public class CallTargetSignatureBuilderTest {
 
 		BasicBlock block = findBlockContainingCall(call, scope);
 
-		Set<Call> signature = analyser.signatureOfTarget(call, block, scope,
-				typer);
+		InterfaceType recoveredInterface = analyser.inferDuckType(
+				CallHelper.indirectCallTarget(call), block, scope, false);
 
 		// Test that all expected calls are in the chain and no unexpected calls
 		// are in the chain.
 		// TODO: We consider any call with matching name but ignore arguments
-		Set<String> calledMethods = calledMethodsFromChain(signature);
+		Set<String> calledMethods = methodsFromInterface(recoveredInterface);
 		assertEquals("Expected signature doesn't match method found in the "
 				+ "signature produced by the analyser", expected, calledMethods);
 	}
@@ -111,10 +113,12 @@ public class CallTargetSignatureBuilderTest {
 		return null;
 	}
 
-	private Set<String> calledMethodsFromChain(Iterable<Call> chain) {
+	private Set<String> methodsFromInterface(InterfaceType iface) {
 		Set<String> methods = new HashSet<String>();
-		for (Call call : chain) {
-			methods.add(CallHelper.indirectCallName(call));
+		for (Feature feature : iface) {
+			if (feature instanceof NamedMethodFeature) {
+				methods.add(((NamedMethodFeature) feature).name());
+			}
 		}
 		return methods;
 	}
