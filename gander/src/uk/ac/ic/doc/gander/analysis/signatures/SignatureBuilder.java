@@ -28,13 +28,17 @@ public class SignatureBuilder {
 	 * that are control-dependent on the given name and operate not only on the
 	 * same name but on the same SSA renaming of the name. This ensures that
 	 * calls which may happen after re-assigning to a variable aren't included.
+	 * 
+	 * @param excludeCurrentFeature
 	 */
 	public Set<Call> signature(Name variable, BasicBlock containingBlock,
 			OldNamespace enclosingScope, TypeResolver resolver,
-			boolean includeRequiredFeatures, boolean includeFstr) {
+			boolean includeRequiredFeatures, boolean includeFstr,
+			boolean excludeCurrentFeature) {
 
 		Set<SimpleNode> nodes = contraindicatingNodes(enclosingScope.getCfg(),
-				includeRequiredFeatures, includeFstr, variable, containingBlock);
+				includeRequiredFeatures, includeFstr, excludeCurrentFeature,
+				variable, containingBlock);
 
 		Set<Call> calls = new PartialSignatureFromUsingVariable()
 				.buildSignature(variable, nodes, enclosingScope.getCfg());
@@ -49,10 +53,13 @@ public class SignatureBuilder {
 	 * 
 	 * Strict dominators for FSTR; no-strict postdominators for Require Feature
 	 * analysis. Both for best results.
+	 * 
+	 * @param excludeCurrentFeature
 	 */
 	private Set<SimpleNode> contraindicatingNodes(Cfg graph,
 			boolean includeRequiredFeatures, boolean includeFstr,
-			Name variable, BasicBlock containingBlock) {
+			boolean excludeCurrentFeature, Name variable,
+			BasicBlock containingBlock) {
 
 		Set<SimpleNode> nodes = new HashSet<SimpleNode>();
 
@@ -69,11 +76,13 @@ public class SignatureBuilder {
 			// The containing block can also contain
 			// dominators so we filter the containing block separately here and
 			// add only the postdominating nodes.
-			nodes.addAll(filterNodesAfterVariable(variable, containingBlock));
+			nodes.addAll(filterNodesAfterVariable(variable, containingBlock,
+					!excludeCurrentFeature));
 
-			// We don't really want strict for required features so we add the
-			// current node to the list.
-			nodes.add(variable);
+			// We don't normally want strict for required features so we add the
+			// current node to the list, unless otherwise instructed
+			if (!excludeCurrentFeature)
+				nodes.add(variable);
 		}
 
 		if (includeFstr) {
@@ -121,7 +130,7 @@ public class SignatureBuilder {
 	}
 
 	private List<SimpleNode> filterNodesAfterVariable(Name variableAtLocation,
-			BasicBlock containingBlock) {
+			BasicBlock containingBlock, boolean includeNodeContainingVariable) {
 		final List<SimpleNode> nodesAfterVariable = new ArrayList<SimpleNode>();
 
 		boolean found = false;
@@ -133,9 +142,18 @@ public class SignatureBuilder {
 					node.accept(finder);
 					if (finder.found) {
 						found = true;
-					} else {
-						continue;
+
+						// In the special case that we are instructed to
+						// include the variable's node, we do so here
+						if (includeNodeContainingVariable) {
+							nodesAfterVariable.add(node);
+						}
 					}
+
+					// We continue in both cases as only the next node should
+					// be added, not the node we found the variable in.
+					continue;
+
 				} catch (Exception e) {
 					throw new RuntimeException(e);
 				}

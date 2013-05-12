@@ -48,14 +48,15 @@ public class DuckTyper {
 	 * @return A type judgement as a set of {@link Type}s.
 	 */
 	public Result<Type> typeOf(exprType expression, BasicBlock containingBlock,
-			OldNamespace scope) {
+			OldNamespace scope, boolean excludeCurrentFeature) {
 
 		long oldFlowCost = resolver.flowCost();
 
 		long start = System.currentTimeMillis();
 
 		Set<Call> dependentCalls = new CallTargetSignatureBuilder()
-				.interfaceType(expression, containingBlock, scope, resolver);
+				.interfaceType(expression, containingBlock, scope, resolver,
+						excludeCurrentFeature);
 
 		Set<String> methods = SignatureHelper
 				.convertSignatureToMethodNames(dependentCalls);
@@ -94,6 +95,11 @@ public class DuckTyper {
 		return result;
 	}
 
+	public Result<Type> typeOf(exprType expression, BasicBlock containingBlock,
+			OldNamespace scope) {
+		return typeOf(expression, containingBlock, scope, false);
+	}
+	
 	public long duckCost() {
 		return duckTimeSheet;
 	}

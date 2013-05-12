@@ -56,7 +56,7 @@ public class DominationLength extends HierarchyWalker {
 
 				Collection<Call> dependentCalls = chainAnalyser.signature(
 						(Name) CallHelper.indirectCallTarget(call), sub,
-						function, typer, true, true);
+						function, typer, true, true, false);
 
 				if (dependentCalls != null) {
 					int count = countUniqueMethodNames(dependentCalls);
