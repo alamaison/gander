@@ -3,6 +3,8 @@ package uk.ac.ic.doc.gander.analysis;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+import java.io.File;
+import java.net.URL;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
@@ -10,16 +12,20 @@ import java.util.Set;
 import org.junit.Test;
 
 import uk.ac.ic.doc.gander.AbstractTaggedCallTest;
+import uk.ac.ic.doc.gander.ResourceResolver;
 import uk.ac.ic.doc.gander.analysis.ssa.GlobalsAndDefsFinder;
 import uk.ac.ic.doc.gander.cfg.BasicBlock;
 
 public class GlobalAndDefsFinderTest extends AbstractTaggedCallTest {
 
-	private static final String TEST_FOLDER = "python_test_code/matching_dom_length/basic/";
+	private static final File TEST_FOLDER = new File(
+			"../python_test_code/basic/");
+
 	private GlobalsAndDefsFinder finder;
 
 	public GlobalAndDefsFinderTest() {
-		super(TEST_FOLDER);
+		super(ResourceResolver.resolveRelativeToClass(TEST_FOLDER,
+				GlobalAndDefsFinderTest.class));
 	}
 
 	protected void initialise(String caseName, int expectedBlockCount)
@@ -210,7 +216,8 @@ public class GlobalAndDefsFinderTest extends AbstractTaggedCallTest {
 	}
 
 	private void checkGlobals(String... expectedGlobal) throws Exception {
-		assertEquals("Set of globals unexpected:", new HashSet<String>(Arrays
-				.asList(expectedGlobal)), finder.globals());
+		assertEquals("Set of globals unexpected:",
+				new HashSet<String>(Arrays.asList(expectedGlobal)),
+				finder.globals());
 	}
 }

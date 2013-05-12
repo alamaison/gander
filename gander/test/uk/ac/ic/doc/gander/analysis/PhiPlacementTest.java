@@ -3,22 +3,26 @@ package uk.ac.ic.doc.gander.analysis;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+import java.io.File;
 import java.util.HashSet;
 import java.util.Set;
 
 import org.junit.Test;
 
 import uk.ac.ic.doc.gander.AbstractTaggedCallTest;
+import uk.ac.ic.doc.gander.ResourceResolver;
 import uk.ac.ic.doc.gander.analysis.ssa.PhiPlacement;
 import uk.ac.ic.doc.gander.cfg.BasicBlock;
 
 public class PhiPlacementTest extends AbstractTaggedCallTest {
 
-	private static final String TEST_FOLDER = "python_test_code/matching_dom_length/basic/";
+	private static final File TEST_FOLDER = new File(
+			"../python_test_code/basic/");
 	protected PhiPlacement phi;
 
 	public PhiPlacementTest() {
-		super(TEST_FOLDER);
+		super(ResourceResolver.resolveRelativeToClass(TEST_FOLDER,
+				PhiPlacementTest.class));
 	}
 
 	protected void initialise(String caseName, int expectedBlockCount)

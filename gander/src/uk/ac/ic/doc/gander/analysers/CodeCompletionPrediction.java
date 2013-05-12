@@ -1,21 +1,22 @@
 package uk.ac.ic.doc.gander.analysers;
 
+import java.io.File;
 import java.io.IOException;
+import java.util.HashSet;
 import java.util.Set;
 
 import org.python.pydev.parser.jython.ParseException;
+import org.python.pydev.parser.jython.ast.Attribute;
 import org.python.pydev.parser.jython.ast.Call;
+import org.python.pydev.parser.jython.ast.exprType;
 
-import uk.ac.ic.doc.gander.CallHelper;
-import uk.ac.ic.doc.gander.analysis.MethodFinder;
+import uk.ac.ic.doc.gander.analysis.CallFinder;
+import uk.ac.ic.doc.gander.analysis.CallFinder.EventHandler;
 import uk.ac.ic.doc.gander.cfg.BasicBlock;
 import uk.ac.ic.doc.gander.duckinference.DuckTyper;
-import uk.ac.ic.doc.gander.ducktype.CallTargetSignatureBuilder;
-import uk.ac.ic.doc.gander.ducktype.SignatureHelper;
 import uk.ac.ic.doc.gander.flowinference.TypeResolver;
 import uk.ac.ic.doc.gander.flowinference.ZeroCfaTypeEngine;
 import uk.ac.ic.doc.gander.flowinference.result.Result;
-import uk.ac.ic.doc.gander.flowinference.result.Result.Transformer;
 import uk.ac.ic.doc.gander.flowinference.types.Type;
 import uk.ac.ic.doc.gander.hierarchy.Hierarchy;
 import uk.ac.ic.doc.gander.hierarchy.HierarchyWalker;
@@ -23,33 +24,41 @@ import uk.ac.ic.doc.gander.hierarchy.Package;
 import uk.ac.ic.doc.gander.hierarchy.SourceFile;
 import uk.ac.ic.doc.gander.model.DefaultModel;
 import uk.ac.ic.doc.gander.model.Function;
-import uk.ac.ic.doc.gander.model.ModelWalker;
+import uk.ac.ic.doc.gander.model.ModelWalkerWithParent;
 import uk.ac.ic.doc.gander.model.MutableModel;
-import uk.ac.ic.doc.gander.model.OldNamespace;
 
-public class DuckHunt {
+/**
+ * Study how often code completion would have included the methods called in the
+ * program.
+ */
+public class CodeCompletionPrediction {
 
+	private final DuckTyper duckTyper;
 	private final MutableModel model;
-	private final Tallies counts;
-	private final TypeResolver typer;
+	
+	private long callSites = 0;
+	private long callSitesPredictedCorrectly = 0;
 
-	public DuckHunt(Hierarchy hierarchy) throws Exception {
+	public CodeCompletionPrediction(Hierarchy hierarchy, File projectRoot) throws Exception {
 		System.out.println("Creating model from hierarchy");
 		this.model = new DefaultModel(hierarchy);
-		this.counts = new Tallies();
 		System.out.println("Loading all non-system modules in hierarchy");
 		new HierarchyLoader().walk(hierarchy);
+
 		System.out.println("Performing flow-based type inference");
-		this.typer = new TypeResolver(new ZeroCfaTypeEngine());
+
+		final TypeResolver typer = new TypeResolver(new ZeroCfaTypeEngine());
+		this.duckTyper = new DuckTyper(model, typer);
+
 		System.out.println("Running signature analysis");
 		new ModelDucker().walk(model);
 	}
 
-	public Tallies getResult() {
-		return counts;
+	public double result() {
+		return callSitesPredictedCorrectly / callSites;
 	}
 
-	private final class ModelDucker extends ModelWalker {
+	private final class ModelDucker extends ModelWalkerWithParent {
 
 		@Override
 		protected void visitFunction(Function function) {
@@ -58,66 +67,34 @@ public class DuckHunt {
 				return;
 
 			for (BasicBlock block : function.getCfg().getBlocks()) {
-				for (Call call : new MethodFinder(block).calls()) {
 
-					// if function is a method of a class, skip calls to self
-					// (or whatever the first parameter to a method
-					// is called. We already know the type of these.
-					if (!CallHelper.isExternalMethodCallOnName(call, function,
-							typer))
-						continue;
+				for (Call call : calls(block)) {
 
-					countNumberOfTypesInferredFor(call, function, block);
+					if (call.func instanceof Attribute) {
+
+						exprType lhs = ((Attribute) call.func).value;
+
+						Result<Type> duckType = duckTyper.typeOf(lhs, block, function, true);
+					}
+
 				}
 			}
 		}
-	}
 
-	private void countNumberOfTypesInferredFor(Call call, Function function,
-			BasicBlock block) {
-		Result<Type> type = new DuckTyper(model, typer).typeOf(call, block,
-				function);
+		private Set<Call> calls(BasicBlock block) {
 
-		int size = type.transformResult(new Transformer<Type, Integer>() {
+			final Set<Call> calls = new HashSet<Call>();
 
-			@Override
-			public Integer transformFiniteResult(Set<Type> result) {
-				return result.size();
-			}
+			new CallFinder(block, new EventHandler() {
 
-			@Override
-			public Integer transformInfiniteResult() {
-				throw new AssertionError("This code wasn't "
-						+ "written to cope with an "
-						+ "infinite type.  Update it.");
-			}
-		});
+				@Override
+				public void foundCall(Call call) {
+					calls.add(call);
+				}
+			});
 
-		counts.addTally(size);
-
-		if (size == 0) {
-			System.out.println("unable to infer type from " + call + " in "
-					+ function.getFullName() + "(signature "
-					+ calculateDependentMethodNames(call, block, function)
-					+ ")");
+			return calls;
 		}
-
-		if (size > 80) {
-			System.out.println("large number (" + size
-					+ ") of types inferred from " + call + " in "
-					+ function.getFullName() + " \n\t(signature "
-					+ calculateDependentMethodNames(call, block, function)
-					+ ")");
-		}
-	}
-
-	private Set<String> calculateDependentMethodNames(Call call,
-			BasicBlock containingBlock, OldNamespace scope) {
-
-		Set<Call> dependentCalls = new CallTargetSignatureBuilder()
-				.signatureOfTarget(call, containingBlock, scope, typer);
-
-		return SignatureHelper.convertSignatureToMethodNames(dependentCalls);
 	}
 
 	/**

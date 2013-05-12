@@ -11,8 +11,8 @@ import org.python.pydev.parser.jython.ast.Name;
 
 import uk.ac.ic.doc.gander.CallHelper;
 import uk.ac.ic.doc.gander.analysis.MethodFinder;
-import uk.ac.ic.doc.gander.analysis.signatures.SignatureBuilder;
 import uk.ac.ic.doc.gander.cfg.BasicBlock;
+import uk.ac.ic.doc.gander.ducktype.SignatureBuilder;
 import uk.ac.ic.doc.gander.flowinference.TypeResolver;
 import uk.ac.ic.doc.gander.flowinference.ZeroCfaTypeEngine;
 import uk.ac.ic.doc.gander.hierarchy.Hierarchy;

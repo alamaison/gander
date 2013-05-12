@@ -3,6 +3,7 @@ package uk.ac.ic.doc.gander.analysis;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+import java.io.File;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -14,15 +15,18 @@ import org.python.pydev.parser.jython.ast.Name;
 
 import uk.ac.ic.doc.gander.AbstractTaggedCallTest;
 import uk.ac.ic.doc.gander.CallHelper;
+import uk.ac.ic.doc.gander.ResourceResolver;
 import uk.ac.ic.doc.gander.analysis.ssa.SSAVariableSubscripts;
 
 public class SSAVariableSubscriptsTest extends AbstractTaggedCallTest {
 
-	private static final String TEST_FOLDER = "python_test_code/matching_dom_length/basic/";
+	private static final File TEST_FOLDER = new File(
+			"../python_test_code/basic/");
 	protected SSAVariableSubscripts renamer;
 
 	public SSAVariableSubscriptsTest() {
-		super(TEST_FOLDER);
+		super(ResourceResolver.resolveRelativeToClass(TEST_FOLDER,
+				SSAVariableSubscriptsTest.class));
 	}
 
 	protected void initialise(String caseName, int expectedBlockCount)
@@ -81,8 +85,8 @@ public class SSAVariableSubscriptsTest extends AbstractTaggedCallTest {
 				seen = new HashSet<Integer>();
 				seenSubscripts.put(variable.id, seen);
 			}
-			assertTrue("Duplicate subscript: " + subscript, !seen
-					.contains(subscript));
+			assertTrue("Duplicate subscript: " + subscript,
+					!seen.contains(subscript));
 			seen.add(subscript);
 
 			for (int i = 1; i < group.length; ++i) {

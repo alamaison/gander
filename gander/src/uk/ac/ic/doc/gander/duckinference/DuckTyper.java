@@ -3,14 +3,14 @@ package uk.ac.ic.doc.gander.duckinference;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.python.pydev.parser.jython.ast.Call;
 import org.python.pydev.parser.jython.ast.exprType;
 
 import uk.ac.ic.doc.gander.analysis.inheritance.CachingInheritanceTree;
 import uk.ac.ic.doc.gander.analysis.inheritance.InheritedMethods;
-import uk.ac.ic.doc.gander.analysis.signatures.CallTargetSignatureBuilder;
-import uk.ac.ic.doc.gander.analysis.signatures.SignatureHelper;
 import uk.ac.ic.doc.gander.cfg.BasicBlock;
+import uk.ac.ic.doc.gander.ducktype.DuckType;
+import uk.ac.ic.doc.gander.ducktype.InterfaceRecovery;
+import uk.ac.ic.doc.gander.ducktype.NamedMethodFeature;
 import uk.ac.ic.doc.gander.flowinference.TypeResolver;
 import uk.ac.ic.doc.gander.flowinference.result.FiniteResult;
 import uk.ac.ic.doc.gander.flowinference.result.Result;
@@ -18,6 +18,7 @@ import uk.ac.ic.doc.gander.flowinference.typegoals.TopT;
 import uk.ac.ic.doc.gander.flowinference.types.TClass;
 import uk.ac.ic.doc.gander.flowinference.types.TObject;
 import uk.ac.ic.doc.gander.flowinference.types.Type;
+import uk.ac.ic.doc.gander.interfacetype.Feature;
 import uk.ac.ic.doc.gander.model.Model;
 import uk.ac.ic.doc.gander.model.OldNamespace;
 import uk.ac.ic.doc.gander.model.codeobject.ClassCO;
@@ -54,12 +55,18 @@ public class DuckTyper {
 
 		long start = System.currentTimeMillis();
 
-		Set<Call> dependentCalls = new CallTargetSignatureBuilder()
-				.interfaceType(expression, containingBlock, scope, resolver,
-						excludeCurrentFeature);
+		InterfaceRecovery inferenceEngine = new InterfaceRecovery(resolver);
+		DuckType recoveredInterface = inferenceEngine.inferDuckType(expression,
+				containingBlock, scope, excludeCurrentFeature);
 
-		Set<String> methods = SignatureHelper
-				.convertSignatureToMethodNames(dependentCalls);
+		Set<String> methods = new HashSet<String>();
+		for (Feature feature : recoveredInterface)
+		{
+			if (feature instanceof NamedMethodFeature)
+			{
+				methods.add(((NamedMethodFeature) feature).name());
+			}
+		}
 
 		Result<Type> result;
 		if (methods.isEmpty()) {
@@ -99,7 +106,7 @@ public class DuckTyper {
 			OldNamespace scope) {
 		return typeOf(expression, containingBlock, scope, false);
 	}
-	
+
 	public long duckCost() {
 		return duckTimeSheet;
 	}

@@ -1,10 +1,9 @@
-package uk.ac.ic.doc.gander.analysis.signatures;
+package uk.ac.ic.doc.gander.ducktype;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import java.io.File;
-import java.net.URL;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -15,8 +14,9 @@ import org.python.pydev.parser.jython.SimpleNode;
 import org.python.pydev.parser.jython.ast.Call;
 import org.python.pydev.parser.jython.ast.Name;
 
-import uk.ac.ic.doc.gander.analysis.signatures.PassedVariableFinder.PassedVar;
+import uk.ac.ic.doc.gander.ResourceResolver;
 import uk.ac.ic.doc.gander.cfg.BasicBlock;
+import uk.ac.ic.doc.gander.ducktype.PassedVariableFinder.PassedVar;
 import uk.ac.ic.doc.gander.hierarchy.Hierarchy;
 import uk.ac.ic.doc.gander.hierarchy.HierarchyFactory;
 import uk.ac.ic.doc.gander.model.DefaultModel;
@@ -25,7 +25,8 @@ import uk.ac.ic.doc.gander.model.MutableModel;
 
 public class PassedVariableFinderTest {
 
-	private static final String TEST_PROJ = "../python_test_code/passed_var";
+	private static final File TEST_PROJ = new File(
+			"../python_test_code/passed_var");
 	private final Set<SimpleNode> blocks = new HashSet<SimpleNode>();
 
 	@Test
@@ -246,13 +247,9 @@ public class PassedVariableFinderTest {
 				spec.getKeywords());
 	}
 
-	private MutableModel createTestModel(String projectPath) throws Throwable {
-		URL topLevel = getClass().getResource(projectPath);
-
-		File topLevelDirectory = new File(topLevel.toURI());
-
-		Hierarchy hierarchy = HierarchyFactory
-				.createHierarchy(topLevelDirectory);
+	private MutableModel createTestModel(File projectPath) throws Throwable {
+		Hierarchy hierarchy = HierarchyFactory.createHierarchy(ResourceResolver
+				.resolveRelativeToClass(projectPath, getClass()));
 		return new DefaultModel(hierarchy);
 	}
 

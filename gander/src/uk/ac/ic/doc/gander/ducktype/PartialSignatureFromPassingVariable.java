@@ -1,7 +1,7 @@
 /**
  * 
  */
-package uk.ac.ic.doc.gander.analysis.signatures;
+package uk.ac.ic.doc.gander.ducktype;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -15,9 +15,9 @@ import org.python.pydev.parser.jython.ast.exprType;
 
 import uk.ac.ic.doc.gander.analysis.FunctionResolver;
 import uk.ac.ic.doc.gander.analysis.dominance.Postdomination;
-import uk.ac.ic.doc.gander.analysis.signatures.PassedVariableFinder.PassedVar;
 import uk.ac.ic.doc.gander.cfg.BasicBlock;
 import uk.ac.ic.doc.gander.cfg.Cfg;
+import uk.ac.ic.doc.gander.ducktype.PassedVariableFinder.PassedVar;
 import uk.ac.ic.doc.gander.flowinference.TypeResolver;
 import uk.ac.ic.doc.gander.model.Function;
 import uk.ac.ic.doc.gander.model.OldNamespace;
