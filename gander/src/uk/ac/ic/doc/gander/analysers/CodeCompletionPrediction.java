@@ -8,20 +8,22 @@ import java.util.Set;
 import org.python.pydev.parser.jython.ParseException;
 import org.python.pydev.parser.jython.ast.Attribute;
 import org.python.pydev.parser.jython.ast.Call;
+import org.python.pydev.parser.jython.ast.NameTok;
 import org.python.pydev.parser.jython.ast.exprType;
 
 import uk.ac.ic.doc.gander.analysis.CallFinder;
 import uk.ac.ic.doc.gander.analysis.CallFinder.EventHandler;
 import uk.ac.ic.doc.gander.cfg.BasicBlock;
-import uk.ac.ic.doc.gander.duckinference.DuckTyper;
+import uk.ac.ic.doc.gander.ducktype.InterfaceRecovery;
+import uk.ac.ic.doc.gander.ducktype.NamedMethodFeature;
 import uk.ac.ic.doc.gander.flowinference.TypeResolver;
 import uk.ac.ic.doc.gander.flowinference.ZeroCfaTypeEngine;
-import uk.ac.ic.doc.gander.flowinference.result.Result;
-import uk.ac.ic.doc.gander.flowinference.types.Type;
 import uk.ac.ic.doc.gander.hierarchy.Hierarchy;
 import uk.ac.ic.doc.gander.hierarchy.HierarchyWalker;
 import uk.ac.ic.doc.gander.hierarchy.Package;
 import uk.ac.ic.doc.gander.hierarchy.SourceFile;
+import uk.ac.ic.doc.gander.interfacetype.Feature;
+import uk.ac.ic.doc.gander.interfacetype.InterfaceType;
 import uk.ac.ic.doc.gander.model.DefaultModel;
 import uk.ac.ic.doc.gander.model.Function;
 import uk.ac.ic.doc.gander.model.ModelWalkerWithParent;
@@ -33,13 +35,14 @@ import uk.ac.ic.doc.gander.model.MutableModel;
  */
 public class CodeCompletionPrediction {
 
-	private final DuckTyper duckTyper;
+	private InterfaceRecovery duckTyper;
 	private final MutableModel model;
-	
+
 	private long callSites = 0;
 	private long callSitesPredictedCorrectly = 0;
 
-	public CodeCompletionPrediction(Hierarchy hierarchy, File projectRoot) throws Exception {
+	public CodeCompletionPrediction(Hierarchy hierarchy, File projectRoot)
+			throws Exception {
 		System.out.println("Creating model from hierarchy");
 		this.model = new DefaultModel(hierarchy);
 		System.out.println("Loading all non-system modules in hierarchy");
@@ -47,15 +50,18 @@ public class CodeCompletionPrediction {
 
 		System.out.println("Performing flow-based type inference");
 
-		final TypeResolver typer = new TypeResolver(new ZeroCfaTypeEngine());
-		this.duckTyper = new DuckTyper(model, typer);
+		this.duckTyper = new InterfaceRecovery(new TypeResolver(
+				new ZeroCfaTypeEngine()));
 
 		System.out.println("Running signature analysis");
 		new ModelDucker().walk(model);
 	}
 
-	public double result() {
-		return callSitesPredictedCorrectly / callSites;
+	public float result() {
+		if (callSites == 0)
+			return 0F;
+		else
+			return callSitesPredictedCorrectly * 100F / callSites;
 	}
 
 	private final class ModelDucker extends ModelWalkerWithParent {
@@ -72,13 +78,36 @@ public class CodeCompletionPrediction {
 
 					if (call.func instanceof Attribute) {
 
+						++callSites;
+
 						exprType lhs = ((Attribute) call.func).value;
 
-						Result<Type> duckType = duckTyper.typeOf(lhs, block, function, true);
+						InterfaceType duckType = duckTyper.inferDuckType(lhs,
+								block, function, true);
+
+						String name = ((NameTok) ((Attribute) call.func).attr).id;
+
+						if (nameInRecoveredInterface(name, duckType)) {
+							++callSitesPredictedCorrectly;
+						}
+
 					}
 
 				}
 			}
+		}
+
+		private boolean nameInRecoveredInterface(String name,
+				InterfaceType duckType) {
+
+			for (Feature feature : duckType) {
+				if (feature instanceof NamedMethodFeature) {
+					if (((NamedMethodFeature) feature).name().equals(name))
+						return true;
+				}
+			}
+
+			return false;
 		}
 
 		private Set<Call> calls(BasicBlock block) {

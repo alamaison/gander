@@ -13,4 +13,10 @@ public final class NamedMethodFeature implements Feature {
 	public String name() {
 		return name;
 	}
+
+	@Override
+	public String toString() {
+		return "NamedMethodFeature [name=" + name + "]";
+	}
+	
 }

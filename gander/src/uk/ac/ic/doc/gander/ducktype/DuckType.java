@@ -33,4 +33,9 @@ final class DuckType extends AbstractSet<Feature> implements
 				methods));
 	}
 
+	@Override
+	public String toString() {
+		return "DuckType [features=" + features + "]";
+	}
+
 }
