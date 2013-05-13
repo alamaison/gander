@@ -5,6 +5,7 @@ import java.util.Set;
 
 import org.python.pydev.parser.jython.ast.exprType;
 
+import uk.ac.ic.doc.gander.Feature;
 import uk.ac.ic.doc.gander.analysis.inheritance.CachingInheritanceTree;
 import uk.ac.ic.doc.gander.analysis.inheritance.InheritedMethods;
 import uk.ac.ic.doc.gander.cfg.BasicBlock;
@@ -17,19 +18,29 @@ import uk.ac.ic.doc.gander.flowinference.typegoals.TopT;
 import uk.ac.ic.doc.gander.flowinference.types.TClass;
 import uk.ac.ic.doc.gander.flowinference.types.TObject;
 import uk.ac.ic.doc.gander.flowinference.types.Type;
-import uk.ac.ic.doc.gander.interfacetype.Feature;
 import uk.ac.ic.doc.gander.interfacetype.InterfaceType;
 import uk.ac.ic.doc.gander.model.Model;
 import uk.ac.ic.doc.gander.model.OldNamespace;
 import uk.ac.ic.doc.gander.model.codeobject.ClassCO;
 
+/**
+ * Recover interface type as a concrete type (!).
+ * 
+ * What this class does is essentially contraindication against Top. Although it
+ * uses some flow analysis, it only does so to better infer the interface type.
+ * 
+ * This is a very odd cookie. We probably shouldn't be using it much.
+ */
 public class DuckTyper {
 	private final LoadedTypeDefinitions definitions;
 	private final TypeResolver resolver;
 	private long duckTimeSheet = 0;
+	private final boolean excludeCurrentFeature;
 
-	public DuckTyper(Model model, TypeResolver resolver) {
+	public DuckTyper(Model model, TypeResolver resolver,
+			boolean excludeCurrentFeature) {
 		this.resolver = resolver;
+		this.excludeCurrentFeature = excludeCurrentFeature;
 		definitions = new LoadedTypeDefinitions(model);
 	}
 
@@ -49,15 +60,16 @@ public class DuckTyper {
 	 * @return A type judgement as a set of {@link Type}s.
 	 */
 	public Result<Type> typeOf(exprType expression, BasicBlock containingBlock,
-			OldNamespace scope, boolean excludeCurrentFeature) {
+			OldNamespace scope) {
 
 		long oldFlowCost = resolver.flowCost();
 
 		long start = System.currentTimeMillis();
 
-		InterfaceRecovery inferenceEngine = new InterfaceRecovery(resolver);
+		InterfaceRecovery inferenceEngine = new InterfaceRecovery(resolver,
+				excludeCurrentFeature);
 		InterfaceType recoveredInterface = inferenceEngine.inferDuckType(
-				expression, containingBlock, scope, excludeCurrentFeature);
+				expression, containingBlock, scope);
 
 		Set<String> methods = new HashSet<String>();
 		for (Feature feature : recoveredInterface) {
@@ -98,11 +110,6 @@ public class DuckTyper {
 		duckTimeSheet += (now - start) - (resolver.flowCost() - oldFlowCost);
 
 		return result;
-	}
-
-	public Result<Type> typeOf(exprType expression, BasicBlock containingBlock,
-			OldNamespace scope) {
-		return typeOf(expression, containingBlock, scope, false);
 	}
 
 	public long duckCost() {

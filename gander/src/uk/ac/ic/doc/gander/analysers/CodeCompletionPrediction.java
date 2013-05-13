@@ -11,21 +11,29 @@ import org.python.pydev.parser.jython.ast.Call;
 import org.python.pydev.parser.jython.ast.NameTok;
 import org.python.pydev.parser.jython.ast.exprType;
 
+import uk.ac.ic.doc.gander.Feature;
 import uk.ac.ic.doc.gander.analysis.CallFinder;
 import uk.ac.ic.doc.gander.analysis.CallFinder.EventHandler;
 import uk.ac.ic.doc.gander.cfg.BasicBlock;
+import uk.ac.ic.doc.gander.concretetype.ConcreteType;
+import uk.ac.ic.doc.gander.concretetype.ConcreteTypeSystem;
+import uk.ac.ic.doc.gander.contraindication.Contraindication;
 import uk.ac.ic.doc.gander.ducktype.InterfaceRecovery;
 import uk.ac.ic.doc.gander.ducktype.NamedMethodFeature;
 import uk.ac.ic.doc.gander.flowinference.TypeResolver;
 import uk.ac.ic.doc.gander.flowinference.ZeroCfaTypeEngine;
+import uk.ac.ic.doc.gander.flowinference.result.Result;
+import uk.ac.ic.doc.gander.flowinference.result.Result.Transformer;
+import uk.ac.ic.doc.gander.flowinference.types.Type;
 import uk.ac.ic.doc.gander.hierarchy.Hierarchy;
 import uk.ac.ic.doc.gander.hierarchy.HierarchyWalker;
 import uk.ac.ic.doc.gander.hierarchy.Package;
 import uk.ac.ic.doc.gander.hierarchy.SourceFile;
-import uk.ac.ic.doc.gander.interfacetype.Feature;
+import uk.ac.ic.doc.gander.implementation.Implementation;
 import uk.ac.ic.doc.gander.interfacetype.InterfaceType;
 import uk.ac.ic.doc.gander.model.DefaultModel;
 import uk.ac.ic.doc.gander.model.Function;
+import uk.ac.ic.doc.gander.model.ModelSite;
 import uk.ac.ic.doc.gander.model.ModelWalkerWithParent;
 import uk.ac.ic.doc.gander.model.MutableModel;
 
@@ -36,10 +44,15 @@ import uk.ac.ic.doc.gander.model.MutableModel;
 public class CodeCompletionPrediction {
 
 	private InterfaceRecovery duckTyper;
+	private ConcreteTypeSystem flowTyper;
+	private ConcreteTypeSystem contraindicationTyper;
+
 	private final MutableModel model;
 
 	private long callSites = 0;
-	private long callSitesPredictedCorrectly = 0;
+	private long predictedCorrectlyByInterface = 0;
+	private long predictedCorrectlyByFlow = 0;
+	private long predictedCorrectlyByContraindication = 0;
 
 	public CodeCompletionPrediction(Hierarchy hierarchy, File projectRoot)
 			throws Exception {
@@ -50,18 +63,36 @@ public class CodeCompletionPrediction {
 
 		System.out.println("Performing flow-based type inference");
 
-		this.duckTyper = new InterfaceRecovery(new TypeResolver(
-				new ZeroCfaTypeEngine()));
+		ZeroCfaTypeEngine cfaTyper = new ZeroCfaTypeEngine();
+		TypeResolver resolver = new TypeResolver(cfaTyper);
+		this.flowTyper = new FlowTyperToConcreteType(cfaTyper, resolver);
+		this.duckTyper = new InterfaceRecovery(resolver, true);
+		this.contraindicationTyper = new Contraindication(model, flowTyper,
+				duckTyper, resolver);
 
 		System.out.println("Running signature analysis");
 		new ModelDucker().walk(model);
 	}
 
-	public float result() {
+	public float interfaceResult() {
 		if (callSites == 0)
 			return 0F;
 		else
-			return callSitesPredictedCorrectly * 100F / callSites;
+			return predictedCorrectlyByInterface * 100F / callSites;
+	}
+
+	public float flowResult() {
+		if (callSites == 0)
+			return 0F;
+		else
+			return predictedCorrectlyByFlow * 100F / callSites;
+	}
+
+	public float contraindicationResult() {
+		if (callSites == 0)
+			return 0F;
+		else
+			return predictedCorrectlyByContraindication * 100F / callSites;
 	}
 
 	private final class ModelDucker extends ModelWalkerWithParent {
@@ -80,21 +111,57 @@ public class CodeCompletionPrediction {
 
 						++callSites;
 
-						exprType lhs = ((Attribute) call.func).value;
-
-						InterfaceType duckType = duckTyper.inferDuckType(lhs,
-								block, function, true);
-
 						String name = ((NameTok) ((Attribute) call.func).attr).id;
+						ModelSite<exprType> lhs = new ModelSite<exprType>(
+								((Attribute) call.func).value,
+								function.codeObject());
 
+						ConcreteType flowType = flowTyper.typeOf(lhs, block);
+						if (nameGuaranteedByConcreteType(name, flowType)) {
+							++predictedCorrectlyByFlow;
+						}
+
+						ConcreteType contraType = contraindicationTyper.typeOf(
+								lhs, block);
+						if (nameGuaranteedByConcreteType(name, contraType)) {
+							++predictedCorrectlyByContraindication;
+						}
+
+						InterfaceType duckType = duckTyper.typeOf(lhs, block);
 						if (nameInRecoveredInterface(name, duckType)) {
-							++callSitesPredictedCorrectly;
+							++predictedCorrectlyByInterface;
 						}
 
 					}
 
 				}
 			}
+		}
+
+		private boolean nameGuaranteedByConcreteType(final String name,
+				ConcreteType flowType) {
+
+			return flowType
+					.transformResult(new Transformer<Implementation, Boolean>() {
+
+						@Override
+						public Boolean transformFiniteResult(
+								Set<Implementation> result) {
+							for (Implementation impl : result) {
+								if (!impl.definesSupportFor(new NamedMethodFeature(
+										name))) {
+									return false;
+								}
+							}
+
+							return true;
+						}
+
+						@Override
+						public Boolean transformInfiniteResult() {
+							return false;
+						}
+					});
 		}
 
 		private boolean nameInRecoveredInterface(String name,

@@ -2,6 +2,8 @@ package uk.ac.ic.doc.gander.interfacetype;
 
 import java.util.Set;
 
+import uk.ac.ic.doc.gander.Feature;
+
 /**
  * Interface type of an expression.
  * 

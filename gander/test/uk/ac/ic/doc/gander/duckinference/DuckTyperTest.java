@@ -47,7 +47,7 @@ public class DuckTyperTest {
 		assertTrue("TEST ERROR: tag not found", stmt != null);
 
 		DuckTyper typer = new DuckTyper(model, new TypeResolver(
-				new ZeroCfaTypeEngine()));
+				new ZeroCfaTypeEngine()), false);
 		Result<Type> type = typer.typeOf(stmt.getCall(), stmt.getBlock(),
 				enclosingFunction);
 		return type.transformResult(new Transformer<Type, Set<Type>>() {

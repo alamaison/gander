@@ -13,13 +13,13 @@ import org.python.pydev.parser.jython.SimpleNode;
 import org.python.pydev.parser.jython.ast.Call;
 
 import uk.ac.ic.doc.gander.CallHelper;
+import uk.ac.ic.doc.gander.Feature;
 import uk.ac.ic.doc.gander.TaggedCallAndScopeFinder;
 import uk.ac.ic.doc.gander.cfg.BasicBlock;
 import uk.ac.ic.doc.gander.flowinference.TypeResolver;
 import uk.ac.ic.doc.gander.flowinference.ZeroCfaTypeEngine;
 import uk.ac.ic.doc.gander.hierarchy.Hierarchy;
 import uk.ac.ic.doc.gander.hierarchy.HierarchyFactory;
-import uk.ac.ic.doc.gander.interfacetype.Feature;
 import uk.ac.ic.doc.gander.interfacetype.InterfaceType;
 import uk.ac.ic.doc.gander.model.DefaultModel;
 import uk.ac.ic.doc.gander.model.Module;
@@ -46,7 +46,7 @@ public class InterfaceRecoveryTest {
 		Module start = model.loadModule("start");
 
 		analyser = new InterfaceRecovery(new TypeResolver(
-				new ZeroCfaTypeEngine()));
+				new ZeroCfaTypeEngine()), false);
 
 		TaggedCallAndScopeFinder tagFinder = new TaggedCallAndScopeFinder(
 				start, "tag");
@@ -91,7 +91,7 @@ public class InterfaceRecoveryTest {
 		BasicBlock block = findBlockContainingCall(call, scope);
 
 		InterfaceType recoveredInterface = analyser.inferDuckType(
-				CallHelper.indirectCallTarget(call), block, scope, false);
+				CallHelper.indirectCallTarget(call), block, scope);
 
 		// Test that all expected calls are in the chain and no unexpected calls
 		// are in the chain.

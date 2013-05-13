@@ -8,6 +8,7 @@ import org.python.pydev.parser.jython.ParseException;
 import org.python.pydev.parser.jython.ast.Call;
 
 import uk.ac.ic.doc.gander.CallHelper;
+import uk.ac.ic.doc.gander.Feature;
 import uk.ac.ic.doc.gander.analysis.MethodFinder;
 import uk.ac.ic.doc.gander.cfg.BasicBlock;
 import uk.ac.ic.doc.gander.duckinference.DuckTyper;
@@ -22,7 +23,6 @@ import uk.ac.ic.doc.gander.hierarchy.Hierarchy;
 import uk.ac.ic.doc.gander.hierarchy.HierarchyWalker;
 import uk.ac.ic.doc.gander.hierarchy.Package;
 import uk.ac.ic.doc.gander.hierarchy.SourceFile;
-import uk.ac.ic.doc.gander.interfacetype.Feature;
 import uk.ac.ic.doc.gander.interfacetype.InterfaceType;
 import uk.ac.ic.doc.gander.model.DefaultModel;
 import uk.ac.ic.doc.gander.model.Function;
@@ -78,8 +78,8 @@ public class DuckHunt {
 
 	private void countNumberOfTypesInferredFor(Call call, Function function,
 			BasicBlock block) {
-		Result<Type> type = new DuckTyper(model, typer).typeOf(call, block,
-				function);
+		Result<Type> type = new DuckTyper(model, typer, false).typeOf(call,
+				block, function);
 
 		int size = type.transformResult(new Transformer<Type, Integer>() {
 
@@ -117,8 +117,8 @@ public class DuckHunt {
 	private Set<String> calculateDependentMethodNames(Call call,
 			BasicBlock containingBlock, OldNamespace scope) {
 
-		InterfaceType recoveredInterface = new InterfaceRecovery(typer)
-				.inferDuckType(call, containingBlock, scope, false);
+		InterfaceType recoveredInterface = new InterfaceRecovery(typer, false)
+				.inferDuckType(call, containingBlock, scope);
 
 		Set<String> methods = new HashSet<String>();
 		for (Feature feature : recoveredInterface) {

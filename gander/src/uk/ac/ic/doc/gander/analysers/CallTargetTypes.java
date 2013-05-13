@@ -66,7 +66,7 @@ public class CallTargetTypes {
 							typer))
 						continue;
 
-					Result<Type> type = new DuckTyper(model, typer).typeOf(
+					Result<Type> type = new DuckTyper(model, typer, false).typeOf(
 							call, block, function);
 					type.actOnResult(new Processor<Type>() {
 

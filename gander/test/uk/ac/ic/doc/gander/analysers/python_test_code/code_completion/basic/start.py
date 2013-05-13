@@ -5,6 +5,8 @@ class A:
 		pass
 	def c(self):
 		pass
+	def d(self):
+	    pass
 
 def main():
 	x = A()

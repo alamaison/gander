@@ -1,4 +1,5 @@
-package uk.ac.ic.doc.gander.interfacetype;
+package uk.ac.ic.doc.gander;
+
 
 /**
  * Feature of a run-time value.

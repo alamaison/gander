@@ -7,7 +7,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 
-import uk.ac.ic.doc.gander.interfacetype.Feature;
+import uk.ac.ic.doc.gander.Feature;
 import uk.ac.ic.doc.gander.interfacetype.InterfaceType;
 
 /**

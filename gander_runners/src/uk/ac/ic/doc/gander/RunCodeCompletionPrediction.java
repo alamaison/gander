@@ -23,8 +23,11 @@ final class RunCodeCompletionPredictionAnalyser {
 		CodeCompletionPrediction analysis = new CodeCompletionPrediction(
 				HierarchyFactory.createHierarchy(projectRoot), projectRoot);
 
-		System.out.printf(
-				"Proportion of method uses correctly predicted: %.2f%%\n",
-				analysis.result());
+		System.out.println("Proportion of method uses correctly predicted");
+		System.out.printf("  Interface recovery %.2f%%\n",
+				analysis.interfaceResult());
+		System.out.printf("  Flow analysis %.2f%%\n", analysis.flowResult());
+		System.out.printf("  Contraindication %.2f%%\n",
+				analysis.contraindicationResult());
 	}
 }
