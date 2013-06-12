@@ -7,10 +7,6 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import org.jgrapht.DirectedGraph;
-import org.jgrapht.graph.DefaultDirectedGraph;
-import org.jgrapht.graph.DefaultEdge;
-
 public final class KnowledgeBase {
 	private final Map<Goal<?>, Object> solutionStore = new HashMap<Goal<?>, Object>();
 	private final DependencyGraph dependencies = new HashDependencyGraph();
@@ -72,35 +68,6 @@ interface DependencyGraph {
 
 }
 
-/**
- * Representation of dependencies between goals implemented using JGraph.
- * 
- * The constructor doesn't take an initial goal because this doesn't belong in a
- * <em>dependency</em> graph. The initial goal, be definition, has no
- * dependencies so insisting on being created with such a goal puts unnecessary
- * requirements on the caller.
- */
-final class JGraphDependencyGraph implements DependencyGraph {
-	private final DirectedGraph<Goal<?>, DefaultEdge> graph = new DefaultDirectedGraph<Goal<?>, DefaultEdge>(
-			DefaultEdge.class);
-
-	public Collection<? extends Goal<?>> dependents(Goal<?> goal) {
-		Set<Goal<?>> deps = new HashSet<Goal<?>>();
-		if (graph.containsVertex(goal)) {
-			for (DefaultEdge edge : graph.incomingEdgesOf(goal)) {
-				deps.add(graph.getEdgeSource(edge));
-			}
-		}
-		return deps;
-	}
-
-	public void addDependency(Goal<?> parent, Goal<?> subgoal) {
-		graph.addVertex(parent);
-		graph.addVertex(subgoal);
-		graph.addEdge(parent, subgoal);
-	}
-
-}
 
 /**
  * Representation of dependencies between goals implemented using hash maps.

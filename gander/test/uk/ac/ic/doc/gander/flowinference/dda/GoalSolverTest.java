@@ -3,15 +3,14 @@ package uk.ac.ic.doc.gander.flowinference.dda;
 import static org.junit.Assert.assertEquals;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
-import org.jgrapht.DirectedGraph;
-import org.jgrapht.graph.DefaultDirectedGraph;
-import org.jgrapht.graph.DefaultEdge;
 import org.junit.Test;
 
 public final class GoalSolverTest {
@@ -164,20 +163,42 @@ public final class GoalSolverTest {
 		}
 	}
 
+	private static class Graph {
+
+		private final HashMap<Vertex, Set<Vertex>> graph = new HashMap<Vertex, Set<Vertex>>();
+
+		public Collection<Vertex> verticesIncomingTowards(Vertex vertex) {
+
+			Set<Vertex> c = graph.get(vertex);
+			if (c == null) {
+				return Collections.emptySet();
+			} else {
+				return Collections.unmodifiableCollection(graph.get(vertex));
+			}
+		}
+
+		public void addEdge(Vertex from, Vertex to) {
+			Set<Vertex> dependents = graph.get(to);
+			if (dependents == null) {
+				dependents = new HashSet<Vertex>();
+				graph.put(to, dependents);
+			}
+
+			dependents.add(from);
+		}
+	}
+
 	private static final class DependencyGoal implements Goal<Set<Vertex>> {
 
-		private DirectedGraph<Vertex, DefaultEdge> graph;
+		private Graph graph;
 		private Set<Vertex> incoming = new HashSet<Vertex>();
 		private Vertex vertex;
 
-		public DependencyGoal(DirectedGraph<Vertex, DefaultEdge> graph,
-				Vertex vertex) {
+		public DependencyGoal(Graph graph, Vertex vertex) {
 			this.vertex = vertex;
 			this.graph = graph;
 
-			for (DefaultEdge edge : graph.incomingEdgesOf(vertex)) {
-				incoming.add(graph.getEdgeSource(edge));
-			}
+			incoming.addAll(graph.verticesIncomingTowards(vertex));
 		}
 
 		public Set<Vertex> initialSolution() {
@@ -231,8 +252,7 @@ public final class GoalSolverTest {
 
 	@Test
 	public void demandDrivenDependencyAnalysis() {
-		final DirectedGraph<Vertex, DefaultEdge> graph = new DefaultDirectedGraph<Vertex, DefaultEdge>(
-				DefaultEdge.class);
+		final Graph graph = new Graph();
 
 		Vertex a = new Vertex("a");
 		Vertex b = new Vertex("b");
@@ -240,12 +260,6 @@ public final class GoalSolverTest {
 		Vertex d = new Vertex("d");
 		Vertex e = new Vertex("e");
 		Vertex f = new Vertex("f");
-		graph.addVertex(a);
-		graph.addVertex(b);
-		graph.addVertex(c);
-		graph.addVertex(d);
-		graph.addVertex(e);
-		graph.addVertex(f);
 		graph.addEdge(a, b);
 		graph.addEdge(b, c);
 		graph.addEdge(b, d);
@@ -271,18 +285,15 @@ public final class GoalSolverTest {
 	private static final class DependencyGoalNullInitialSolution implements
 			Goal<Set<Vertex>> {
 
-		private DirectedGraph<Vertex, DefaultEdge> graph;
+		private Graph graph;
 		private Set<Vertex> incoming = new HashSet<Vertex>();
 		private Vertex vertex;
 
-		public DependencyGoalNullInitialSolution(
-				DirectedGraph<Vertex, DefaultEdge> graph, Vertex vertex) {
+		public DependencyGoalNullInitialSolution(Graph graph, Vertex vertex) {
 			this.vertex = vertex;
 			this.graph = graph;
 
-			for (DefaultEdge edge : graph.incomingEdgesOf(vertex)) {
-				incoming.add(graph.getEdgeSource(edge));
-			}
+			incoming.addAll(graph.verticesIncomingTowards(vertex));
 		}
 
 		public Set<Vertex> initialSolution() {
@@ -337,8 +348,7 @@ public final class GoalSolverTest {
 
 	@Test
 	public void demandDrivenDependencyAnalysisNullInitial() {
-		final DirectedGraph<Vertex, DefaultEdge> graph = new DefaultDirectedGraph<Vertex, DefaultEdge>(
-				DefaultEdge.class);
+		final Graph graph = new Graph();
 
 		Vertex a = new Vertex("a");
 		Vertex b = new Vertex("b");
@@ -346,12 +356,6 @@ public final class GoalSolverTest {
 		Vertex d = new Vertex("d");
 		Vertex e = new Vertex("e");
 		Vertex f = new Vertex("f");
-		graph.addVertex(a);
-		graph.addVertex(b);
-		graph.addVertex(c);
-		graph.addVertex(d);
-		graph.addVertex(e);
-		graph.addVertex(f);
 		graph.addEdge(a, b);
 		graph.addEdge(b, c);
 		graph.addEdge(b, d);
