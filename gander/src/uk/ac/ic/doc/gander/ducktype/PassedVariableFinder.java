@@ -1,4 +1,4 @@
-package uk.ac.ic.doc.gander.analysis.signatures;
+package uk.ac.ic.doc.gander.ducktype;
 
 import java.util.HashSet;
 import java.util.Set;

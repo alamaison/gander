@@ -155,7 +155,7 @@ public class CallTargetTypeDiff {
 		final TimingTypeEngine contraFlowCountingEngine = new TimingTypeEngine(
 				totalFlowCountingEngine);
 		final TypeResolver typer = new TypeResolver(contraFlowCountingEngine);
-		this.duckTyper = new DuckTyper(model, typer);
+		this.duckTyper = new DuckTyper(model, typer, false);
 
 		long flowEngineCreationTime = System.currentTimeMillis();
 
@@ -211,8 +211,8 @@ public class CallTargetTypeDiff {
 						}
 
 						long startObserverTime = System.currentTimeMillis();
-						// informObservers(new DiffResult(callsite, duckType,
-						// flowType));
+						informObservers(new DiffResult(callsite, duckType,
+								flowType));
 						observerTimeSheet += System.currentTimeMillis()
 								- startObserverTime;
 					}

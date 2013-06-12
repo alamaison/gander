@@ -11,8 +11,8 @@ import org.python.pydev.parser.jython.ast.Name;
 
 import uk.ac.ic.doc.gander.CallHelper;
 import uk.ac.ic.doc.gander.analysis.MethodFinder;
-import uk.ac.ic.doc.gander.analysis.signatures.SignatureBuilder;
 import uk.ac.ic.doc.gander.cfg.BasicBlock;
+import uk.ac.ic.doc.gander.ducktype.SignatureBuilder;
 import uk.ac.ic.doc.gander.flowinference.TypeResolver;
 import uk.ac.ic.doc.gander.flowinference.ZeroCfaTypeEngine;
 import uk.ac.ic.doc.gander.hierarchy.Hierarchy;
@@ -56,7 +56,7 @@ public class DominationLength extends HierarchyWalker {
 
 				Collection<Call> dependentCalls = chainAnalyser.signature(
 						(Name) CallHelper.indirectCallTarget(call), sub,
-						function, typer, true, true);
+						function, typer, true, true, false);
 
 				if (dependentCalls != null) {
 					int count = countUniqueMethodNames(dependentCalls);

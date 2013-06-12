@@ -15,6 +15,10 @@ public class TypeResolver {
 		this.engine = engine;
 	}
 
+	public TypeResolver(TypeEngine engine) {
+		this.engine = new TimingTypeEngine(engine);
+	}
+
 	public Type typeOf(ModelSite<exprType> expression) {
 
 		Result<Type> types = engine.typeOf(expression);

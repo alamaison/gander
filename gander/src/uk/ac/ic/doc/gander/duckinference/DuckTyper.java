@@ -3,14 +3,14 @@ package uk.ac.ic.doc.gander.duckinference;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.python.pydev.parser.jython.ast.Call;
 import org.python.pydev.parser.jython.ast.exprType;
 
+import uk.ac.ic.doc.gander.Feature;
 import uk.ac.ic.doc.gander.analysis.inheritance.CachingInheritanceTree;
 import uk.ac.ic.doc.gander.analysis.inheritance.InheritedMethods;
-import uk.ac.ic.doc.gander.analysis.signatures.CallTargetSignatureBuilder;
-import uk.ac.ic.doc.gander.analysis.signatures.SignatureHelper;
 import uk.ac.ic.doc.gander.cfg.BasicBlock;
+import uk.ac.ic.doc.gander.ducktype.InterfaceRecovery;
+import uk.ac.ic.doc.gander.ducktype.NamedMethodFeature;
 import uk.ac.ic.doc.gander.flowinference.TypeResolver;
 import uk.ac.ic.doc.gander.flowinference.result.FiniteResult;
 import uk.ac.ic.doc.gander.flowinference.result.Result;
@@ -18,17 +18,29 @@ import uk.ac.ic.doc.gander.flowinference.typegoals.TopT;
 import uk.ac.ic.doc.gander.flowinference.types.TClass;
 import uk.ac.ic.doc.gander.flowinference.types.TObject;
 import uk.ac.ic.doc.gander.flowinference.types.Type;
+import uk.ac.ic.doc.gander.interfacetype.InterfaceType;
 import uk.ac.ic.doc.gander.model.Model;
 import uk.ac.ic.doc.gander.model.OldNamespace;
 import uk.ac.ic.doc.gander.model.codeobject.ClassCO;
 
+/**
+ * Recover interface type as a concrete type (!).
+ * 
+ * What this class does is essentially contraindication against Top. Although it
+ * uses some flow analysis, it only does so to better infer the interface type.
+ * 
+ * This is a very odd cookie. We probably shouldn't be using it much.
+ */
 public class DuckTyper {
 	private final LoadedTypeDefinitions definitions;
 	private final TypeResolver resolver;
 	private long duckTimeSheet = 0;
+	private final boolean excludeCurrentFeature;
 
-	public DuckTyper(Model model, TypeResolver resolver) {
+	public DuckTyper(Model model, TypeResolver resolver,
+			boolean excludeCurrentFeature) {
 		this.resolver = resolver;
+		this.excludeCurrentFeature = excludeCurrentFeature;
 		definitions = new LoadedTypeDefinitions(model);
 	}
 
@@ -54,11 +66,17 @@ public class DuckTyper {
 
 		long start = System.currentTimeMillis();
 
-		Set<Call> dependentCalls = new CallTargetSignatureBuilder()
-				.interfaceType(expression, containingBlock, scope, resolver);
+		InterfaceRecovery inferenceEngine = new InterfaceRecovery(resolver,
+				excludeCurrentFeature);
+		InterfaceType recoveredInterface = inferenceEngine.inferDuckType(
+				expression, containingBlock, scope);
 
-		Set<String> methods = SignatureHelper
-				.convertSignatureToMethodNames(dependentCalls);
+		Set<String> methods = new HashSet<String>();
+		for (Feature feature : recoveredInterface) {
+			if (feature instanceof NamedMethodFeature) {
+				methods.add(((NamedMethodFeature) feature).name());
+			}
+		}
 
 		Result<Type> result;
 		if (methods.isEmpty()) {

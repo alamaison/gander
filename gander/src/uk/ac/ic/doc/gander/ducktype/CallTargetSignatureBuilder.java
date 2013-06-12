@@ -1,4 +1,4 @@
-package uk.ac.ic.doc.gander.analysis.signatures;
+package uk.ac.ic.doc.gander.ducktype;
 
 import java.util.Collections;
 import java.util.Set;
@@ -29,27 +29,34 @@ import uk.ac.ic.doc.gander.model.OldNamespace;
  * 
  * Using this class to generate signatures for direct calls is an error.
  */
-public class CallTargetSignatureBuilder {
+final class CallTargetSignatureBuilder {
 
 	public Set<Call> signatureOfTarget(Call call, BasicBlock containingBlock,
-			OldNamespace scope, TypeResolver resolver) {
+			OldNamespace scope, TypeResolver resolver,
+			boolean excludeCurrentFeature) {
 		if (!CallHelper.isIndirectCall(call)) {
 
 			return Collections.emptySet();
 		} else {
 
 			return interfaceType(CallHelper.indirectCallTarget(call),
-					containingBlock, scope, resolver);
+					containingBlock, scope, resolver, excludeCurrentFeature);
 		}
+	}
+
+	public Set<Call> signatureOfTarget(Call call, BasicBlock containingBlock,
+			OldNamespace scope, TypeResolver resolver) {
+		return signatureOfTarget(call, containingBlock, scope, resolver, false);
 	}
 
 	public Set<Call> interfaceType(exprType expression,
 			BasicBlock containingBlock, OldNamespace scope,
-			TypeResolver resolver) {
+			TypeResolver resolver, boolean excludeCurrentFeature) {
 
 		try {
 			return (Set<Call>) expression.accept(new SignatureMapper(
-					containingBlock, scope, resolver, true, true));
+					containingBlock, scope, resolver, true, true,
+					excludeCurrentFeature));
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}
@@ -62,22 +69,26 @@ public class CallTargetSignatureBuilder {
 		private final TypeResolver resolver;
 		private final boolean includeRequiredFeatures;
 		private final boolean includeFstr;
+		private final boolean excludeCurrentFeature;
 
 		SignatureMapper(BasicBlock containingBlock, OldNamespace scope,
 				TypeResolver resolver, boolean includeRequiredFeatures,
-				boolean includeFstr) {
+				boolean includeFstr, boolean excludeCurrentFeature) {
 			this.containingBlock = containingBlock;
 			this.scope = scope;
 			this.resolver = resolver;
 			this.includeRequiredFeatures = includeRequiredFeatures;
 			this.includeFstr = includeFstr;
+			this.excludeCurrentFeature = excludeCurrentFeature;
 		}
 
 		@Override
 		public Object visitName(Name node) throws Exception {
 			SignatureBuilder builder = new SignatureBuilder();
-			return builder.signature(node, containingBlock, scope, resolver,
-					includeRequiredFeatures, includeFstr);
+			return builder
+					.signature(node, containingBlock, scope, resolver,
+							includeRequiredFeatures, includeFstr,
+							excludeCurrentFeature);
 		}
 
 		@Override

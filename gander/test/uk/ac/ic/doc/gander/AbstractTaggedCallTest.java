@@ -3,7 +3,6 @@ package uk.ac.ic.doc.gander;
 import static org.junit.Assert.assertEquals;
 
 import java.io.File;
-import java.net.URL;
 
 import uk.ac.ic.doc.gander.cfg.BasicBlock;
 import uk.ac.ic.doc.gander.cfg.Cfg;
@@ -18,22 +17,19 @@ public abstract class AbstractTaggedCallTest {
 
 	protected Cfg graph;
 	protected TaggedBlockFinder tagFinder;
-	private final String projectDirectory;
+	private final File projectDirectory;
 	protected MutableModel model;
 	protected Module module;
 	protected Function function;
 
-	public AbstractTaggedCallTest(String projectDirectory) {
+	public AbstractTaggedCallTest(File projectDirectory) {
 		this.projectDirectory = projectDirectory;
 	}
 
 	protected void initialise(String caseName) throws Throwable {
-		URL topLevel = getClass().getResource(projectDirectory);
-
-		File topLevelDirectory = new File(topLevel.toURI());
 
 		Hierarchy hierarchy = HierarchyFactory
-				.createHierarchy(topLevelDirectory);
+				.createHierarchy(projectDirectory);
 		model = new DefaultModel(hierarchy);
 		module = model.loadModule(moduleToLoad());
 		function = module.getFunctions().get(caseName);
