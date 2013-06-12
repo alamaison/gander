@@ -68,36 +68,63 @@ public class TUnresolvedImport implements TCodeObject {
 		return "TUnresolvedImport [importInstance=" + importInstance + "]";
 	}
 
-	private Namespace dummyNamespace() {
-		return new Namespace() {
+	private static final Namespace DUMMY_NAMESPACE = new Namespace() {
 
-			@Override
-			public Result<ModelSite<exprType>> references(
-					SubgoalManager goalManager) {
-				return TopF.INSTANCE;
-			}
+		@Override
+		public Result<ModelSite<exprType>> references(SubgoalManager goalManager) {
+			return TopF.INSTANCE;
+		}
 
-			@Override
-			public Result<ModelSite<exprType>> writeableReferences(
-					SubgoalManager goalManager) {
-				return TopF.INSTANCE;
-			}
+		@Override
+		public Result<ModelSite<exprType>> writeableReferences(
+				SubgoalManager goalManager) {
+			return TopF.INSTANCE;
+		}
 
-			@Override
-			public Set<Variable> variablesInScope(String name) {
-				return Collections.emptySet();
-			}
+		@Override
+		public Set<Variable> variablesInScope(String name) {
+			return Collections.emptySet();
+		}
 
-			@Override
-			public Set<Variable> variablesWriteableInScope(String name) {
-				return Collections.emptySet();
-			}
+		@Override
+		public Set<Variable> variablesWriteableInScope(String name) {
+			return Collections.emptySet();
+		}
 
-			@Override
-			public Model model() {
-				return null;
-			}
-		};
+		@Override
+		public Model model() {
+			return null;
+		}
+	};
+
+	private static Namespace dummyNamespace() {
+		return DUMMY_NAMESPACE;
+	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result
+				+ ((importInstance == null) ? 0 : importInstance.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		TUnresolvedImport other = (TUnresolvedImport) obj;
+		if (importInstance == null) {
+			if (other.importInstance != null)
+				return false;
+		} else if (!importInstance.equals(other.importInstance))
+			return false;
+		return true;
 	}
 
 }

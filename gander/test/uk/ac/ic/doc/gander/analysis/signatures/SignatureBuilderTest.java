@@ -16,16 +16,18 @@ import org.python.pydev.parser.jython.ast.NameTok;
 import uk.ac.ic.doc.gander.AbstractTaggedCallTest;
 import uk.ac.ic.doc.gander.Statement;
 import uk.ac.ic.doc.gander.flowinference.TypeResolver;
+import uk.ac.ic.doc.gander.flowinference.ZeroCfaTypeEngine;
 
 public class SignatureBuilderTest extends AbstractTaggedCallTest {
 
 	private static final String TEST_FOLDER = "../python_test_code/matching_dom_length/basic";
-	private SignatureBuilder analyser = new SignatureBuilder();
+	private final SignatureBuilder analyser = new SignatureBuilder();
 
 	public SignatureBuilderTest() {
 		super(TEST_FOLDER);
 	}
 
+	@Override
 	public void initialise(String caseName) throws Throwable {
 		super.initialise(caseName);
 	}
@@ -33,8 +35,22 @@ public class SignatureBuilderTest extends AbstractTaggedCallTest {
 	@Test
 	public void testBasic() throws Throwable {
 		initialise("basic");
-		String[][] chains = { { "y.b(tag)", "a", "b" } };
+		String[][] chains = { { "y.b(tag)", "a", "b", "c" } };
 		checkChains(chains);
+	}
+
+	@Test
+	public void testBasicRf() throws Throwable {
+		initialise("basic");
+		String[][] chains = { { "y.b(tag)", "b", "c" } };
+		checkChainsRf(chains);
+	}
+
+	@Test
+	public void testBasicFstr() throws Throwable {
+		initialise("basic");
+		String[][] chains = { { "y.b(tag)", "a" } };
+		checkChainsFstr(chains);
 	}
 
 	/**
@@ -49,6 +65,20 @@ public class SignatureBuilderTest extends AbstractTaggedCallTest {
 		checkChains(chains);
 	}
 
+	@Test
+	public void testIgnoreUsesBeforeKillFstr() throws Throwable {
+		initialise("kills_in_same_block");
+		String[][] chains = { { "y.b(tag3)" }, { "y.c(tag4)", "b" } };
+		checkChainsFstr(chains);
+	}
+
+	@Test
+	public void testIgnoreUsesBeforeKillRf() throws Throwable {
+		initialise("kills_in_same_block");
+		String[][] chains = { { "y.b(tag3)", "b", "c" }, { "y.c(tag4)", "c" } };
+		checkChainsRf(chains);
+	}
+
 	/**
 	 * Assignment to a variable should prevent including any uses after the
 	 * assignment.
@@ -61,6 +91,20 @@ public class SignatureBuilderTest extends AbstractTaggedCallTest {
 		checkChains(chains);
 	}
 
+	@Test
+	public void testOnlyIncludeBetweenKillsFstr() throws Throwable {
+		initialise("kills_in_same_block");
+		String[][] chains = { { "y.a(tag1)" }, { "y.b(tag2)", "a" } };
+		checkChainsFstr(chains);
+	}
+
+	@Test
+	public void testOnlyIncludeBetweenKillsRf() throws Throwable {
+		initialise("kills_in_same_block");
+		String[][] chains = { { "y.a(tag1)", "a", "b" }, { "y.b(tag2)", "b" } };
+		checkChainsRf(chains);
+	}
+
 	/**
 	 * Assignment to one variable shouldn't end our search for uses of another.
 	 */
@@ -70,6 +114,22 @@ public class SignatureBuilderTest extends AbstractTaggedCallTest {
 		String[][] chains = { { "x.a(tag1)", "a" }, { "x.b(tag3)", "b" },
 				{ "y.a(tag2)", "a", "m" }, { "y.m(tag4)", "a", "m" }, };
 		checkChains(chains);
+	}
+
+	@Test
+	public void testMixedKillsInSameBlockFstr() throws Throwable {
+		initialise("mixed_kills_in_same_block");
+		String[][] chains = { { "x.a(tag1)" }, { "x.b(tag3)" },
+				{ "y.a(tag2)" }, { "y.m(tag4)", "a" }, };
+		checkChainsFstr(chains);
+	}
+
+	@Test
+	public void testMixedKillsInSameBlockRf() throws Throwable {
+		initialise("mixed_kills_in_same_block");
+		String[][] chains = { { "x.a(tag1)", "a" }, { "x.b(tag3)", "b" },
+				{ "y.a(tag2)", "a", "m" }, { "y.m(tag4)", "m" }, };
+		checkChainsRf(chains);
 	}
 
 	/**
@@ -106,6 +166,20 @@ public class SignatureBuilderTest extends AbstractTaggedCallTest {
 		checkChains(chains);
 	}
 
+	@Test
+	public void testIncludeOnlyDominatorsFstr() throws Throwable {
+		initialise("include_only_dominators");
+		String[][] chains = { { "y.c(tag)", "a" }, };
+		checkChainsFstr(chains);
+	}
+
+	@Test
+	public void testIncludeOnlyDominatorsRf() throws Throwable {
+		initialise("include_only_dominators");
+		String[][] chains = { { "y.c(tag)", "c" }, };
+		checkChainsRf(chains);
+	}
+
 	/**
 	 * Later statements that don't postdominate the one we're interested in,
 	 * shouldn't be considered in dependence chain.
@@ -117,6 +191,20 @@ public class SignatureBuilderTest extends AbstractTaggedCallTest {
 		checkChains(chains);
 	}
 
+	@Test
+	public void testIncludeOnlyPostdominatorsFstr() throws Throwable {
+		initialise("include_only_postdominators");
+		String[][] chains = { { "y.a(tag)" }, };
+		checkChainsFstr(chains);
+	}
+
+	@Test
+	public void testIncludeOnlyPostdominatorsRf() throws Throwable {
+		initialise("include_only_postdominators");
+		String[][] chains = { { "y.a(tag)", "a", "c" }, };
+		checkChainsRf(chains);
+	}
+
 	/**
 	 * The chain should only inlude earlier statement that dominate and later
 	 * statements postdominate the one we're interested in.
@@ -126,6 +214,20 @@ public class SignatureBuilderTest extends AbstractTaggedCallTest {
 		initialise("include_dom_and_postdom");
 		String[][] chains = { { "y.b(tag)", "a", "b", "c" }, };
 		checkChains(chains);
+	}
+
+	@Test
+	public void testIncludeDomAndPostdomFstr() throws Throwable {
+		initialise("include_dom_and_postdom");
+		String[][] chains = { { "y.b(tag)", "a" }, };
+		checkChainsFstr(chains);
+	}
+
+	@Test
+	public void testIncludeDomAndPostdomRf() throws Throwable {
+		initialise("include_dom_and_postdom");
+		String[][] chains = { { "y.b(tag)", "b", "c" }, };
+		checkChainsRf(chains);
 	}
 
 	/**
@@ -168,17 +270,135 @@ public class SignatureBuilderTest extends AbstractTaggedCallTest {
 	}
 
 	@Test
-	public void testDigIntoCall() throws Throwable {
-		initialise("dig_into_call", 1);
+	public void testDigIntoCallAfter() throws Throwable {
+		initialise("dig_into_call_after", 1);
 		String[][] chains = { { "y.b(tag)", "a", "b", "p", "q" } };
 		checkChains(chains);
 	}
 
 	@Test
-	public void testDigIntoCallWithSomeNonPostdomStatements() throws Throwable {
-		initialise("dig_into_call_with_some_non_postdom_statements", 1);
+	public void testDigIntoCallAfterFstr() throws Throwable {
+		initialise("dig_into_call_after", 1);
+		String[][] chains = { { "y.b(tag)", "a" } };
+		checkChainsFstr(chains);
+	}
+
+	@Test
+	public void testDigIntoCallAfterRf() throws Throwable {
+		initialise("dig_into_call_after", 1);
+		String[][] chains = { { "y.b(tag)", "b", "p", "q" } };
+		checkChainsRf(chains);
+	}
+
+	@Test
+	public void testDigIntoCallBefore() throws Throwable {
+		initialise("dig_into_call_before", 1);
+		String[][] chains = { { "y.b(tag)", "a", "b", "p", "q" } };
+		checkChains(chains);
+	}
+
+	@Test
+	public void testDigIntoCallBeforeFstr() throws Throwable {
+		initialise("dig_into_call_before", 1);
+		String[][] chains = { { "y.b(tag)", "a", "p", "q" } };
+		checkChainsFstr(chains);
+	}
+
+	@Test
+	public void testDigIntoCallBeforeRf() throws Throwable {
+		initialise("dig_into_call_before", 1);
+		String[][] chains = { { "y.b(tag)", "b" } };
+		checkChainsRf(chains);
+	}
+
+	@Test
+	public void testDigIntoCallOtherBlockAfter() throws Throwable {
+		initialise("dig_into_call_other_block_after", 3);
+		String[][] chains = { { "y.b(tag)", "a", "b", "p", "q" } };
+		checkChains(chains);
+	}
+
+	@Test
+	public void testDigIntoCallOtherBlockAfterFstr() throws Throwable {
+		initialise("dig_into_call_other_block_after", 3);
+		String[][] chains = { { "y.b(tag)", "a" } };
+		checkChainsFstr(chains);
+	}
+
+	@Test
+	public void testDigIntoCallOtherBlockAfterRf() throws Throwable {
+		initialise("dig_into_call_other_block_after", 3);
+		String[][] chains = { { "y.b(tag)", "b", "p", "q" } };
+		checkChainsRf(chains);
+	}
+
+	@Test
+	public void testDigIntoCallOtherBlockBefore() throws Throwable {
+		initialise("dig_into_call_other_block_before", 3);
+		String[][] chains = { { "y.b(tag)", "a", "b", "p", "q" } };
+		checkChains(chains);
+	}
+
+	@Test
+	public void testDigIntoCallOtherBlockBeforeFstr() throws Throwable {
+		initialise("dig_into_call_other_block_before", 3);
+		String[][] chains = { { "y.b(tag)", "a", "p", "q" } };
+		checkChainsFstr(chains);
+	}
+
+	@Test
+	public void testDigIntoCallOtherBlockBeforeRf() throws Throwable {
+		initialise("dig_into_call_other_block_before", 3);
+		String[][] chains = { { "y.b(tag)", "b" } };
+		checkChainsRf(chains);
+	}
+
+	@Test
+	public void testDigIntoCallAfterWithSomeNonPostdomStatements()
+			throws Throwable {
+		initialise("dig_into_call_after_with_some_non_postdom_statements", 1);
 		String[][] chains = { { "g.b(tag)", "a", "b", "r", "t" } };
 		checkChains(chains);
+	}
+
+	@Test
+	public void testDigIntoCallAfterWithSomeNonPostdomStatementsFstr()
+			throws Throwable {
+		initialise("dig_into_call_after_with_some_non_postdom_statements", 1);
+		String[][] chains = { { "g.b(tag)", "a" } };
+		checkChainsFstr(chains);
+	}
+
+	@Test
+	public void testDigIntoCallAfterWithSomeNonPostdomStatementsRf()
+			throws Throwable {
+		initialise("dig_into_call_after_with_some_non_postdom_statements", 1);
+		String[][] chains = { { "g.b(tag)", "b", "r", "t" } };
+		checkChainsRf(chains);
+	}
+
+	@Test
+	public void testDigIntoCallBeforeWithSomeNonPostdomStatements()
+			throws Throwable {
+		initialise("dig_into_call_before_with_some_non_postdom_statements", 1);
+		String[][] chains = { { "g.b(tag)", "a", "b", "r", "t" } };
+		checkChains(chains);
+	}
+
+	@Test
+	public void testDigIntoCallBeforeWithSomeNonPostdomStatementsFstr()
+			throws Throwable {
+		initialise("dig_into_call_before_with_some_non_postdom_statements", 1);
+		String[][] chains = { { "g.b(tag)", "a", "r", "t" } };
+		checkChainsFstr(chains);
+	}
+
+	@Test
+	public void testDigIntoCallBeforeWithSomeNonPostdomStatementsRf()
+			throws Throwable {
+		initialise("dig_into_call_before_with_some_non_postdom_statements", 1);
+		String[][] chains = { { "g.b(tag)", "b" } };
+		checkChainsRf(chains);
 	}
 
 	@Test
@@ -244,11 +464,22 @@ public class SignatureBuilderTest extends AbstractTaggedCallTest {
 			for (int i = 1; i < descriptor.length; ++i) {
 				expected.add(descriptor[i]);
 			}
-			checkChain(descriptor[0], expected);
+			checkChain(descriptor[0], expected, true, true);
 		}
 	}
 
-	private void checkChain(String taggedCall, Set<String> expected)
+	private void checkChainsFstr(String[]... descriptors) throws Exception {
+		for (String[] descriptor : descriptors) {
+			Set<String> expected = new HashSet<String>();
+			for (int i = 1; i < descriptor.length; ++i) {
+				expected.add(descriptor[i]);
+			}
+			checkChain(descriptor[0], expected, false, true);
+		}
+	}
+
+	private void checkChain(String taggedCall, Set<String> expected,
+			boolean includeRequiredFeatures, boolean includeFstr)
 			throws Exception {
 		Statement statement = findTaggedStatement(taggedCall);
 		assertTrue("Unable to find statement tagged in test: '" + taggedCall
@@ -256,7 +487,9 @@ public class SignatureBuilderTest extends AbstractTaggedCallTest {
 
 		Iterable<Call> chain = analyser.signature(
 				extractMethodCallTarget(statement.getCall()), statement
-						.getBlock(), function, new TypeResolver(model));
+						.getBlock(), function, new TypeResolver(
+						new ZeroCfaTypeEngine()), includeRequiredFeatures,
+				includeFstr);
 
 		// Test that all expected calls are in the chain and no unexpected calls
 		// are in the chain.
@@ -274,6 +507,16 @@ public class SignatureBuilderTest extends AbstractTaggedCallTest {
 		}
 	}
 
+	private void checkChainsRf(String[]... descriptors) throws Exception {
+		for (String[] descriptor : descriptors) {
+			Set<String> expected = new HashSet<String>();
+			for (int i = 1; i < descriptor.length; ++i) {
+				expected.add(descriptor[i]);
+			}
+			checkChain(descriptor[0], expected, true, false);
+		}
+	}
+
 	private void checkNoChain(String antiTag) throws Exception {
 		Statement statement = findTaggedStatement(antiTag);
 		assertTrue(
@@ -282,7 +525,7 @@ public class SignatureBuilderTest extends AbstractTaggedCallTest {
 
 		Set<Call> chain = analyser.signature(extractMethodCallTarget(statement
 				.getCall()), statement.getBlock(), function, new TypeResolver(
-				model));
+				new ZeroCfaTypeEngine()), true, true);
 		assertTrue(
 				"Tagged function '" + antiTag
 						+ "' has a dependence chain when we don't expect one: "

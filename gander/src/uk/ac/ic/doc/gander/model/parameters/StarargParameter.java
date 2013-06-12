@@ -13,7 +13,6 @@ import uk.ac.ic.doc.gander.flowinference.argument.ArgumentDestination;
 import uk.ac.ic.doc.gander.flowinference.callframe.StackFrame;
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
 import uk.ac.ic.doc.gander.flowinference.flowgoals.FlowPosition;
-import uk.ac.ic.doc.gander.flowinference.flowgoals.TopFp;
 import uk.ac.ic.doc.gander.flowinference.result.FiniteResult;
 import uk.ac.ic.doc.gander.flowinference.result.Result;
 import uk.ac.ic.doc.gander.flowinference.types.TObject;
@@ -53,7 +52,14 @@ final class StarargParameter implements FormalParameter {
 
 			@Override
 			public Result<FlowPosition> nextFlowPositions() {
-				return TopFp.INSTANCE;
+				/*
+				 * FIXME: This argument escapes if the starargs parameter is
+				 * ever accessed but doesn't if it isn't.
+				 * 
+				 * We don't return Top here because it makes everything
+				 * inheriting from object become Top!
+				 */
+				return FiniteResult.bottom();
 			}
 		};
 	}

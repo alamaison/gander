@@ -7,6 +7,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.Stack;
 
+import org.python.pydev.parser.jython.SimpleNode;
 import org.python.pydev.parser.jython.ast.Call;
 import org.python.pydev.parser.jython.ast.FunctionDef;
 import org.python.pydev.parser.jython.ast.Name;
@@ -31,7 +32,7 @@ import uk.ac.ic.doc.gander.model.OldNamespace;
  */
 final class PartialSignatureFromPassingVariable {
 
-	private Stack<OldNamespace> enclosingScopes = new Stack<OldNamespace>();
+	private final Stack<OldNamespace> enclosingScopes = new Stack<OldNamespace>();
 
 	/**
 	 * Return the signature produced by passing the given variable as a
@@ -59,20 +60,21 @@ final class PartialSignatureFromPassingVariable {
 	 * @param enclosingScope
 	 *            Function being searched for uses of {@code variable} as a
 	 *            function parameter.
+	 * @param includeFstr
+	 * @param includeRequiredFeatures
 	 * @param model
 	 *            Runtime model of the system needed to resolve function names
 	 *            to function implementations.
 	 * @return Partial signature of 'uses' as a set of method calls.
 	 */
-	Set<Call> buildSignature(String variable,
-			Iterable<BasicBlock> blocksToSearch, OldNamespace enclosingScope,
-			TypeResolver resolver) {
+	Set<Call> buildSignature(String variable, Set<SimpleNode> nodesToSearch,
+			OldNamespace enclosingScope, TypeResolver resolver) {
 		enclosingScopes.push(enclosingScope);
 
 		Set<Call> calls = new HashSet<Call>();
 
 		Set<PassedVar> passes = new PassedVariableFinder(variable,
-				blocksToSearch).passes();
+				nodesToSearch).passes();
 		for (PassedVar pass : passes) {
 			Call call = pass.getCall();
 			Function function = resolveFunction(resolver, enclosingScope, call);
@@ -101,12 +103,12 @@ final class PartialSignatureFromPassingVariable {
 	 */
 	private Set<Call> buildSignatureForFunctionParameter(Name param,
 			Function function, TypeResolver resolver) {
-		Set<BasicBlock> blocks = inevitableBlocks(function);
+		Set<SimpleNode> nodes = inevitableStatements(function);
 
 		Set<Call> calls = new PartialSignatureFromUsingVariable()
-				.buildSignature(param, blocks, function.getCfg());
+				.buildSignature(param, nodes, function.getCfg());
 
-		calls.addAll(buildSignature(param.id, blocks, function, resolver));
+		calls.addAll(buildSignature(param.id, nodes, function, resolver));
 		return calls;
 	}
 
@@ -177,22 +179,24 @@ final class PartialSignatureFromPassingVariable {
 	}
 
 	/**
-	 * Return the blocks which will always execute when a function executes.
+	 * Return the statements which will always execute when a function executes.
 	 * 
 	 * This is all blocks that post-dominate the start node. Nothing can
 	 * dominate the start node so dominator analysis is not needed to calculate
 	 * control-dependent blocks.
 	 */
-	private static Set<BasicBlock> inevitableBlocks(Function function) {
+	private static Set<SimpleNode> inevitableStatements(Function function) {
 		Cfg graph = function.getCfg();
 
-		Set<BasicBlock> controlDependentBlocks = new HashSet<BasicBlock>();
+		Set<SimpleNode> statements = new HashSet<SimpleNode>();
 
-		controlDependentBlocks.add(graph.getStart());
+		statements.addAll(graph.getStart());
 
 		Postdomination postdom = new Postdomination(graph);
-		controlDependentBlocks.addAll(postdom.dominators(graph.getStart()));
+		for (BasicBlock inevitableBlock : postdom.dominators(graph.getStart())) {
+			statements.addAll(inevitableBlock);
+		}
 
-		return controlDependentBlocks;
+		return statements;
 	}
 }

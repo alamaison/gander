@@ -1,10 +1,14 @@
 package uk.ac.ic.doc.gander.analysis.signatures;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
+import org.python.pydev.parser.jython.SimpleNode;
 import org.python.pydev.parser.jython.ast.Call;
 import org.python.pydev.parser.jython.ast.Name;
+import org.python.pydev.parser.jython.ast.VisitorBase;
 
 import uk.ac.ic.doc.gander.analysis.dominance.Domination;
 import uk.ac.ic.doc.gander.analysis.dominance.Postdomination;
@@ -26,35 +30,144 @@ public class SignatureBuilder {
 	 * calls which may happen after re-assigning to a variable aren't included.
 	 */
 	public Set<Call> signature(Name variable, BasicBlock containingBlock,
-			OldNamespace enclosingScope, TypeResolver resolver) {
+			OldNamespace enclosingScope, TypeResolver resolver,
+			boolean includeRequiredFeatures, boolean includeFstr) {
 
-		Set<BasicBlock> blocks = controlDependentBlocks(containingBlock,
-				enclosingScope.getCfg());
+		Set<SimpleNode> nodes = contraindicatingNodes(enclosingScope.getCfg(),
+				includeRequiredFeatures, includeFstr, variable, containingBlock);
 
 		Set<Call> calls = new PartialSignatureFromUsingVariable()
-				.buildSignature(variable, blocks, enclosingScope.getCfg());
+				.buildSignature(variable, nodes, enclosingScope.getCfg());
 
 		calls.addAll(new PartialSignatureFromPassingVariable().buildSignature(
-				variable.id, blocks, enclosingScope, resolver));
+				variable.id, nodes, enclosingScope, resolver));
 		return calls;
 	}
 
 	/**
-	 * Return the blocks which are control-dependent on the given block.
+	 * Return the correct node for the variant of the analysis we are running.
+	 * 
+	 * Strict dominators for FSTR; no-strict postdominators for Require Feature
+	 * analysis. Both for best results.
 	 */
-	private static Set<BasicBlock> controlDependentBlocks(BasicBlock block,
-			Cfg graph) {
-		Set<BasicBlock> controlDependentBlocks = new HashSet<BasicBlock>();
+	private Set<SimpleNode> contraindicatingNodes(Cfg graph,
+			boolean includeRequiredFeatures, boolean includeFstr,
+			Name variable, BasicBlock containingBlock) {
 
-		controlDependentBlocks.add(block);
+		Set<SimpleNode> nodes = new HashSet<SimpleNode>();
 
-		Domination dom = new Domination(graph);
-		controlDependentBlocks.addAll(dom.dominators(block));
+		if (includeRequiredFeatures) {
+			Postdomination postdom = new Postdomination(graph);
+			for (BasicBlock postdominatingBlock : postdom
+					.dominators(containingBlock)) {
+				// strict postdomination
+				if (!postdominatingBlock.equals(containingBlock)) {
+					nodes.addAll(postdominatingBlock);
+				}
+			}
 
-		Postdomination postdom = new Postdomination(graph);
-		controlDependentBlocks.addAll(postdom.dominators(block));
+			// The containing block can also contain
+			// dominators so we filter the containing block separately here and
+			// add only the postdominating nodes.
+			nodes.addAll(filterNodesAfterVariable(variable, containingBlock));
 
-		return controlDependentBlocks;
+			// We don't really want strict for required features so we add the
+			// current node to the list.
+			nodes.add(variable);
+		}
+
+		if (includeFstr) {
+			Domination dom = new Domination(graph);
+			for (BasicBlock dominatingBlock : dom.dominators(containingBlock)) {
+				// strict domination
+				if (!dominatingBlock.equals(containingBlock)) {
+					nodes.addAll(dominatingBlock);
+				}
+			}
+
+			// The containing block can also contain postdominators so we filter
+			// the containing block separately here and add only the dominating
+			// nodes.
+			nodes.addAll(filterNodesBeforeVariable(variable, containingBlock));
+
+			// We want strict domination for FSTR so don't add the current node
+		}
+
+		return nodes;
 	}
 
+	private List<SimpleNode> filterNodesBeforeVariable(Name variableAtLocation,
+			BasicBlock containingBlock) {
+		final List<SimpleNode> nodesBeforeVariable = new ArrayList<SimpleNode>();
+
+		for (SimpleNode node : containingBlock) {
+
+			NodeFinder finder = new NodeFinder(variableAtLocation);
+			try {
+				node.accept(finder);
+				if (finder.found) {
+					break;
+				} else {
+
+					nodesBeforeVariable.add(node);
+				}
+			} catch (Exception e) {
+				throw new RuntimeException(e);
+			}
+
+		}
+
+		return nodesBeforeVariable;
+	}
+
+	private List<SimpleNode> filterNodesAfterVariable(Name variableAtLocation,
+			BasicBlock containingBlock) {
+		final List<SimpleNode> nodesAfterVariable = new ArrayList<SimpleNode>();
+
+		boolean found = false;
+		for (SimpleNode node : containingBlock) {
+
+			if (!found) {
+				NodeFinder finder = new NodeFinder(variableAtLocation);
+				try {
+					node.accept(finder);
+					if (finder.found) {
+						found = true;
+					} else {
+						continue;
+					}
+				} catch (Exception e) {
+					throw new RuntimeException(e);
+				}
+			}
+
+			nodesAfterVariable.add(node);
+		}
+
+		return nodesAfterVariable;
+	}
+
+	private class NodeFinder extends VisitorBase {
+
+		private final SimpleNode node;
+		boolean found = false;
+
+		NodeFinder(SimpleNode node) {
+			this.node = node;
+		}
+
+		@Override
+		protected Object unhandled_node(SimpleNode node) throws Exception {
+
+			if (node.equals(this.node)) {
+				found = true;
+			}
+			return null;
+		}
+
+		@Override
+		public void traverse(SimpleNode node) throws Exception {
+			node.traverse(this);
+		}
+	}
 }

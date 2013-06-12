@@ -14,6 +14,7 @@ import uk.ac.ic.doc.gander.flowinference.types.TUnresolvedImport;
 import uk.ac.ic.doc.gander.flowinference.types.Type;
 import uk.ac.ic.doc.gander.model.Class;
 import uk.ac.ic.doc.gander.model.Function;
+import uk.ac.ic.doc.gander.model.ModelSite;
 import uk.ac.ic.doc.gander.model.OldNamespace;
 
 public class CallHelper {
@@ -30,7 +31,8 @@ public class CallHelper {
 
 		// skip calls to module functions - they look like method calls but
 		// we want to treat then differently
-		Type callTarget = typer.typeOf(indirectCallTarget(call), scope);
+		Type callTarget = typer.typeOf(new ModelSite<exprType>(
+				indirectCallTarget(call), scope.codeObject()));
 		return !(callTarget instanceof TModule || callTarget instanceof TUnresolvedImport);
 	}
 
@@ -164,6 +166,7 @@ public class CallHelper {
 		if (isExplicitInitCall(call))
 			return true;
 
-		return typer.typeOf(callableExpression(call), scope) instanceof TClass;
+		return typer.typeOf(new ModelSite<exprType>(callableExpression(call),
+				scope.codeObject())) instanceof TClass;
 	}
 }

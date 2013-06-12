@@ -11,22 +11,22 @@ import java.util.Iterator;
 import java.util.Set;
 
 import org.junit.Test;
+import org.python.pydev.parser.jython.SimpleNode;
 import org.python.pydev.parser.jython.ast.Call;
 import org.python.pydev.parser.jython.ast.Name;
 
-import uk.ac.ic.doc.gander.analysis.signatures.PassedVariableFinder;
 import uk.ac.ic.doc.gander.analysis.signatures.PassedVariableFinder.PassedVar;
 import uk.ac.ic.doc.gander.cfg.BasicBlock;
 import uk.ac.ic.doc.gander.hierarchy.Hierarchy;
 import uk.ac.ic.doc.gander.hierarchy.HierarchyFactory;
-import uk.ac.ic.doc.gander.model.Function;
 import uk.ac.ic.doc.gander.model.DefaultModel;
+import uk.ac.ic.doc.gander.model.Function;
 import uk.ac.ic.doc.gander.model.MutableModel;
 
 public class PassedVariableFinderTest {
 
 	private static final String TEST_PROJ = "../python_test_code/passed_var";
-	private Set<BasicBlock> blocks;
+	private final Set<SimpleNode> blocks = new HashSet<SimpleNode>();
 
 	@Test
 	public void testPassSinglePosition() throws Throwable {
@@ -240,10 +240,10 @@ public class PassedVariableFinderTest {
 		Call call = spec.getCall();
 		assertTrue("Function is not a simple variable name",
 				call.func instanceof Name);
-		assertEquals(new HashSet<Integer>(Arrays.asList(positions)), spec
-				.getPositions());
-		assertEquals(new HashSet<String>(Arrays.asList(keywords)), spec
-				.getKeywords());
+		assertEquals(new HashSet<Integer>(Arrays.asList(positions)),
+				spec.getPositions());
+		assertEquals(new HashSet<String>(Arrays.asList(keywords)),
+				spec.getKeywords());
 	}
 
 	private MutableModel createTestModel(String projectPath) throws Throwable {
@@ -258,10 +258,12 @@ public class PassedVariableFinderTest {
 
 	private void initialise(String testFuncName) throws Throwable, Exception {
 		MutableModel model = createTestModel(TEST_PROJ);
-		Function function = model.loadModule("passed_var").getFunctions().get(
-				testFuncName);
+		Function function = model.loadModule("passed_var").getFunctions()
+				.get(testFuncName);
 		assertTrue("No function " + testFuncName, function != null);
 
-		blocks = function.getCfg().getBlocks();
+		for (BasicBlock block : function.getCfg().getBlocks()) {
+			blocks.addAll(block);
+		}
 	}
 }

@@ -1,11 +1,13 @@
 package uk.ac.ic.doc.gander.analysis;
 
 import org.python.pydev.parser.jython.ast.Call;
+import org.python.pydev.parser.jython.ast.exprType;
 
 import uk.ac.ic.doc.gander.flowinference.TypeResolver;
 import uk.ac.ic.doc.gander.flowinference.types.TFunction;
 import uk.ac.ic.doc.gander.flowinference.types.Type;
 import uk.ac.ic.doc.gander.model.Function;
+import uk.ac.ic.doc.gander.model.ModelSite;
 import uk.ac.ic.doc.gander.model.OldNamespace;
 
 /**
@@ -25,7 +27,8 @@ public class FunctionResolver {
 	}
 
 	private Function resolveCall(Call call) {
-		Type type = types.typeOf(call.func, enclosingFunction);
+		Type type = types.typeOf(new ModelSite<exprType>(call.func,
+				enclosingFunction.codeObject()));
 		if (type != null && type instanceof TFunction) {
 			return ((TFunction) type).getFunctionInstance();
 		}

@@ -2130,6 +2130,22 @@ public class ZeroCfaTypeEngineTest {
 				+ "should also result in Top.", TopT.INSTANCE, type);
 	}
 
+	@Test
+	public void builtin() throws Throwable {
+		TestModule test = newTestModule("builtin");
+
+		Result<Type> type = engine.typeOf(test.printNode("what_am_i").site());
+
+		assertEquals("'len' should be a builtin function.",
+				typeJudgement(new TFunction(test.builtinFunction("len"))), type);
+
+		type = engine.typeOf(test.printNode("what_is_my_result").site());
+
+		assertEquals("The result of calling it should be an int but "
+				+ "we're ok with top because of context-insensitivity",
+				TopT.INSTANCE, type);
+	}
+
 	private ScopedAstNode findNode(String moduleName, String tag)
 			throws Exception {
 		return new TaggedNodeAndScopeFinder(model.loadModule(moduleName)

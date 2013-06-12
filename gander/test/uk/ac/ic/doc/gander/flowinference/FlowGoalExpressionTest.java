@@ -333,6 +333,32 @@ public class FlowGoalExpressionTest {
 	}
 
 	@Test
+	public void index() throws Throwable {
+
+		TestModule test = newTestModule("index");
+
+		Result<ModelSite<exprType>> result = solveBlastoff(test);
+
+		TestModule.assertResultIsTop(
+				"Flow should have escaped on being used as an index", result);
+	}
+
+	@Test
+	public void indexNot() throws Throwable {
+
+		TestModule test = newTestModule("index_not");
+
+		Result<ModelSite<exprType>> result = solveBlastoff(test);
+
+		TestModule.assertResultIsNotTop(
+				"Flow should NOT have escaped as something "
+						+ "else entirely was being used as an index", result);
+
+		TestModule.assertResultIncludes("Expression did not flow as expected.",
+				test.printables("x flows here"), result);
+	}
+
+	@Test
 	public void forLoop() throws Throwable {
 
 		TestModule test = newTestModule("for_loop");
@@ -527,6 +553,25 @@ public class FlowGoalExpressionTest {
 				test.printables("not b in B", "nor a in C"), result);
 	}
 
+	/**
+	 * Test that inheriting from object doesn't do anything funny to the
+	 * constructor.
+	 */
+	@Test
+	public void constructorArgumentObject() throws Throwable {
+
+		TestModule test = newTestModule("constructor_argument_object");
+
+		Result<ModelSite<exprType>> result = solveBlastoff(test);
+
+		TestModule.assertResultIncludes("Call did not flow instance to "
+				+ "parameters a of A's constructor.",
+				test.printables("a in A"), result);
+
+		TestModule.assertResultExcludes("Call shouldn't have flowed x to "
+				+ "self parameter.", test.printables("not self in A"), result);
+	}
+
 	@Test
 	public void constructorKeywordArgument() throws Throwable {
 
@@ -711,6 +756,18 @@ public class FlowGoalExpressionTest {
 		TestModule.assertResultIsTop(
 				"getattr should cause us to lose all ability to track the flow "
 						+ "of an object's attributes.", result);
+	}
+
+	@Test
+	public void builtIn() throws Throwable {
+
+		TestModule test = newTestModule("built_in");
+
+		Result<ModelSite<exprType>> result = solveBlastoff(test);
+
+		TestModule.assertResultIncludes(
+				"x did not flow through builtin function",
+				test.printables("x flows here"), result);
 	}
 
 	private TestModule newTestModule(String testName) throws Throwable {

@@ -4,6 +4,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.python.pydev.parser.jython.ast.Call;
+import org.python.pydev.parser.jython.ast.exprType;
 
 import uk.ac.ic.doc.gander.analysis.inheritance.CachingInheritanceTree;
 import uk.ac.ic.doc.gander.analysis.inheritance.InheritedMethods;
@@ -11,15 +12,20 @@ import uk.ac.ic.doc.gander.analysis.signatures.CallTargetSignatureBuilder;
 import uk.ac.ic.doc.gander.analysis.signatures.SignatureHelper;
 import uk.ac.ic.doc.gander.cfg.BasicBlock;
 import uk.ac.ic.doc.gander.flowinference.TypeResolver;
+import uk.ac.ic.doc.gander.flowinference.result.FiniteResult;
+import uk.ac.ic.doc.gander.flowinference.result.Result;
+import uk.ac.ic.doc.gander.flowinference.typegoals.TopT;
 import uk.ac.ic.doc.gander.flowinference.types.TClass;
+import uk.ac.ic.doc.gander.flowinference.types.TObject;
 import uk.ac.ic.doc.gander.flowinference.types.Type;
-import uk.ac.ic.doc.gander.model.Class;
 import uk.ac.ic.doc.gander.model.Model;
 import uk.ac.ic.doc.gander.model.OldNamespace;
+import uk.ac.ic.doc.gander.model.codeobject.ClassCO;
 
 public class DuckTyper {
 	private final LoadedTypeDefinitions definitions;
-	private TypeResolver resolver;
+	private final TypeResolver resolver;
+	private long duckTimeSheet = 0;
 
 	public DuckTyper(Model model, TypeResolver resolver) {
 		this.resolver = resolver;
@@ -41,33 +47,54 @@ public class DuckTyper {
 	 *            The Python scope in which the call occurs.
 	 * @return A type judgement as a set of {@link Type}s.
 	 */
-	public Set<Type> typeOf(Call call, BasicBlock containingBlock,
+	public Result<Type> typeOf(exprType expression, BasicBlock containingBlock,
 			OldNamespace scope) {
 
-		Set<String> methods = calculateDependentMethodNames(call,
-				containingBlock, scope);
+		long oldFlowCost = resolver.flowCost();
 
-		Set<Type> type = new HashSet<Type>();
-
-		for (Class klass : definitions.getDefinitions()) {
-			InheritedMethods inheritance = new InheritedMethods(
-					new CachingInheritanceTree(klass, resolver));
-
-			// TODO: We only compare by name. Matching parameter numbers etc
-			// will require more complex logic.
-			if (inheritance.methodsInTree().containsAll(methods))
-				type.add(new TClass(klass));
-		}
-
-		return type;
-	}
-
-	private Set<String> calculateDependentMethodNames(Call call,
-			BasicBlock containingBlock, OldNamespace scope) {
+		long start = System.currentTimeMillis();
 
 		Set<Call> dependentCalls = new CallTargetSignatureBuilder()
-				.signatureOfTarget(call, containingBlock, scope, resolver);
+				.interfaceType(expression, containingBlock, scope, resolver);
 
-		return SignatureHelper.convertSignatureToMethodNames(dependentCalls);
+		Set<String> methods = SignatureHelper
+				.convertSignatureToMethodNames(dependentCalls);
+
+		Result<Type> result;
+		if (methods.isEmpty()) {
+			result = TopT.INSTANCE;
+
+		} else {
+
+			Set<Type> type = new HashSet<Type>();
+
+			for (ClassCO klass : definitions.getDefinitions()) {
+				InheritedMethods inheritance = new InheritedMethods(
+						new CachingInheritanceTree(
+								klass.oldStyleConflatedNamespace(), resolver));
+
+				// TODO: We only compare by name. Matching parameter numbers etc
+				// will require more complex logic.
+				if (inheritance.methodsInTree().containsAll(methods)) {
+					type.add(new TObject(klass));
+					/*
+					 * TODO: without look at the parameters, can't tell class
+					 * and instance apart
+					 */
+					type.add(new TClass(klass));
+				}
+			}
+
+			result = new FiniteResult<Type>(type);
+		}
+
+		long now = System.currentTimeMillis();
+		duckTimeSheet += (now - start) - (resolver.flowCost() - oldFlowCost);
+
+		return result;
+	}
+
+	public long duckCost() {
+		return duckTimeSheet;
 	}
 }

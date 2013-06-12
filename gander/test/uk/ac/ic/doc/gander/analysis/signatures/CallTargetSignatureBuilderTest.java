@@ -16,16 +16,17 @@ import uk.ac.ic.doc.gander.CallHelper;
 import uk.ac.ic.doc.gander.TaggedCallAndScopeFinder;
 import uk.ac.ic.doc.gander.cfg.BasicBlock;
 import uk.ac.ic.doc.gander.flowinference.TypeResolver;
+import uk.ac.ic.doc.gander.flowinference.ZeroCfaTypeEngine;
 import uk.ac.ic.doc.gander.hierarchy.Hierarchy;
 import uk.ac.ic.doc.gander.hierarchy.HierarchyFactory;
-import uk.ac.ic.doc.gander.model.Module;
 import uk.ac.ic.doc.gander.model.DefaultModel;
+import uk.ac.ic.doc.gander.model.Module;
 import uk.ac.ic.doc.gander.model.MutableModel;
 import uk.ac.ic.doc.gander.model.OldNamespace;
 
 public class CallTargetSignatureBuilderTest {
 
-	private CallTargetSignatureBuilder analyser = new CallTargetSignatureBuilder();
+	private final CallTargetSignatureBuilder analyser = new CallTargetSignatureBuilder();
 	private TypeResolver typer;
 	private OldNamespace scope;
 	private Call call;
@@ -42,7 +43,7 @@ public class CallTargetSignatureBuilderTest {
 		MutableModel model = new DefaultModel(hierarchy);
 
 		Module start = model.loadModule("start");
-		typer = new TypeResolver(model);
+		typer = new TypeResolver(new ZeroCfaTypeEngine());
 
 		TaggedCallAndScopeFinder tagFinder = new TaggedCallAndScopeFinder(
 				start, "tag");
@@ -59,6 +60,12 @@ public class CallTargetSignatureBuilderTest {
 	@Test
 	public void attribute() throws Throwable {
 		setup("attribute");
+		checkSignature("b");
+	}
+
+	@Test
+	public void attributeDeep() throws Throwable {
+		setup("attribute_deep");
 		checkSignature("b");
 	}
 

@@ -398,11 +398,7 @@ final class SituationMapper implements VisitorIF {
 
 	@Override
 	public Object visitEllipsis(Ellipsis node) throws Exception {
-		/*
-		 * The effect of an ellipsis in a subscript is up to the implementation
-		 * of the type's __getitem__. We can't reason about this.
-		 */
-		return EscapeSituation.INSTANCE;
+		return notInAFlowSituation();
 	}
 
 	@Override
@@ -499,7 +495,11 @@ final class SituationMapper implements VisitorIF {
 		 * TODO: this decision should be delegated to the type the index is
 		 * applied to.
 		 */
-		return EscapeSituation.INSTANCE;
+		if (isMatch(node.value)) {
+			return EscapeSituation.INSTANCE;
+		} else {
+			return notInAFlowSituation();
+		}
 	}
 
 	@Override

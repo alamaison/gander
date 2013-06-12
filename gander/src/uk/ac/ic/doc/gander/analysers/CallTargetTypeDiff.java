@@ -6,19 +6,23 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.python.pydev.parser.jython.ParseException;
+import org.python.pydev.parser.jython.ast.Attribute;
 import org.python.pydev.parser.jython.ast.Call;
+import org.python.pydev.parser.jython.ast.exprType;
 
-import uk.ac.ic.doc.gander.CallHelper;
-import uk.ac.ic.doc.gander.analysis.MethodFinder;
+import uk.ac.ic.doc.gander.analysis.CallFinder;
+import uk.ac.ic.doc.gander.analysis.CallFinder.EventHandler;
 import uk.ac.ic.doc.gander.calls.CallSite;
 import uk.ac.ic.doc.gander.cfg.BasicBlock;
 import uk.ac.ic.doc.gander.duckinference.DuckTyper;
+import uk.ac.ic.doc.gander.flowinference.TimingTypeEngine;
 import uk.ac.ic.doc.gander.flowinference.TypeResolver;
 import uk.ac.ic.doc.gander.flowinference.ZeroCfaTypeEngine;
 import uk.ac.ic.doc.gander.flowinference.result.Result;
 import uk.ac.ic.doc.gander.flowinference.result.Result.Transformer;
-import uk.ac.ic.doc.gander.flowinference.types.TClass;
-import uk.ac.ic.doc.gander.flowinference.types.TObject;
+import uk.ac.ic.doc.gander.flowinference.typegoals.TopT;
+import uk.ac.ic.doc.gander.flowinference.types.TModule;
+import uk.ac.ic.doc.gander.flowinference.types.TUnresolvedImport;
 import uk.ac.ic.doc.gander.flowinference.types.Type;
 import uk.ac.ic.doc.gander.hierarchy.Hierarchy;
 import uk.ac.ic.doc.gander.hierarchy.HierarchyWalker;
@@ -31,24 +35,29 @@ import uk.ac.ic.doc.gander.model.MutableModel;
 
 public class CallTargetTypeDiff {
 
-	private final MutableModel model;
-	private final TypeResolver typer;
+	private final TimingTypeEngine totalFlowCountingEngine = new TimingTypeEngine(
+			new ZeroCfaTypeEngine());
+	private final TimingTypeEngine pureFlowCountingEngine = new TimingTypeEngine(
+			totalFlowCountingEngine);
+	private final DuckTyper duckTyper;
+
 	private final Set<DiffResult> duckTypes = new HashSet<DiffResult>();
 	private final File projectRoot;
+	private final MutableModel model;
 	private final Hierarchy hierarchy;
-	private final ZeroCfaTypeEngine engine;
 	private final Set<ResultObserver> observers = new HashSet<ResultObserver>();
+	private long observerTimeSheet = 0;
 
 	public final class DiffResult {
 		private final CallSite callsite;
-		private final Set<Type> duckType;
+		private final Result<Type> duckType;
 		private final Result<Type> flowType;
 
-		private DiffResult(CallSite callsite, Set<Type> duckType,
+		private DiffResult(CallSite callsite, Result<Type> duckType,
 				Result<Type> flowType) {
 			this.callsite = callsite;
 			// XXX: HACK
-			this.duckType = duckTypesToSetOfInstances(duckType);
+			this.duckType = duckType;
 			this.flowType = flowType;
 		}
 
@@ -56,7 +65,7 @@ public class CallTargetTypeDiff {
 			return callsite;
 		}
 
-		public Set<Type> duckType() {
+		public Result<Type> duckType() {
 			return duckType;
 		}
 
@@ -67,10 +76,12 @@ public class CallTargetTypeDiff {
 		public boolean resultsMatch() {
 			return flowType.transformResult(new Transformer<Type, Boolean>() {
 
+				@Override
 				public Boolean transformFiniteResult(Set<Type> result) {
 					return result.equals(duckType);
 				}
 
+				@Override
 				public Boolean transformInfiniteResult() {
 					return Boolean.FALSE;
 				}
@@ -80,35 +91,32 @@ public class CallTargetTypeDiff {
 		public boolean resultsAreDisjoint() {
 			return flowType.transformResult(new Transformer<Type, Boolean>() {
 
-				public Boolean transformFiniteResult(Set<Type> result) {
-					Set<Type> intersection = new HashSet<Type>(result);
-					intersection.retainAll(duckType);
-					return intersection.isEmpty();
+				@Override
+				public Boolean transformFiniteResult(final Set<Type> flowResult) {
+					return duckType
+							.transformResult(new Transformer<Type, Boolean>() {
+
+								@Override
+								public Boolean transformFiniteResult(
+										Set<Type> duckResult) {
+									Set<Type> intersection = new HashSet<Type>(
+											flowResult);
+									intersection.retainAll(duckResult);
+									return intersection.isEmpty();
+								}
+
+								@Override
+								public Boolean transformInfiniteResult() {
+									return false;
+								}
+							});
 				}
 
+				@Override
 				public Boolean transformInfiniteResult() {
 					return false;
 				}
 			});
-		}
-
-		/**
-		 * Duck typing returns instances as classes (bad!) but flow typing uses
-		 * instances so we convert the duck typing result to use instances.
-		 * 
-		 * XXX: HACK.
-		 */
-		private Set<Type> duckTypesToSetOfInstances(Set<Type> duckType) {
-			Set<Type> typesOut = new HashSet<Type>();
-			for (Type type : duckType) {
-				if (type instanceof TClass)
-					typesOut
-							.add(new TObject(((TClass) type).getClassInstance()));
-				else
-					throw new AssertionError("Non-class type in ducking result");
-			}
-
-			return typesOut;
 		}
 	}
 
@@ -127,21 +135,47 @@ public class CallTargetTypeDiff {
 
 		this.observers.add(new ResultObserver() {
 
+			@Override
 			public void resultReady(DiffResult result) {
 
 				duckTypes.add(result);
 			}
 		});
 
+		// Get current time
+		long start = System.currentTimeMillis();
+
 		System.out.println("Creating model from hierarchy");
 		this.model = new DefaultModel(hierarchy);
 		System.out.println("Loading all non-system modules in hierarchy");
 		new HierarchyLoader().walk(hierarchy);
+
 		System.out.println("Performing flow-based type inference");
-		this.typer = new TypeResolver(model);
-		engine = new ZeroCfaTypeEngine();
+
+		final TimingTypeEngine contraFlowCountingEngine = new TimingTypeEngine(
+				totalFlowCountingEngine);
+		final TypeResolver typer = new TypeResolver(contraFlowCountingEngine);
+		this.duckTyper = new DuckTyper(model, typer);
+
+		long flowEngineCreationTime = System.currentTimeMillis();
+
 		System.out.println("Running signature analysis");
 		new ModelDucker().walk(model);
+
+		long analysisTime = System.currentTimeMillis();
+		long analysisDuration = analysisTime - flowEngineCreationTime;
+
+		long totalMilli = System.currentTimeMillis();
+		System.out.printf("Total time (ms): %d\n", totalMilli - start);
+		System.out.printf("Analysis time (ms) %d\n", analysisDuration);
+		System.out.printf("    Flow time (ms): %d of which\n",
+				totalFlowCountingEngine.milliseconds());
+		System.out.printf("        Flow phase (ms): %d\n",
+				pureFlowCountingEngine.milliseconds());
+		System.out.printf("        Contra phase (ms): %d\n",
+				contraFlowCountingEngine.milliseconds());
+		System.out.printf("    Contra time (ms): %d\n", duckTyper.duckCost());
+		System.out.printf("    Observer time (ms): %d\n", observerTimeSheet);
 	}
 
 	public Set<DiffResult> result() {
@@ -157,25 +191,89 @@ public class CallTargetTypeDiff {
 				return;
 
 			for (BasicBlock block : function.getCfg().getBlocks()) {
-				for (Call call : new MethodFinder(block).calls()) {
 
-					// if function is a method of a class, skip calls to self
-					// (or whatever the first parameter to a method
-					// is called. We already know the type of these.
-					if (!CallHelper.isExternalMethodCallOnName(call, function,
-							typer))
-						continue;
+				for (Call call : calls(block)) {
 
 					CallSite callsite = new CallSite(call, function, block);
 
-					Set<Type> duckType = new DuckTyper(model, typer).typeOf(
-							call, block, function);
-					Result<Type> flowType = engine.typeOf(CallHelper
-							.indirectCallTarget(call), function.codeObject());
+					if (call.func instanceof Attribute) {
 
-					informObservers(new DiffResult(callsite, duckType, flowType));
+						exprType lhs = ((Attribute) call.func).value;
+
+						Result<Type> flowType = pureFlowCountingEngine.typeOf(
+								lhs, function.codeObject());
+
+						Result<Type> duckType;
+						if (!flowResultIncludesModule(flowType)) {
+							duckType = duckTyper.typeOf(lhs, block, function);
+						} else {
+							duckType = TopT.INSTANCE;
+						}
+
+						long startObserverTime = System.currentTimeMillis();
+						// informObservers(new DiffResult(callsite, duckType,
+						// flowType));
+						observerTimeSheet += System.currentTimeMillis()
+								- startObserverTime;
+					}
+
 				}
 			}
+		}
+
+		private boolean flowResultIncludesModule(Result<Type> flowType) {
+			return flowType.transformResult(new Transformer<Type, Boolean>() {
+
+				@Override
+				public Boolean transformFiniteResult(Set<Type> result) {
+					for (Type type : result) {
+						if (type instanceof TModule
+								|| type instanceof TUnresolvedImport) {
+							return true;
+						}
+					}
+
+					return false;
+				}
+
+				@Override
+				public Boolean transformInfiniteResult() {
+					// FIXME: This is a lie!
+					return false;
+				}
+			});
+		}
+
+		private Set<Call> calls(BasicBlock block) {
+
+			final Set<Call> calls = new HashSet<Call>();
+
+			new CallFinder(block, new EventHandler() {
+
+				@Override
+				public void foundCall(Call call) {
+					calls.add(call);
+				}
+			});
+
+			return calls;
+		}
+
+		private Set<Call> attributeCalls(BasicBlock block) {
+
+			final Set<Call> calls = new HashSet<Call>();
+
+			new CallFinder(block, new EventHandler() {
+
+				@Override
+				public void foundCall(Call call) {
+					if (call.func instanceof Attribute) {
+						calls.add(call);
+					}
+				}
+			});
+
+			return calls;
 		}
 
 		private void informObservers(DiffResult diffResult) {

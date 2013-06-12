@@ -32,8 +32,8 @@ final class ImportTypeMapper {
 		LocalTypeBinder typingBinder = new LocalTypeBinder(variable);
 
 		ImportSimulator<NamespaceName, Namespace, CodeObject, ModuleCO> simulator = ImportSimulator
-				.newInstance(typingBinder,
-						new NamespaceNameLoader(variable.model()));
+				.newInstance(typingBinder, new NamespaceNameLoader(variable
+						.codeObject().model()));
 		simulator.simulateImport(importInstance);
 
 		return typingBinder.partialVariableType.result();
@@ -52,7 +52,9 @@ final class ImportTypeMapper {
 		@Override
 		public void bindModuleToLocalName(ModuleCO loadedModule, String name,
 				CodeObject container) {
-			assert container.equals(variable.codeObject());
+			// FIXME: triggers incorrectly due to nasty 'top-level' module
+			// assert container.equals(variable.codeObject()) : "Container: "
+			// + container + " Variable: " + variable;
 
 			if (!partialVariableType.isFinished()
 					&& name.equals(variable.name())) {
@@ -65,7 +67,9 @@ final class ImportTypeMapper {
 		@Override
 		public void bindObjectToLocalName(NamespaceName importedObject,
 				String name, CodeObject container) {
-			assert container.equals(variable.codeObject());
+			// FIXME: triggers incorrectly due to nasty 'top-level' module
+			// assert container.equals(variable.codeObject()) : "Container: "
+			// + container + " Variable: " + variable;
 
 			if (!partialVariableType.isFinished()
 					&& name.equals(variable.name())) {
@@ -79,13 +83,14 @@ final class ImportTypeMapper {
 		@Override
 		public void bindModuleToName(ModuleCO loadedModule, String name,
 				ModuleCO receivingModule) {
-			assert !receivingModule.equals(variable.codeObject());
+			// assert !receivingModule.equals(variable.codeObject());
 		}
 
 		@Override
 		public void bindObjectToName(NamespaceName importedObject, String name,
 				ModuleCO receivingModule) {
-			assert !receivingModule.equals(variable.codeObject());
+			assert !receivingModule.equals(variable.codeObject()) : "Receiving module: "
+					+ receivingModule + " Variable: " + variable;
 		}
 
 		@Override
@@ -110,7 +115,9 @@ final class ImportTypeMapper {
 		public void onUnresolvedImport(
 				Import<CodeObject, ModuleCO> importInstance, String name,
 				ModuleCO receivingModule) {
-			assert !receivingModule.equals(variable.codeObject());
+			// assert !receivingModule.equals(variable.codeObject()) :
+			// "Receiving module: "
+			// + receivingModule + " Variable: " + variable;
 		}
 
 		@Override

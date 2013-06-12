@@ -14,21 +14,24 @@ import uk.ac.ic.doc.gander.calls.CallSite;
 import uk.ac.ic.doc.gander.cfg.BasicBlock;
 import uk.ac.ic.doc.gander.duckinference.DuckTyper;
 import uk.ac.ic.doc.gander.flowinference.TypeResolver;
+import uk.ac.ic.doc.gander.flowinference.ZeroCfaTypeEngine;
+import uk.ac.ic.doc.gander.flowinference.result.Result;
+import uk.ac.ic.doc.gander.flowinference.result.Result.Processor;
 import uk.ac.ic.doc.gander.flowinference.types.Type;
 import uk.ac.ic.doc.gander.hierarchy.Hierarchy;
 import uk.ac.ic.doc.gander.hierarchy.HierarchyWalker;
-import uk.ac.ic.doc.gander.hierarchy.SourceFile;
 import uk.ac.ic.doc.gander.hierarchy.Package;
+import uk.ac.ic.doc.gander.hierarchy.SourceFile;
+import uk.ac.ic.doc.gander.model.DefaultModel;
 import uk.ac.ic.doc.gander.model.Function;
 import uk.ac.ic.doc.gander.model.ModelWalker;
-import uk.ac.ic.doc.gander.model.DefaultModel;
 import uk.ac.ic.doc.gander.model.MutableModel;
 
 public class CallTargetTypes {
 
-	private MutableModel model;
-	private TypeResolver typer;
-	private Map<CallSite, Set<Type>> types = new HashMap<CallSite, Set<Type>>();
+	private final MutableModel model;
+	private final TypeResolver typer;
+	private final Map<CallSite, Set<Type>> types = new HashMap<CallSite, Set<Type>>();
 
 	public CallTargetTypes(Hierarchy hierarchy) throws Exception {
 		System.out.println("Creating model from hierarchy");
@@ -36,7 +39,7 @@ public class CallTargetTypes {
 		System.out.println("Loading all non-system modules in hierarchy");
 		new HierarchyLoader().walk(hierarchy);
 		System.out.println("Performing flow-based type inference");
-		this.typer = new TypeResolver(model);
+		this.typer = new TypeResolver(new ZeroCfaTypeEngine());
 		System.out.println("Running signature analysis");
 		new ModelDucker().walk(model);
 	}
@@ -48,13 +51,13 @@ public class CallTargetTypes {
 	private final class ModelDucker extends ModelWalker {
 
 		@Override
-		protected void visitFunction(Function function) {
+		protected void visitFunction(final Function function) {
 			// only analyse methods within our target project's namespace
 			if (function.isSystem())
 				return;
 
-			for (BasicBlock block : function.getCfg().getBlocks()) {
-				for (Call call : new MethodFinder(block).calls()) {
+			for (final BasicBlock block : function.getCfg().getBlocks()) {
+				for (final Call call : new MethodFinder(block).calls()) {
 
 					// if function is a method of a class, skip calls to self
 					// (or whatever the first parameter to a method
@@ -63,9 +66,23 @@ public class CallTargetTypes {
 							typer))
 						continue;
 
-					Set<Type> type = new DuckTyper(model, typer).typeOf(call,
-							block, function);
-					types.put(new CallSite(call, function, block), type);
+					Result<Type> type = new DuckTyper(model, typer).typeOf(
+							call, block, function);
+					type.actOnResult(new Processor<Type>() {
+
+						@Override
+						public void processInfiniteResult() {
+							throw new AssertionError("This code wasn't "
+									+ "written to cope with an "
+									+ "infinite type.  Update it.");
+						}
+
+						@Override
+						public void processFiniteResult(Set<Type> result) {
+							types.put(new CallSite(call, function, block),
+									result);
+						}
+					});
 				}
 			}
 		}

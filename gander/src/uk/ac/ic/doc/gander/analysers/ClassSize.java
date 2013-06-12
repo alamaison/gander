@@ -7,16 +7,17 @@ import org.python.pydev.parser.jython.ast.exprType;
 import uk.ac.ic.doc.gander.analysis.inheritance.FreshInheritanceTree;
 import uk.ac.ic.doc.gander.analysis.inheritance.InheritedMethods;
 import uk.ac.ic.doc.gander.flowinference.TypeResolver;
+import uk.ac.ic.doc.gander.flowinference.ZeroCfaTypeEngine;
 import uk.ac.ic.doc.gander.hierarchy.Hierarchy;
 import uk.ac.ic.doc.gander.model.Class;
-import uk.ac.ic.doc.gander.model.Module;
 import uk.ac.ic.doc.gander.model.DefaultModel;
+import uk.ac.ic.doc.gander.model.Module;
 import uk.ac.ic.doc.gander.model.MutableModel;
 
 public class ClassSize {
 
-	private Tallies stats = new Tallies();
-	private MutableModel model;
+	private final Tallies stats = new Tallies();
+	private final MutableModel model;
 
 	public ClassSize(Hierarchy hierarchy) throws Exception {
 		this.model = new DefaultModel(hierarchy);
@@ -31,8 +32,8 @@ public class ClassSize {
 
 	private void analysePackage(uk.ac.ic.doc.gander.hierarchy.Package pack)
 			throws Exception {
-		for (uk.ac.ic.doc.gander.hierarchy.SourceFile module : pack.getSourceFiles()
-				.values())
+		for (uk.ac.ic.doc.gander.hierarchy.SourceFile module : pack
+				.getSourceFiles().values())
 			analyseModule(module);
 		for (uk.ac.ic.doc.gander.hierarchy.Package subpackage : pack
 				.getPackages().values())
@@ -67,11 +68,13 @@ public class ClassSize {
 
 	private class SysErrErrorHandler implements InheritedMethods.ErrorHandler {
 
+		@Override
 		public void onResolutionFailure(Class klass, exprType baseExpression) {
 			System.err.println("WARNING: unable to resolve base of '"
 					+ klass.getFullName() + "': " + baseExpression);
 		}
 
+		@Override
 		public void onIncestuousBase(Class klass, exprType baseExpression) {
 			System.err.println("WARNING: base of '" + klass.getFullName()
 					+ "' resolves to itself!: " + baseExpression);
@@ -87,7 +90,7 @@ public class ClassSize {
 
 	private Set<String> methodsInClass(Class klass) throws Exception {
 		FreshInheritanceTree tree = new FreshInheritanceTree(klass,
-				new TypeResolver(model));
+				new TypeResolver(new ZeroCfaTypeEngine()));
 		return methodsInTree(tree);
 	}
 }

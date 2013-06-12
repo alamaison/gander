@@ -93,6 +93,10 @@ final class TestModule {
 		return nestedClass(model.getTopLevel().codeObject(), name);
 	}
 
+	FunctionCO builtinFunction(String name) {
+		return nestedFunction(model.getTopLevel().codeObject(), name);
+	}
+
 	ClassCO moduleLevelClass(String name) throws Throwable {
 		return nestedClass(codeObject(), name);
 	}

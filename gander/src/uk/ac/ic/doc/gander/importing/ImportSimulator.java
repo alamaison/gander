@@ -177,6 +177,11 @@ public final class ImportSimulator<O, A, C, M> {
 			String token = importPath.get(i);
 
 			processed.add(token);
+			/*
+			 * FIXME: The module may just be a module object already bound to a
+			 * name in the previous token's object. This should be included
+			 * before trying to load off disk.
+			 */
 			M module = simulateTwoStepModuleLoad(processed,
 					importInstance.relativeTo());
 
@@ -217,8 +222,10 @@ public final class ImportSimulator<O, A, C, M> {
 		switch (behaviour) {
 		case BINDS_IN_BOTH:
 			if (module != null) {
-				eventHandler.bindModuleToName(module, token,
-						previouslyLoadedModule);
+				if (!token.isEmpty()) {
+					eventHandler.bindModuleToName(module, token,
+							previouslyLoadedModule);
+				}
 				eventHandler.bindModuleToLocalName(module,
 						((StaticImportStatement) importInstance.statement())
 								.bindingName(), importInstance.container());
@@ -230,8 +237,10 @@ public final class ImportSimulator<O, A, C, M> {
 
 		case BINDS_IN_PREVIOUS_MODULE:
 			if (module != null) {
-				eventHandler.bindModuleToName(module, token,
-						previouslyLoadedModule);
+				if (!token.isEmpty()) {
+					eventHandler.bindModuleToName(module, token,
+							previouslyLoadedModule);
+				}
 			} else {
 				eventHandler.onUnresolvedImport(importInstance, token,
 						previouslyLoadedModule);

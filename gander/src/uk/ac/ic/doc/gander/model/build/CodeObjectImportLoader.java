@@ -31,7 +31,7 @@ import uk.ac.ic.doc.gander.model.codeobject.NamedCodeObject;
  */
 public class CodeObjectImportLoader {
 
-	private MutableModel model;
+	private final MutableModel model;
 
 	public CodeObjectImportLoader(CodeObject codeObject, MutableModel model) {
 		this.model = model;
@@ -121,7 +121,7 @@ public class CodeObjectImportLoader {
 	private static class Importer implements
 			ImportSimulator.Loader<CodeObject, Set<CodeObject>, ModuleCO> {
 
-		private MutableModel model;
+		private final MutableModel model;
 
 		public Importer(MutableModel model) {
 			this.model = model;
@@ -139,12 +139,40 @@ public class CodeObjectImportLoader {
 		 * @return {@link SourceFile} if loading succeeded, {@code null}
 		 *         otherwise.
 		 */
+		@Override
 		public ModuleCO loadModule(List<String> importPath,
 				ModuleCO relativeToModule) {
+
 			List<String> name = new ArrayList<String>(
 					DottedName.toImportTokens(relativeToModule
 							.oldStyleConflatedNamespace().getFullName()));
-			name.addAll(importPath);
+
+			boolean skippedInitialEmpty = false;
+			for (String token : importPath) {
+
+				if (token.isEmpty()) {
+
+					/*
+					 * Empty token signify an explicit relative path and every
+					 * empty segment means the import climbs one level in the
+					 * hierarchy. So we delete parts of the relative name.
+					 */
+					if (skippedInitialEmpty) {
+						if (name.isEmpty()) {
+							throw new IllegalArgumentException(
+									"Relative segments cannot take import "
+											+ "above top level");
+						} else {
+							name.remove(name.size() - 1);
+						}
+					} else {
+						skippedInitialEmpty = true;
+					}
+
+				} else {
+					name.add(token);
+				}
+			}
 
 			return loadModule(name);
 		}
@@ -157,6 +185,7 @@ public class CodeObjectImportLoader {
 		 * @return {@link SourceFile} if loading succeeded, {@code null}
 		 *         otherwise.
 		 */
+		@Override
 		public ModuleCO loadModule(List<String> importPath) {
 
 			Module loaded = null;
@@ -179,6 +208,7 @@ public class CodeObjectImportLoader {
 			}
 		}
 
+		@Override
 		public CodeObject loadModuleNamespaceMember(String itemName,
 				ModuleCO sourceModule) {
 			/*
@@ -235,22 +265,27 @@ public class CodeObjectImportLoader {
 	private static class DoNothingBinder<O, A, C, M> implements
 			ImportSimulator.Binder<O, A, C, M> {
 
+		@Override
 		public void bindModuleToLocalName(M loadedModule, String name,
 				C container) {
 		}
 
+		@Override
 		public void bindModuleToName(M loadedModule, String name,
 				M receivingModule) {
 		}
 
+		@Override
 		public void bindObjectToLocalName(O importedObject, String name,
 				C container) {
 		}
 
+		@Override
 		public void bindObjectToName(O importedObject, String name,
 				M receivingModule) {
 		}
 
+		@Override
 		public void onUnresolvedImport(
 				uk.ac.ic.doc.gander.importing.Import<C, M> importInstance,
 				String name, M receivingModule) {
@@ -261,6 +296,7 @@ public class CodeObjectImportLoader {
 
 		}
 
+		@Override
 		public void onUnresolvedLocalImport(
 				uk.ac.ic.doc.gander.importing.Import<C, M> importInstance,
 				String name) {

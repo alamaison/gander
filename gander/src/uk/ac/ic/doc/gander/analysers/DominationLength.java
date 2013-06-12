@@ -14,19 +14,20 @@ import uk.ac.ic.doc.gander.analysis.MethodFinder;
 import uk.ac.ic.doc.gander.analysis.signatures.SignatureBuilder;
 import uk.ac.ic.doc.gander.cfg.BasicBlock;
 import uk.ac.ic.doc.gander.flowinference.TypeResolver;
+import uk.ac.ic.doc.gander.flowinference.ZeroCfaTypeEngine;
 import uk.ac.ic.doc.gander.hierarchy.Hierarchy;
 import uk.ac.ic.doc.gander.hierarchy.HierarchyWalker;
 import uk.ac.ic.doc.gander.hierarchy.Package;
 import uk.ac.ic.doc.gander.model.Class;
+import uk.ac.ic.doc.gander.model.DefaultModel;
 import uk.ac.ic.doc.gander.model.Function;
 import uk.ac.ic.doc.gander.model.Module;
-import uk.ac.ic.doc.gander.model.DefaultModel;
 import uk.ac.ic.doc.gander.model.MutableModel;
 
 public class DominationLength extends HierarchyWalker {
 
-	private Tallies stats = new Tallies();
-	private MutableModel model;
+	private final Tallies stats = new Tallies();
+	private final MutableModel model;
 
 	public DominationLength(Hierarchy hierarchy) throws ParseException,
 			IOException {
@@ -46,7 +47,7 @@ public class DominationLength extends HierarchyWalker {
 	private void analyseFunction(Function function) {
 		SignatureBuilder chainAnalyser = new SignatureBuilder();
 
-		TypeResolver typer = new TypeResolver(model);
+		TypeResolver typer = new TypeResolver(new ZeroCfaTypeEngine());
 
 		for (BasicBlock sub : function.getCfg().getBlocks()) {
 			for (Call call : new MethodFinder(sub).calls()) {
@@ -55,7 +56,7 @@ public class DominationLength extends HierarchyWalker {
 
 				Collection<Call> dependentCalls = chainAnalyser.signature(
 						(Name) CallHelper.indirectCallTarget(call), sub,
-						function, typer);
+						function, typer, true, true);
 
 				if (dependentCalls != null) {
 					int count = countUniqueMethodNames(dependentCalls);

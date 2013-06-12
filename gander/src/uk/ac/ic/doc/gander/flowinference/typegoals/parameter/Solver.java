@@ -1,17 +1,23 @@
 package uk.ac.ic.doc.gander.flowinference.typegoals.parameter;
 
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.python.pydev.parser.jython.SimpleNode;
 import org.python.pydev.parser.jython.ast.Call;
+import org.python.pydev.parser.jython.ast.ClassDef;
 import org.python.pydev.parser.jython.ast.exprType;
 
+import uk.ac.ic.doc.gander.ast.AstParentNodeFinder;
 import uk.ac.ic.doc.gander.flowinference.argument.Argument;
 import uk.ac.ic.doc.gander.flowinference.call.CallDispatch;
 import uk.ac.ic.doc.gander.flowinference.call.TopD;
 import uk.ac.ic.doc.gander.flowinference.callframe.CallSiteStackFrame;
 import uk.ac.ic.doc.gander.flowinference.callframe.StackFrame;
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
+import uk.ac.ic.doc.gander.flowinference.flowgoals.CodeObjectDefinitionPosition;
+import uk.ac.ic.doc.gander.flowinference.flowgoals.FlowGoal;
 import uk.ac.ic.doc.gander.flowinference.result.Concentrator;
 import uk.ac.ic.doc.gander.flowinference.result.Concentrator.DatumProcessor;
 import uk.ac.ic.doc.gander.flowinference.result.FiniteResult;
@@ -22,9 +28,12 @@ import uk.ac.ic.doc.gander.flowinference.sendersgoals.FunctionSendersGoal;
 import uk.ac.ic.doc.gander.flowinference.typegoals.TopT;
 import uk.ac.ic.doc.gander.flowinference.typegoals.expression.ExpressionTypeGoal;
 import uk.ac.ic.doc.gander.flowinference.types.TCallable;
+import uk.ac.ic.doc.gander.flowinference.types.TObject;
 import uk.ac.ic.doc.gander.flowinference.types.Type;
 import uk.ac.ic.doc.gander.model.ModelSite;
+import uk.ac.ic.doc.gander.model.codeobject.ClassCO;
 import uk.ac.ic.doc.gander.model.codeobject.InvokableCodeObject;
+import uk.ac.ic.doc.gander.model.codeobject.NestedCodeObject;
 import uk.ac.ic.doc.gander.model.name_binding.Variable;
 
 final class ParameterTypeGoalSolver {
@@ -45,10 +54,76 @@ final class ParameterTypeGoalSolver {
 		this.goalManager = goalManager;
 		this.variable = variable;
 
-		Result<ModelSite<Call>> callSites = goalManager
-				.registerSubgoal(new FunctionSendersGoal(invokable));
+		if (invokable.parent() instanceof ClassCO
+				&& invokable.formalParameters().hasVariableBindingParameter(
+						variable)
+				&& invokable.formalParameters()
+						.variableBindingParameter(variable)
+						.acceptsArgumentByPosition(0)) {
 
-		solution = deriveParameterTypeFromCallsites(callSites);
+			solution = findInstanceTypes((ClassCO) invokable.parent());
+		} else {
+
+			Result<ModelSite<Call>> callSites = goalManager
+					.registerSubgoal(new FunctionSendersGoal(invokable));
+
+			solution = deriveParameterTypeFromCallsites(callSites);
+		}
+	}
+
+	private Result<Type> findInstanceTypes(final ClassCO klass) {
+
+		Result<ModelSite<exprType>> classPositions = goalManager
+				.registerSubgoal(new FlowGoal(new CodeObjectDefinitionPosition(
+						klass)));
+
+		return classPositions
+				.transformResult(new Transformer<ModelSite<exprType>, Result<Type>>() {
+
+					@Override
+					public Result<Type> transformFiniteResult(
+							Set<ModelSite<exprType>> result) {
+
+						Set<Type> instances = new HashSet<Type>();
+
+						for (ModelSite<exprType> position : result) {
+
+							SimpleNode parent = AstParentNodeFinder.findParent(
+									position.astNode(), position.codeObject()
+											.ast());
+
+							if (parent instanceof ClassDef) {
+								ClassDef parentClass = ((ClassDef) parent);
+
+								if (Arrays.asList(parentClass.bases).contains(
+										position.astNode())) {
+									if (!parent.equals(klass.ast())) {
+										/*
+										 * Class object has arrived at the
+										 * inheritance list of another class
+										 */
+										NestedCodeObject classCodeObject = position
+												.codeObject()
+												.nestedCodeObjects()
+												.findCodeObjectMatchingAstNode(
+														parentClass);
+										instances.add(new TObject(
+												(ClassCO) classCodeObject));
+									}
+								}
+							}
+						}
+
+						instances.add(new TObject(klass));
+
+						return new FiniteResult<Type>(instances);
+					}
+
+					@Override
+					public Result<Type> transformInfiniteResult() {
+						return TopT.INSTANCE;
+					}
+				});
 	}
 
 	private Result<Type> processSender(ModelSite<Call> senderCallSite) {

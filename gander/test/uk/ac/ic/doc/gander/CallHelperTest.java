@@ -11,11 +11,12 @@ import org.junit.Test;
 import org.python.pydev.parser.jython.ast.Call;
 
 import uk.ac.ic.doc.gander.flowinference.TypeResolver;
+import uk.ac.ic.doc.gander.flowinference.ZeroCfaTypeEngine;
 import uk.ac.ic.doc.gander.hierarchy.Hierarchy;
 import uk.ac.ic.doc.gander.hierarchy.HierarchyFactory;
+import uk.ac.ic.doc.gander.model.DefaultModel;
 import uk.ac.ic.doc.gander.model.Function;
 import uk.ac.ic.doc.gander.model.Module;
-import uk.ac.ic.doc.gander.model.DefaultModel;
 import uk.ac.ic.doc.gander.model.MutableModel;
 import uk.ac.ic.doc.gander.model.OldNamespace;
 
@@ -224,8 +225,8 @@ public class CallHelperTest {
 		assertTrue(CallHelper.isMethodCall(call, scope, typer));
 		assertTrue(CallHelper.isMethodCallOnName(call, scope, typer));
 		assertTrue(CallHelper.isCallToSelf((Function) scope, call));
-		assertFalse(CallHelper.isExternalMethodCall(call,
-				(Function) scope, typer));
+		assertFalse(CallHelper.isExternalMethodCall(call, (Function) scope,
+				typer));
 		assertFalse(CallHelper.isExternalMethodCallOnName(call,
 				(Function) scope, typer));
 	}
@@ -241,7 +242,7 @@ public class CallHelperTest {
 		MutableModel model = new DefaultModel(hierarchy);
 
 		Module start = model.loadModule("start");
-		typer = new TypeResolver(model);
+		typer = new TypeResolver(new ZeroCfaTypeEngine());
 
 		TaggedCallAndScopeFinder tagFinder = new TaggedCallAndScopeFinder(
 				start, "tag");
