@@ -13,11 +13,11 @@ import uk.ac.ic.doc.gander.concretetype.FiniteConcreteType;
 import uk.ac.ic.doc.gander.concretetype.TopC;
 import uk.ac.ic.doc.gander.flowinference.TypeEngine;
 import uk.ac.ic.doc.gander.flowinference.TypeResolver;
+import uk.ac.ic.doc.gander.flowinference.abstractmachine.PyClass;
+import uk.ac.ic.doc.gander.flowinference.abstractmachine.PyInstance;
+import uk.ac.ic.doc.gander.flowinference.abstractmachine.PyObject;
 import uk.ac.ic.doc.gander.flowinference.result.Result;
 import uk.ac.ic.doc.gander.flowinference.result.Result.Transformer;
-import uk.ac.ic.doc.gander.flowinference.types.TClass;
-import uk.ac.ic.doc.gander.flowinference.types.TObject;
-import uk.ac.ic.doc.gander.flowinference.types.Type;
 import uk.ac.ic.doc.gander.implementation.ClassImplementation;
 import uk.ac.ic.doc.gander.implementation.Implementation;
 import uk.ac.ic.doc.gander.implementation.InstanceImplementation;
@@ -37,32 +37,32 @@ public final class FlowTyperToConcreteType implements ConcreteTypeSystem {
 	public ConcreteType typeOf(ModelSite<? extends exprType> expression,
 			BasicBlock containingBlock) {
 
-		Result<Type> flowType = cfaTyper.typeOf(expression);
+		Result<PyObject> flowType = cfaTyper.typeOf(expression);
 
-		return flowType.transformResult(new Transformer<Type, ConcreteType>() {
+		return flowType.transformResult(new Transformer<PyObject, ConcreteType>() {
 
 			@Override
-			public ConcreteType transformFiniteResult(Set<Type> result) {
+			public ConcreteType transformFiniteResult(Set<PyObject> result) {
 
 				Set<Implementation> impls = new HashSet<Implementation>();
 
-				for (Type value : result) {
+				for (PyObject value : result) {
 					impls.add(abstractValueToImplementation(value));
 				}
 
 				return new FiniteConcreteType(impls);
 			}
 
-			private Implementation abstractValueToImplementation(Type value) {
+			private Implementation abstractValueToImplementation(PyObject value) {
 
-				if (value instanceof TClass) {
+				if (value instanceof PyClass) {
 
-					return new ClassImplementation(((TClass) value)
+					return new ClassImplementation(((PyClass) value)
 							.codeObject(), resolver);
 
-				} else if (value instanceof TObject) {
+				} else if (value instanceof PyInstance) {
 
-					return new InstanceImplementation(((TObject) value)
+					return new InstanceImplementation(((PyInstance) value)
 							.classObject(), resolver);
 
 				} else {

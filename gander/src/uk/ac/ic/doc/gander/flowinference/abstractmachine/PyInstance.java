@@ -1,4 +1,4 @@
-package uk.ac.ic.doc.gander.flowinference.types;
+package uk.ac.ic.doc.gander.flowinference.abstractmachine;
 
 import java.util.Collections;
 import java.util.HashSet;
@@ -17,18 +17,21 @@ import uk.ac.ic.doc.gander.model.NamespaceName;
 import uk.ac.ic.doc.gander.model.ObjectInstanceNamespace;
 import uk.ac.ic.doc.gander.model.codeobject.ClassCO;
 
-public class TObject implements Type {
+/**
+ * Abstract model of Python class-instance objects.
+ */
+public class PyInstance implements PyObject {
 
 	private final ClassCO classObject;
 
 	@Deprecated
-	public TObject(Class classInstance) {
+	public PyInstance(Class classInstance) {
 		if (classInstance == null)
 			throw new NullPointerException("Class object required");
 		this.classObject = classInstance.codeObject();
 	}
 
-	public TObject(ClassCO classObject) {
+	public PyInstance(ClassCO classObject) {
 		if (classObject == null)
 			throw new NullPointerException("Class object required");
 		this.classObject = classObject;
@@ -55,9 +58,9 @@ public class TObject implements Type {
 	 * are returned from the namespace.
 	 */
 	@Override
-	public Result<Type> memberType(String memberName, SubgoalManager goalManager) {
+	public Result<PyObject> memberType(String memberName, SubgoalManager goalManager) {
 
-		RedundancyEliminator<Type> result = new RedundancyEliminator<Type>();
+		RedundancyEliminator<PyObject> result = new RedundancyEliminator<PyObject>();
 
 		result.add(memberTypeFromObject(memberName, goalManager));
 
@@ -68,48 +71,48 @@ public class TObject implements Type {
 		return result.result();
 	}
 
-	private Result<Type> memberTypeFromObject(String memberName,
+	private Result<PyObject> memberTypeFromObject(String memberName,
 			SubgoalManager goalManager) {
 		return memberTypeFromNamespace(memberName, new ObjectInstanceNamespace(
 				classObject), goalManager);
 	}
 
-	private Result<Type> memberTypeFromClass(String memberName,
+	private Result<PyObject> memberTypeFromClass(String memberName,
 			SubgoalManager goalManager) {
-		Result<Type> unboundTypes = memberTypeFromNamespace(memberName,
+		Result<PyObject> unboundTypes = memberTypeFromNamespace(memberName,
 				classObject.fullyQualifiedNamespace(), goalManager);
 
 		return unboundTypes.transformResult(new TypeBinder());
 	}
 
-	private Result<Type> memberTypeFromNamespace(String memberName,
+	private Result<PyObject> memberTypeFromNamespace(String memberName,
 			Namespace namespace, SubgoalManager goalManager) {
 		NamespaceName member = new NamespaceName(memberName, namespace);
 		return goalManager.registerSubgoal(new NamespaceNameTypeGoal(member));
 	}
 
-	private final class TypeBinder implements Transformer<Type, Result<Type>> {
+	private final class TypeBinder implements Transformer<PyObject, Result<PyObject>> {
 
 		@Override
-		public Result<Type> transformFiniteResult(Set<Type> result) {
-			Set<Type> boundTypes = new HashSet<Type>();
+		public Result<PyObject> transformFiniteResult(Set<PyObject> result) {
+			Set<PyObject> boundTypes = new HashSet<PyObject>();
 
-			for (Type unboundType : result) {
+			for (PyObject unboundType : result) {
 				boundTypes.add(bindType(unboundType));
 			}
 
-			return new FiniteResult<Type>(boundTypes);
+			return new FiniteResult<PyObject>(boundTypes);
 		}
 
 		@Override
-		public Result<Type> transformInfiniteResult() {
+		public Result<PyObject> transformInfiniteResult() {
 			return TopT.INSTANCE;
 		}
 	}
 
-	private Type bindType(Type unboundType) {
-		if (unboundType instanceof TFunction) {
-			return new TBoundMethod(((TFunction) unboundType), this);
+	private PyObject bindType(PyObject unboundType) {
+		if (unboundType instanceof PyFunction) {
+			return new PyBoundMethod(((PyFunction) unboundType), this);
 		} else {
 			return unboundType;
 		}
@@ -155,7 +158,7 @@ public class TObject implements Type {
 			return false;
 		if (getClass() != obj.getClass())
 			return false;
-		TObject other = (TObject) obj;
+		PyInstance other = (PyInstance) obj;
 		if (classObject == null) {
 			if (other.classObject != null)
 				return false;

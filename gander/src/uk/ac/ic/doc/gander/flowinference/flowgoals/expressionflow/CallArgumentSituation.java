@@ -5,6 +5,9 @@ import java.util.Set;
 import org.python.pydev.parser.jython.ast.Call;
 import org.python.pydev.parser.jython.ast.exprType;
 
+import uk.ac.ic.doc.gander.flowinference.abstractmachine.FunctionStylePassingStrategy;
+import uk.ac.ic.doc.gander.flowinference.abstractmachine.PyCallable;
+import uk.ac.ic.doc.gander.flowinference.abstractmachine.PyObject;
 import uk.ac.ic.doc.gander.flowinference.argument.Argument;
 import uk.ac.ic.doc.gander.flowinference.argument.CallsiteArgument;
 import uk.ac.ic.doc.gander.flowinference.call.CallDispatch;
@@ -18,9 +21,6 @@ import uk.ac.ic.doc.gander.flowinference.result.RedundancyEliminator;
 import uk.ac.ic.doc.gander.flowinference.result.Result;
 import uk.ac.ic.doc.gander.flowinference.result.Result.Transformer;
 import uk.ac.ic.doc.gander.flowinference.typegoals.expression.ExpressionTypeGoal;
-import uk.ac.ic.doc.gander.flowinference.types.FunctionStylePassingStrategy;
-import uk.ac.ic.doc.gander.flowinference.types.TCallable;
-import uk.ac.ic.doc.gander.flowinference.types.Type;
 import uk.ac.ic.doc.gander.model.ModelSite;
 
 final class CallArgumentSituation implements FlowSituation {
@@ -40,17 +40,17 @@ final class CallArgumentSituation implements FlowSituation {
 	@Override
 	public Result<FlowPosition> nextFlowPositions(
 			final SubgoalManager goalManager) {
-		Result<Type> receivers = goalManager
+		Result<PyObject> receivers = goalManager
 				.registerSubgoal(new ExpressionTypeGoal(
 						new ModelSite<exprType>(callSite.astNode().func,
 								callSite.codeObject())));
 
 		return receivers
-				.transformResult(new Transformer<Type, Result<FlowPosition>>() {
+				.transformResult(new Transformer<PyObject, Result<FlowPosition>>() {
 
 					@Override
 					public Result<FlowPosition> transformFiniteResult(
-							Set<Type> receiverTypes) {
+							Set<PyObject> receiverTypes) {
 						return nextPositions(receiverTypes, goalManager);
 					}
 
@@ -65,11 +65,11 @@ final class CallArgumentSituation implements FlowSituation {
 				});
 	}
 
-	private Result<FlowPosition> nextPositions(Set<Type> receiverTypes,
+	private Result<FlowPosition> nextPositions(Set<PyObject> receiverTypes,
 			SubgoalManager goalManager) {
 		RedundancyEliminator<FlowPosition> nextPositions = new RedundancyEliminator<FlowPosition>();
 
-		for (Type receiver : receiverTypes) {
+		for (PyObject receiver : receiverTypes) {
 			nextPositions.add(parametersOf(receiver, goalManager));
 			if (nextPositions.isFinished())
 				break;
@@ -82,12 +82,12 @@ final class CallArgumentSituation implements FlowSituation {
 	 * Finds the flow positions that the argument might flow when invoking a
 	 * particular receiver.
 	 */
-	private Result<FlowPosition> parametersOf(Type receiver,
+	private Result<FlowPosition> parametersOf(PyObject receiver,
 			SubgoalManager goalManager) {
 
-		if (receiver instanceof TCallable) {
+		if (receiver instanceof PyCallable) {
 
-			Result<CallDispatch> calls = ((TCallable) receiver).dispatches(
+			Result<CallDispatch> calls = ((PyCallable) receiver).dispatches(
 					stackFrame, goalManager);
 
 			return calls.transformResult(new ArgumentFlower(argument(),

@@ -3,13 +3,13 @@ package uk.ac.ic.doc.gander.flowinference.call;
 import java.util.HashSet;
 import java.util.Set;
 
+import uk.ac.ic.doc.gander.flowinference.abstractmachine.PyObject;
 import uk.ac.ic.doc.gander.flowinference.argument.Argument;
 import uk.ac.ic.doc.gander.flowinference.argument.ArgumentDestination;
 import uk.ac.ic.doc.gander.flowinference.callframe.StackFrame;
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
 import uk.ac.ic.doc.gander.flowinference.result.FiniteResult;
 import uk.ac.ic.doc.gander.flowinference.result.Result;
-import uk.ac.ic.doc.gander.flowinference.types.Type;
 import uk.ac.ic.doc.gander.model.codeobject.InvokableCodeObject;
 import uk.ac.ic.doc.gander.model.name_binding.Variable;
 import uk.ac.ic.doc.gander.model.parameters.FormalParameter;
@@ -52,7 +52,7 @@ public final class DefaultCallDispatch implements CallDispatch {
 	}
 
 	@Override
-	public Result<Type> objectsBoundToVariable(Variable variable,
+	public Result<PyObject> objectsBoundToVariable(Variable variable,
 			SubgoalManager goalManager) {
 		if (variable == null)
 			throw new NullPointerException("Variable required");

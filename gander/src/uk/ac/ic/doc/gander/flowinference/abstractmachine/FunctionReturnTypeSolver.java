@@ -1,4 +1,4 @@
-package uk.ac.ic.doc.gander.flowinference.types;
+package uk.ac.ic.doc.gander.flowinference.abstractmachine;
 
 import org.python.pydev.parser.jython.SimpleNode;
 import org.python.pydev.parser.jython.ast.Return;
@@ -19,7 +19,7 @@ final class FunctionReturnTypeSolver {
 
 	private final SubgoalManager goalManager;
 	private final InvokableCodeObject codeObject;
-	private final RedundancyEliminator<Type> returnTypes = new RedundancyEliminator<Type>();
+	private final RedundancyEliminator<PyObject> returnTypes = new RedundancyEliminator<PyObject>();
 
 	private boolean seenReturnStatement = false;
 
@@ -43,7 +43,7 @@ final class FunctionReturnTypeSolver {
 		}
 	}
 
-	Result<Type> solution() {
+	Result<PyObject> solution() {
 
 		return returnTypes.result();
 	}
@@ -88,7 +88,7 @@ final class FunctionReturnTypeSolver {
 		};
 	}
 
-	private Result<Type> noneType(SubgoalManager goalManager) {
+	private Result<PyObject> noneType(SubgoalManager goalManager) {
 		VariableTypeGoal typer = new VariableTypeGoal(new Variable("None",
 				codeObject));
 		return goalManager.registerSubgoal(typer);

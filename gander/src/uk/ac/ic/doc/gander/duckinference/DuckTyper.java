@@ -12,12 +12,12 @@ import uk.ac.ic.doc.gander.cfg.BasicBlock;
 import uk.ac.ic.doc.gander.ducktype.InterfaceRecovery;
 import uk.ac.ic.doc.gander.ducktype.NamedMethodFeature;
 import uk.ac.ic.doc.gander.flowinference.TypeResolver;
+import uk.ac.ic.doc.gander.flowinference.abstractmachine.PyClass;
+import uk.ac.ic.doc.gander.flowinference.abstractmachine.PyInstance;
+import uk.ac.ic.doc.gander.flowinference.abstractmachine.PyObject;
 import uk.ac.ic.doc.gander.flowinference.result.FiniteResult;
 import uk.ac.ic.doc.gander.flowinference.result.Result;
 import uk.ac.ic.doc.gander.flowinference.typegoals.TopT;
-import uk.ac.ic.doc.gander.flowinference.types.TClass;
-import uk.ac.ic.doc.gander.flowinference.types.TObject;
-import uk.ac.ic.doc.gander.flowinference.types.Type;
 import uk.ac.ic.doc.gander.interfacetype.InterfaceType;
 import uk.ac.ic.doc.gander.model.Model;
 import uk.ac.ic.doc.gander.model.OldNamespace;
@@ -57,9 +57,9 @@ public class DuckTyper {
 	 *            The basic block containing the call in question.
 	 * @param scope
 	 *            The Python scope in which the call occurs.
-	 * @return A type judgement as a set of {@link Type}s.
+	 * @return A type judgement as a set of {@link PyObject}s.
 	 */
-	public Result<Type> typeOf(exprType expression, BasicBlock containingBlock,
+	public Result<PyObject> typeOf(exprType expression, BasicBlock containingBlock,
 			OldNamespace scope) {
 
 		long oldFlowCost = resolver.flowCost();
@@ -78,13 +78,13 @@ public class DuckTyper {
 			}
 		}
 
-		Result<Type> result;
+		Result<PyObject> result;
 		if (methods.isEmpty()) {
 			result = TopT.INSTANCE;
 
 		} else {
 
-			Set<Type> type = new HashSet<Type>();
+			Set<PyObject> type = new HashSet<PyObject>();
 
 			for (ClassCO klass : definitions.getDefinitions()) {
 				InheritedMethods inheritance = new InheritedMethods(
@@ -94,16 +94,16 @@ public class DuckTyper {
 				// TODO: We only compare by name. Matching parameter numbers etc
 				// will require more complex logic.
 				if (inheritance.methodsInTree().containsAll(methods)) {
-					type.add(new TObject(klass));
+					type.add(new PyInstance(klass));
 					/*
 					 * TODO: without look at the parameters, can't tell class
 					 * and instance apart
 					 */
-					type.add(new TClass(klass));
+					type.add(new PyClass(klass));
 				}
 			}
 
-			result = new FiniteResult<Type>(type);
+			result = new FiniteResult<PyObject>(type);
 		}
 
 		long now = System.currentTimeMillis();

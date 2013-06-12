@@ -6,6 +6,8 @@ import java.util.Set;
 import org.python.pydev.parser.jython.ast.NameTok;
 import org.python.pydev.parser.jython.ast.argumentsType;
 
+import uk.ac.ic.doc.gander.flowinference.abstractmachine.PyInstance;
+import uk.ac.ic.doc.gander.flowinference.abstractmachine.PyObject;
 import uk.ac.ic.doc.gander.flowinference.argument.Argument;
 import uk.ac.ic.doc.gander.flowinference.argument.ArgumentDestination;
 import uk.ac.ic.doc.gander.flowinference.callframe.StackFrame;
@@ -14,8 +16,6 @@ import uk.ac.ic.doc.gander.flowinference.flowgoals.FlowPosition;
 import uk.ac.ic.doc.gander.flowinference.flowgoals.TopFp;
 import uk.ac.ic.doc.gander.flowinference.result.FiniteResult;
 import uk.ac.ic.doc.gander.flowinference.result.Result;
-import uk.ac.ic.doc.gander.flowinference.types.TObject;
-import uk.ac.ic.doc.gander.flowinference.types.Type;
 import uk.ac.ic.doc.gander.model.ModelSite;
 import uk.ac.ic.doc.gander.model.codeobject.InvokableCodeObject;
 import uk.ac.ic.doc.gander.model.name_binding.Variable;
@@ -69,7 +69,7 @@ final class KwargParameter implements FormalParameter {
 	}
 
 	@Override
-	public Result<Type> objectsPassedAtCall(StackFrame<Argument> stackFrame,
+	public Result<PyObject> objectsPassedAtCall(StackFrame<Argument> stackFrame,
 			Variable variable, SubgoalManager goalManager) {
 		if (variable == null)
 			throw new NullPointerException("Variable required");
@@ -80,10 +80,10 @@ final class KwargParameter implements FormalParameter {
 		 */
 		if (boundVariables().contains(variable)) {
 
-			Type tuple = new TObject(variable.codeObject().model()
+			PyObject tuple = new PyInstance(variable.codeObject().model()
 					.builtinDictionary());
 
-			return new FiniteResult<Type>(Collections.singleton(tuple));
+			return new FiniteResult<PyObject>(Collections.singleton(tuple));
 		} else {
 			return FiniteResult.bottom();
 		}

@@ -16,9 +16,9 @@ import uk.ac.ic.doc.gander.ducktype.InterfaceRecovery;
 import uk.ac.ic.doc.gander.ducktype.NamedMethodFeature;
 import uk.ac.ic.doc.gander.flowinference.TypeResolver;
 import uk.ac.ic.doc.gander.flowinference.ZeroCfaTypeEngine;
+import uk.ac.ic.doc.gander.flowinference.abstractmachine.PyObject;
 import uk.ac.ic.doc.gander.flowinference.result.Result;
 import uk.ac.ic.doc.gander.flowinference.result.Result.Transformer;
-import uk.ac.ic.doc.gander.flowinference.types.Type;
 import uk.ac.ic.doc.gander.hierarchy.Hierarchy;
 import uk.ac.ic.doc.gander.hierarchy.HierarchyWalker;
 import uk.ac.ic.doc.gander.hierarchy.Package;
@@ -78,13 +78,13 @@ public class DuckHunt {
 
 	private void countNumberOfTypesInferredFor(Call call, Function function,
 			BasicBlock block) {
-		Result<Type> type = new DuckTyper(model, typer, false).typeOf(call,
+		Result<PyObject> type = new DuckTyper(model, typer, false).typeOf(call,
 				block, function);
 
-		int size = type.transformResult(new Transformer<Type, Integer>() {
+		int size = type.transformResult(new Transformer<PyObject, Integer>() {
 
 			@Override
-			public Integer transformFiniteResult(Set<Type> result) {
+			public Integer transformFiniteResult(Set<PyObject> result) {
 				return result.size();
 			}
 

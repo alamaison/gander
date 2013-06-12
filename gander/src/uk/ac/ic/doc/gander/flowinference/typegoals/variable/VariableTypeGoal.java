@@ -1,11 +1,11 @@
 package uk.ac.ic.doc.gander.flowinference.typegoals.variable;
 
+import uk.ac.ic.doc.gander.flowinference.abstractmachine.PyObject;
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
 import uk.ac.ic.doc.gander.flowinference.result.FiniteResult;
 import uk.ac.ic.doc.gander.flowinference.result.Result;
 import uk.ac.ic.doc.gander.flowinference.typegoals.TypeGoal;
 import uk.ac.ic.doc.gander.flowinference.typegoals.namespacename.NamespaceNameTypeGoal;
-import uk.ac.ic.doc.gander.flowinference.types.Type;
 import uk.ac.ic.doc.gander.model.NamespaceName;
 import uk.ac.ic.doc.gander.model.name_binding.Variable;
 
@@ -24,7 +24,7 @@ public final class VariableTypeGoal implements TypeGoal {
 		this.variable = variable;
 	}
 
-	public Result<Type> initialSolution() {
+	public Result<PyObject> initialSolution() {
 		return FiniteResult.bottom();
 	}
 
@@ -32,7 +32,7 @@ public final class VariableTypeGoal implements TypeGoal {
 	 * Resolves the variable to the namespace in which it binds and delegates
 	 * the type inference to a type goal for that namespace name.
 	 */
-	public Result<Type> recalculateSolution(SubgoalManager goalManager) {
+	public Result<PyObject> recalculateSolution(SubgoalManager goalManager) {
 
 		return goalManager.registerSubgoal(new NamespaceNameTypeGoal(
 				new NamespaceName(variable.bindingLocation())));

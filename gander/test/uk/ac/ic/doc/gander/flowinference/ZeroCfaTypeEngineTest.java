@@ -20,15 +20,15 @@ import uk.ac.ic.doc.gander.RelativeTestModelCreator;
 import uk.ac.ic.doc.gander.ScopedAstNode;
 import uk.ac.ic.doc.gander.ScopedPrintNode;
 import uk.ac.ic.doc.gander.TaggedNodeAndScopeFinder;
+import uk.ac.ic.doc.gander.flowinference.abstractmachine.PyBoundMethod;
+import uk.ac.ic.doc.gander.flowinference.abstractmachine.PyClass;
+import uk.ac.ic.doc.gander.flowinference.abstractmachine.PyFunction;
+import uk.ac.ic.doc.gander.flowinference.abstractmachine.PyModule;
+import uk.ac.ic.doc.gander.flowinference.abstractmachine.PyInstance;
+import uk.ac.ic.doc.gander.flowinference.abstractmachine.PyObject;
 import uk.ac.ic.doc.gander.flowinference.result.FiniteResult;
 import uk.ac.ic.doc.gander.flowinference.result.Result;
 import uk.ac.ic.doc.gander.flowinference.typegoals.TopT;
-import uk.ac.ic.doc.gander.flowinference.types.TBoundMethod;
-import uk.ac.ic.doc.gander.flowinference.types.TClass;
-import uk.ac.ic.doc.gander.flowinference.types.TFunction;
-import uk.ac.ic.doc.gander.flowinference.types.TModule;
-import uk.ac.ic.doc.gander.flowinference.types.TObject;
-import uk.ac.ic.doc.gander.flowinference.types.Type;
 import uk.ac.ic.doc.gander.importing.ImportPath;
 import uk.ac.ic.doc.gander.model.ModelSite;
 import uk.ac.ic.doc.gander.model.MutableModel;
@@ -43,22 +43,22 @@ public class ZeroCfaTypeEngineTest {
 
 	private MutableModel model;
 	private TypeEngine engine;
-	private Type stringType;
-	private Type integerType;
-	private Type listType;
-	private Type noneType;
-	private Type tupleType;
-	private Type dictType;
+	private PyObject stringType;
+	private PyObject integerType;
+	private PyObject listType;
+	private PyObject noneType;
+	private PyObject tupleType;
+	private PyObject dictType;
 
 	@Before
 	public void setup() throws Throwable {
 		model = new RelativeTestModelCreator(TEST_FOLDER, this).getModel();
-		stringType = new TObject(builtinClass("str"));
-		integerType = new TObject(builtinClass("int"));
-		listType = new TObject(builtinClass("list"));
-		tupleType = new TObject(builtinClass("tuple"));
-		dictType = new TObject(builtinClass("dict"));
-		noneType = new TObject(builtinClass("__BuiltinNoneType__"));
+		stringType = new PyInstance(builtinClass("str"));
+		integerType = new PyInstance(builtinClass("int"));
+		listType = new PyInstance(builtinClass("list"));
+		tupleType = new PyInstance(builtinClass("tuple"));
+		dictType = new PyInstance(builtinClass("dict"));
+		noneType = new PyInstance(builtinClass("__BuiltinNoneType__"));
 		engine = new ZeroCfaTypeEngine();
 	}
 
@@ -79,10 +79,10 @@ public class ZeroCfaTypeEngineTest {
 		ScopedAstNode literal = findNode("literals", literalName.toLowerCase()
 				+ "_literal");
 
-		Result<Type> type = engine.typeOf(new ModelSite<exprType>(
+		Result<PyObject> type = engine.typeOf(new ModelSite<exprType>(
 				((Expr) literal.getNode()).value, literal.getScope()));
 
-		Type expectedType = new TObject(builtinClass(expectedClassName));
+		PyObject expectedType = new PyInstance(builtinClass(expectedClassName));
 
 		assertEquals("Target of " + literalName.toLowerCase()
 				+ " literal's type not inferred correctly",
@@ -107,10 +107,10 @@ public class ZeroCfaTypeEngineTest {
 				+ "_literal_assignment");
 
 		exprType lhs = ((Assign) literal.getNode()).targets[0];
-		Result<Type> type = engine.typeOf(new ModelSite<exprType>(lhs, literal
+		Result<PyObject> type = engine.typeOf(new ModelSite<exprType>(lhs, literal
 				.getScope()));
 
-		Set<Type> expectedType = Collections.<Type> singleton(new TObject(
+		Set<PyObject> expectedType = Collections.<PyObject> singleton(new PyInstance(
 				builtinClass(expectedClassName)));
 
 		assertEquals("Target of " + literalName.toLowerCase()
@@ -192,9 +192,9 @@ public class ZeroCfaTypeEngineTest {
 	public void multipleLocalDefinitions() throws Throwable {
 		ScopedPrintNode node = findPrintNode("multiple_local_definitions",
 				"am_i_a_string");
-		Result<Type> type = engine.typeOf(node.site());
+		Result<PyObject> type = engine.typeOf(node.site());
 
-		Set<Type> expectedType = new HashSet<Type>();
+		Set<PyObject> expectedType = new HashSet<PyObject>();
 		expectedType.add(stringType);
 		expectedType.add(integerType);
 
@@ -217,7 +217,7 @@ public class ZeroCfaTypeEngineTest {
 	public void classAttributeOutside() throws Throwable {
 		ScopedPrintNode node = findPrintNode("class_attribute_outside",
 				"what_am_i");
-		Result<Type> type = engine.typeOf(node.site());
+		Result<PyObject> type = engine.typeOf(node.site());
 
 		assertEquals("Variable's type not inferred correctly",
 				typeJudgement(stringType), type);
@@ -230,7 +230,7 @@ public class ZeroCfaTypeEngineTest {
 	public void classAttributeInside() throws Throwable {
 		ScopedPrintNode node = findPrintNode("class_attribute_inside",
 				"what_am_i");
-		Result<Type> type = engine.typeOf(node.site());
+		Result<PyObject> type = engine.typeOf(node.site());
 
 		assertEquals("Variable's type not inferred correctly",
 				typeJudgement(stringType), type);
@@ -250,7 +250,7 @@ public class ZeroCfaTypeEngineTest {
 	public void classAttributeAssignedOutside() throws Throwable {
 		String testName = "class_attribute_assigned_outside";
 		ScopedPrintNode node = findPrintNode(testName, "what_am_i");
-		Result<Type> type = engine.typeOf(node.site());
+		Result<PyObject> type = engine.typeOf(node.site());
 
 		assertEquals("Attribute's type not inferred correctly "
 				+ "when accessed outside the scope of the namespace.",
@@ -281,7 +281,7 @@ public class ZeroCfaTypeEngineTest {
 
 		TestModule test = newTestModule("class_non_lexical_binding");
 
-		Result<Type> typeX = engine.typeOf(test.printNode(
+		Result<PyObject> typeX = engine.typeOf(test.printNode(
 				"this came from the global x").site());
 
 		assertEquals("Wrong type; the analysis probably failed to see that "
@@ -289,7 +289,7 @@ public class ZeroCfaTypeEngineTest {
 				+ "refer to different locations even though they have the "
 				+ "same variable name.", typeJudgement(integerType), typeX);
 
-		Result<Type> typeY = engine.typeOf(test.printNode(
+		Result<PyObject> typeY = engine.typeOf(test.printNode(
 				"this didn't come from anywhere").site());
 
 		assertEquals("Y should not have been found in the class's namespace.",
@@ -304,7 +304,7 @@ public class ZeroCfaTypeEngineTest {
 	@Test
 	public void selfAssignment() throws Throwable {
 		ScopedPrintNode node = findPrintNode("self_assignment", "what_am_i");
-		Result<Type> type = engine.typeOf(node.site());
+		Result<PyObject> type = engine.typeOf(node.site());
 
 		assertEquals("Variable's type not inferred correctly",
 				typeJudgement(stringType), type);
@@ -319,7 +319,7 @@ public class ZeroCfaTypeEngineTest {
 	public void selfAssignmentIndirect() throws Throwable {
 		ScopedPrintNode node = findPrintNode("self_assignment_indirect",
 				"what_am_i");
-		Result<Type> type = engine.typeOf(node.site());
+		Result<PyObject> type = engine.typeOf(node.site());
 
 		assertEquals("Variable's type not inferred correctly",
 				typeJudgement(stringType), type);
@@ -332,16 +332,16 @@ public class ZeroCfaTypeEngineTest {
 	public void constructorResult() throws Throwable {
 		String testName = "constructor_result";
 		ScopedPrintNode node = findPrintNode(testName, "what_is_a");
-		Result<Type> type = engine.typeOf(node.site());
+		Result<PyObject> type = engine.typeOf(node.site());
 
 		assertEquals("Variable's type not inferred correctly",
-				typeJudgement(new TObject(moduleLevelClass(node, "A"))), type);
+				typeJudgement(new PyInstance(moduleLevelClass(node, "A"))), type);
 
 		node = findPrintNode(testName, "what_is_b");
 		type = engine.typeOf(node.site());
 
 		assertEquals("Variable's type not inferred correctly",
-				typeJudgement(new TObject(moduleLevelClass(node, "A"))), type);
+				typeJudgement(new PyInstance(moduleLevelClass(node, "A"))), type);
 	}
 
 	/**
@@ -352,10 +352,10 @@ public class ZeroCfaTypeEngineTest {
 	public void constructorVsInstance() throws Throwable {
 		ScopedPrintNode node = findPrintNode("constructor_vs_instance",
 				"what_is_a");
-		Result<Type> type = engine.typeOf(node.site());
+		Result<PyObject> type = engine.typeOf(node.site());
 
 		assertEquals("Variable's type not inferred correctly",
-				typeJudgement(new TObject(moduleLevelClass(node, "A"))), type);
+				typeJudgement(new PyInstance(moduleLevelClass(node, "A"))), type);
 
 		node = findPrintNode("constructor_vs_instance", "what_is_b");
 		type = engine.typeOf(node.site());
@@ -372,15 +372,15 @@ public class ZeroCfaTypeEngineTest {
 	@Test
 	public void metaclass() throws Throwable {
 		ScopedPrintNode node = findPrintNode("metaclass", "am_i_a_class");
-		Result<Type> type = engine.typeOf(node.site());
+		Result<PyObject> type = engine.typeOf(node.site());
 
-		assertEquals("W not inferred as a metaclass", typeJudgement(new TClass(
+		assertEquals("W not inferred as a metaclass", typeJudgement(new PyClass(
 				moduleLevelClass(node, "W"))), type);
 
 		node = findPrintNode("metaclass", "am_i_also_a_class");
 		type = engine.typeOf(node.site());
 
-		assertEquals("W not inferred as a metaclass", typeJudgement(new TClass(
+		assertEquals("W not inferred as a metaclass", typeJudgement(new PyClass(
 				moduleLevelClass(node, "W"))), type);
 
 		node = findPrintNode("metaclass", "am_i_an_instance");
@@ -388,7 +388,7 @@ public class ZeroCfaTypeEngineTest {
 
 		assertEquals("Variable's type not inferred correctly. This probably "
 				+ "means it gave the type of a class instance the type "
-				+ "of the class object (metaclass)", typeJudgement(new TObject(
+				+ "of the class object (metaclass)", typeJudgement(new PyInstance(
 				moduleLevelClass(node, "W"))), type);
 
 		node = findPrintNode("metaclass", "am_i_also_an_instance");
@@ -396,7 +396,7 @@ public class ZeroCfaTypeEngineTest {
 
 		assertEquals("Variable's type not inferred correctly. This probably "
 				+ "means it gave the type of a class instance the type "
-				+ "of the class object (metaclass)", typeJudgement(new TObject(
+				+ "of the class object (metaclass)", typeJudgement(new PyInstance(
 				moduleLevelClass(node, "W"))), type);
 	}
 
@@ -406,8 +406,8 @@ public class ZeroCfaTypeEngineTest {
 	@Test
 	public void function() throws Throwable {
 		ScopedPrintNode node = findPrintNode("function", "what_am_i");
-		Result<Type> type = engine.typeOf(node.site());
-		Set<Type> expectedType = typeJudgement(new TFunction(
+		Result<PyObject> type = engine.typeOf(node.site());
+		Set<PyObject> expectedType = typeJudgement(new PyFunction(
 				moduleLevelFunction(node, "f")));
 
 		assertEquals("Function type not inferred correctly", expectedType, type);
@@ -420,14 +420,14 @@ public class ZeroCfaTypeEngineTest {
 	public void method() throws Throwable {
 		String testName = "method";
 		ScopedPrintNode node = findPrintNode(testName, "what_am_i_via_class");
-		Result<Type> type = engine.typeOf(node.site());
+		Result<PyObject> type = engine.typeOf(node.site());
 
 		ClassCO klass = moduleLevelClass(node, "A");
 		FunctionCO unboundMethod = nestedFunction(klass, "method");
 
-		Set<Type> expectedBoundType = typeJudgement(new TBoundMethod(
-				new TFunction(unboundMethod), new TObject(klass)));
-		Set<Type> expectedUnboundType = typeJudgement(new TFunction(
+		Set<PyObject> expectedBoundType = typeJudgement(new PyBoundMethod(
+				new PyFunction(unboundMethod), new PyInstance(klass)));
+		Set<PyObject> expectedUnboundType = typeJudgement(new PyFunction(
 				unboundMethod));
 
 		assertEquals("Method not resolved correctly via class",
@@ -447,12 +447,12 @@ public class ZeroCfaTypeEngineTest {
 	public void method2() throws Throwable {
 		String testName = "method2";
 		ScopedPrintNode node = findPrintNode(testName, "what_am_i");
-		Result<Type> type = engine.typeOf(node.site());
+		Result<PyObject> type = engine.typeOf(node.site());
 
 		ClassCO klass = moduleLevelClass(node, "A");
 		FunctionCO unboundMethod = nestedFunction(klass, "g");
-		Set<Type> expectedType = typeJudgement(new TBoundMethod(new TFunction(
-				unboundMethod), new TObject(klass)));
+		Set<PyObject> expectedType = typeJudgement(new PyBoundMethod(new PyFunction(
+				unboundMethod), new PyInstance(klass)));
 
 		assertEquals("Method not resolved correctly", expectedType, type);
 	}
@@ -465,8 +465,8 @@ public class ZeroCfaTypeEngineTest {
 	public void functionReturnNullaryMono() throws Throwable {
 		ScopedPrintNode node = findPrintNode("function_return_nullary_mono",
 				"what_am_i");
-		Result<Type> type = engine.typeOf(node.site());
-		Set<Type> expectedType = typeJudgement(integerType);
+		Result<PyObject> type = engine.typeOf(node.site());
+		Set<PyObject> expectedType = typeJudgement(integerType);
 
 		assertEquals("Function return's type not inferred correctly",
 				expectedType, type);
@@ -483,11 +483,11 @@ public class ZeroCfaTypeEngineTest {
 	public void functionReturnNullaryPoly() throws Throwable {
 		ScopedPrintNode node = findPrintNode("function_return_nullary_poly",
 				"what_am_i");
-		Result<Type> type = engine.typeOf(node.site());
+		Result<PyObject> type = engine.typeOf(node.site());
 
-		Set<Type> expectedType = new HashSet<Type>();
+		Set<PyObject> expectedType = new HashSet<PyObject>();
 		expectedType.add(integerType);
-		expectedType.add(new TObject(nestedClass(
+		expectedType.add(new PyInstance(nestedClass(
 				moduleLevelFunction(node, "f"), "X")));
 
 		assertEquals("Function return's type not inferred correctly",
@@ -502,12 +502,12 @@ public class ZeroCfaTypeEngineTest {
 	public void functionReturnNullaryChained() throws Throwable {
 		ScopedPrintNode node = findPrintNode("function_return_nullary_chained",
 				"what_am_i");
-		Result<Type> type = engine.typeOf(node.site());
+		Result<PyObject> type = engine.typeOf(node.site());
 
-		Set<Type> expectedType = new HashSet<Type>();
+		Set<PyObject> expectedType = new HashSet<PyObject>();
 		expectedType.add(stringType);
 		expectedType.add(integerType);
-		expectedType.add(new TObject(nestedClass(
+		expectedType.add(new PyInstance(nestedClass(
 				moduleLevelFunction(node, "f"), "X")));
 
 		assertEquals("Function return's type not inferred correctly",
@@ -517,40 +517,40 @@ public class ZeroCfaTypeEngineTest {
 	@Test
 	public void functionReturn() throws Throwable {
 		ScopedPrintNode node = findPrintNode("function_return", "what_am_i");
-		Result<Type> type = engine.typeOf(node.site());
+		Result<PyObject> type = engine.typeOf(node.site());
 
 		assertEquals("Inferred type should be monomorphic", 1,
-				((FiniteResult<Type>) type).size());
+				((FiniteResult<PyObject>) type).size());
 		assertEquals("Function return's type not inferred correctly", noneType,
-				((FiniteResult<Type>) type).iterator().next());
+				((FiniteResult<PyObject>) type).iterator().next());
 	}
 
 	@Test
 	public void functionReturnMissing() throws Throwable {
 		ScopedPrintNode node = findPrintNode("function_return_missing",
 				"what_am_i");
-		Result<Type> type = engine.typeOf(node.site());
+		Result<PyObject> type = engine.typeOf(node.site());
 
 		assertEquals("Function return's type not inferred correctly", noneType,
-				((FiniteResult<Type>) type).iterator().next());
+				((FiniteResult<PyObject>) type).iterator().next());
 	}
 
 	@Test
 	public void methodReturn() throws Throwable {
 		ScopedPrintNode node = findPrintNode("method_return", "what_am_i");
-		Result<Type> type = engine.typeOf(node.site());
+		Result<PyObject> type = engine.typeOf(node.site());
 
 		assertEquals("Inferred type should be monomorphic",
 				typeJudgement(listType), type);
 	}
 
 	private void doGlobalTest(String testName, String tag) throws Exception {
-		Set<Type> expectedType = new HashSet<Type>();
+		Set<PyObject> expectedType = new HashSet<PyObject>();
 		expectedType.add(stringType);
 		expectedType.add(integerType);
 
 		ScopedPrintNode node = findPrintNode(testName, tag);
-		Result<Type> type = engine.typeOf(node.site());
+		Result<PyObject> type = engine.typeOf(node.site());
 
 		assertEquals("Global's type not inferred correctly.", expectedType,
 				type);
@@ -587,10 +587,10 @@ public class ZeroCfaTypeEngineTest {
 	@Test
 	public void methodParameterMono() throws Throwable {
 		String testName = "method_parameter_mono";
-		Set<Type> expectedType = typeJudgement(integerType);
+		Set<PyObject> expectedType = typeJudgement(integerType);
 
 		ScopedPrintNode node = findPrintNode(testName, "what_am_i");
-		Result<Type> type = engine.typeOf(node.site());
+		Result<PyObject> type = engine.typeOf(node.site());
 
 		assertEquals("Method parameter's type not inferred correctly",
 				expectedType, type);
@@ -599,13 +599,13 @@ public class ZeroCfaTypeEngineTest {
 	@Test
 	public void methodParameterPoly() throws Throwable {
 		String testName = "method_parameter_poly";
-		Set<Type> expectedType = new HashSet<Type>();
+		Set<PyObject> expectedType = new HashSet<PyObject>();
 		expectedType.add(stringType);
 		expectedType.add(integerType);
 		expectedType.add(listType);
 
 		ScopedPrintNode node = findPrintNode(testName, "what_am_i");
-		Result<Type> type = engine.typeOf(node.site());
+		Result<PyObject> type = engine.typeOf(node.site());
 
 		assertEquals("Method parameter's type not inferred correctly",
 				expectedType, type);
@@ -614,10 +614,10 @@ public class ZeroCfaTypeEngineTest {
 	@Test
 	public void methodParameterDefault() throws Throwable {
 		String testName = "method_parameter_default";
-		Set<Type> expectedType = typeJudgement(stringType);
+		Set<PyObject> expectedType = typeJudgement(stringType);
 
 		ScopedPrintNode node = findPrintNode(testName, "what_am_i");
-		Result<Type> type = engine.typeOf(node.site());
+		Result<PyObject> type = engine.typeOf(node.site());
 
 		assertEquals("Method's default parameter type not inferred correctly",
 				expectedType, type);
@@ -626,12 +626,12 @@ public class ZeroCfaTypeEngineTest {
 	@Test
 	public void methodParameterBound() throws Throwable {
 		String testName = "method_parameter_bound";
-		Set<Type> expectedType = new HashSet<Type>();
+		Set<PyObject> expectedType = new HashSet<PyObject>();
 		expectedType.add(stringType);
 		expectedType.add(integerType);
 
 		ScopedPrintNode node = findPrintNode(testName, "what_am_i");
-		Result<Type> type = engine.typeOf(node.site());
+		Result<PyObject> type = engine.typeOf(node.site());
 
 		assertEquals("Method parameter's type not inferred correctly. This "
 				+ "probably means the analysis failed to "
@@ -644,8 +644,8 @@ public class ZeroCfaTypeEngineTest {
 		String testName = "method_parameter_self";
 		ScopedPrintNode node = findPrintNode(testName, "what_am_i");
 
-		Result<Type> type = engine.typeOf(node.site());
-		Set<Type> expectedType = typeJudgement(new TObject(moduleLevelClass(
+		Result<PyObject> type = engine.typeOf(node.site());
+		Set<PyObject> expectedType = typeJudgement(new PyInstance(moduleLevelClass(
 				node, "A")));
 
 		assertEquals("Method parameter's type not inferred correctly",
@@ -657,8 +657,8 @@ public class ZeroCfaTypeEngineTest {
 		String testName = "method_parameter_assigned";
 		ScopedPrintNode node = findPrintNode(testName, "what_am_i");
 
-		Result<Type> type = engine.typeOf(node.site());
-		Set<Type> expectedType = typeJudgement(integerType);
+		Result<PyObject> type = engine.typeOf(node.site());
+		Set<PyObject> expectedType = typeJudgement(integerType);
 
 		assertEquals("Method parameter's type not inferred correctly",
 				expectedType, type);
@@ -669,8 +669,8 @@ public class ZeroCfaTypeEngineTest {
 		String testName = "method_parameter_self_assigned";
 		ScopedPrintNode node = findPrintNode(testName, "what_am_i");
 
-		Result<Type> type = engine.typeOf(node.site());
-		Set<Type> expectedType = typeJudgement(new TObject(moduleLevelClass(
+		Result<PyObject> type = engine.typeOf(node.site());
+		Set<PyObject> expectedType = typeJudgement(new PyInstance(moduleLevelClass(
 				node, "A")));
 
 		assertEquals("Method parameter's type not inferred correctly",
@@ -682,9 +682,9 @@ public class ZeroCfaTypeEngineTest {
 		String testName = "method_parameter_inherited";
 		ScopedPrintNode node = findPrintNode(testName, "what_am_i");
 
-		Result<Type> type = engine.typeOf(node.site());
+		Result<PyObject> type = engine.typeOf(node.site());
 
-		Set<Type> expectedType = new HashSet<Type>();
+		Set<PyObject> expectedType = new HashSet<PyObject>();
 		expectedType.add(dictType);
 		expectedType.add(stringType);
 
@@ -698,9 +698,9 @@ public class ZeroCfaTypeEngineTest {
 		String testName = "method_parameter_inherited_assigned1";
 		ScopedPrintNode node = findPrintNode(testName, "what_am_i");
 
-		Result<Type> type = engine.typeOf(node.site());
+		Result<PyObject> type = engine.typeOf(node.site());
 
-		Set<Type> expectedType = new HashSet<Type>();
+		Set<PyObject> expectedType = new HashSet<PyObject>();
 		expectedType.add(listType);
 
 		assertEquals("Parameter type not inferred correctly. "
@@ -713,9 +713,9 @@ public class ZeroCfaTypeEngineTest {
 		String testName = "method_parameter_inherited_assigned2";
 		ScopedPrintNode node = findPrintNode(testName, "what_am_i");
 
-		Result<Type> type = engine.typeOf(node.site());
+		Result<PyObject> type = engine.typeOf(node.site());
 
-		Set<Type> expectedType = new HashSet<Type>();
+		Set<PyObject> expectedType = new HashSet<PyObject>();
 		expectedType.add(listType);
 
 		assertEquals("Parameter type not inferred correctly. "
@@ -728,11 +728,11 @@ public class ZeroCfaTypeEngineTest {
 		String testName = "method_parameter_inherited_self";
 		ScopedPrintNode node = findPrintNode(testName, "what_am_i");
 
-		Result<Type> type = engine.typeOf(node.site());
+		Result<PyObject> type = engine.typeOf(node.site());
 
-		Set<Type> expectedType = new HashSet<Type>();
-		expectedType.add(new TObject(moduleLevelClass(node, "A")));
-		expectedType.add(new TObject(moduleLevelClass(node, "B")));
+		Set<PyObject> expectedType = new HashSet<PyObject>();
+		expectedType.add(new PyInstance(moduleLevelClass(node, "A")));
+		expectedType.add(new PyInstance(moduleLevelClass(node, "B")));
 
 		assertEquals("'self' parameter type not inferred correctly. "
 				+ "This probably means it failed to realise that 'm' is "
@@ -745,10 +745,10 @@ public class ZeroCfaTypeEngineTest {
 		String testName = "method_parameter_inherited_self_assigned1";
 		ScopedPrintNode node = findPrintNode(testName, "what_am_i");
 
-		Result<Type> type = engine.typeOf(node.site());
+		Result<PyObject> type = engine.typeOf(node.site());
 
-		Set<Type> expectedType = new HashSet<Type>();
-		expectedType.add(new TObject(moduleLevelClass(node, "B")));
+		Set<PyObject> expectedType = new HashSet<PyObject>();
+		expectedType.add(new PyInstance(moduleLevelClass(node, "B")));
 
 		assertEquals("'self' parameter type not inferred correctly. "
 				+ "This probably means it failed to realise that 'm' is "
@@ -761,10 +761,10 @@ public class ZeroCfaTypeEngineTest {
 		String testName = "method_parameter_inherited_self_assigned2";
 		ScopedPrintNode node = findPrintNode(testName, "what_am_i");
 
-		Result<Type> type = engine.typeOf(node.site());
+		Result<PyObject> type = engine.typeOf(node.site());
 
-		Set<Type> expectedType = new HashSet<Type>();
-		expectedType.add(new TObject(moduleLevelClass(node, "B")));
+		Set<PyObject> expectedType = new HashSet<PyObject>();
+		expectedType.add(new PyInstance(moduleLevelClass(node, "B")));
 
 		assertEquals("'self' parameter type not inferred correctly. "
 				+ "This probably means it failed to realise that 'm' is "
@@ -777,9 +777,9 @@ public class ZeroCfaTypeEngineTest {
 		String testName = "method_parameter_inherited_abstract";
 		ScopedPrintNode node = findPrintNode(testName, "what_am_i");
 
-		Result<Type> type = engine.typeOf(node.site());
+		Result<PyObject> type = engine.typeOf(node.site());
 
-		Set<Type> expectedType = new HashSet<Type>();
+		Set<PyObject> expectedType = new HashSet<PyObject>();
 		expectedType.add(listType);
 
 		assertEquals("Oarameter type not inferred correctly. "
@@ -793,10 +793,10 @@ public class ZeroCfaTypeEngineTest {
 		String testName = "method_parameter_inherited_abstract_self";
 		ScopedPrintNode node = findPrintNode(testName, "what_am_i");
 
-		Result<Type> type = engine.typeOf(node.site());
+		Result<PyObject> type = engine.typeOf(node.site());
 
-		Set<Type> expectedType = new HashSet<Type>();
-		expectedType.add(new TObject(moduleLevelClass(node, "Concrete")));
+		Set<PyObject> expectedType = new HashSet<PyObject>();
+		expectedType.add(new PyInstance(moduleLevelClass(node, "Concrete")));
 
 		assertEquals("'self' parameter type not inferred correctly. "
 				+ "This probably means it failed to realise that the super "
@@ -809,8 +809,8 @@ public class ZeroCfaTypeEngineTest {
 	public void methodParameterCalledExplicitly() throws Throwable {
 		ScopedPrintNode node = findPrintNode(
 				"method_parameter_called_explicitly", "what_am_i");
-		Result<Type> type = engine.typeOf(node.site());
-		Set<Type> expectedType = typeJudgement(listType);
+		Result<PyObject> type = engine.typeOf(node.site());
+		Set<PyObject> expectedType = typeJudgement(listType);
 
 		assertEquals("Method parameter type not inferred correctly. "
 				+ "This probably means it failed to realise that calling the "
@@ -822,10 +822,10 @@ public class ZeroCfaTypeEngineTest {
 	@Test
 	public void constructorParameter() throws Throwable {
 		String testName = "constructor_parameter";
-		Set<Type> expectedType = typeJudgement(integerType);
+		Set<PyObject> expectedType = typeJudgement(integerType);
 
 		ScopedPrintNode node = findPrintNode(testName, "what_am_i");
-		Result<Type> type = engine.typeOf(node.site());
+		Result<PyObject> type = engine.typeOf(node.site());
 
 		assertEquals("Constructor parameter's type not inferred correctly. "
 				+ "This probably means it didn't treat the "
@@ -836,10 +836,10 @@ public class ZeroCfaTypeEngineTest {
 	@Test
 	public void constructorParameterExplicit() throws Throwable {
 		String testName = "constructor_parameter_explicit";
-		Set<Type> expectedType = typeJudgement(integerType);
+		Set<PyObject> expectedType = typeJudgement(integerType);
 
 		ScopedPrintNode node = findPrintNode(testName, "what_am_i");
-		Result<Type> type = engine.typeOf(node.site());
+		Result<PyObject> type = engine.typeOf(node.site());
 
 		assertEquals("Constructor parameter's type not inferred correctly "
 				+ "when called explictly. Maybe it only treated the "
@@ -852,8 +852,8 @@ public class ZeroCfaTypeEngineTest {
 		String testName = "constructor_parameter_self";
 		ScopedPrintNode node = findPrintNode(testName, "what_am_i");
 
-		Result<Type> type = engine.typeOf(node.site());
-		Set<Type> expectedType = typeJudgement(new TObject(moduleLevelClass(
+		Result<PyObject> type = engine.typeOf(node.site());
+		Set<PyObject> expectedType = typeJudgement(new PyInstance(moduleLevelClass(
 				node, "A")));
 
 		assertEquals("Constructor parameter's type not inferred correctly",
@@ -865,8 +865,8 @@ public class ZeroCfaTypeEngineTest {
 		String testName = "constructor_parameter_self_assigned";
 		ScopedPrintNode node = findPrintNode(testName, "what_am_i");
 
-		Result<Type> type = engine.typeOf(node.site());
-		Set<Type> expectedType = typeJudgement(new TObject(moduleLevelClass(
+		Result<PyObject> type = engine.typeOf(node.site());
+		Set<PyObject> expectedType = typeJudgement(new PyInstance(moduleLevelClass(
 				node, "A")));
 
 		assertEquals("Constructor parameter's type not inferred "
@@ -880,9 +880,9 @@ public class ZeroCfaTypeEngineTest {
 		String testName = "constructor_parameter_inherited";
 		ScopedPrintNode node = findPrintNode(testName, "what_am_i");
 
-		Result<Type> type = engine.typeOf(node.site());
+		Result<PyObject> type = engine.typeOf(node.site());
 
-		Set<Type> expectedType = new HashSet<Type>();
+		Set<PyObject> expectedType = new HashSet<PyObject>();
 		expectedType.add(tupleType);
 
 		assertEquals("Parameter type not inferred correctly. "
@@ -896,10 +896,10 @@ public class ZeroCfaTypeEngineTest {
 		String testName = "constructor_parameter_inherited_self";
 		ScopedPrintNode node = findPrintNode(testName, "what_am_i");
 
-		Result<Type> type = engine.typeOf(node.site());
+		Result<PyObject> type = engine.typeOf(node.site());
 
-		Set<Type> expectedType = new HashSet<Type>();
-		expectedType.add(new TObject(moduleLevelClass(node, "S")));
+		Set<PyObject> expectedType = new HashSet<PyObject>();
+		expectedType.add(new PyInstance(moduleLevelClass(node, "S")));
 
 		assertEquals("'self' parameter type not inferred correctly. "
 				+ "This probably means it failed to realise that the "
@@ -912,8 +912,8 @@ public class ZeroCfaTypeEngineTest {
 		ScopedPrintNode node = findPrintNode("function_parameter_mono",
 				"what_am_i");
 
-		Result<Type> type = engine.typeOf(node.site());
-		Set<Type> expectedType = typeJudgement(stringType);
+		Result<PyObject> type = engine.typeOf(node.site());
+		Set<PyObject> expectedType = typeJudgement(stringType);
 
 		assertEquals("Function parameter's type not inferred correctly",
 				expectedType, type);
@@ -923,9 +923,9 @@ public class ZeroCfaTypeEngineTest {
 	public void functionParameterPoly() throws Throwable {
 		ScopedPrintNode node = findPrintNode("function_parameter_poly",
 				"what_am_i");
-		Result<Type> type = engine.typeOf(node.site());
+		Result<PyObject> type = engine.typeOf(node.site());
 
-		Set<Type> expectedType = new HashSet<Type>();
+		Set<PyObject> expectedType = new HashSet<PyObject>();
 		expectedType.add(stringType);
 		expectedType.add(integerType);
 
@@ -937,10 +937,10 @@ public class ZeroCfaTypeEngineTest {
 	public void functionParameterMonoPolyCall() throws Throwable {
 		TestModule test = newTestModule("function_parameter_mono_poly_call");
 
-		Result<Type> typeX = engine
+		Result<PyObject> typeX = engine
 				.typeOf(test.printNode("what_am_i_x").site());
 
-		Set<Type> expectedTypeX = Collections.singleton(stringType);
+		Set<PyObject> expectedTypeX = Collections.singleton(stringType);
 
 		assertEquals("Function parameter's type not inferred correctly. "
 				+ "This probably means the analysis saw that g can be "
@@ -948,10 +948,10 @@ public class ZeroCfaTypeEngineTest {
 				+ "it shares a callsite with f, f must have two parameter "
 				+ "types too.", expectedTypeX, typeX);
 
-		Result<Type> typeY = engine
+		Result<PyObject> typeY = engine
 				.typeOf(test.printNode("what_am_i_y").site());
 
-		Set<Type> expectedTypeY = Collections.singleton(listType);
+		Set<PyObject> expectedTypeY = Collections.singleton(listType);
 
 		assertEquals("Function parameter's type not inferred correctly. "
 				+ "This probably means the analysis saw that g can be "
@@ -964,10 +964,10 @@ public class ZeroCfaTypeEngineTest {
 	public void functionParameterMonoPolyCallMixed() throws Throwable {
 		TestModule test = newTestModule("function_parameter_mono_poly_call_mixed");
 
-		Result<Type> typeX = engine
+		Result<PyObject> typeX = engine
 				.typeOf(test.printNode("what_am_i_x").site());
 
-		Set<Type> expectedTypeX = Collections.singleton(stringType);
+		Set<PyObject> expectedTypeX = Collections.singleton(stringType);
 
 		assertEquals("Function parameter's type not inferred correctly. "
 				+ "This probably means the analysis saw that g can be "
@@ -975,10 +975,10 @@ public class ZeroCfaTypeEngineTest {
 				+ "it shares a callsite with f, f must have two parameter "
 				+ "types too.", expectedTypeX, typeX);
 
-		Result<Type> typeY = engine
+		Result<PyObject> typeY = engine
 				.typeOf(test.printNode("what_am_i_y").site());
 
-		Set<Type> expectedTypeY = Collections.singleton(listType);
+		Set<PyObject> expectedTypeY = Collections.singleton(listType);
 
 		assertEquals("Function parameter's type not inferred correctly. "
 				+ "This probably means the analysis saw that g can be "
@@ -992,8 +992,8 @@ public class ZeroCfaTypeEngineTest {
 		ScopedPrintNode node = findPrintNode("function_parameter_default",
 				"what_am_i");
 
-		Result<Type> type = engine.typeOf(node.site());
-		Set<Type> expectedType = typeJudgement(stringType);
+		Result<PyObject> type = engine.typeOf(node.site());
+		Set<PyObject> expectedType = typeJudgement(stringType);
 
 		assertEquals("Function parameter's type not inferred correctly",
 				expectedType, type);
@@ -1004,7 +1004,7 @@ public class ZeroCfaTypeEngineTest {
 
 		TestModule test = newTestModule("function_parameter_tuple");
 
-		Result<Type> type = engine.typeOf(test.printNode("what_am_i").site());
+		Result<PyObject> type = engine.typeOf(test.printNode("what_am_i").site());
 
 		assertEquals("Tuple parameters must be inferred as Top as we "
 				+ "can't reason about the way values map to their elements.",
@@ -1016,7 +1016,7 @@ public class ZeroCfaTypeEngineTest {
 
 		TestModule test = newTestModule("function_parameter_tuple_default");
 
-		Result<Type> type = engine.typeOf(test.printNode("what_am_i").site());
+		Result<PyObject> type = engine.typeOf(test.printNode("what_am_i").site());
 
 		assertEquals("Tuple parameters must be inferred as Top as we "
 				+ "can't reason about the way values map to their elements.",
@@ -1028,8 +1028,8 @@ public class ZeroCfaTypeEngineTest {
 
 		TestModule test = newTestModule("function_parameter_starargs");
 
-		Result<Type> type = engine.typeOf(test.printNode("what_am_i").site());
-		Set<Type> expectedType = typeJudgement(tupleType);
+		Result<PyObject> type = engine.typeOf(test.printNode("what_am_i").site());
+		Set<PyObject> expectedType = typeJudgement(tupleType);
 
 		assertEquals("Starargs parameter should always be a tuple.",
 				expectedType, type);
@@ -1040,8 +1040,8 @@ public class ZeroCfaTypeEngineTest {
 
 		TestModule test = newTestModule("function_parameter_starargs_default");
 
-		Result<Type> type = engine.typeOf(test.printNode("what_am_i").site());
-		Set<Type> expectedType = typeJudgement(tupleType);
+		Result<PyObject> type = engine.typeOf(test.printNode("what_am_i").site());
+		Set<PyObject> expectedType = typeJudgement(tupleType);
 
 		assertEquals("Starargs parameter should always be a tuple "
 				+ "even when nothing is passed at the callsite.", expectedType,
@@ -1053,8 +1053,8 @@ public class ZeroCfaTypeEngineTest {
 
 		TestModule test = newTestModule("function_parameter_kwargs");
 
-		Result<Type> type = engine.typeOf(test.printNode("what_am_i").site());
-		Set<Type> expectedType = typeJudgement(dictType);
+		Result<PyObject> type = engine.typeOf(test.printNode("what_am_i").site());
+		Set<PyObject> expectedType = typeJudgement(dictType);
 
 		assertEquals("Kwargs parameter should always be a dictionary.",
 				expectedType, type);
@@ -1065,8 +1065,8 @@ public class ZeroCfaTypeEngineTest {
 
 		TestModule test = newTestModule("function_parameter_kwargs_default");
 
-		Result<Type> type = engine.typeOf(test.printNode("what_am_i").site());
-		Set<Type> expectedType = typeJudgement(dictType);
+		Result<PyObject> type = engine.typeOf(test.printNode("what_am_i").site());
+		Set<PyObject> expectedType = typeJudgement(dictType);
 
 		assertEquals("Kwargs parameter should always be a dictionary "
 				+ "even when nothing is passed at the callsite.", expectedType,
@@ -1078,18 +1078,18 @@ public class ZeroCfaTypeEngineTest {
 
 		TestModule test = newTestModule("function_parameter_expanded_iter_arg");
 
-		Result<Type> b = engine.typeOf(test.printNode("b").site());
+		Result<PyObject> b = engine.typeOf(test.printNode("b").site());
 		assertEquals("Arguments passed from an expanded iterable "
 				+ "must be inferred as Top as we can't reason about what "
 				+ "is in the iterable.", TopT.INSTANCE, b);
 
-		Result<Type> c = engine.typeOf(test.printNode("c").site());
+		Result<PyObject> c = engine.typeOf(test.printNode("c").site());
 		assertEquals("Arguments passed from an expanded iterable "
 				+ "must be inferred as Top as we can't reason about what "
 				+ "is in the iterable.", TopT.INSTANCE, c);
 
-		Result<Type> a = engine.typeOf(test.printNode("a").site());
-		Set<Type> aExpected = typeJudgement(stringType);
+		Result<PyObject> a = engine.typeOf(test.printNode("a").site());
+		Set<PyObject> aExpected = typeJudgement(stringType);
 
 		assertEquals("An expanded iterable should not prevent other "
 				+ "parameter types being inferred correctly and precisely.",
@@ -1101,24 +1101,24 @@ public class ZeroCfaTypeEngineTest {
 
 		TestModule test = newTestModule("function_parameter_expanded_map_arg");
 
-		Result<Type> a = engine.typeOf(test.printNode("a").site());
+		Result<PyObject> a = engine.typeOf(test.printNode("a").site());
 		assertEquals("Arguments passed from an expanded map "
 				+ "must be inferred as Top as we can't reason about what "
 				+ "is in the map.", TopT.INSTANCE, a);
-		Result<Type> c = engine.typeOf(test.printNode("c").site());
+		Result<PyObject> c = engine.typeOf(test.printNode("c").site());
 		assertEquals("Arguments passed from an expanded map "
 				+ "must be inferred as Top as we can't reason about what "
 				+ "is in the map.", TopT.INSTANCE, c);
 
-		Result<Type> b = engine.typeOf(test.printNode("b").site());
-		Set<Type> bExpected = typeJudgement(listType);
+		Result<PyObject> b = engine.typeOf(test.printNode("b").site());
+		Set<PyObject> bExpected = typeJudgement(listType);
 		assertEquals("Arguments passed to a call by explicit keyword "
 				+ "can be inferred precisely as in any call that is legal "
 				+ "in Python (and therefore executes the function) the "
 				+ "keyword will not also be a key in the map.", bExpected, b);
 
-		Result<Type> p = engine.typeOf(test.printNode("p").site());
-		Set<Type> pExpected = typeJudgement(integerType);
+		Result<PyObject> p = engine.typeOf(test.printNode("p").site());
+		Set<PyObject> pExpected = typeJudgement(integerType);
 		assertEquals("Arguments passed to a call by explicit position "
 				+ "can be inferred precisely as in any call that is legal "
 				+ "in Python (and therefore executes the function) the "
@@ -1130,9 +1130,9 @@ public class ZeroCfaTypeEngineTest {
 	public void functionParameterCalledWithDifferentName() throws Throwable {
 		String testName = "function_parameter_called_with_different_name";
 		ScopedPrintNode node = findPrintNode(testName, "what_am_i");
-		Result<Type> type = engine.typeOf(node.site());
+		Result<PyObject> type = engine.typeOf(node.site());
 
-		Set<Type> expectedType = new HashSet<Type>();
+		Set<PyObject> expectedType = new HashSet<PyObject>();
 		expectedType.add(stringType);
 		expectedType.add(integerType);
 
@@ -1146,9 +1146,9 @@ public class ZeroCfaTypeEngineTest {
 	public void functionParameterCalledFromOtherModule() throws Throwable {
 		String testName = "function_parameter_called_from_other_module";
 		ScopedPrintNode node = findPrintNode(testName, "what_am_i");
-		Result<Type> type = engine.typeOf(node.site());
+		Result<PyObject> type = engine.typeOf(node.site());
 
-		Set<Type> expectedType = new HashSet<Type>();
+		Set<PyObject> expectedType = new HashSet<PyObject>();
 		expectedType.add(stringType);
 		expectedType.add(integerType);
 
@@ -1164,9 +1164,9 @@ public class ZeroCfaTypeEngineTest {
 			throws Throwable {
 		String testName = "function_parameter_called_from_other_module_with_different_name";
 		ScopedPrintNode node = findPrintNode(testName, "what_am_i");
-		Result<Type> type = engine.typeOf(node.site());
+		Result<PyObject> type = engine.typeOf(node.site());
 
-		Set<Type> expectedType = new HashSet<Type>();
+		Set<PyObject> expectedType = new HashSet<PyObject>();
 		expectedType.add(stringType);
 		expectedType.add(integerType);
 
@@ -1182,9 +1182,9 @@ public class ZeroCfaTypeEngineTest {
 			throws Throwable {
 		String testName = "function_parameter_called_from_other_module_via_from";
 		ScopedPrintNode node = findPrintNode(testName, "what_am_i");
-		Result<Type> type = engine.typeOf(node.site());
+		Result<PyObject> type = engine.typeOf(node.site());
 
-		Set<Type> expectedType = new HashSet<Type>();
+		Set<PyObject> expectedType = new HashSet<PyObject>();
 		expectedType.add(stringType);
 		expectedType.add(integerType);
 
@@ -1200,9 +1200,9 @@ public class ZeroCfaTypeEngineTest {
 			throws Throwable {
 		String testName = "function_parameter_called_from_other_module_via_from_with_different_name";
 		ScopedPrintNode node = findPrintNode(testName, "what_am_i");
-		Result<Type> type = engine.typeOf(node.site());
+		Result<PyObject> type = engine.typeOf(node.site());
 
-		Set<Type> expectedType = new HashSet<Type>();
+		Set<PyObject> expectedType = new HashSet<PyObject>();
 		expectedType.add(stringType);
 		expectedType.add(integerType);
 
@@ -1218,9 +1218,9 @@ public class ZeroCfaTypeEngineTest {
 			throws Throwable {
 		String testName = "function_parameter_called_from_other_module_via_frommed_parent";
 		ScopedPrintNode node = findPrintNode(testName, "what_am_i");
-		Result<Type> type = engine.typeOf(node.site());
+		Result<PyObject> type = engine.typeOf(node.site());
 
-		Set<Type> expectedType = new HashSet<Type>();
+		Set<PyObject> expectedType = new HashSet<PyObject>();
 		expectedType.add(stringType);
 		expectedType.add(integerType);
 
@@ -1236,9 +1236,9 @@ public class ZeroCfaTypeEngineTest {
 			throws Throwable {
 		String testName = "function_parameter_called_from_other_module_via_star";
 		ScopedPrintNode node = findPrintNode(testName, "what_am_i");
-		Result<Type> type = engine.typeOf(node.site());
+		Result<PyObject> type = engine.typeOf(node.site());
 
-		Set<Type> expectedType = new HashSet<Type>();
+		Set<PyObject> expectedType = new HashSet<PyObject>();
 		expectedType.add(stringType);
 		expectedType.add(integerType);
 
@@ -1254,9 +1254,9 @@ public class ZeroCfaTypeEngineTest {
 			throws Throwable {
 		String testName = "function_parameter_called_from_other_module_through_call";
 		ScopedPrintNode node = findPrintNode(testName, "what_am_i");
-		Result<Type> type = engine.typeOf(node.site());
+		Result<PyObject> type = engine.typeOf(node.site());
 
-		Set<Type> expectedType = new HashSet<Type>();
+		Set<PyObject> expectedType = new HashSet<PyObject>();
 		expectedType.add(stringType);
 		expectedType.add(integerType);
 
@@ -1272,15 +1272,15 @@ public class ZeroCfaTypeEngineTest {
 			throws Throwable {
 		String testName = "function_parameter_called_from_other_module_through_class";
 		ScopedPrintNode node = findPrintNode(testName, "what_am_i");
-		Result<Type> type = engine.typeOf(node.site());
+		Result<PyObject> type = engine.typeOf(node.site());
 
-		Set<Type> expectedType = new HashSet<Type>();
+		Set<PyObject> expectedType = new HashSet<PyObject>();
 		expectedType.add(stringType);
 		ClassCO x = nestedClass(
 				model.lookup(ImportPath
 						.fromDottedName("function_parameter_called_from_other_module_through_class_aux")),
 				"X");
-		expectedType.add(new TObject(x));
+		expectedType.add(new PyInstance(x));
 
 		assertEquals("Function parameter's type not inferred "
 				+ "correctly. This probably means that the analysis didn't "
@@ -1294,9 +1294,9 @@ public class ZeroCfaTypeEngineTest {
 			throws Throwable {
 		String testName = "function_parameter_called_from_other_module_through_global";
 		ScopedPrintNode node = findPrintNode(testName, "what_am_i");
-		Result<Type> type = engine.typeOf(node.site());
+		Result<PyObject> type = engine.typeOf(node.site());
 
-		Set<Type> expectedType = new HashSet<Type>();
+		Set<PyObject> expectedType = new HashSet<PyObject>();
 		expectedType.add(stringType);
 		expectedType.add(integerType);
 
@@ -1312,9 +1312,9 @@ public class ZeroCfaTypeEngineTest {
 			throws Throwable {
 		String testName = "function_parameter_called_from_other_module_through_global_via_from";
 		ScopedPrintNode node = findPrintNode(testName, "what_am_i");
-		Result<Type> type = engine.typeOf(node.site());
+		Result<PyObject> type = engine.typeOf(node.site());
 
-		Set<Type> expectedType = new HashSet<Type>();
+		Set<PyObject> expectedType = new HashSet<PyObject>();
 		expectedType.add(stringType);
 		expectedType.add(integerType);
 
@@ -1330,9 +1330,9 @@ public class ZeroCfaTypeEngineTest {
 			throws Throwable {
 		String testName = "function_parameter_called_from_other_module_via_alias";
 		ScopedPrintNode node = findPrintNode(testName, "what_am_i");
-		Result<Type> type = engine.typeOf(node.site());
+		Result<PyObject> type = engine.typeOf(node.site());
 
-		Set<Type> expectedType = new HashSet<Type>();
+		Set<PyObject> expectedType = new HashSet<PyObject>();
 		expectedType.add(stringType);
 		expectedType.add(integerType);
 
@@ -1346,9 +1346,9 @@ public class ZeroCfaTypeEngineTest {
 	public void functionParameterCalledThroughCall() throws Throwable {
 		String testName = "function_parameter_called_through_call";
 		ScopedPrintNode node = findPrintNode(testName, "what_am_i");
-		Result<Type> type = engine.typeOf(node.site());
+		Result<PyObject> type = engine.typeOf(node.site());
 
-		Set<Type> expectedType = new HashSet<Type>();
+		Set<PyObject> expectedType = new HashSet<PyObject>();
 		expectedType.add(stringType);
 		expectedType.add(integerType);
 		expectedType.add(listType);
@@ -1364,9 +1364,9 @@ public class ZeroCfaTypeEngineTest {
 	public void functionParameterCalledThroughCallParameter() throws Throwable {
 		String testName = "function_parameter_called_through_call_parameter";
 		ScopedPrintNode node = findPrintNode(testName, "what_am_i");
-		Result<Type> type = engine.typeOf(node.site());
+		Result<PyObject> type = engine.typeOf(node.site());
 
-		Set<Type> expectedType = new HashSet<Type>();
+		Set<PyObject> expectedType = new HashSet<PyObject>();
 		expectedType.add(stringType);
 		expectedType.add(listType);
 
@@ -1380,7 +1380,7 @@ public class ZeroCfaTypeEngineTest {
 	public void functionParameterCalledThroughList() throws Throwable {
 		String testName = "function_parameter_called_through_list";
 		ScopedPrintNode node = findPrintNode(testName, "what_am_i");
-		Result<Type> type = engine.typeOf(node.site());
+		Result<PyObject> type = engine.typeOf(node.site());
 
 		assertEquals("Function parameter's type not inferred "
 				+ "correctly. This probably means that the analysis didn't "
@@ -1393,7 +1393,7 @@ public class ZeroCfaTypeEngineTest {
 	public void functionParameterCalledThroughDict() throws Throwable {
 		String testName = "function_parameter_called_through_dict";
 		ScopedPrintNode node = findPrintNode(testName, "what_am_i");
-		Result<Type> type = engine.typeOf(node.site());
+		Result<PyObject> type = engine.typeOf(node.site());
 
 		assertEquals("Function parameter's type not inferred "
 				+ "correctly. This probably means that the analysis didn't "
@@ -1406,9 +1406,9 @@ public class ZeroCfaTypeEngineTest {
 	public void functionParameterCalledThroughObject1() throws Throwable {
 		String testName = "function_parameter_called_through_object1";
 		ScopedPrintNode node = findPrintNode(testName, "what_am_i");
-		Result<Type> type = engine.typeOf(node.site());
+		Result<PyObject> type = engine.typeOf(node.site());
 
-		Set<Type> expectedType = new HashSet<Type>();
+		Set<PyObject> expectedType = new HashSet<PyObject>();
 		expectedType.add(stringType);
 		expectedType.add(listType);
 
@@ -1422,9 +1422,9 @@ public class ZeroCfaTypeEngineTest {
 	public void functionParameterCalledThroughObject2() throws Throwable {
 		String testName = "function_parameter_called_through_object2";
 		ScopedPrintNode node = findPrintNode(testName, "what_am_i");
-		Result<Type> type = engine.typeOf(node.site());
+		Result<PyObject> type = engine.typeOf(node.site());
 
-		Set<Type> expectedType = new HashSet<Type>();
+		Set<PyObject> expectedType = new HashSet<PyObject>();
 		expectedType.add(stringType);
 		expectedType.add(listType);
 
@@ -1438,11 +1438,11 @@ public class ZeroCfaTypeEngineTest {
 	public void functionParameterCalledThroughClass() throws Throwable {
 		String testName = "function_parameter_called_through_class";
 		ScopedPrintNode node = findPrintNode(testName, "what_am_i");
-		Result<Type> type = engine.typeOf(node.site());
+		Result<PyObject> type = engine.typeOf(node.site());
 
-		Set<Type> expectedType = new HashSet<Type>();
+		Set<PyObject> expectedType = new HashSet<PyObject>();
 		expectedType.add(stringType);
-		expectedType.add(new TObject(moduleLevelClass(node, "X")));
+		expectedType.add(new PyInstance(moduleLevelClass(node, "X")));
 
 		assertEquals("Function parameter's type not inferred "
 				+ "correctly. This probably means that the analysis didn't "
@@ -1455,11 +1455,11 @@ public class ZeroCfaTypeEngineTest {
 	public void functionParameterCalledThroughClassInMethod() throws Throwable {
 		String testName = "function_parameter_called_through_class_in_method";
 		ScopedPrintNode node = findPrintNode(testName, "what_am_i");
-		Result<Type> type = engine.typeOf(node.site());
+		Result<PyObject> type = engine.typeOf(node.site());
 
-		Set<Type> expectedType = new HashSet<Type>();
+		Set<PyObject> expectedType = new HashSet<PyObject>();
 		expectedType.add(stringType);
-		expectedType.add(new TObject(moduleLevelClass(node, "X")));
+		expectedType.add(new PyInstance(moduleLevelClass(node, "X")));
 
 		assertEquals("Function parameter's type not inferred "
 				+ "correctly. This probably means that the analysis didn't "
@@ -1472,9 +1472,9 @@ public class ZeroCfaTypeEngineTest {
 	public void functionParameterCalledThroughGlobal() throws Throwable {
 		String testName = "function_parameter_called_through_global";
 		ScopedPrintNode node = findPrintNode(testName, "what_am_i");
-		Result<Type> type = engine.typeOf(node.site());
+		Result<PyObject> type = engine.typeOf(node.site());
 
-		Set<Type> expectedType = new HashSet<Type>();
+		Set<PyObject> expectedType = new HashSet<PyObject>();
 		expectedType.add(stringType);
 		expectedType.add(integerType);
 
@@ -1488,10 +1488,10 @@ public class ZeroCfaTypeEngineTest {
 	@Test
 	public void objectAttributeMono() throws Throwable {
 		String testName = "object_attribute_mono";
-		Set<Type> expectedType = typeJudgement(listType);
+		Set<PyObject> expectedType = typeJudgement(listType);
 
 		ScopedPrintNode node = findPrintNode(testName, "what_am_i_inside");
-		Result<Type> type = engine.typeOf(node.site());
+		Result<PyObject> type = engine.typeOf(node.site());
 
 		assertEquals("Attribute's type not inferred correctly", expectedType,
 				type);
@@ -1508,13 +1508,13 @@ public class ZeroCfaTypeEngineTest {
 		String testName = "object_attribute_poly";
 
 		ScopedPrintNode node = findPrintNode(testName, "what_am_i_inside");
-		Result<Type> type = engine.typeOf(node.site());
+		Result<PyObject> type = engine.typeOf(node.site());
 
-		Set<Type> expectedType = new HashSet<Type>();
+		Set<PyObject> expectedType = new HashSet<PyObject>();
 		expectedType.add(stringType);
 		expectedType.add(integerType);
 		expectedType.add(listType);
-		expectedType.add(new TObject(moduleLevelClass(node, "A")));
+		expectedType.add(new PyInstance(moduleLevelClass(node, "A")));
 
 		assertEquals("Attribute's type not inferred correctly", expectedType,
 				type);
@@ -1529,10 +1529,10 @@ public class ZeroCfaTypeEngineTest {
 	@Test
 	public void objectAttributeDistracted() throws Throwable {
 		String testName = "object_attribute_distracted";
-		Set<Type> expectedType = typeJudgement(listType);
+		Set<PyObject> expectedType = typeJudgement(listType);
 
 		ScopedPrintNode node = findPrintNode(testName, "what_am_i_inside");
-		Result<Type> type = engine.typeOf(node.site());
+		Result<PyObject> type = engine.typeOf(node.site());
 
 		assertEquals("Attribute's type not inferred correctly. "
 				+ "This probably means it was distracted by the "
@@ -1542,7 +1542,7 @@ public class ZeroCfaTypeEngineTest {
 		node = findPrintNode(testName, "what_am_i_outside");
 		type = engine.typeOf(node.site());
 
-		expectedType = new HashSet<Type>();
+		expectedType = new HashSet<PyObject>();
 		expectedType.add(stringType);
 		expectedType.add(listType);
 
@@ -1555,10 +1555,10 @@ public class ZeroCfaTypeEngineTest {
 	@Test
 	public void objectAttributeSetInConstructor() throws Throwable {
 		String testName = "object_attribute_set_in_constructor";
-		Set<Type> expectedType = typeJudgement(listType);
+		Set<PyObject> expectedType = typeJudgement(listType);
 
 		ScopedPrintNode node = findPrintNode(testName, "what_am_i");
-		Result<Type> type = engine.typeOf(node.site());
+		Result<PyObject> type = engine.typeOf(node.site());
 
 		assertEquals("Attribute's type not inferred correctly. This "
 				+ "probably means forward flow analysis didn't follow"
@@ -1572,9 +1572,9 @@ public class ZeroCfaTypeEngineTest {
 
 		ScopedPrintNode node = findPrintNode(testName,
 				"i_am_really_the_instance_var");
-		Result<Type> type = engine.typeOf(node.site());
+		Result<PyObject> type = engine.typeOf(node.site());
 
-		Set<Type> expectedType = new HashSet<Type>();
+		Set<PyObject> expectedType = new HashSet<PyObject>();
 		expectedType.add(stringType);
 		expectedType.add(listType);
 
@@ -1594,9 +1594,9 @@ public class ZeroCfaTypeEngineTest {
 
 		ScopedPrintNode node = findPrintNode(testName,
 				"i_am_really_the_instance_var");
-		Result<Type> type = engine.typeOf(node.site());
+		Result<PyObject> type = engine.typeOf(node.site());
 
-		Set<Type> expectedType = new HashSet<Type>();
+		Set<PyObject> expectedType = new HashSet<PyObject>();
 		expectedType.add(stringType);
 		expectedType.add(listType);
 
@@ -1614,9 +1614,9 @@ public class ZeroCfaTypeEngineTest {
 	public void objectAttributeIndependent() throws Throwable {
 		TestModule test = newTestModule("object_attribute_independent");
 
-		Set<Type> expectedType = Collections.emptySet();
+		Set<PyObject> expectedType = Collections.emptySet();
 
-		Result<Type> type = engine.typeOf(test.printNode("what_am_i").site());
+		Result<PyObject> type = engine.typeOf(test.printNode("what_am_i").site());
 
 		assertEquals("Attribute's type not BOTTOM. This "
 				+ "probably means the assignment to the object instance "
@@ -1628,9 +1628,9 @@ public class ZeroCfaTypeEngineTest {
 	public void objectAttributeIndependentSelf() throws Throwable {
 		TestModule test = newTestModule("object_attribute_independent_self");
 
-		Set<Type> expectedType = Collections.emptySet();
+		Set<PyObject> expectedType = Collections.emptySet();
 
-		Result<Type> type = engine.typeOf(test.printNode("what_am_i").site());
+		Result<PyObject> type = engine.typeOf(test.printNode("what_am_i").site());
 
 		assertEquals("Attribute's type not BOTTOM. This "
 				+ "probably means the assignment to the object instance "
@@ -1642,9 +1642,9 @@ public class ZeroCfaTypeEngineTest {
 	public void objectAttributeSharingOneWay() throws Throwable {
 		TestModule test = newTestModule("object_attribute_sharing_one_way");
 
-		Set<Type> expectedType = Collections.singleton(stringType);
+		Set<PyObject> expectedType = Collections.singleton(stringType);
 
-		Result<Type> type = engine.typeOf(test.printNode("what_am_i_class")
+		Result<PyObject> type = engine.typeOf(test.printNode("what_am_i_class")
 				.site());
 
 		assertEquals("Attribute's type not inferred correctly. This "
@@ -1654,7 +1654,7 @@ public class ZeroCfaTypeEngineTest {
 
 		type = engine.typeOf(test.printNode("what_am_i_instance").site());
 
-		expectedType = new HashSet<Type>();
+		expectedType = new HashSet<PyObject>();
 		expectedType.add(stringType);
 		expectedType.add(listType);
 
@@ -1673,15 +1673,15 @@ public class ZeroCfaTypeEngineTest {
 		 * them seperately from functions as they seems to have almost the same
 		 * behaviour.
 		 */
-		Type functionF = new TFunction(nestedFunction(classA, "f"));
-		Type methodF = new TBoundMethod(new TFunction(nestedFunction(classA,
-				"f")), new TObject(classA));
-		Type functionG = new TFunction(test.moduleLevelFunction("g"));
+		PyObject functionF = new PyFunction(nestedFunction(classA, "f"));
+		PyObject methodF = new PyBoundMethod(new PyFunction(nestedFunction(classA,
+				"f")), new PyInstance(classA));
+		PyObject functionG = new PyFunction(test.moduleLevelFunction("g"));
 
-		Result<Type> type = engine.typeOf(test.printNode("what_am_i_class")
+		Result<PyObject> type = engine.typeOf(test.printNode("what_am_i_class")
 				.site());
 
-		Set<Type> expectedType = Collections.singleton(functionF);
+		Set<PyObject> expectedType = Collections.singleton(functionF);
 
 		assertEquals("Class's method type not inferred correctly. It "
 				+ "probably got confused by the method being assigned "
@@ -1689,7 +1689,7 @@ public class ZeroCfaTypeEngineTest {
 
 		type = engine.typeOf(test.printNode("what_am_i_instance").site());
 
-		expectedType = new HashSet<Type>();
+		expectedType = new HashSet<PyObject>();
 		expectedType.add(methodF);
 		expectedType.add(functionG);
 
@@ -1702,9 +1702,9 @@ public class ZeroCfaTypeEngineTest {
 		String testName = "import_module";
 
 		ScopedPrintNode node = findPrintNode(testName, "what_am_i");
-		Result<Type> type = engine.typeOf(node.site());
+		Result<PyObject> type = engine.typeOf(node.site());
 
-		Set<Type> expectedType = typeJudgement(new TModule(
+		Set<PyObject> expectedType = typeJudgement(new PyModule(
 				model.lookup(ImportPath.fromDottedName("import_module_aux"))));
 
 		assertEquals("Imported module's type not inferred correctly",
@@ -1716,9 +1716,9 @@ public class ZeroCfaTypeEngineTest {
 		String testName = "import_module_as";
 
 		ScopedPrintNode node = findPrintNode(testName, "what_am_i");
-		Result<Type> type = engine.typeOf(node.site());
+		Result<PyObject> type = engine.typeOf(node.site());
 
-		Set<Type> expectedType = typeJudgement(new TModule(
+		Set<PyObject> expectedType = typeJudgement(new PyModule(
 				model.lookup(ImportPath.fromDottedName("import_module_aux"))));
 
 		assertEquals("Imported module's type not inferred correctly",
@@ -1730,9 +1730,9 @@ public class ZeroCfaTypeEngineTest {
 		String testName = "import_function";
 
 		ScopedPrintNode node = findPrintNode(testName, "what_am_i");
-		Result<Type> type = engine.typeOf(node.site());
+		Result<PyObject> type = engine.typeOf(node.site());
 
-		Set<Type> expectedType = typeJudgement(new TFunction(nestedFunction(
+		Set<PyObject> expectedType = typeJudgement(new PyFunction(nestedFunction(
 				model.lookup(ImportPath.fromDottedName("import_function_aux")),
 				"fun")));
 
@@ -1745,9 +1745,9 @@ public class ZeroCfaTypeEngineTest {
 		String testName = "import_function_as";
 
 		ScopedPrintNode node = findPrintNode(testName, "what_am_i");
-		Result<Type> type = engine.typeOf(node.site());
+		Result<PyObject> type = engine.typeOf(node.site());
 
-		Set<Type> expectedType = typeJudgement(new TFunction(nestedFunction(
+		Set<PyObject> expectedType = typeJudgement(new PyFunction(nestedFunction(
 				model.lookup(ImportPath.fromDottedName("import_function_aux")),
 				"fun")));
 
@@ -1760,9 +1760,9 @@ public class ZeroCfaTypeEngineTest {
 		TestModule test = newTestModule("import_star");
 		TestModule aux = newTestModule("import_star_aux");
 
-		Result<Type> type = engine.typeOf(test.printNode("what_am_i").site());
+		Result<PyObject> type = engine.typeOf(test.printNode("what_am_i").site());
 
-		Set<Type> expectedType = typeJudgement(new TClass(
+		Set<PyObject> expectedType = typeJudgement(new PyClass(
 				aux.moduleLevelClass("A")));
 
 		assertEquals("Star-style import didn't import expected class",
@@ -1770,7 +1770,7 @@ public class ZeroCfaTypeEngineTest {
 
 		type = engine.typeOf(test.printNode("i should not be affected by star")
 				.site());
-		expectedType = typeJudgement(new TClass(test.moduleLevelClass("B")));
+		expectedType = typeJudgement(new PyClass(test.moduleLevelClass("B")));
 
 		assertEquals("Star-style import affected the inferred "
 				+ "type of unrealted variables.", expectedType, type);
@@ -1780,9 +1780,9 @@ public class ZeroCfaTypeEngineTest {
 	public void none() throws Throwable {
 		String testName = "none";
 		ScopedPrintNode node = findPrintNode(testName, "what_am_i");
-		Result<Type> type = engine.typeOf(node.site());
+		Result<PyObject> type = engine.typeOf(node.site());
 
-		Set<Type> expectedType = typeJudgement(noneType);
+		Set<PyObject> expectedType = typeJudgement(noneType);
 
 		assertEquals("Function parameter's type not inferred "
 				+ "correctly. This probably means that the analysis didn't "
@@ -1796,14 +1796,14 @@ public class ZeroCfaTypeEngineTest {
 		String testName = "inherited_method";
 
 		ScopedPrintNode node = findPrintNode(testName, "what_am_i_parent");
-		Result<Type> type = engine.typeOf(node.site());
+		Result<PyObject> type = engine.typeOf(node.site());
 
 		ClassCO superclass = moduleLevelClass(node, "B");
 		FunctionCO unboundMethod = nestedFunction(superclass, "m");
 
 		ClassCO klass = moduleLevelClass(node, "C");
-		Set<Type> expectedType = typeJudgement(new TBoundMethod(new TFunction(
-				unboundMethod), new TObject(klass)));
+		Set<PyObject> expectedType = typeJudgement(new PyBoundMethod(new PyFunction(
+				unboundMethod), new PyInstance(klass)));
 
 		assertEquals("Didn't infer inherited method type correctly. "
 				+ "Probably forgot to look in the superclass.", expectedType,
@@ -1813,8 +1813,8 @@ public class ZeroCfaTypeEngineTest {
 		type = engine.typeOf(node.site());
 
 		klass = moduleLevelClass(node, "D");
-		expectedType = typeJudgement(new TBoundMethod(new TFunction(
-				unboundMethod), new TObject(klass)));
+		expectedType = typeJudgement(new PyBoundMethod(new PyFunction(
+				unboundMethod), new PyInstance(klass)));
 
 		assertEquals("Didn't infer inherited method type correctly. "
 				+ "Probably forgot to look in the grandparent superclass.",
@@ -1826,13 +1826,13 @@ public class ZeroCfaTypeEngineTest {
 		String testName = "inherited_method_override";
 
 		ScopedPrintNode node = findPrintNode(testName, "what_am_i_overridden");
-		Result<Type> type = engine.typeOf(node.site());
+		Result<PyObject> type = engine.typeOf(node.site());
 
 		ClassCO klassA = moduleLevelClass(node, "A");
 		FunctionCO unboundMethodA = nestedFunction(klassA, "m");
 
-		Set<Type> am = typeJudgement(new TBoundMethod(new TFunction(
-				unboundMethodA), new TObject(klassA)));
+		Set<PyObject> am = typeJudgement(new PyBoundMethod(new PyFunction(
+				unboundMethodA), new PyInstance(klassA)));
 
 		ClassCO klassB = moduleLevelClass(node, "B");
 		FunctionCO unboundMethodB = nestedFunction(klassB, "m");
@@ -1840,9 +1840,9 @@ public class ZeroCfaTypeEngineTest {
 		 * Even though B's m overrides A's m we still flow A's m into B as B's m
 		 * might be deleted
 		 */
-		Set<Type> bm = typeJudgement(new TBoundMethod(new TFunction(
-				unboundMethodA), new TObject(klassB)), new TBoundMethod(
-				new TFunction(unboundMethodB), new TObject(klassB)));
+		Set<PyObject> bm = typeJudgement(new PyBoundMethod(new PyFunction(
+				unboundMethodA), new PyInstance(klassB)), new PyBoundMethod(
+				new PyFunction(unboundMethodB), new PyInstance(klassB)));
 
 		assertEquals("Didn't infer inherited method type correctly. "
 				+ "Overriding the method shouldn't change the "
@@ -1855,9 +1855,9 @@ public class ZeroCfaTypeEngineTest {
 
 		node = findPrintNode(testName, "what_am_i_parent");
 		ClassCO klassC = moduleLevelClass(node, "C");
-		Set<Type> cm = typeJudgement(new TBoundMethod(new TFunction(
-				unboundMethodB), new TObject(klassC)), new TBoundMethod(
-				new TFunction(unboundMethodA), new TObject(klassC)));
+		Set<PyObject> cm = typeJudgement(new PyBoundMethod(new PyFunction(
+				unboundMethodB), new PyInstance(klassC)), new PyBoundMethod(
+				new PyFunction(unboundMethodA), new PyInstance(klassC)));
 		type = engine.typeOf(node.site());
 
 		assertEquals("Didn't infer inherited method type correctly. "
@@ -1865,9 +1865,9 @@ public class ZeroCfaTypeEngineTest {
 
 		node = findPrintNode(testName, "what_am_i_grandparent");
 		ClassCO klassD = moduleLevelClass(node, "D");
-		Set<Type> dm = typeJudgement(new TBoundMethod(new TFunction(
-				unboundMethodB), new TObject(klassD)), new TBoundMethod(
-				new TFunction(unboundMethodA), new TObject(klassD)));
+		Set<PyObject> dm = typeJudgement(new PyBoundMethod(new PyFunction(
+				unboundMethodB), new PyInstance(klassD)), new PyBoundMethod(
+				new PyFunction(unboundMethodA), new PyInstance(klassD)));
 		type = engine.typeOf(node.site());
 
 		assertEquals("Didn't infer inherited method type correctly. "
@@ -1881,9 +1881,9 @@ public class ZeroCfaTypeEngineTest {
 		TestModule test = newTestModule("inherited_method_recursive");
 
 		FunctionCO m = (FunctionCO) test.printNode("first A's m").getScope();
-		Set<Type> expectedUnboundType = typeJudgement(new TFunction(m));
+		Set<PyObject> expectedUnboundType = typeJudgement(new PyFunction(m));
 
-		Result<Type> unboundType = engine.typeOf(test.printNode(
+		Result<PyObject> unboundType = engine.typeOf(test.printNode(
 				"what_am_i_unbound").site());
 
 		assertEquals("Didn't infer inherited unbound method type correctly.",
@@ -1891,11 +1891,11 @@ public class ZeroCfaTypeEngineTest {
 
 		ClassCO oldA = (ClassCO) test.printNode("first A").getScope();
 		ClassCO newA = (ClassCO) test.printNode("second A").getScope();
-		Set<Type> expectedBoundType = typeJudgement(new TBoundMethod(
-				new TFunction(m), new TObject(newA)), new TBoundMethod(
-				new TFunction(m), new TObject(oldA)));
+		Set<PyObject> expectedBoundType = typeJudgement(new PyBoundMethod(
+				new PyFunction(m), new PyInstance(newA)), new PyBoundMethod(
+				new PyFunction(m), new PyInstance(oldA)));
 
-		Result<Type> boundType = engine.typeOf(test
+		Result<PyObject> boundType = engine.typeOf(test
 				.printNode("what_am_i_bound").site());
 
 		assertEquals("Didn't infer inherited bound method type correctly.",
@@ -1908,9 +1908,9 @@ public class ZeroCfaTypeEngineTest {
 		TestModule test = newTestModule("inherited_method_recursive_grandparent");
 
 		FunctionCO m = (FunctionCO) test.printNode("first A's m").getScope();
-		Set<Type> expectedUnboundType = typeJudgement(new TFunction(m));
+		Set<PyObject> expectedUnboundType = typeJudgement(new PyFunction(m));
 
-		Result<Type> unboundType = engine.typeOf(test.printNode(
+		Result<PyObject> unboundType = engine.typeOf(test.printNode(
 				"what_am_i_unbound").site());
 
 		assertEquals("Didn't infer inherited unbound method type correctly.",
@@ -1919,12 +1919,12 @@ public class ZeroCfaTypeEngineTest {
 		ClassCO oldestA = (ClassCO) test.printNode("first A").getScope();
 		ClassCO oldA = (ClassCO) test.printNode("second A").getScope();
 		ClassCO newA = (ClassCO) test.printNode("third A").getScope();
-		Set<Type> expectedBoundType = typeJudgement(new TBoundMethod(
-				new TFunction(m), new TObject(newA)), new TBoundMethod(
-				new TFunction(m), new TObject(oldA)), new TBoundMethod(
-				new TFunction(m), new TObject(oldestA)));
+		Set<PyObject> expectedBoundType = typeJudgement(new PyBoundMethod(
+				new PyFunction(m), new PyInstance(newA)), new PyBoundMethod(
+				new PyFunction(m), new PyInstance(oldA)), new PyBoundMethod(
+				new PyFunction(m), new PyInstance(oldestA)));
 
-		Result<Type> boundType = engine.typeOf(test
+		Result<PyObject> boundType = engine.typeOf(test
 				.printNode("what_am_i_bound").site());
 
 		assertEquals("Didn't infer inherited bound method type correctly.",
@@ -1936,9 +1936,9 @@ public class ZeroCfaTypeEngineTest {
 
 		TestModule test = newTestModule("builtin_readonly_namespace");
 
-		Set<Type> expectedType = Collections.emptySet();
+		Set<PyObject> expectedType = Collections.emptySet();
 
-		Result<Type> type = engine.typeOf(test.printNode("what_am_i").site());
+		Result<PyObject> type = engine.typeOf(test.printNode("what_am_i").site());
 
 		assertEquals("Didn't ignore assignment to builtin namespace.",
 				expectedType, type);
@@ -1949,7 +1949,7 @@ public class ZeroCfaTypeEngineTest {
 		String testName = "list_type_escape";
 
 		ScopedPrintNode node = findPrintNode(testName, "what_am_i");
-		Result<Type> type = engine.typeOf(node.site());
+		Result<PyObject> type = engine.typeOf(node.site());
 
 		assertEquals(
 				"We shouldn't be able to infer a type for items in a list.",
@@ -1961,7 +1961,7 @@ public class ZeroCfaTypeEngineTest {
 		String testName = "dict_type_escape";
 
 		ScopedPrintNode node = findPrintNode(testName, "what_am_i");
-		Result<Type> type = engine.typeOf(node.site());
+		Result<PyObject> type = engine.typeOf(node.site());
 
 		assertEquals("We shouldn't be able to infer a type for items in "
 				+ "a dictionary.", TopT.INSTANCE, type);
@@ -1972,7 +1972,7 @@ public class ZeroCfaTypeEngineTest {
 		String testName = "for_loop_target";
 
 		ScopedPrintNode node = findPrintNode(testName, "what_am_i");
-		Result<Type> type = engine.typeOf(node.site());
+		Result<PyObject> type = engine.typeOf(node.site());
 
 		assertEquals("We shouldn't be able to infer a type for items pulled "
 				+ "out of an iterable by a for loop.", TopT.INSTANCE, type);
@@ -1983,7 +1983,7 @@ public class ZeroCfaTypeEngineTest {
 		String testName = "for_loop_tuple_target";
 
 		ScopedPrintNode node = findPrintNode(testName, "what_am_i_x");
-		Result<Type> type = engine.typeOf(node.site());
+		Result<PyObject> type = engine.typeOf(node.site());
 
 		assertEquals("We shouldn't be able to infer a type for items pulled "
 				+ "out of an iterable by a for loop.", TopT.INSTANCE, type);
@@ -2001,7 +2001,7 @@ public class ZeroCfaTypeEngineTest {
 
 		ScopedAstNode node = findNode(testName, "what_am_i");
 		ListComp listComp = (ListComp) node.getNode();
-		Result<Type> type = engine.typeOf(new ModelSite<exprType>(listComp.elt,
+		Result<PyObject> type = engine.typeOf(new ModelSite<exprType>(listComp.elt,
 				node.getScope()));
 
 		assertEquals("We shouldn't be able to infer a type for items pulled "
@@ -2013,7 +2013,7 @@ public class ZeroCfaTypeEngineTest {
 		String testName = "flow_through_member";
 
 		ScopedPrintNode node = findPrintNode(testName, "what_am_i");
-		Result<Type> type = engine.typeOf(node.site());
+		Result<PyObject> type = engine.typeOf(node.site());
 
 		assertEquals("Object probably not tracked through other "
 				+ "object's member.", Collections.singleton(integerType), type);
@@ -2024,7 +2024,7 @@ public class ZeroCfaTypeEngineTest {
 		String testName = "flow_through_member_apart";
 
 		ScopedPrintNode node = findPrintNode(testName, "what_am_i");
-		Result<Type> type = engine.typeOf(node.site());
+		Result<PyObject> type = engine.typeOf(node.site());
 
 		assertEquals("Object probably not tracked through other "
 				+ "object's member because it is defined in one code "
@@ -2036,7 +2036,7 @@ public class ZeroCfaTypeEngineTest {
 	public void assignmentMultiTarget() throws Throwable {
 		TestModule test = newTestModule("assignment_multi_target");
 
-		Result<Type> type = engine.typeOf(test.printNode("what_am_i").site());
+		Result<PyObject> type = engine.typeOf(test.printNode("what_am_i").site());
 
 		assertEquals("Multiple targets should be inferred "
 				+ "as Top type because we can't track inside an iterable.",
@@ -2047,7 +2047,7 @@ public class ZeroCfaTypeEngineTest {
 	public void assignmentNestedMultiTarget() throws Throwable {
 		TestModule test = newTestModule("assignment_nested_multi_target");
 
-		Result<Type> type = engine.typeOf(test.printNode("what_am_i").site());
+		Result<PyObject> type = engine.typeOf(test.printNode("what_am_i").site());
 
 		assertEquals("Multiple targets should be inferred "
 				+ "as Top type because we can't track inside an iterable.",
@@ -2058,8 +2058,8 @@ public class ZeroCfaTypeEngineTest {
 	public void tupleBrackets() throws Throwable {
 		TestModule test = newTestModule("tuple_brackets");
 
-		Result<Type> type = engine.typeOf(test.printNode("what_am_i").site());
-		Set<Type> expectedType = typeJudgement(stringType);
+		Result<PyObject> type = engine.typeOf(test.printNode("what_am_i").site());
+		Set<PyObject> expectedType = typeJudgement(stringType);
 
 		assertEquals("Tuple with one item should be unpacked "
 				+ "to get the type of its element; it's not really "
@@ -2070,8 +2070,8 @@ public class ZeroCfaTypeEngineTest {
 	public void objectWithFunctionMember() throws Throwable {
 		TestModule test = newTestModule("object_with_function_member");
 
-		Result<Type> type = engine.typeOf(test.printNode("what_am_i").site());
-		Set<Type> expectedType = typeJudgement(integerType);
+		Result<PyObject> type = engine.typeOf(test.printNode("what_am_i").site());
+		Set<PyObject> expectedType = typeJudgement(integerType);
 
 		assertEquals("The function call looks like a method call but "
 				+ "isn't so only the integer will flow to the function's "
@@ -2082,15 +2082,15 @@ public class ZeroCfaTypeEngineTest {
 	public void objectWithClassMember() throws Throwable {
 		TestModule test = newTestModule("object_with_class_member");
 
-		Result<Type> type = engine.typeOf(test.printNode("a in B::A").site());
-		Set<Type> expectedType = typeJudgement(integerType);
+		Result<PyObject> type = engine.typeOf(test.printNode("a in B::A").site());
+		Set<PyObject> expectedType = typeJudgement(integerType);
 
 		assertEquals("The call looks like a method call but "
 				+ "isn't so only the integer will flow to A's constructor 2nd "
 				+ "argument.", expectedType, type);
 
 		type = engine.typeOf(test.printNode("self in B::A").site());
-		expectedType = typeJudgement(new TObject(nestedClass(
+		expectedType = typeJudgement(new PyInstance(nestedClass(
 				test.moduleLevelClass("B"), "A")));
 
 		assertEquals("The call looks like a method call but "
@@ -2102,8 +2102,8 @@ public class ZeroCfaTypeEngineTest {
 	public void unresolvedImport() throws Throwable {
 		TestModule test = newTestModule("unresolved_import");
 
-		Result<Type> type = engine.typeOf(test.printNode("what_am_i").site());
-		Set<Type> expectedType = typeJudgement(new TClass(
+		Result<PyObject> type = engine.typeOf(test.printNode("what_am_i").site());
+		Set<PyObject> expectedType = typeJudgement(new PyClass(
 				test.moduleLevelClass("A")));
 
 		assertEquals("The unresolved import has affected the typing of "
@@ -2114,7 +2114,7 @@ public class ZeroCfaTypeEngineTest {
 	public void resultOfCallOnTop() throws Throwable {
 		TestModule test = newTestModule("result_of_call_on_top");
 
-		Result<Type> type = engine.typeOf(test.printNode("what_am_i").site());
+		Result<PyObject> type = engine.typeOf(test.printNode("what_am_i").site());
 
 		assertEquals("Calling an unknown type of object (Top) "
 				+ "should also result in Top.", TopT.INSTANCE, type);
@@ -2124,7 +2124,7 @@ public class ZeroCfaTypeEngineTest {
 	public void resultOfMethodCallOnTop() throws Throwable {
 		TestModule test = newTestModule("result_of_method_call_on_top");
 
-		Result<Type> type = engine.typeOf(test.printNode("what_am_i").site());
+		Result<PyObject> type = engine.typeOf(test.printNode("what_am_i").site());
 
 		assertEquals("Calling a method of an unknown object (Top) "
 				+ "should also result in Top.", TopT.INSTANCE, type);
@@ -2134,10 +2134,10 @@ public class ZeroCfaTypeEngineTest {
 	public void builtin() throws Throwable {
 		TestModule test = newTestModule("builtin");
 
-		Result<Type> type = engine.typeOf(test.printNode("what_am_i").site());
+		Result<PyObject> type = engine.typeOf(test.printNode("what_am_i").site());
 
 		assertEquals("'len' should be a builtin function.",
-				typeJudgement(new TFunction(test.builtinFunction("len"))), type);
+				typeJudgement(new PyFunction(test.builtinFunction("len"))), type);
 
 		type = engine.typeOf(test.printNode("what_is_my_result").site());
 
@@ -2157,8 +2157,8 @@ public class ZeroCfaTypeEngineTest {
 		return ScopedPrintNode.findPrintNode(model, moduleName, tag);
 	}
 
-	private Set<Type> typeJudgement(Type... types) {
-		return new HashSet<Type>(Arrays.asList(types));
+	private Set<PyObject> typeJudgement(PyObject... types) {
+		return new HashSet<PyObject>(Arrays.asList(types));
 	}
 
 	private ClassCO builtinClass(String name) {

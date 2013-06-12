@@ -1,4 +1,4 @@
-package uk.ac.ic.doc.gander.flowinference.types;
+package uk.ac.ic.doc.gander.flowinference.abstractmachine;
 
 import java.util.Set;
 
@@ -16,12 +16,15 @@ import uk.ac.ic.doc.gander.flowinference.result.FiniteResult;
 import uk.ac.ic.doc.gander.flowinference.result.Result;
 import uk.ac.ic.doc.gander.model.ModelSite;
 
-public final class TBoundMethod implements TCallable {
+/**
+ * Abstract model of Python bound-method objects.
+ */
+public final class PyBoundMethod implements PyCallable {
 
-	private final TCallable unboundMethod;
-	private final TObject instance;
+	private final PyCallable unboundMethod;
+	private final PyInstance instance;
 
-	public TBoundMethod(TCallable unboundMethod, TObject instance) {
+	public PyBoundMethod(PyCallable unboundMethod, PyInstance instance) {
 		if (unboundMethod == null)
 			throw new NullPointerException(
 					"Bound method must have a corresponding unbound method");
@@ -42,7 +45,7 @@ public final class TBoundMethod implements TCallable {
 	}
 
 	@Override
-	public Result<Type> returnType(SubgoalManager goalManager) {
+	public Result<PyObject> returnType(SubgoalManager goalManager) {
 		return unboundMethod.returnType(goalManager);
 	}
 
@@ -53,7 +56,7 @@ public final class TBoundMethod implements TCallable {
 	 * object's namespace.
 	 */
 	@Override
-	public Result<Type> memberType(String memberName, SubgoalManager goalManager) {
+	public Result<PyObject> memberType(String memberName, SubgoalManager goalManager) {
 		return unboundMethod.memberType(memberName, goalManager);
 	}
 
@@ -122,7 +125,7 @@ public final class TBoundMethod implements TCallable {
 			return false;
 		if (getClass() != obj.getClass())
 			return false;
-		TBoundMethod other = (TBoundMethod) obj;
+		PyBoundMethod other = (PyBoundMethod) obj;
 		if (instance == null) {
 			if (other.instance != null)
 				return false;

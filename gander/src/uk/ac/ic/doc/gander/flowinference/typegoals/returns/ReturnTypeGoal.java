@@ -2,11 +2,11 @@ package uk.ac.ic.doc.gander.flowinference.typegoals.returns;
 
 import org.python.pydev.parser.jython.ast.Call;
 
+import uk.ac.ic.doc.gander.flowinference.abstractmachine.PyObject;
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
 import uk.ac.ic.doc.gander.flowinference.result.FiniteResult;
 import uk.ac.ic.doc.gander.flowinference.result.Result;
 import uk.ac.ic.doc.gander.flowinference.typegoals.TypeGoal;
-import uk.ac.ic.doc.gander.flowinference.types.Type;
 import uk.ac.ic.doc.gander.model.ModelSite;
 
 public final class ReturnTypeGoal implements TypeGoal {
@@ -17,11 +17,11 @@ public final class ReturnTypeGoal implements TypeGoal {
 		this.callSite = callSite;
 	}
 
-	public Result<Type> initialSolution() {
+	public Result<PyObject> initialSolution() {
 		return FiniteResult.bottom();
 	}
 
-	public Result<Type> recalculateSolution(final SubgoalManager goalManager) {
+	public Result<PyObject> recalculateSolution(final SubgoalManager goalManager) {
 		return new ReturnTypeGoalSolver(goalManager, callSite).solution();
 	}
 

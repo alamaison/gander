@@ -18,12 +18,12 @@ import uk.ac.ic.doc.gander.duckinference.DuckTyper;
 import uk.ac.ic.doc.gander.flowinference.TimingTypeEngine;
 import uk.ac.ic.doc.gander.flowinference.TypeResolver;
 import uk.ac.ic.doc.gander.flowinference.ZeroCfaTypeEngine;
+import uk.ac.ic.doc.gander.flowinference.abstractmachine.PyModule;
+import uk.ac.ic.doc.gander.flowinference.abstractmachine.PyUnresolvedImport;
+import uk.ac.ic.doc.gander.flowinference.abstractmachine.PyObject;
 import uk.ac.ic.doc.gander.flowinference.result.Result;
 import uk.ac.ic.doc.gander.flowinference.result.Result.Transformer;
 import uk.ac.ic.doc.gander.flowinference.typegoals.TopT;
-import uk.ac.ic.doc.gander.flowinference.types.TModule;
-import uk.ac.ic.doc.gander.flowinference.types.TUnresolvedImport;
-import uk.ac.ic.doc.gander.flowinference.types.Type;
 import uk.ac.ic.doc.gander.hierarchy.Hierarchy;
 import uk.ac.ic.doc.gander.hierarchy.HierarchyWalker;
 import uk.ac.ic.doc.gander.hierarchy.Package;
@@ -50,11 +50,11 @@ public class CallTargetTypeDiff {
 
 	public final class DiffResult {
 		private final CallSite callsite;
-		private final Result<Type> duckType;
-		private final Result<Type> flowType;
+		private final Result<PyObject> duckType;
+		private final Result<PyObject> flowType;
 
-		private DiffResult(CallSite callsite, Result<Type> duckType,
-				Result<Type> flowType) {
+		private DiffResult(CallSite callsite, Result<PyObject> duckType,
+				Result<PyObject> flowType) {
 			this.callsite = callsite;
 			// XXX: HACK
 			this.duckType = duckType;
@@ -65,19 +65,19 @@ public class CallTargetTypeDiff {
 			return callsite;
 		}
 
-		public Result<Type> duckType() {
+		public Result<PyObject> duckType() {
 			return duckType;
 		}
 
-		public Result<Type> flowType() {
+		public Result<PyObject> flowType() {
 			return flowType;
 		}
 
 		public boolean resultsMatch() {
-			return flowType.transformResult(new Transformer<Type, Boolean>() {
+			return flowType.transformResult(new Transformer<PyObject, Boolean>() {
 
 				@Override
-				public Boolean transformFiniteResult(Set<Type> result) {
+				public Boolean transformFiniteResult(Set<PyObject> result) {
 					return result.equals(duckType);
 				}
 
@@ -89,17 +89,17 @@ public class CallTargetTypeDiff {
 		}
 
 		public boolean resultsAreDisjoint() {
-			return flowType.transformResult(new Transformer<Type, Boolean>() {
+			return flowType.transformResult(new Transformer<PyObject, Boolean>() {
 
 				@Override
-				public Boolean transformFiniteResult(final Set<Type> flowResult) {
+				public Boolean transformFiniteResult(final Set<PyObject> flowResult) {
 					return duckType
-							.transformResult(new Transformer<Type, Boolean>() {
+							.transformResult(new Transformer<PyObject, Boolean>() {
 
 								@Override
 								public Boolean transformFiniteResult(
-										Set<Type> duckResult) {
-									Set<Type> intersection = new HashSet<Type>(
+										Set<PyObject> duckResult) {
+									Set<PyObject> intersection = new HashSet<PyObject>(
 											flowResult);
 									intersection.retainAll(duckResult);
 									return intersection.isEmpty();
@@ -200,10 +200,10 @@ public class CallTargetTypeDiff {
 
 						exprType lhs = ((Attribute) call.func).value;
 
-						Result<Type> flowType = pureFlowCountingEngine.typeOf(
+						Result<PyObject> flowType = pureFlowCountingEngine.typeOf(
 								lhs, function.codeObject());
 
-						Result<Type> duckType;
+						Result<PyObject> duckType;
 						if (!flowResultIncludesModule(flowType)) {
 							duckType = duckTyper.typeOf(lhs, block, function);
 						} else {
@@ -221,14 +221,14 @@ public class CallTargetTypeDiff {
 			}
 		}
 
-		private boolean flowResultIncludesModule(Result<Type> flowType) {
-			return flowType.transformResult(new Transformer<Type, Boolean>() {
+		private boolean flowResultIncludesModule(Result<PyObject> flowType) {
+			return flowType.transformResult(new Transformer<PyObject, Boolean>() {
 
 				@Override
-				public Boolean transformFiniteResult(Set<Type> result) {
-					for (Type type : result) {
-						if (type instanceof TModule
-								|| type instanceof TUnresolvedImport) {
+				public Boolean transformFiniteResult(Set<PyObject> result) {
+					for (PyObject type : result) {
+						if (type instanceof PyModule
+								|| type instanceof PyUnresolvedImport) {
 							return true;
 						}
 					}

@@ -1,9 +1,9 @@
 package uk.ac.ic.doc.gander.flowinference.typegoals.namespacename;
 
+import uk.ac.ic.doc.gander.flowinference.abstractmachine.PyObject;
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
 import uk.ac.ic.doc.gander.flowinference.result.RedundancyEliminator;
 import uk.ac.ic.doc.gander.flowinference.result.Result;
-import uk.ac.ic.doc.gander.flowinference.types.Type;
 import uk.ac.ic.doc.gander.model.NamespaceName;
 import uk.ac.ic.doc.gander.model.name_binding.Variable;
 
@@ -30,10 +30,10 @@ import uk.ac.ic.doc.gander.model.name_binding.Variable;
 final class UnqualifiedNameDefinitionsPartialSolution implements
 		PartialTypeSolution {
 
-	private final RedundancyEliminator<Type> inferredType = new RedundancyEliminator<Type>();
+	private final RedundancyEliminator<PyObject> inferredType = new RedundancyEliminator<PyObject>();
 
 	@Override
-	public Result<Type> partialSolution() {
+	public Result<PyObject> partialSolution() {
 		return inferredType.result();
 	}
 

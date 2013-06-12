@@ -1,4 +1,4 @@
-package uk.ac.ic.doc.gander.flowinference.types;
+package uk.ac.ic.doc.gander.flowinference.abstractmachine;
 
 import java.util.Collections;
 import java.util.Set;
@@ -16,11 +16,11 @@ import uk.ac.ic.doc.gander.model.ModelSite;
 import uk.ac.ic.doc.gander.model.codeobject.CodeObject;
 import uk.ac.ic.doc.gander.model.name_binding.Variable;
 
-public class TUnresolvedImport implements TCodeObject {
+public class PyUnresolvedImport implements PyCodeObject {
 
 	private final Import<?, ?> importInstance;
 
-	public TUnresolvedImport(Import<?, ?> importInstance) {
+	public PyUnresolvedImport(Import<?, ?> importInstance) {
 		// if (importInstance == null)
 		// throw new NullPointerException("Failed import not optional");
 		this.importInstance = importInstance;
@@ -43,7 +43,7 @@ public class TUnresolvedImport implements TCodeObject {
 	 * approximate it conservatively as Top.
 	 */
 	@Override
-	public Result<Type> memberType(String memberName, SubgoalManager goalManager) {
+	public Result<PyObject> memberType(String memberName, SubgoalManager goalManager) {
 		return TopT.INSTANCE;
 	}
 
@@ -118,7 +118,7 @@ public class TUnresolvedImport implements TCodeObject {
 			return false;
 		if (getClass() != obj.getClass())
 			return false;
-		TUnresolvedImport other = (TUnresolvedImport) obj;
+		PyUnresolvedImport other = (PyUnresolvedImport) obj;
 		if (importInstance == null) {
 			if (other.importInstance != null)
 				return false;

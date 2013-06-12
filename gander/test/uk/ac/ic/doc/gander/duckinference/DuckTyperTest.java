@@ -15,10 +15,10 @@ import uk.ac.ic.doc.gander.TaggedBlockFinder;
 import uk.ac.ic.doc.gander.cfg.Cfg;
 import uk.ac.ic.doc.gander.flowinference.TypeResolver;
 import uk.ac.ic.doc.gander.flowinference.ZeroCfaTypeEngine;
+import uk.ac.ic.doc.gander.flowinference.abstractmachine.PyInstance;
+import uk.ac.ic.doc.gander.flowinference.abstractmachine.PyObject;
 import uk.ac.ic.doc.gander.flowinference.result.Result;
 import uk.ac.ic.doc.gander.flowinference.result.Result.Transformer;
-import uk.ac.ic.doc.gander.flowinference.types.TObject;
-import uk.ac.ic.doc.gander.flowinference.types.Type;
 import uk.ac.ic.doc.gander.hierarchy.Hierarchy;
 import uk.ac.ic.doc.gander.hierarchy.HierarchyFactory;
 import uk.ac.ic.doc.gander.model.DefaultModel;
@@ -41,24 +41,24 @@ public class DuckTyperTest {
 		model = new DefaultModel(hierarchy);
 	}
 
-	private Set<Type> typeOf(String tag, Function enclosingFunction)
+	private Set<PyObject> typeOf(String tag, Function enclosingFunction)
 			throws Exception {
 		Statement stmt = findCall(enclosingFunction.getCfg(), tag);
 		assertTrue("TEST ERROR: tag not found", stmt != null);
 
 		DuckTyper typer = new DuckTyper(model, new TypeResolver(
 				new ZeroCfaTypeEngine()), false);
-		Result<Type> type = typer.typeOf(stmt.getCall(), stmt.getBlock(),
+		Result<PyObject> type = typer.typeOf(stmt.getCall(), stmt.getBlock(),
 				enclosingFunction);
-		return type.transformResult(new Transformer<Type, Set<Type>>() {
+		return type.transformResult(new Transformer<PyObject, Set<PyObject>>() {
 
 			@Override
-			public Set<Type> transformFiniteResult(Set<Type> result) {
+			public Set<PyObject> transformFiniteResult(Set<PyObject> result) {
 				return result;
 			}
 
 			@Override
-			public Set<Type> transformInfiniteResult() {
+			public Set<PyObject> transformInfiniteResult() {
 				throw new AssertionError("This code wasn't "
 						+ "written to cope with an "
 						+ "infinite type.  Update it.");
@@ -77,13 +77,13 @@ public class DuckTyperTest {
 		Module start = model.loadModule("start");
 
 		assertInference("x.a(tag1)", start.getFunctions().get("main"),
-				new TObject(start.getClasses().get("A")));
+				new PyInstance(start.getClasses().get("A")));
 
 		assertInference("x.b(tag2)", start.getFunctions().get("main"),
-				new TObject(start.getClasses().get("A")));
+				new PyInstance(start.getClasses().get("A")));
 
 		assertInference("x.c(tag3)", start.getFunctions().get("main"),
-				new TObject(start.getClasses().get("A")));
+				new PyInstance(start.getClasses().get("A")));
 	}
 
 	@Test
@@ -93,15 +93,15 @@ public class DuckTyperTest {
 		Module start = model.loadModule("start");
 
 		assertInference("x.a(tag1)", start.getFunctions().get("main"),
-				new TObject(start.getClasses().get("A")), new TObject(start
+				new PyInstance(start.getClasses().get("A")), new PyInstance(start
 						.getClasses().get("B")));
 
 		assertInference("x.b(tag2)", start.getFunctions().get("main"),
-				new TObject(start.getClasses().get("A")), new TObject(start
+				new PyInstance(start.getClasses().get("A")), new PyInstance(start
 						.getClasses().get("B")));
 
 		assertInference("x.c(tag3)", start.getFunctions().get("main"),
-				new TObject(start.getClasses().get("A")), new TObject(start
+				new PyInstance(start.getClasses().get("A")), new PyInstance(start
 						.getClasses().get("B")));
 	}
 
@@ -113,13 +113,13 @@ public class DuckTyperTest {
 		Module sibling = model.lookup("sibling");
 
 		assertInference("x.a(tag1)", start.getFunctions().get("main"),
-				new TObject(sibling.getClasses().get("A")));
+				new PyInstance(sibling.getClasses().get("A")));
 
 		assertInference("x.b(tag2)", start.getFunctions().get("main"),
-				new TObject(sibling.getClasses().get("A")));
+				new PyInstance(sibling.getClasses().get("A")));
 
 		assertInference("x.c(tag3)", start.getFunctions().get("main"),
-				new TObject(sibling.getClasses().get("A")));
+				new PyInstance(sibling.getClasses().get("A")));
 	}
 
 	@Test
@@ -130,13 +130,13 @@ public class DuckTyperTest {
 		Module sibling = model.lookup("sibling");
 
 		assertInference("x.a(tag1)", start.getFunctions().get("main"),
-				new TObject(sibling.getClasses().get("A")));
+				new PyInstance(sibling.getClasses().get("A")));
 
 		assertInference("x.b(tag2)", start.getFunctions().get("main"),
-				new TObject(sibling.getClasses().get("A")));
+				new PyInstance(sibling.getClasses().get("A")));
 
 		assertInference("x.c(tag3)", start.getFunctions().get("main"),
-				new TObject(sibling.getClasses().get("A")));
+				new PyInstance(sibling.getClasses().get("A")));
 	}
 
 	@Test
@@ -146,17 +146,17 @@ public class DuckTyperTest {
 		Module start = model.loadModule("start");
 
 		assertInference("x.a(tag1)", start.getFunctions().get("main"),
-				new TObject(start.getClasses().get("A")), new TObject(start
-						.getClasses().get("B")), new TObject(start.getClasses()
+				new PyInstance(start.getClasses().get("A")), new PyInstance(start
+						.getClasses().get("B")), new PyInstance(start.getClasses()
 						.get("C")));
 
 		assertInference("x.b(tag2)", start.getFunctions().get("main"),
-				new TObject(start.getClasses().get("A")), new TObject(start
-						.getClasses().get("B")), new TObject(start.getClasses()
+				new PyInstance(start.getClasses().get("A")), new PyInstance(start
+						.getClasses().get("B")), new PyInstance(start.getClasses()
 						.get("C")));
 
 		assertInference("x.c(tag3)", start.getFunctions().get("main"),
-				new TObject(start.getClasses().get("A")));
+				new PyInstance(start.getClasses().get("A")));
 	}
 
 	@Test
@@ -166,18 +166,18 @@ public class DuckTyperTest {
 		Module start = model.loadModule("start");
 
 		assertInference("x.a(tag1)", start.getFunctions().get("main"),
-				new TObject(start.getClasses().get("A")));
+				new PyInstance(start.getClasses().get("A")));
 
 		assertInference("x.b(tag2)", start.getFunctions().get("main"),
-				new TObject(start.getClasses().get("A")));
+				new PyInstance(start.getClasses().get("A")));
 
 		assertInference("x.c(tag3)", start.getFunctions().get("main"),
-				new TObject(start.getClasses().get("A")));
+				new PyInstance(start.getClasses().get("A")));
 	}
 
 	private void assertInference(String tag, OldNamespace scope,
-			Type... expected) throws Exception {
-		Set<Type> type = typeOf(tag, (Function) scope);
+			PyObject... expected) throws Exception {
+		Set<PyObject> type = typeOf(tag, (Function) scope);
 
 		assertEquals("'" + tag
 				+ "' was inferred to an unexpected number of types",

@@ -15,9 +15,9 @@ import uk.ac.ic.doc.gander.cfg.BasicBlock;
 import uk.ac.ic.doc.gander.duckinference.DuckTyper;
 import uk.ac.ic.doc.gander.flowinference.TypeResolver;
 import uk.ac.ic.doc.gander.flowinference.ZeroCfaTypeEngine;
+import uk.ac.ic.doc.gander.flowinference.abstractmachine.PyObject;
 import uk.ac.ic.doc.gander.flowinference.result.Result;
 import uk.ac.ic.doc.gander.flowinference.result.Result.Processor;
-import uk.ac.ic.doc.gander.flowinference.types.Type;
 import uk.ac.ic.doc.gander.hierarchy.Hierarchy;
 import uk.ac.ic.doc.gander.hierarchy.HierarchyWalker;
 import uk.ac.ic.doc.gander.hierarchy.Package;
@@ -31,7 +31,7 @@ public class CallTargetTypes {
 
 	private final MutableModel model;
 	private final TypeResolver typer;
-	private final Map<CallSite, Set<Type>> types = new HashMap<CallSite, Set<Type>>();
+	private final Map<CallSite, Set<PyObject>> types = new HashMap<CallSite, Set<PyObject>>();
 
 	public CallTargetTypes(Hierarchy hierarchy) throws Exception {
 		System.out.println("Creating model from hierarchy");
@@ -44,7 +44,7 @@ public class CallTargetTypes {
 		new ModelDucker().walk(model);
 	}
 
-	public Map<CallSite, Set<Type>> getResult() {
+	public Map<CallSite, Set<PyObject>> getResult() {
 		return types;
 	}
 
@@ -66,9 +66,9 @@ public class CallTargetTypes {
 							typer))
 						continue;
 
-					Result<Type> type = new DuckTyper(model, typer, false).typeOf(
+					Result<PyObject> type = new DuckTyper(model, typer, false).typeOf(
 							call, block, function);
-					type.actOnResult(new Processor<Type>() {
+					type.actOnResult(new Processor<PyObject>() {
 
 						@Override
 						public void processInfiniteResult() {
@@ -78,7 +78,7 @@ public class CallTargetTypes {
 						}
 
 						@Override
-						public void processFiniteResult(Set<Type> result) {
+						public void processFiniteResult(Set<PyObject> result) {
 							types.put(new CallSite(call, function, block),
 									result);
 						}

@@ -12,6 +12,9 @@ import org.python.pydev.parser.jython.ast.exprType;
 
 import uk.ac.ic.doc.gander.ast.BindingDetector;
 import uk.ac.ic.doc.gander.ast.LocalCodeBlockVisitor;
+import uk.ac.ic.doc.gander.flowinference.abstractmachine.PyClass;
+import uk.ac.ic.doc.gander.flowinference.abstractmachine.PyFunction;
+import uk.ac.ic.doc.gander.flowinference.abstractmachine.PyObject;
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
 import uk.ac.ic.doc.gander.flowinference.result.FiniteResult;
 import uk.ac.ic.doc.gander.flowinference.result.RedundancyEliminator;
@@ -19,9 +22,6 @@ import uk.ac.ic.doc.gander.flowinference.result.Result;
 import uk.ac.ic.doc.gander.flowinference.typegoals.TopT;
 import uk.ac.ic.doc.gander.flowinference.typegoals.expression.ExpressionTypeGoal;
 import uk.ac.ic.doc.gander.flowinference.typegoals.parameter.ParameterTypeGoal;
-import uk.ac.ic.doc.gander.flowinference.types.TClass;
-import uk.ac.ic.doc.gander.flowinference.types.TFunction;
-import uk.ac.ic.doc.gander.flowinference.types.Type;
 import uk.ac.ic.doc.gander.importing.ImportFactory;
 import uk.ac.ic.doc.gander.importing.ImportStatement;
 import uk.ac.ic.doc.gander.model.ModelSite;
@@ -38,7 +38,7 @@ import uk.ac.ic.doc.gander.model.name_binding.Variable;
  */
 final class VariableTypeSummariser {
 
-	private final RedundancyEliminator<Type> types = new RedundancyEliminator<Type>();
+	private final RedundancyEliminator<PyObject> types = new RedundancyEliminator<PyObject>();
 
 	VariableTypeSummariser(Variable variable, SubgoalManager manager) {
 
@@ -64,7 +64,7 @@ final class VariableTypeSummariser {
 
 	}
 
-	Result<Type> solution() {
+	Result<PyObject> solution() {
 		return types.result();
 	}
 
@@ -73,7 +73,7 @@ final class VariableTypeSummariser {
 class BoundTypeVisitor implements BindingDetector.DetectionEvent {
 	private final SubgoalManager goalManager;
 	private final Variable variable;
-	private final RedundancyEliminator<Type> judgement = new RedundancyEliminator<Type>();
+	private final RedundancyEliminator<PyObject> judgement = new RedundancyEliminator<PyObject>();
 	private final BindingDetector detector = new BindingDetector(this);
 
 	BoundTypeVisitor(SubgoalManager goalManager, Variable variable) {
@@ -148,7 +148,7 @@ class BoundTypeVisitor implements BindingDetector.DetectionEvent {
 		}
 	}
 
-	public Result<Type> getJudgement() {
+	public Result<PyObject> getJudgement() {
 		return judgement.result();
 	}
 
@@ -163,7 +163,7 @@ class BoundTypeVisitor implements BindingDetector.DetectionEvent {
 
 				ModelSite<exprType> rhsSite = new ModelSite<exprType>(rhs,
 						variable.codeObject());
-				Result<Type> rhsType = goalManager
+				Result<PyObject> rhsType = goalManager
 						.registerSubgoal(new ExpressionTypeGoal(rhsSite));
 
 				judgement.add(rhsType);
@@ -206,8 +206,8 @@ class BoundTypeVisitor implements BindingDetector.DetectionEvent {
 			ClassCO klass = (ClassCO) variable.codeObject().nestedCodeObjects()
 					.findCodeObjectMatchingAstNode(node);
 			assert klass != null;
-			judgement.add(new FiniteResult<Type>(Collections
-					.singleton(new TClass(klass))));
+			judgement.add(new FiniteResult<PyObject>(Collections
+					.singleton(new PyClass(klass))));
 		}
 
 		/*
@@ -226,8 +226,8 @@ class BoundTypeVisitor implements BindingDetector.DetectionEvent {
 			FunctionCO function = (FunctionCO) variable.codeObject()
 					.nestedCodeObjects().findCodeObjectMatchingAstNode(node);
 			assert function != null;
-			judgement.add(new FiniteResult<Type>(Collections
-					.singleton(new TFunction(function))));
+			judgement.add(new FiniteResult<PyObject>(Collections
+					.singleton(new PyFunction(function))));
 		}
 
 		/*

@@ -2,11 +2,11 @@ package uk.ac.ic.doc.gander.flowinference;
 
 import java.util.Map.Entry;
 
-import uk.ac.ic.doc.gander.flowinference.types.TClass;
-import uk.ac.ic.doc.gander.flowinference.types.TFunction;
-import uk.ac.ic.doc.gander.flowinference.types.TModule;
-import uk.ac.ic.doc.gander.flowinference.types.TUnresolvedImport;
-import uk.ac.ic.doc.gander.flowinference.types.Type;
+import uk.ac.ic.doc.gander.flowinference.abstractmachine.PyClass;
+import uk.ac.ic.doc.gander.flowinference.abstractmachine.PyFunction;
+import uk.ac.ic.doc.gander.flowinference.abstractmachine.PyModule;
+import uk.ac.ic.doc.gander.flowinference.abstractmachine.PyUnresolvedImport;
+import uk.ac.ic.doc.gander.flowinference.abstractmachine.PyObject;
 import uk.ac.ic.doc.gander.importing.Import;
 import uk.ac.ic.doc.gander.importing.ImportSimulator;
 import uk.ac.ic.doc.gander.model.Class;
@@ -19,7 +19,7 @@ import uk.ac.ic.doc.gander.model.codeobject.ModuleCO;
 
 /**
  * Watches an import simulation for objects being bound to names and creates the
- * correct {@link Type} for the object.
+ * correct {@link PyObject} for the object.
  */
 final class ImportedNameTypeWatcher implements
 		ImportSimulator.Binder<NamespaceName, Namespace, CodeObject, ModuleCO> {
@@ -27,7 +27,7 @@ final class ImportedNameTypeWatcher implements
 	private final ImportTypeEvent eventHandler;
 
 	interface ImportTypeEvent {
-		void onImportTyped(CodeObject location, String name, Type type);
+		void onImportTyped(CodeObject location, String name, PyObject type);
 	}
 
 	ImportedNameTypeWatcher(ImportTypeEvent eventHandler) {
@@ -41,7 +41,7 @@ final class ImportedNameTypeWatcher implements
 		assert importReceiver != null;
 		assert !name.isEmpty();
 
-		eventHandler.onImportTyped(importReceiver, name, new TModule(
+		eventHandler.onImportTyped(importReceiver, name, new PyModule(
 				loadedModule));
 	}
 
@@ -52,7 +52,7 @@ final class ImportedNameTypeWatcher implements
 		assert container != null;
 		assert !name.isEmpty();
 
-		eventHandler.onImportTyped(container, name, new TModule(loadedModule));
+		eventHandler.onImportTyped(container, name, new PyModule(loadedModule));
 	}
 
 	@Override
@@ -63,9 +63,9 @@ final class ImportedNameTypeWatcher implements
 		assert container != null;
 		assert !name.isEmpty();
 
-		Type type = oldSchoolNamespaceLookup(importedObject);
+		PyObject type = oldSchoolNamespaceLookup(importedObject);
 		if (type == null) {
-			type = new TUnresolvedImport(null);
+			type = new PyUnresolvedImport(null);
 		}
 
 		// TODO: The target of the 'from foo import bar' can
@@ -82,9 +82,9 @@ final class ImportedNameTypeWatcher implements
 		assert receivingModule != null;
 		assert !name.isEmpty();
 
-		Type type = oldSchoolNamespaceLookup(importedObject);
+		PyObject type = oldSchoolNamespaceLookup(importedObject);
 		if (type == null) {
-			type = new TUnresolvedImport(null);
+			type = new PyUnresolvedImport(null);
 		}
 
 		// TODO: The target of the 'from foo import bar' can
@@ -106,19 +106,19 @@ final class ImportedNameTypeWatcher implements
 					.getClasses().entrySet()) {
 
 				eventHandler.onImportTyped(container, importedClass.getKey(),
-						new TClass(importedClass.getValue().codeObject()));
+						new PyClass(importedClass.getValue().codeObject()));
 			}
 
 			for (Entry<String, Function> importedFunction : ((OldNamespace) sourceNamespace)
 					.getFunctions().entrySet()) {
 				eventHandler.onImportTyped(container,
-						importedFunction.getKey(), new TFunction(
+						importedFunction.getKey(), new PyFunction(
 								importedFunction.getValue().codeObject()));
 			}
 		}
 	}
 
-	private Type oldSchoolNamespaceLookup(NamespaceName importedObjectName) {
+	private PyObject oldSchoolNamespaceLookup(NamespaceName importedObjectName) {
 
 		if (importedObjectName.namespace() instanceof OldNamespace) {
 
@@ -127,19 +127,19 @@ final class ImportedNameTypeWatcher implements
 
 			Module importedModule = parent.getModules().get(objectName);
 			if (importedModule != null) {
-				return new TModule(importedModule.codeObject());
+				return new PyModule(importedModule.codeObject());
 			} else {
 
 				Class importedClass = parent.getClasses().get(objectName);
 
 				if (importedClass != null) {
-					return new TClass(importedClass.codeObject());
+					return new PyClass(importedClass.codeObject());
 				} else {
 
 					Function importedFunction = parent.getFunctions().get(
 							objectName);
 					if (importedFunction != null) {
-						return new TFunction(importedFunction.codeObject());
+						return new PyFunction(importedFunction.codeObject());
 					} else {
 						return null;
 					}
@@ -166,7 +166,7 @@ final class ImportedNameTypeWatcher implements
 			 * _could_ be but equally it could be a class, function or even a
 			 * variable.
 			 */
-			eventHandler.onImportTyped(relativeTo, name, new TUnresolvedImport(
+			eventHandler.onImportTyped(relativeTo, name, new PyUnresolvedImport(
 					importInstance));
 		}
 	}
@@ -188,7 +188,7 @@ final class ImportedNameTypeWatcher implements
 			 * variable.
 			 */
 			eventHandler.onImportTyped(importInstance.container(), name,
-					new TUnresolvedImport(importInstance));
+					new PyUnresolvedImport(importInstance));
 		}
 	}
 }

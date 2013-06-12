@@ -36,6 +36,8 @@ import org.python.pydev.parser.jython.ast.exprType;
 import org.python.pydev.parser.jython.ast.num_typeType;
 
 import uk.ac.ic.doc.gander.ast.ExpressionVisitor;
+import uk.ac.ic.doc.gander.flowinference.abstractmachine.PyInstance;
+import uk.ac.ic.doc.gander.flowinference.abstractmachine.PyObject;
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
 import uk.ac.ic.doc.gander.flowinference.result.FiniteResult;
 import uk.ac.ic.doc.gander.flowinference.result.Result;
@@ -44,8 +46,6 @@ import uk.ac.ic.doc.gander.flowinference.typegoals.TypeGoal;
 import uk.ac.ic.doc.gander.flowinference.typegoals.attribute.AttributeTypeGoal;
 import uk.ac.ic.doc.gander.flowinference.typegoals.returns.ReturnTypeGoal;
 import uk.ac.ic.doc.gander.flowinference.typegoals.variable.VariableTypeGoal;
-import uk.ac.ic.doc.gander.flowinference.types.TObject;
-import uk.ac.ic.doc.gander.flowinference.types.Type;
 import uk.ac.ic.doc.gander.model.Model;
 import uk.ac.ic.doc.gander.model.ModelSite;
 import uk.ac.ic.doc.gander.model.name_binding.Variable;
@@ -63,15 +63,15 @@ public final class ExpressionTypeGoal implements TypeGoal {
 	}
 
 	@Override
-	public Result<Type> initialSolution() {
+	public Result<PyObject> initialSolution() {
 		return FiniteResult.bottom();
 	}
 
 	@Override
-	public Result<Type> recalculateSolution(SubgoalManager goalManager) {
+	public Result<PyObject> recalculateSolution(SubgoalManager goalManager) {
 		TypeFinder finder = new TypeFinder(expression.model(), goalManager);
 		try {
-			return (Result<Type>) expression.astNode().accept(finder);
+			return (Result<PyObject>) expression.astNode().accept(finder);
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}
@@ -82,39 +82,39 @@ public final class ExpressionTypeGoal implements TypeGoal {
 	 */
 	private final class TypeFinder extends ExpressionVisitor {
 
-		private final Result<Type> dictType;
-		private final Result<Type> listType;
-		private final Result<Type> setType;
-		private final Result<Type> intType;
-		private final Result<Type> longType;
-		private final Result<Type> floatType;
-		private final Result<Type> strType;
-		private final Result<Type> tupleType;
+		private final Result<PyObject> dictType;
+		private final Result<PyObject> listType;
+		private final Result<PyObject> setType;
+		private final Result<PyObject> intType;
+		private final Result<PyObject> longType;
+		private final Result<PyObject> floatType;
+		private final Result<PyObject> strType;
+		private final Result<PyObject> tupleType;
 		private final TopT topType;
 		private final SubgoalManager goalManager;
 
 		public TypeFinder(Model model, SubgoalManager goalManager) {
 			this.goalManager = goalManager;
-			dictType = new FiniteResult<Type>(
-					Collections.singleton(new TObject(model.getTopLevel()
+			dictType = new FiniteResult<PyObject>(
+					Collections.singleton(new PyInstance(model.getTopLevel()
 							.getClasses().get("dict"))));
-			listType = new FiniteResult<Type>(
-					Collections.singleton(new TObject(model.getTopLevel()
+			listType = new FiniteResult<PyObject>(
+					Collections.singleton(new PyInstance(model.getTopLevel()
 							.getClasses().get("list"))));
-			setType = new FiniteResult<Type>(Collections.singleton(new TObject(
+			setType = new FiniteResult<PyObject>(Collections.singleton(new PyInstance(
 					model.getTopLevel().getClasses().get("set"))));
-			intType = new FiniteResult<Type>(Collections.singleton(new TObject(
+			intType = new FiniteResult<PyObject>(Collections.singleton(new PyInstance(
 					model.getTopLevel().getClasses().get("int"))));
-			longType = new FiniteResult<Type>(
-					Collections.singleton(new TObject(model.getTopLevel()
+			longType = new FiniteResult<PyObject>(
+					Collections.singleton(new PyInstance(model.getTopLevel()
 							.getClasses().get("long"))));
-			floatType = new FiniteResult<Type>(
-					Collections.singleton(new TObject(model.getTopLevel()
+			floatType = new FiniteResult<PyObject>(
+					Collections.singleton(new PyInstance(model.getTopLevel()
 							.getClasses().get("float"))));
-			strType = new FiniteResult<Type>(Collections.singleton(new TObject(
+			strType = new FiniteResult<PyObject>(Collections.singleton(new PyInstance(
 					model.getTopLevel().getClasses().get("str"))));
-			tupleType = new FiniteResult<Type>(
-					Collections.singleton(new TObject(model.getTopLevel()
+			tupleType = new FiniteResult<PyObject>(
+					Collections.singleton(new PyInstance(model.getTopLevel()
 							.getClasses().get("tuple"))));
 			topType = TopT.INSTANCE;
 		}

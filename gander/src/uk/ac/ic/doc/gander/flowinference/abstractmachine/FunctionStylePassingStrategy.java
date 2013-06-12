@@ -1,4 +1,4 @@
-package uk.ac.ic.doc.gander.flowinference.types;
+package uk.ac.ic.doc.gander.flowinference.abstractmachine;
 
 import uk.ac.ic.doc.gander.flowinference.argument.Argument;
 import uk.ac.ic.doc.gander.flowinference.callframe.ArgumentPassingStrategy;

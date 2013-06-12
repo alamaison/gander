@@ -1,11 +1,11 @@
 package uk.ac.ic.doc.gander.model.parameters;
 
+import uk.ac.ic.doc.gander.flowinference.abstractmachine.PyObject;
 import uk.ac.ic.doc.gander.flowinference.argument.Argument;
 import uk.ac.ic.doc.gander.flowinference.argument.ArgumentDestination;
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
 import uk.ac.ic.doc.gander.flowinference.result.Result;
 import uk.ac.ic.doc.gander.flowinference.typegoals.TopT;
-import uk.ac.ic.doc.gander.flowinference.types.Type;
 import uk.ac.ic.doc.gander.model.codeobject.InvokableCodeObject;
 
 enum DefaultStarargsArgument implements Argument {
@@ -19,7 +19,7 @@ enum DefaultStarargsArgument implements Argument {
 	}
 
 	@Override
-	public Result<Type> type(SubgoalManager goalManager) {
+	public Result<PyObject> type(SubgoalManager goalManager) {
 		// TODO: return builtin tuple
 		return TopT.INSTANCE;
 	}

@@ -1,10 +1,10 @@
 package uk.ac.ic.doc.gander.flowinference.call;
 
+import uk.ac.ic.doc.gander.flowinference.abstractmachine.PyObject;
 import uk.ac.ic.doc.gander.flowinference.argument.Argument;
 import uk.ac.ic.doc.gander.flowinference.argument.ArgumentDestination;
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
 import uk.ac.ic.doc.gander.flowinference.result.Result;
-import uk.ac.ic.doc.gander.flowinference.types.Type;
 import uk.ac.ic.doc.gander.model.codeobject.InvokableCodeObject;
 import uk.ac.ic.doc.gander.model.name_binding.Variable;
 
@@ -49,7 +49,7 @@ public interface CallDispatch {
 	 * @param goalManager
 	 *            allows us to solve the argument mapping using type inference
 	 */
-	Result<Type> objectsBoundToVariable(Variable variable,
+	Result<PyObject> objectsBoundToVariable(Variable variable,
 			SubgoalManager goalManager);
 
 	InvokableCodeObject receiver();

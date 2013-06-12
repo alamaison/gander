@@ -8,20 +8,20 @@ import org.python.pydev.parser.jython.ast.Call;
 import org.python.pydev.parser.jython.ast.exprType;
 
 import uk.ac.ic.doc.gander.ast.AstParentNodeFinder;
+import uk.ac.ic.doc.gander.flowinference.abstractmachine.PyFunction;
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
 import uk.ac.ic.doc.gander.flowinference.flowgoals.CodeObjectDefinitionPosition;
 import uk.ac.ic.doc.gander.flowinference.flowgoals.FlowGoal;
 import uk.ac.ic.doc.gander.flowinference.result.FiniteResult;
 import uk.ac.ic.doc.gander.flowinference.result.Result;
 import uk.ac.ic.doc.gander.flowinference.result.Result.Processor;
-import uk.ac.ic.doc.gander.flowinference.types.TFunction;
 import uk.ac.ic.doc.gander.model.ModelSite;
 import uk.ac.ic.doc.gander.model.codeobject.InvokableCodeObject;
 
 /**
  * Find any callsites that could call the given function.
  * 
- * TODO: This should take a {@link TFunction} rather than a code object and it
+ * TODO: This should take a {@link PyFunction} rather than a code object and it
  * should return senders in the form of objects at call-site rather than just
  * object. Code object arrive at a call-site as part of a callable object such
  * as a bound method or the constructor of a class. We need to improve the flow

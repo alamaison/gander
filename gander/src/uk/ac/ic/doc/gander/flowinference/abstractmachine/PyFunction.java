@@ -1,4 +1,4 @@
-package uk.ac.ic.doc.gander.flowinference.types;
+package uk.ac.ic.doc.gander.flowinference.abstractmachine;
 
 import java.util.Collections;
 import java.util.Set;
@@ -23,17 +23,17 @@ import uk.ac.ic.doc.gander.model.NamespaceName;
 import uk.ac.ic.doc.gander.model.codeobject.FunctionCO;
 
 /**
- * Model of Python function object types.
+ * Abstract model of Python function objects.
  * 
  * This also models unbound method types as they seem to behave basically the
  * same way except the type of object passed to their first parameter is
  * enforced.
  */
-public class TFunction implements TCodeObject, TCallable {
+public class PyFunction implements PyCodeObject, PyCallable {
 
 	private final FunctionCO functionObject;
 
-	public TFunction(FunctionCO functionInstance) {
+	public PyFunction(FunctionCO functionInstance) {
 		if (functionInstance == null) {
 			throw new NullPointerException("Code object required");
 		}
@@ -47,7 +47,7 @@ public class TFunction implements TCodeObject, TCallable {
 	}
 
 	@Deprecated
-	public TFunction(Function functionInstance) {
+	public PyFunction(Function functionInstance) {
 		this(functionInstance.codeObject());
 	}
 
@@ -62,7 +62,7 @@ public class TFunction implements TCodeObject, TCallable {
 	}
 
 	@Override
-	public Result<Type> returnType(SubgoalManager goalManager) {
+	public Result<PyObject> returnType(SubgoalManager goalManager) {
 		return new FunctionReturnTypeSolver(goalManager, functionObject)
 				.solution();
 	}
@@ -74,7 +74,7 @@ public class TFunction implements TCodeObject, TCallable {
 	 * namespace.
 	 */
 	@Override
-	public Result<Type> memberType(String memberName, SubgoalManager goalManager) {
+	public Result<PyObject> memberType(String memberName, SubgoalManager goalManager) {
 
 		NamespaceName member = new NamespaceName(memberName,
 				functionObject.fullyQualifiedNamespace());
@@ -131,9 +131,9 @@ public class TFunction implements TCodeObject, TCallable {
 			return true;
 		if (obj == null)
 			return false;
-		if (!(obj instanceof TFunction))
+		if (!(obj instanceof PyFunction))
 			return false;
-		TFunction other = (TFunction) obj;
+		PyFunction other = (PyFunction) obj;
 		if (functionObject == null) {
 			if (other.functionObject != null)
 				return false;

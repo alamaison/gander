@@ -1,4 +1,4 @@
-package uk.ac.ic.doc.gander.flowinference.types;
+package uk.ac.ic.doc.gander.flowinference.abstractmachine;
 
 import uk.ac.ic.doc.gander.flowinference.argument.Argument;
 import uk.ac.ic.doc.gander.flowinference.argument.SelfArgument;
@@ -10,9 +10,9 @@ import uk.ac.ic.doc.gander.flowinference.callframe.ArgumentPassingStrategy;
  */
 final class MethodStylePassingStrategy implements ArgumentPassingStrategy {
 
-	private final TObject instance;
+	private final PyInstance instance;
 
-	MethodStylePassingStrategy(TObject instance) {
+	MethodStylePassingStrategy(PyInstance instance) {
 		if (instance == null)
 			throw new NullPointerException(
 					"Method calling requires an object instance");

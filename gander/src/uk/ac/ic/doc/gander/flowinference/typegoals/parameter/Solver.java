@@ -10,6 +10,9 @@ import org.python.pydev.parser.jython.ast.ClassDef;
 import org.python.pydev.parser.jython.ast.exprType;
 
 import uk.ac.ic.doc.gander.ast.AstParentNodeFinder;
+import uk.ac.ic.doc.gander.flowinference.abstractmachine.PyCallable;
+import uk.ac.ic.doc.gander.flowinference.abstractmachine.PyInstance;
+import uk.ac.ic.doc.gander.flowinference.abstractmachine.PyObject;
 import uk.ac.ic.doc.gander.flowinference.argument.Argument;
 import uk.ac.ic.doc.gander.flowinference.call.CallDispatch;
 import uk.ac.ic.doc.gander.flowinference.call.TopD;
@@ -27,9 +30,6 @@ import uk.ac.ic.doc.gander.flowinference.result.Result.Transformer;
 import uk.ac.ic.doc.gander.flowinference.sendersgoals.FunctionSendersGoal;
 import uk.ac.ic.doc.gander.flowinference.typegoals.TopT;
 import uk.ac.ic.doc.gander.flowinference.typegoals.expression.ExpressionTypeGoal;
-import uk.ac.ic.doc.gander.flowinference.types.TCallable;
-import uk.ac.ic.doc.gander.flowinference.types.TObject;
-import uk.ac.ic.doc.gander.flowinference.types.Type;
 import uk.ac.ic.doc.gander.model.ModelSite;
 import uk.ac.ic.doc.gander.model.codeobject.ClassCO;
 import uk.ac.ic.doc.gander.model.codeobject.InvokableCodeObject;
@@ -41,7 +41,7 @@ final class ParameterTypeGoalSolver {
 	private final InvokableCodeObject invokable;
 	private final Variable variable;
 	private final SubgoalManager goalManager;
-	private final Result<Type> solution;
+	private final Result<PyObject> solution;
 
 	ParameterTypeGoalSolver(InvokableCodeObject invokable, Variable variable,
 			SubgoalManager goalManager) {
@@ -71,20 +71,20 @@ final class ParameterTypeGoalSolver {
 		}
 	}
 
-	private Result<Type> findInstanceTypes(final ClassCO klass) {
+	private Result<PyObject> findInstanceTypes(final ClassCO klass) {
 
 		Result<ModelSite<exprType>> classPositions = goalManager
 				.registerSubgoal(new FlowGoal(new CodeObjectDefinitionPosition(
 						klass)));
 
 		return classPositions
-				.transformResult(new Transformer<ModelSite<exprType>, Result<Type>>() {
+				.transformResult(new Transformer<ModelSite<exprType>, Result<PyObject>>() {
 
 					@Override
-					public Result<Type> transformFiniteResult(
+					public Result<PyObject> transformFiniteResult(
 							Set<ModelSite<exprType>> result) {
 
-						Set<Type> instances = new HashSet<Type>();
+						Set<PyObject> instances = new HashSet<PyObject>();
 
 						for (ModelSite<exprType> position : result) {
 
@@ -107,26 +107,26 @@ final class ParameterTypeGoalSolver {
 												.nestedCodeObjects()
 												.findCodeObjectMatchingAstNode(
 														parentClass);
-										instances.add(new TObject(
+										instances.add(new PyInstance(
 												(ClassCO) classCodeObject));
 									}
 								}
 							}
 						}
 
-						instances.add(new TObject(klass));
+						instances.add(new PyInstance(klass));
 
-						return new FiniteResult<Type>(instances);
+						return new FiniteResult<PyObject>(instances);
 					}
 
 					@Override
-					public Result<Type> transformInfiniteResult() {
+					public Result<PyObject> transformInfiniteResult() {
 						return TopT.INSTANCE;
 					}
 				});
 	}
 
-	private Result<Type> processSender(ModelSite<Call> senderCallSite) {
+	private Result<PyObject> processSender(ModelSite<Call> senderCallSite) {
 
 		/*
 		 * The FunctionSendersGoal has told us which expressions it thinks our
@@ -140,7 +140,7 @@ final class ParameterTypeGoalSolver {
 		 * TODO: deal with this by tracking the type using the flow goal model
 		 */
 
-		Result<Type> callSiteTypes = inferObjectsCalledAtCallSite(senderCallSite);
+		Result<PyObject> callSiteTypes = inferObjectsCalledAtCallSite(senderCallSite);
 
 		/*
 		 * But now we have all the objects syntactic call-site. Some of these
@@ -175,10 +175,10 @@ final class ParameterTypeGoalSolver {
 	 * Which argument is passed to a parameter depends on how its code object is
 	 * invoked by the call site. For example, if the callable is a bound method,
 	 * the arguments are passed to different parameters than if it is used
-	 * unbound. This is decided by {@link Type} being called at the call site
+	 * unbound. This is decided by {@link PyObject} being called at the call site
 	 * (which might not call the code object in question).
 	 */
-	private Result<Type> inferObjectsCalledAtCallSite(ModelSite<Call> callSite) {
+	private Result<PyObject> inferObjectsCalledAtCallSite(ModelSite<Call> callSite) {
 
 		return goalManager.registerSubgoal(new ExpressionTypeGoal(
 				new ModelSite<exprType>(callSite.astNode().func, callSite
@@ -186,25 +186,25 @@ final class ParameterTypeGoalSolver {
 	}
 
 	private Result<CallDispatch> extractRelevantCalls(
-			Result<Type> callSiteTypes, ModelSite<Call> senderCallSite) {
+			Result<PyObject> callSiteTypes, ModelSite<Call> senderCallSite) {
 
 		return callSiteTypes.transformResult(new RelevantCallFilter(invokable,
 				senderCallSite, goalManager));
 	}
 
-	private Result<Type> deriveParameterTypeFromCalls(Result<CallDispatch> calls) {
+	private Result<PyObject> deriveParameterTypeFromCalls(Result<CallDispatch> calls) {
 
 		return calls.transformResult(new CallDancer(variable, goalManager));
 	}
 
-	private Result<Type> deriveParameterTypeFromCallsites(
+	private Result<PyObject> deriveParameterTypeFromCallsites(
 			Result<ModelSite<Call>> callSites) {
 
-		Concentrator<ModelSite<Call>, Type> processor = Concentrator
-				.newInstance(new DatumProcessor<ModelSite<Call>, Type>() {
+		Concentrator<ModelSite<Call>, PyObject> processor = Concentrator
+				.newInstance(new DatumProcessor<ModelSite<Call>, PyObject>() {
 
 					@Override
-					public Result<Type> process(ModelSite<Call> senderCallSite) {
+					public Result<PyObject> process(ModelSite<Call> senderCallSite) {
 						return processSender(senderCallSite);
 					}
 				}, TopT.INSTANCE);
@@ -213,7 +213,7 @@ final class ParameterTypeGoalSolver {
 		return processor.result();
 	}
 
-	public Result<Type> solution() {
+	public Result<PyObject> solution() {
 		return solution;
 	}
 }
@@ -224,10 +224,10 @@ final class ParameterTypeGoalSolver {
  * Which argument is passed to a parameter depends on how its code object is
  * invoked by the call site. For example, if the callable is a bound method, the
  * arguments are passed to different parameters than if it is used unbound. This
- * is decided by {@link Type} being called at the call site (which might not
+ * is decided by {@link PyObject} being called at the call site (which might not
  * call the code object in question).
  */
-final class CalledObjectTyper implements DatumProcessor<ModelSite<Call>, Type> {
+final class CalledObjectTyper implements DatumProcessor<ModelSite<Call>, PyObject> {
 
 	private final SubgoalManager goalManager;
 
@@ -237,7 +237,7 @@ final class CalledObjectTyper implements DatumProcessor<ModelSite<Call>, Type> {
 	}
 
 	@Override
-	public Result<Type> process(ModelSite<Call> callSite) {
+	public Result<PyObject> process(ModelSite<Call> callSite) {
 
 		return goalManager.registerSubgoal(new ExpressionTypeGoal(
 				new ModelSite<exprType>(callSite.astNode().func, callSite
@@ -249,7 +249,7 @@ final class CalledObjectTyper implements DatumProcessor<ModelSite<Call>, Type> {
  * Extracts only relevant call from the callable objects.
  */
 final class RelevantCallFilter implements
-		Transformer<Type, Result<CallDispatch>> {
+		Transformer<PyObject, Result<CallDispatch>> {
 
 	private final InvokableCodeObject invokable;
 	private final SubgoalManager goalManager;
@@ -268,15 +268,15 @@ final class RelevantCallFilter implements
 
 	@Override
 	public Result<CallDispatch> transformFiniteResult(
-			Set<Type> objectsAtCallSite) {
+			Set<PyObject> objectsAtCallSite) {
 
 		RedundancyEliminator<CallDispatch> calls = new RedundancyEliminator<CallDispatch>();
 
-		for (Type calledObject : objectsAtCallSite) {
+		for (PyObject calledObject : objectsAtCallSite) {
 
-			if (calledObject instanceof TCallable) {
+			if (calledObject instanceof PyCallable) {
 
-				calls.add(callsThatMightInvokeOurCodeObject((TCallable) calledObject));
+				calls.add(callsThatMightInvokeOurCodeObject((PyCallable) calledObject));
 
 			} else {
 				System.err.println("UNTYPABLE: call site isn't "
@@ -304,7 +304,7 @@ final class RelevantCallFilter implements
 	}
 
 	private Result<CallDispatch> callsThatMightInvokeOurCodeObject(
-			TCallable object) {
+			PyCallable object) {
 
 		StackFrame<Argument> call = new CallSiteStackFrame(senderCallSite);
 
@@ -341,7 +341,7 @@ final class RelevantCallFilter implements
 	}
 }
 
-final class CallDancer implements Transformer<CallDispatch, Result<Type>> {
+final class CallDancer implements Transformer<CallDispatch, Result<PyObject>> {
 
 	private final Variable variable;
 	private final SubgoalManager goalManager;
@@ -352,9 +352,9 @@ final class CallDancer implements Transformer<CallDispatch, Result<Type>> {
 	}
 
 	@Override
-	public Result<Type> transformFiniteResult(Set<CallDispatch> calls) {
+	public Result<PyObject> transformFiniteResult(Set<CallDispatch> calls) {
 
-		RedundancyEliminator<Type> type = new RedundancyEliminator<Type>();
+		RedundancyEliminator<PyObject> type = new RedundancyEliminator<PyObject>();
 
 		for (CallDispatch call : calls) {
 
@@ -365,12 +365,12 @@ final class CallDancer implements Transformer<CallDispatch, Result<Type>> {
 	}
 
 	@Override
-	public Result<Type> transformInfiniteResult() {
+	public Result<PyObject> transformInfiniteResult() {
 		return TopT.INSTANCE;
 	}
 }
 
-final class ArgumentTyper implements Transformer<Argument, Result<Type>> {
+final class ArgumentTyper implements Transformer<Argument, Result<PyObject>> {
 
 	private final SubgoalManager goalManager;
 
@@ -379,9 +379,9 @@ final class ArgumentTyper implements Transformer<Argument, Result<Type>> {
 	}
 
 	@Override
-	public Result<Type> transformFiniteResult(Set<Argument> arguments) {
+	public Result<PyObject> transformFiniteResult(Set<Argument> arguments) {
 
-		RedundancyEliminator<Type> type = new RedundancyEliminator<Type>();
+		RedundancyEliminator<PyObject> type = new RedundancyEliminator<PyObject>();
 
 		for (Argument argument : arguments) {
 
@@ -394,7 +394,7 @@ final class ArgumentTyper implements Transformer<Argument, Result<Type>> {
 	}
 
 	@Override
-	public Result<Type> transformInfiniteResult() {
+	public Result<PyObject> transformInfiniteResult() {
 		return TopT.INSTANCE;
 	}
 }

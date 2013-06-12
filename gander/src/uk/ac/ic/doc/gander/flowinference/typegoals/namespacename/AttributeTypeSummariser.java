@@ -5,6 +5,7 @@ import java.util.Set;
 import org.python.pydev.parser.jython.ast.Attribute;
 import org.python.pydev.parser.jython.ast.exprType;
 
+import uk.ac.ic.doc.gander.flowinference.abstractmachine.PyObject;
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
 import uk.ac.ic.doc.gander.flowinference.result.RedundancyEliminator;
 import uk.ac.ic.doc.gander.flowinference.result.Result;
@@ -12,7 +13,6 @@ import uk.ac.ic.doc.gander.flowinference.result.Result.Processor;
 import uk.ac.ic.doc.gander.flowinference.typegoals.TopT;
 import uk.ac.ic.doc.gander.flowinference.typegoals.expression.ExpressionTypeGoal;
 import uk.ac.ic.doc.gander.flowinference.typegoals.namespacename.AttributeDefinitionFinder.Event;
-import uk.ac.ic.doc.gander.flowinference.types.Type;
 import uk.ac.ic.doc.gander.model.ModelSite;
 
 /**
@@ -23,7 +23,7 @@ import uk.ac.ic.doc.gander.model.ModelSite;
  */
 final class AttributeTypeSummariser {
 
-	private final RedundancyEliminator<Type> typeSummary = new RedundancyEliminator<Type>();
+	private final RedundancyEliminator<PyObject> typeSummary = new RedundancyEliminator<PyObject>();
 	private final SubgoalManager goalManager;
 	private final String attributeName;
 
@@ -39,7 +39,7 @@ final class AttributeTypeSummariser {
 		namespaceReferences.actOnResult(new ReferenceProcessor());
 	}
 
-	Result<Type> type() {
+	Result<PyObject> type() {
 		return typeSummary.result();
 	}
 
@@ -80,7 +80,7 @@ final class AttributeTypeSummariser {
 		public boolean attributeDefined(ModelSite<Attribute> attribute,
 				ModelSite<exprType> value) {
 
-			Result<Type> valueType = goalManager
+			Result<PyObject> valueType = goalManager
 					.registerSubgoal(new ExpressionTypeGoal(value));
 
 			typeSummary.add(valueType);

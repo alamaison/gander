@@ -10,6 +10,7 @@ import org.python.pydev.parser.jython.ast.Tuple;
 import org.python.pydev.parser.jython.ast.VisitorBase;
 import org.python.pydev.parser.jython.ast.exprType;
 
+import uk.ac.ic.doc.gander.flowinference.abstractmachine.PyObject;
 import uk.ac.ic.doc.gander.flowinference.argument.Argument;
 import uk.ac.ic.doc.gander.flowinference.argument.ArgumentDestination;
 import uk.ac.ic.doc.gander.flowinference.argument.NullArgument;
@@ -18,7 +19,6 @@ import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
 import uk.ac.ic.doc.gander.flowinference.result.FiniteResult;
 import uk.ac.ic.doc.gander.flowinference.result.Result;
 import uk.ac.ic.doc.gander.flowinference.typegoals.TopT;
-import uk.ac.ic.doc.gander.flowinference.types.Type;
 import uk.ac.ic.doc.gander.model.ModelSite;
 import uk.ac.ic.doc.gander.model.codeobject.InvokableCodeObject;
 import uk.ac.ic.doc.gander.model.name_binding.Variable;
@@ -134,7 +134,7 @@ final class TupleParameter implements FormalParameter {
 	}
 
 	@Override
-	public Result<Type> objectsPassedAtCall(StackFrame<Argument> stackFrame,
+	public Result<PyObject> objectsPassedAtCall(StackFrame<Argument> stackFrame,
 			Variable variable, SubgoalManager goalManager) {
 		if (variable == null)
 			throw new NullPointerException("Variable required");

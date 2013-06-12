@@ -5,10 +5,10 @@ import java.util.Map;
 
 import org.python.pydev.parser.jython.ast.Call;
 
+import uk.ac.ic.doc.gander.flowinference.abstractmachine.FunctionStylePassingStrategy;
 import uk.ac.ic.doc.gander.flowinference.argument.Argument;
 import uk.ac.ic.doc.gander.flowinference.argument.Arguments;
 import uk.ac.ic.doc.gander.flowinference.argument.CallsiteArguments;
-import uk.ac.ic.doc.gander.flowinference.types.FunctionStylePassingStrategy;
 import uk.ac.ic.doc.gander.model.ModelSite;
 
 public final class CallSiteStackFrame implements StackFrame<Argument> {

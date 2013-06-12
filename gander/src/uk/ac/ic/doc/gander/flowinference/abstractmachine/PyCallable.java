@@ -1,4 +1,4 @@
-package uk.ac.ic.doc.gander.flowinference.types;
+package uk.ac.ic.doc.gander.flowinference.abstractmachine;
 
 import org.python.pydev.parser.jython.ast.Call;
 
@@ -10,7 +10,7 @@ import uk.ac.ic.doc.gander.flowinference.flowgoals.FlowPosition;
 import uk.ac.ic.doc.gander.flowinference.result.Result;
 import uk.ac.ic.doc.gander.model.ModelSite;
 
-public interface TCallable extends Type {
+public interface PyCallable extends PyObject {
 
 	/**
 	 * Infers the type of the value returned when this object is called.
@@ -18,7 +18,7 @@ public interface TCallable extends Type {
 	 * @param goalManager
 	 *            allows us to determine the return type using type inference
 	 */
-	Result<Type> returnType(SubgoalManager goalManager);
+	Result<PyObject> returnType(SubgoalManager goalManager);
 
 	/**
 	 * Returns the flow positions that the result of calling an object of this

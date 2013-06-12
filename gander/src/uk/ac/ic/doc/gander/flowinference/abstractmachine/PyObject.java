@@ -1,4 +1,4 @@
-package uk.ac.ic.doc.gander.flowinference.types;
+package uk.ac.ic.doc.gander.flowinference.abstractmachine;
 
 import java.util.Set;
 
@@ -6,11 +6,11 @@ import uk.ac.ic.doc.gander.flowinference.Namespace;
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
 import uk.ac.ic.doc.gander.flowinference.result.Result;
 
-public interface Type {
+public interface PyObject {
 	String getName();
 
 	/** Returns the inferred type of the named member of the modelled type. */
-	Result<Type> memberType(String memberName, SubgoalManager goalManager);
+	Result<PyObject> memberType(String memberName, SubgoalManager goalManager);
 
 	/**
 	 * Returns the namespaces that may be accessed when reading a member from

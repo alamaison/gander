@@ -10,8 +10,8 @@ import java.util.Set;
 import uk.ac.ic.doc.gander.analysers.CallTargetTypeDiff.DiffResult;
 import uk.ac.ic.doc.gander.analysers.CallTargetTypeDiff.ResultObserver;
 import uk.ac.ic.doc.gander.calls.CallSite;
+import uk.ac.ic.doc.gander.flowinference.abstractmachine.PyObject;
 import uk.ac.ic.doc.gander.flowinference.result.Result.Processor;
-import uk.ac.ic.doc.gander.flowinference.types.Type;
 
 final class SqlLiteDumper implements ResultObserver {
 
@@ -57,7 +57,7 @@ final class SqlLiteDumper implements ResultObserver {
 	private void insertResult(final DiffResult result) throws SQLException {
 
 		/* Duck types */
-		result.duckType().actOnResult(new Processor<Type>() {
+		result.duckType().actOnResult(new Processor<PyObject>() {
 
 			public void processInfiniteResult() {
 
@@ -73,8 +73,8 @@ final class SqlLiteDumper implements ResultObserver {
 				}
 			}
 
-			public void processFiniteResult(Set<Type> flowTypes) {
-				for (Type type : flowTypes) {
+			public void processFiniteResult(Set<PyObject> flowTypes) {
+				for (PyObject type : flowTypes) {
 
 					try {
 						insertDuckType(result, type);
@@ -86,7 +86,7 @@ final class SqlLiteDumper implements ResultObserver {
 		});
 
 		/* Flow types */
-		result.flowType().actOnResult(new Processor<Type>() {
+		result.flowType().actOnResult(new Processor<PyObject>() {
 
 			public void processInfiniteResult() {
 
@@ -102,8 +102,8 @@ final class SqlLiteDumper implements ResultObserver {
 				}
 			}
 
-			public void processFiniteResult(Set<Type> flowTypes) {
-				for (Type type : flowTypes) {
+			public void processFiniteResult(Set<PyObject> flowTypes) {
+				for (PyObject type : flowTypes) {
 
 					try {
 						insertFlowType(result, type);
@@ -115,17 +115,17 @@ final class SqlLiteDumper implements ResultObserver {
 		});
 	}
 
-	private void insertDuckType(DiffResult result, Type type)
+	private void insertDuckType(DiffResult result, PyObject type)
 			throws SQLException {
 		insertTypeInto(duckResultsTableName, result, type);
 	}
 
-	private void insertFlowType(DiffResult result, Type type)
+	private void insertFlowType(DiffResult result, PyObject type)
 			throws SQLException {
 		insertTypeInto(flowResultsTableName, result, type);
 	}
 
-	private void insertTypeInto(String tableName, DiffResult result, Type type)
+	private void insertTypeInto(String tableName, DiffResult result, PyObject type)
 			throws SQLException {
 		PreparedStatement statement = connection
 				.prepareStatement("insert into " + tableName + " values(?, ?);");

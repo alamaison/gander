@@ -8,6 +8,7 @@ import org.python.pydev.parser.jython.ast.NameTok;
 import org.python.pydev.parser.jython.ast.exprType;
 
 import uk.ac.ic.doc.gander.flowinference.Namespace;
+import uk.ac.ic.doc.gander.flowinference.abstractmachine.PyObject;
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
 import uk.ac.ic.doc.gander.flowinference.flowgoals.FlowPosition;
 import uk.ac.ic.doc.gander.flowinference.flowgoals.NamespaceNamePosition;
@@ -16,7 +17,6 @@ import uk.ac.ic.doc.gander.flowinference.result.FiniteResult;
 import uk.ac.ic.doc.gander.flowinference.result.Result;
 import uk.ac.ic.doc.gander.flowinference.result.Result.Transformer;
 import uk.ac.ic.doc.gander.flowinference.typegoals.expression.ExpressionTypeGoal;
-import uk.ac.ic.doc.gander.flowinference.types.Type;
 import uk.ac.ic.doc.gander.model.ModelSite;
 import uk.ac.ic.doc.gander.model.NamespaceName;
 
@@ -40,19 +40,19 @@ final class AttributeSituation implements FlowSituation {
 	@Override
 	public Result<FlowPosition> nextFlowPositions(SubgoalManager goalManager) {
 
-		Result<Type> lhs = goalManager.registerSubgoal(new ExpressionTypeGoal(
+		Result<PyObject> lhs = goalManager.registerSubgoal(new ExpressionTypeGoal(
 				new ModelSite<exprType>(attribute.astNode().value, attribute
 						.codeObject())));
 
 		return lhs
-				.transformResult(new Transformer<Type, Result<FlowPosition>>() {
+				.transformResult(new Transformer<PyObject, Result<FlowPosition>>() {
 
 					@Override
 					public Result<FlowPosition> transformFiniteResult(
-							Set<Type> lhsObjects) {
+							Set<PyObject> lhsObjects) {
 						Set<FlowPosition> positions = new HashSet<FlowPosition>();
 
-						for (Type object : lhsObjects) {
+						for (PyObject object : lhsObjects) {
 							/*
 							 * TODO: can we take advantage of the fact that
 							 * generally this will be limited to the writeable

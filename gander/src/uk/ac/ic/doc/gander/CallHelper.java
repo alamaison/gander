@@ -8,10 +8,10 @@ import org.python.pydev.parser.jython.ast.NameTok;
 import org.python.pydev.parser.jython.ast.exprType;
 
 import uk.ac.ic.doc.gander.flowinference.TypeResolver;
-import uk.ac.ic.doc.gander.flowinference.types.TClass;
-import uk.ac.ic.doc.gander.flowinference.types.TModule;
-import uk.ac.ic.doc.gander.flowinference.types.TUnresolvedImport;
-import uk.ac.ic.doc.gander.flowinference.types.Type;
+import uk.ac.ic.doc.gander.flowinference.abstractmachine.PyClass;
+import uk.ac.ic.doc.gander.flowinference.abstractmachine.PyModule;
+import uk.ac.ic.doc.gander.flowinference.abstractmachine.PyUnresolvedImport;
+import uk.ac.ic.doc.gander.flowinference.abstractmachine.PyObject;
 import uk.ac.ic.doc.gander.model.Class;
 import uk.ac.ic.doc.gander.model.Function;
 import uk.ac.ic.doc.gander.model.ModelSite;
@@ -31,9 +31,9 @@ public class CallHelper {
 
 		// skip calls to module functions - they look like method calls but
 		// we want to treat then differently
-		Type callTarget = typer.typeOf(new ModelSite<exprType>(
+		PyObject callTarget = typer.typeOf(new ModelSite<exprType>(
 				indirectCallTarget(call), scope.codeObject()));
-		return !(callTarget instanceof TModule || callTarget instanceof TUnresolvedImport);
+		return !(callTarget instanceof PyModule || callTarget instanceof PyUnresolvedImport);
 	}
 
 	public static boolean isMethodCallOnName(Call call, OldNamespace scope,
@@ -167,6 +167,6 @@ public class CallHelper {
 			return true;
 
 		return typer.typeOf(new ModelSite<exprType>(callableExpression(call),
-				scope.codeObject())) instanceof TClass;
+				scope.codeObject())) instanceof PyClass;
 	}
 }

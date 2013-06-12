@@ -1,10 +1,10 @@
 package uk.ac.ic.doc.gander.flowinference.typegoals.parameter;
 
+import uk.ac.ic.doc.gander.flowinference.abstractmachine.PyObject;
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
 import uk.ac.ic.doc.gander.flowinference.result.FiniteResult;
 import uk.ac.ic.doc.gander.flowinference.result.Result;
 import uk.ac.ic.doc.gander.flowinference.typegoals.TypeGoal;
-import uk.ac.ic.doc.gander.flowinference.types.Type;
 import uk.ac.ic.doc.gander.model.codeobject.InvokableCodeObject;
 import uk.ac.ic.doc.gander.model.name_binding.Variable;
 
@@ -29,12 +29,12 @@ public final class ParameterTypeGoal implements TypeGoal {
 	}
 
 	@Override
-	public Result<Type> initialSolution() {
+	public Result<PyObject> initialSolution() {
 		return FiniteResult.bottom();
 	}
 
 	@Override
-	public Result<Type> recalculateSolution(SubgoalManager goalManager) {
+	public Result<PyObject> recalculateSolution(SubgoalManager goalManager) {
 		if (goalManager == null)
 			throw new NullPointerException("Goal manager required");
 

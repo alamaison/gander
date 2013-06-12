@@ -6,15 +6,15 @@ import java.util.Set;
 import org.python.pydev.parser.jython.ast.exprType;
 
 import uk.ac.ic.doc.gander.flowinference.Namespace;
+import uk.ac.ic.doc.gander.flowinference.abstractmachine.PyModule;
+import uk.ac.ic.doc.gander.flowinference.abstractmachine.PyUnresolvedImport;
+import uk.ac.ic.doc.gander.flowinference.abstractmachine.PyObject;
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
 import uk.ac.ic.doc.gander.flowinference.result.FiniteResult;
 import uk.ac.ic.doc.gander.flowinference.result.RedundancyEliminator;
 import uk.ac.ic.doc.gander.flowinference.result.Result;
 import uk.ac.ic.doc.gander.flowinference.result.Result.Processor;
 import uk.ac.ic.doc.gander.flowinference.typegoals.expression.ExpressionTypeGoal;
-import uk.ac.ic.doc.gander.flowinference.types.TModule;
-import uk.ac.ic.doc.gander.flowinference.types.TUnresolvedImport;
-import uk.ac.ic.doc.gander.flowinference.types.Type;
 import uk.ac.ic.doc.gander.importing.Import;
 import uk.ac.ic.doc.gander.importing.ImportSimulator.Binder;
 import uk.ac.ic.doc.gander.importing.WholeModelImportSimulation;
@@ -31,7 +31,7 @@ final class NamespaceNameTypeGoalSolver {
 	private final NamespaceName name;
 	private final SubgoalManager goalManager;
 
-	private final RedundancyEliminator<Type> completeType = new RedundancyEliminator<Type>();
+	private final RedundancyEliminator<PyObject> completeType = new RedundancyEliminator<PyObject>();
 
 	NamespaceNameTypeGoalSolver(NamespaceName name, SubgoalManager goalManager) {
 		if (name == null)
@@ -57,7 +57,7 @@ final class NamespaceNameTypeGoalSolver {
 		}
 	}
 
-	Result<Type> solution() {
+	Result<PyObject> solution() {
 		return completeType.result();
 	}
 
@@ -83,7 +83,7 @@ final class NamespaceNameTypeGoalSolver {
 			 * version.
 			 */
 
-			Result<Type> supertypeTypes = goalManager
+			Result<PyObject> supertypeTypes = goalManager
 					.registerSubgoal(new ExpressionTypeGoal(
 							new ModelSite<exprType>(supertype, klass
 									.codeObject().parent())));
@@ -107,7 +107,7 @@ final class NamespaceNameTypeGoalSolver {
 		if (completeType.isFinished())
 			return;
 
-		final Set<Type> type = new HashSet<Type>();
+		final Set<PyObject> type = new HashSet<PyObject>();
 
 		new WholeModelImportSimulation(namespace.model(),
 				new Binder<NamespaceName, Namespace, CodeObject, ModuleCO>() {
@@ -134,7 +134,7 @@ final class NamespaceNameTypeGoalSolver {
 										.bindingLocation());
 
 						if (bindingName.equals(name)) {
-							type.add(new TModule(loadedModule));
+							type.add(new PyModule(loadedModule));
 						}
 					}
 
@@ -166,7 +166,7 @@ final class NamespaceNameTypeGoalSolver {
 										.bindingLocation());
 
 						if (bindingName.equals(name)) {
-							type.add(new TUnresolvedImport(importInstance));
+							type.add(new PyUnresolvedImport(importInstance));
 						}
 					}
 
@@ -179,10 +179,10 @@ final class NamespaceNameTypeGoalSolver {
 					}
 				});
 
-		completeType.add(new FiniteResult<Type>(type));
+		completeType.add(new FiniteResult<PyObject>(type));
 	}
 
-	private final class MemberTyper implements Processor<Type> {
+	private final class MemberTyper implements Processor<PyObject> {
 
 		@Override
 		public void processInfiniteResult() {
@@ -190,8 +190,8 @@ final class NamespaceNameTypeGoalSolver {
 		}
 
 		@Override
-		public void processFiniteResult(Set<Type> result) {
-			for (Type supertypeType : result) {
+		public void processFiniteResult(Set<PyObject> result) {
+			for (PyObject supertypeType : result) {
 				if (completeType.isFinished())
 					break;
 

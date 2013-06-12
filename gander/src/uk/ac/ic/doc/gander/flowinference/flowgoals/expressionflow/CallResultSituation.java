@@ -3,6 +3,8 @@ package uk.ac.ic.doc.gander.flowinference.flowgoals.expressionflow;
 import org.python.pydev.parser.jython.ast.Call;
 import org.python.pydev.parser.jython.ast.exprType;
 
+import uk.ac.ic.doc.gander.flowinference.abstractmachine.PyCallable;
+import uk.ac.ic.doc.gander.flowinference.abstractmachine.PyObject;
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
 import uk.ac.ic.doc.gander.flowinference.flowgoals.FlowPosition;
 import uk.ac.ic.doc.gander.flowinference.flowgoals.TopFp;
@@ -11,8 +13,6 @@ import uk.ac.ic.doc.gander.flowinference.result.Concentrator.DatumProcessor;
 import uk.ac.ic.doc.gander.flowinference.result.FiniteResult;
 import uk.ac.ic.doc.gander.flowinference.result.Result;
 import uk.ac.ic.doc.gander.flowinference.typegoals.expression.ExpressionTypeGoal;
-import uk.ac.ic.doc.gander.flowinference.types.TCallable;
-import uk.ac.ic.doc.gander.flowinference.types.Type;
 import uk.ac.ic.doc.gander.model.ModelSite;
 
 /**
@@ -78,12 +78,12 @@ final class CallResultSituationSolver {
 	CallResultSituationSolver(ModelSite<Call> expression,
 			SubgoalManager goalManager) {
 
-		Result<Type> types = goalManager
+		Result<PyObject> types = goalManager
 				.registerSubgoal(new ExpressionTypeGoal(
 						new ModelSite<exprType>(expression.astNode().func,
 								expression.codeObject())));
 
-		Concentrator<Type, FlowPosition> action = Concentrator.newInstance(
+		Concentrator<PyObject, FlowPosition> action = Concentrator.newInstance(
 				new CallResultFlower(goalManager, expression), TopFp.INSTANCE);
 		types.actOnResult(action);
 		solution = action.result();
@@ -97,7 +97,7 @@ final class CallResultSituationSolver {
 /**
  * Flows the value produced by the act of calling an object.
  */
-final class CallResultFlower implements DatumProcessor<Type, FlowPosition> {
+final class CallResultFlower implements DatumProcessor<PyObject, FlowPosition> {
 
 	private final SubgoalManager goalManager;
 	private final ModelSite<Call> syntacticCallSite;
@@ -109,10 +109,10 @@ final class CallResultFlower implements DatumProcessor<Type, FlowPosition> {
 	}
 
 	@Override
-	public Result<FlowPosition> process(Type object) {
+	public Result<FlowPosition> process(PyObject object) {
 
-		if (object instanceof TCallable) {
-			TCallable callable = ((TCallable) object);
+		if (object instanceof PyCallable) {
+			PyCallable callable = ((PyCallable) object);
 			return callable.flowPositionsCausedByCalling(syntacticCallSite,
 					goalManager);
 		} else {

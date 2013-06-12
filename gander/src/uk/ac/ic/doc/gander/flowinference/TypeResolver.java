@@ -2,9 +2,9 @@ package uk.ac.ic.doc.gander.flowinference;
 
 import org.python.pydev.parser.jython.ast.exprType;
 
+import uk.ac.ic.doc.gander.flowinference.abstractmachine.PyObject;
 import uk.ac.ic.doc.gander.flowinference.result.Result;
 import uk.ac.ic.doc.gander.flowinference.result.Result.Transformer;
-import uk.ac.ic.doc.gander.flowinference.types.Type;
 import uk.ac.ic.doc.gander.model.ModelSite;
 
 public class TypeResolver {
@@ -19,17 +19,17 @@ public class TypeResolver {
 		this.engine = new TimingTypeEngine(engine);
 	}
 
-	public Type typeOf(ModelSite<exprType> expression) {
+	public PyObject typeOf(ModelSite<exprType> expression) {
 
-		Result<Type> types = engine.typeOf(expression);
+		Result<PyObject> types = engine.typeOf(expression);
 
 		return types.transformResult(new Singletoniser());
 	}
 
-	private final class Singletoniser implements Transformer<Type, Type> {
+	private final class Singletoniser implements Transformer<PyObject, PyObject> {
 
 		@Override
-		public Type transformFiniteResult(java.util.Set<Type> result) {
+		public PyObject transformFiniteResult(java.util.Set<PyObject> result) {
 			if (result.size() == 1) {
 				return result.iterator().next();
 			} else {
@@ -39,7 +39,7 @@ public class TypeResolver {
 		}
 
 		@Override
-		public Type transformInfiniteResult() {
+		public PyObject transformInfiniteResult() {
 			System.err.println("Oh dear, Top");
 			return null;
 		}

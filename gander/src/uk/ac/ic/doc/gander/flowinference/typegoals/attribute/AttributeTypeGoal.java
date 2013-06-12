@@ -4,6 +4,7 @@ import org.python.pydev.parser.jython.ast.Attribute;
 import org.python.pydev.parser.jython.ast.NameTok;
 import org.python.pydev.parser.jython.ast.exprType;
 
+import uk.ac.ic.doc.gander.flowinference.abstractmachine.PyObject;
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
 import uk.ac.ic.doc.gander.flowinference.result.Concentrator;
 import uk.ac.ic.doc.gander.flowinference.result.Concentrator.DatumProcessor;
@@ -12,7 +13,6 @@ import uk.ac.ic.doc.gander.flowinference.result.Result;
 import uk.ac.ic.doc.gander.flowinference.typegoals.TopT;
 import uk.ac.ic.doc.gander.flowinference.typegoals.TypeGoal;
 import uk.ac.ic.doc.gander.flowinference.typegoals.expression.ExpressionTypeGoal;
-import uk.ac.ic.doc.gander.flowinference.types.Type;
 import uk.ac.ic.doc.gander.model.ModelSite;
 
 public final class AttributeTypeGoal implements TypeGoal {
@@ -24,24 +24,24 @@ public final class AttributeTypeGoal implements TypeGoal {
 	}
 
 	@Override
-	public Result<Type> initialSolution() {
+	public Result<PyObject> initialSolution() {
 		return FiniteResult.bottom();
 	}
 
 	@Override
-	public Result<Type> recalculateSolution(final SubgoalManager goalManager) {
+	public Result<PyObject> recalculateSolution(final SubgoalManager goalManager) {
 		ModelSite<exprType> lhs = new ModelSite<exprType>(
 				attribute.astNode().value, attribute.codeObject());
 		ExpressionTypeGoal typer = new ExpressionTypeGoal(lhs);
-		Result<Type> targetTypes = goalManager.registerSubgoal(typer);
+		Result<PyObject> targetTypes = goalManager.registerSubgoal(typer);
 
 		final String attributeName = ((NameTok) attribute.astNode().attr).id;
 
-		Concentrator<Type, Type> processor = Concentrator.newInstance(
-				new DatumProcessor<Type, Type>() {
+		Concentrator<PyObject, PyObject> processor = Concentrator.newInstance(
+				new DatumProcessor<PyObject, PyObject>() {
 
 					@Override
-					public Result<Type> process(Type targetType) {
+					public Result<PyObject> process(PyObject targetType) {
 						return targetType
 								.memberType(attributeName, goalManager);
 					}

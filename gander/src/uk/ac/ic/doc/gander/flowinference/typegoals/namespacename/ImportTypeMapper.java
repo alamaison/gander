@@ -3,13 +3,13 @@ package uk.ac.ic.doc.gander.flowinference.typegoals.namespacename;
 import java.util.Collections;
 
 import uk.ac.ic.doc.gander.flowinference.Namespace;
+import uk.ac.ic.doc.gander.flowinference.abstractmachine.PyModule;
+import uk.ac.ic.doc.gander.flowinference.abstractmachine.PyUnresolvedImport;
+import uk.ac.ic.doc.gander.flowinference.abstractmachine.PyObject;
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
 import uk.ac.ic.doc.gander.flowinference.result.FiniteResult;
 import uk.ac.ic.doc.gander.flowinference.result.RedundancyEliminator;
 import uk.ac.ic.doc.gander.flowinference.result.Result;
-import uk.ac.ic.doc.gander.flowinference.types.TModule;
-import uk.ac.ic.doc.gander.flowinference.types.TUnresolvedImport;
-import uk.ac.ic.doc.gander.flowinference.types.Type;
 import uk.ac.ic.doc.gander.importing.Import;
 import uk.ac.ic.doc.gander.importing.ImportSimulator;
 import uk.ac.ic.doc.gander.importing.ImportSimulator.Binder;
@@ -27,7 +27,7 @@ final class ImportTypeMapper {
 		this.goalManager = goalManager;
 	}
 
-	Result<Type> typeImport(Variable variable,
+	Result<PyObject> typeImport(Variable variable,
 			Import<CodeObject, ModuleCO> importInstance) {
 		LocalTypeBinder typingBinder = new LocalTypeBinder(variable);
 
@@ -43,7 +43,7 @@ final class ImportTypeMapper {
 			Binder<NamespaceName, Namespace, CodeObject, ModuleCO> {
 
 		private final Variable variable;
-		private final RedundancyEliminator<Type> partialVariableType = new RedundancyEliminator<Type>();
+		private final RedundancyEliminator<PyObject> partialVariableType = new RedundancyEliminator<PyObject>();
 
 		public LocalTypeBinder(Variable variable) {
 			this.variable = variable;
@@ -59,8 +59,8 @@ final class ImportTypeMapper {
 			if (!partialVariableType.isFinished()
 					&& name.equals(variable.name())) {
 
-				partialVariableType.add(new FiniteResult<Type>(Collections
-						.singleton(new TModule(loadedModule))));
+				partialVariableType.add(new FiniteResult<PyObject>(Collections
+						.singleton(new PyModule(loadedModule))));
 			}
 		}
 
@@ -125,8 +125,8 @@ final class ImportTypeMapper {
 				Import<CodeObject, ModuleCO> importInstance, String name) {
 
 			if (name.equals(variable.name())) {
-				partialVariableType.add(new FiniteResult<Type>(Collections
-						.singleton(new TUnresolvedImport(importInstance))));
+				partialVariableType.add(new FiniteResult<PyObject>(Collections
+						.singleton(new PyUnresolvedImport(importInstance))));
 			}
 		}
 	}

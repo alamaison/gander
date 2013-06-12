@@ -6,6 +6,7 @@ import java.util.Set;
 import org.python.pydev.parser.jython.ast.Name;
 import org.python.pydev.parser.jython.ast.exprType;
 
+import uk.ac.ic.doc.gander.flowinference.abstractmachine.PyObject;
 import uk.ac.ic.doc.gander.flowinference.argument.Argument;
 import uk.ac.ic.doc.gander.flowinference.argument.ArgumentDestination;
 import uk.ac.ic.doc.gander.flowinference.argument.NullArgument;
@@ -16,7 +17,6 @@ import uk.ac.ic.doc.gander.flowinference.flowgoals.expressionflow.ExpressionPosi
 import uk.ac.ic.doc.gander.flowinference.result.FiniteResult;
 import uk.ac.ic.doc.gander.flowinference.result.RedundancyEliminator;
 import uk.ac.ic.doc.gander.flowinference.result.Result;
-import uk.ac.ic.doc.gander.flowinference.types.Type;
 import uk.ac.ic.doc.gander.model.ModelSite;
 import uk.ac.ic.doc.gander.model.codeobject.InvokableCodeObject;
 import uk.ac.ic.doc.gander.model.name_binding.Variable;
@@ -133,7 +133,7 @@ final class NamedParameter implements FormalParameter {
 	}
 
 	@Override
-	public Result<Type> objectsPassedAtCall(StackFrame<Argument> stackFrame,
+	public Result<PyObject> objectsPassedAtCall(StackFrame<Argument> stackFrame,
 			Variable variable, SubgoalManager goalManager) {
 		if (stackFrame == null)
 			throw new NullPointerException(
@@ -145,7 +145,7 @@ final class NamedParameter implements FormalParameter {
 					"Goal manager required in order to do type inference");
 
 		if (boundVariables().contains(variable)) {
-			RedundancyEliminator<Type> objects = new RedundancyEliminator<Type>();
+			RedundancyEliminator<PyObject> objects = new RedundancyEliminator<PyObject>();
 
 			Set<Argument> arguments = argumentsPassedAtCall(stackFrame,
 					goalManager);

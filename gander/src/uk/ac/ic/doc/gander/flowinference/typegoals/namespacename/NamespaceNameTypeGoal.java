@@ -2,11 +2,11 @@ package uk.ac.ic.doc.gander.flowinference.typegoals.namespacename;
 
 
 
+import uk.ac.ic.doc.gander.flowinference.abstractmachine.PyObject;
 import uk.ac.ic.doc.gander.flowinference.dda.SubgoalManager;
 import uk.ac.ic.doc.gander.flowinference.result.FiniteResult;
 import uk.ac.ic.doc.gander.flowinference.result.Result;
 import uk.ac.ic.doc.gander.flowinference.typegoals.TypeGoal;
-import uk.ac.ic.doc.gander.flowinference.types.Type;
 import uk.ac.ic.doc.gander.model.NamespaceName;
 
 public final class NamespaceNameTypeGoal implements TypeGoal {
@@ -21,11 +21,11 @@ public final class NamespaceNameTypeGoal implements TypeGoal {
 		this.name = name;
 	}
 
-	public Result<Type> initialSolution() {
+	public Result<PyObject> initialSolution() {
 		return FiniteResult.bottom();
 	}
 
-	public Result<Type> recalculateSolution(SubgoalManager goalManager) {
+	public Result<PyObject> recalculateSolution(SubgoalManager goalManager) {
 
 		return new NamespaceNameTypeGoalSolver(name, goalManager).solution();
 	}

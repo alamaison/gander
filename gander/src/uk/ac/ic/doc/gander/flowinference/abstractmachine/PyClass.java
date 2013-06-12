@@ -1,4 +1,4 @@
-package uk.ac.ic.doc.gander.flowinference.types;
+package uk.ac.ic.doc.gander.flowinference.abstractmachine;
 
 import java.util.Collections;
 import java.util.Set;
@@ -27,11 +27,14 @@ import uk.ac.ic.doc.gander.model.ModelSite;
 import uk.ac.ic.doc.gander.model.NamespaceName;
 import uk.ac.ic.doc.gander.model.codeobject.ClassCO;
 
-public class TClass implements TCodeObject, TCallable {
+/**
+ * Abstract model of Python class objects.
+ */
+public class PyClass implements PyCodeObject, PyCallable {
 
 	private final ClassCO classObject;
 
-	public TClass(ClassCO classInstance) {
+	public PyClass(ClassCO classInstance) {
 		if (classInstance == null) {
 			throw new NullPointerException("Code object required");
 		}
@@ -45,7 +48,7 @@ public class TClass implements TCodeObject, TCallable {
 	}
 
 	@Deprecated
-	public TClass(Class classInstance) {
+	public PyClass(Class classInstance) {
 		this(classInstance.codeObject());
 	}
 
@@ -60,13 +63,13 @@ public class TClass implements TCodeObject, TCallable {
 	}
 
 	@Override
-	public Result<Type> returnType(SubgoalManager goalManager) {
+	public Result<PyObject> returnType(SubgoalManager goalManager) {
 		/*
 		 * Calling a class is a constructor call. Constructors are special
 		 * functions so we can infer the return type immediately. It is an
 		 * instance of the class being called.
 		 */
-		return new FiniteResult<Type>(Collections.singleton(new TObject(
+		return new FiniteResult<PyObject>(Collections.singleton(new PyInstance(
 				classObject)));
 	}
 
@@ -76,7 +79,7 @@ public class TClass implements TCodeObject, TCallable {
 	 * Members on a class are returned directly from the class namespace.
 	 */
 	@Override
-	public Result<Type> memberType(String memberName, SubgoalManager goalManager) {
+	public Result<PyObject> memberType(String memberName, SubgoalManager goalManager) {
 
 		NamespaceName member = new NamespaceName(memberName,
 				classObject.fullyQualifiedNamespace());
@@ -114,7 +117,7 @@ public class TClass implements TCodeObject, TCallable {
 		if (goalManager == null)
 			throw new NullPointerException("Goal manager required");
 
-		Result<Type> initObjects = initMemberTypes(goalManager);
+		Result<PyObject> initObjects = initMemberTypes(goalManager);
 
 		return initObjects.transformResult(new InitDispatchFinder(callFrame,
 				classObject, goalManager));
@@ -145,7 +148,7 @@ public class TClass implements TCodeObject, TCallable {
 	 * These are <em>not bound</em> to an instance of the class, they are the
 	 * unbound methods.
 	 */
-	private Result<Type> initMemberTypes(SubgoalManager goalManager) {
+	private Result<PyObject> initMemberTypes(SubgoalManager goalManager) {
 		return memberType("__init__", goalManager);
 	}
 
@@ -155,7 +158,7 @@ public class TClass implements TCodeObject, TCallable {
 	}
 
 	private Argument constructorSelfArgument() {
-		return new SelfArgument(0, new TObject(classObject));
+		return new SelfArgument(0, new PyInstance(classObject));
 	}
 
 	@Override
@@ -175,7 +178,7 @@ public class TClass implements TCodeObject, TCallable {
 			return false;
 		if (getClass() != obj.getClass())
 			return false;
-		TClass other = (TClass) obj;
+		PyClass other = (PyClass) obj;
 		if (classObject == null) {
 			if (other.classObject != null)
 				return false;
@@ -192,7 +195,7 @@ public class TClass implements TCodeObject, TCallable {
 }
 
 final class InitDispatchFinder implements
-		Transformer<Type, Result<CallDispatch>> {
+		Transformer<PyObject, Result<CallDispatch>> {
 
 	private final SubgoalManager goalManager;
 	private final StackFrame<Argument> callFrame;
@@ -207,11 +210,11 @@ final class InitDispatchFinder implements
 
 	@Override
 	public Result<CallDispatch> transformFiniteResult(
-			Set<Type> initImplementations) {
+			Set<PyObject> initImplementations) {
 
 		RedundancyEliminator<CallDispatch> dispatches = new RedundancyEliminator<CallDispatch>();
 
-		for (Type initType : initImplementations) {
+		for (PyObject initType : initImplementations) {
 
 			/*
 			 * The __init__ method can be implemented by any callable object,
@@ -223,7 +226,7 @@ final class InitDispatchFinder implements
 			 * lookup to the next callable.
 			 */
 
-			if (initType instanceof TCallable) {
+			if (initType instanceof PyCallable) {
 
 				/*
 				 * The __init__ object is not a bound method (at least, not
@@ -233,10 +236,10 @@ final class InitDispatchFinder implements
 				 * implementation was anything other than a plain function
 				 */
 				StackFrame<Argument> constructorCall = new StrategyBasedStackFrame(
-						callFrame, new MethodStylePassingStrategy(new TObject(
+						callFrame, new MethodStylePassingStrategy(new PyInstance(
 								classObject)));
 
-				dispatches.add(((TCallable) initType).dispatches(
+				dispatches.add(((PyCallable) initType).dispatches(
 						constructorCall, goalManager));
 
 			} else {

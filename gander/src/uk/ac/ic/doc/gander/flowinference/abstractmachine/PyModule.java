@@ -1,4 +1,4 @@
-package uk.ac.ic.doc.gander.flowinference.types;
+package uk.ac.ic.doc.gander.flowinference.abstractmachine;
 
 import java.util.Collections;
 import java.util.Set;
@@ -11,11 +11,14 @@ import uk.ac.ic.doc.gander.model.Module;
 import uk.ac.ic.doc.gander.model.NamespaceName;
 import uk.ac.ic.doc.gander.model.codeobject.ModuleCO;
 
-public class TModule implements TCodeObject {
+/**
+ * Abstract model of Python module objects.
+ */
+public class PyModule implements PyCodeObject {
 
 	private final ModuleCO moduleObject;
 
-	public TModule(ModuleCO moduleInstance) {
+	public PyModule(ModuleCO moduleInstance) {
 		if (moduleInstance == null) {
 			throw new NullPointerException("Code object required");
 		}
@@ -29,7 +32,7 @@ public class TModule implements TCodeObject {
 	}
 
 	@Deprecated
-	public TModule(Module loaded) {
+	public PyModule(Module loaded) {
 		this(loaded.codeObject());
 	}
 
@@ -50,7 +53,7 @@ public class TModule implements TCodeObject {
 	 * namespace.
 	 */
 	@Override
-	public Result<Type> memberType(String memberName, SubgoalManager goalManager) {
+	public Result<PyObject> memberType(String memberName, SubgoalManager goalManager) {
 
 		NamespaceName member = new NamespaceName(memberName,
 				moduleObject.fullyQualifiedNamespace());
@@ -91,7 +94,7 @@ public class TModule implements TCodeObject {
 			return false;
 		if (getClass() != obj.getClass())
 			return false;
-		TModule other = (TModule) obj;
+		PyModule other = (PyModule) obj;
 		if (moduleObject == null) {
 			if (other.moduleObject != null)
 				return false;
