@@ -10,14 +10,14 @@ import uk.ac.ic.doc.gander.flowinference.result.Top;
  */
 public final class TopFp extends Top<FlowPosition> {
 
-	public static final TopFp INSTANCE = new TopFp();
+    public static final TopFp INSTANCE = new TopFp();
 
-	@Override
-	public String toString() {
-		return "⊤fp";
-	}
+    @Override
+    public String toString() {
+        return "⊤fp";
+    }
 
-	private TopFp() {
-	}
+    private TopFp() {
+    }
 
 }

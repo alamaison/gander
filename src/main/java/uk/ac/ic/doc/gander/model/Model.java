@@ -8,18 +8,18 @@ import uk.ac.ic.doc.gander.model.codeobject.ModuleCO;
 
 public interface Model {
 
-	ModuleCO lookup(ImportPath path);
+    ModuleCO lookup(ImportPath path);
 
-	public abstract Module getTopLevel();
+    public abstract Module getTopLevel();
 
-	@Deprecated
-	public abstract Module lookup(String importName);
+    @Deprecated
+    public abstract Module lookup(String importName);
 
-	@Deprecated
-	public abstract Module lookup(List<String> importNameTokens);
+    @Deprecated
+    public abstract Module lookup(List<String> importNameTokens);
 
-	ClassCO builtinTuple();
+    ClassCO builtinTuple();
 
-	ClassCO builtinDictionary();
+    ClassCO builtinDictionary();
 
 }

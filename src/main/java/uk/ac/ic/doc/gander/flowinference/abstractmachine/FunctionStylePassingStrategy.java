@@ -9,32 +9,32 @@ import uk.ac.ic.doc.gander.flowinference.callframe.ArgumentPassingStrategy;
  */
 public enum FunctionStylePassingStrategy implements ArgumentPassingStrategy {
 
-	INSTANCE;
+    INSTANCE;
 
-	@Override
-	public int realPosition(int position) {
-		if (position < 0) {
-			throw new IllegalArgumentException("Argument positions start at 0");
-		}
-		return position;
-	}
+    @Override
+    public int realPosition(int position) {
+        if (position < 0) {
+            throw new IllegalArgumentException("Argument positions start at 0");
+        }
+        return position;
+    }
 
-	@Override
-	public int callsitePosition(int realPosition) {
-		if (realPosition < 0) {
-			throw new IllegalArgumentException("Argument positions start at 0");
-		}
-		return realPosition;
-	}
+    @Override
+    public int callsitePosition(int realPosition) {
+        if (realPosition < 0) {
+            throw new IllegalArgumentException("Argument positions start at 0");
+        }
+        return realPosition;
+    }
 
-	@Override
-	public boolean passesHiddenSelf() {
-		return false;
-	}
+    @Override
+    public boolean passesHiddenSelf() {
+        return false;
+    }
 
-	@Override
-	public Argument selfArgument() {
-		throw new AssertionError("Function-style passing doesn't "
-				+ "pass a hidden 'self' argument");
-	}
+    @Override
+    public Argument selfArgument() {
+        throw new AssertionError("Function-style passing doesn't "
+                + "pass a hidden 'self' argument");
+    }
 }

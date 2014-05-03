@@ -7,6 +7,6 @@ import uk.ac.ic.doc.gander.flowinference.argument.ArgumentDestination;
 
 public interface Passage {
 
-	Set<ArgumentDestination> destinationsOf(Argument argument);
+    Set<ArgumentDestination> destinationsOf(Argument argument);
 
 }

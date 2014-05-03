@@ -13,35 +13,35 @@ import uk.ac.ic.doc.gander.flowinference.result.Result;
 import uk.ac.ic.doc.gander.flowinference.result.Result.Transformer;
 
 public final class ArgumentFlower implements
-		Transformer<CallDispatch, Result<FlowPosition>> {
+        Transformer<CallDispatch, Result<FlowPosition>> {
 
-	private final SubgoalManager goalManager;
-	private final Argument argument;
+    private final SubgoalManager goalManager;
+    private final Argument argument;
 
-	public ArgumentFlower(Argument argument, SubgoalManager goalManager) {
-		this.argument = argument;
-		this.goalManager = goalManager;
-	}
+    public ArgumentFlower(Argument argument, SubgoalManager goalManager) {
+        this.argument = argument;
+        this.goalManager = goalManager;
+    }
 
-	@Override
-	public Result<FlowPosition> transformFiniteResult(Set<CallDispatch> calls) {
+    @Override
+    public Result<FlowPosition> transformFiniteResult(Set<CallDispatch> calls) {
 
-		RedundancyEliminator<ArgumentDestination> destinations = new RedundancyEliminator<ArgumentDestination>();
+        RedundancyEliminator<ArgumentDestination> destinations = new RedundancyEliminator<ArgumentDestination>();
 
-		for (CallDispatch call : calls) {
+        for (CallDispatch call : calls) {
 
-			destinations.add(call.destinationsReceivingArgument(argument,
-					goalManager));
-			if (destinations.isFinished())
-				break;
-		}
+            destinations.add(call.destinationsReceivingArgument(argument,
+                    goalManager));
+            if (destinations.isFinished())
+                break;
+        }
 
-		return destinations.result().transformResult(
-				new ReceivingParameterPositioner());
-	}
+        return destinations.result().transformResult(
+                new ReceivingParameterPositioner());
+    }
 
-	@Override
-	public Result<FlowPosition> transformInfiniteResult() {
-		return TopFp.INSTANCE;
-	}
+    @Override
+    public Result<FlowPosition> transformInfiniteResult() {
+        return TopFp.INSTANCE;
+    }
 }

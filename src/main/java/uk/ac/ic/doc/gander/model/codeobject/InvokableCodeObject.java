@@ -20,8 +20,8 @@ import uk.ac.ic.doc.gander.model.parameters.FormalParameters;
  */
 public interface InvokableCodeObject extends NestedCodeObject {
 
-	/**
-	 * Returns the parameters of the callable code object.
-	 */
-	FormalParameters formalParameters();
+    /**
+     * Returns the parameters of the callable code object.
+     */
+    FormalParameters formalParameters();
 }

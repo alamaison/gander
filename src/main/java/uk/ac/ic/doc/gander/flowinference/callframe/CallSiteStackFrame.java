@@ -13,65 +13,65 @@ import uk.ac.ic.doc.gander.model.ModelSite;
 
 public final class CallSiteStackFrame implements StackFrame<Argument> {
 
-	private final Arguments arguments;
+    private final Arguments arguments;
 
-	public CallSiteStackFrame(ModelSite<Call> senderCallSite) {
-		CallsiteArguments callSiteArguments = new CallsiteArguments(
-				senderCallSite);
-		arguments = new Arguments(callSiteArguments,
-				FunctionStylePassingStrategy.INSTANCE);
-	}
+    public CallSiteStackFrame(ModelSite<Call> senderCallSite) {
+        CallsiteArguments callSiteArguments = new CallsiteArguments(
+                senderCallSite);
+        arguments = new Arguments(callSiteArguments,
+                FunctionStylePassingStrategy.INSTANCE);
+    }
 
-	@Override
-	public List<Argument> knownPositions() {
-		return arguments.positionals();
-	}
+    @Override
+    public List<Argument> knownPositions() {
+        return arguments.positionals();
+    }
 
-	@Override
-	public Map<String, Argument> knownKeywords() {
+    @Override
+    public Map<String, Argument> knownKeywords() {
 
-		return arguments.keywords();
-	}
+        return arguments.keywords();
+    }
 
-	@Override
-	public boolean includesUnknownPositions() {
-		return arguments.expandedIterable() != null;
-	}
+    @Override
+    public boolean includesUnknownPositions() {
+        return arguments.expandedIterable() != null;
+    }
 
-	@Override
-	public boolean includesUnknownKeywords() {
-		return arguments.expandedMapping() != null;
-	}
+    @Override
+    public boolean includesUnknownKeywords() {
+        return arguments.expandedMapping() != null;
+    }
 
-	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result
-				+ ((arguments == null) ? 0 : arguments.hashCode());
-		return result;
-	}
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result
+                + ((arguments == null) ? 0 : arguments.hashCode());
+        return result;
+    }
 
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (obj == null)
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
-		CallSiteStackFrame other = (CallSiteStackFrame) obj;
-		if (arguments == null) {
-			if (other.arguments != null)
-				return false;
-		} else if (!arguments.equals(other.arguments))
-			return false;
-		return true;
-	}
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        CallSiteStackFrame other = (CallSiteStackFrame) obj;
+        if (arguments == null) {
+            if (other.arguments != null)
+                return false;
+        } else if (!arguments.equals(other.arguments))
+            return false;
+        return true;
+    }
 
-	@Override
-	public String toString() {
-		return "CallSiteStackFrame [arguments=" + arguments + "]";
-	}
+    @Override
+    public String toString() {
+        return "CallSiteStackFrame [arguments=" + arguments + "]";
+    }
 
 }

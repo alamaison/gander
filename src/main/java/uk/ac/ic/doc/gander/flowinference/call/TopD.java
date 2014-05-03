@@ -10,14 +10,14 @@ import uk.ac.ic.doc.gander.flowinference.result.Top;
  */
 public final class TopD extends Top<CallDispatch> {
 
-	public final static TopD INSTANCE = new TopD();
+    public final static TopD INSTANCE = new TopD();
 
-	private TopD() {
-	}
+    private TopD() {
+    }
 
-	@Override
-	public String toString() {
-		return "⊤i";
-	}
+    @Override
+    public String toString() {
+        return "⊤i";
+    }
 
 }

@@ -16,20 +16,20 @@ import uk.ac.ic.doc.gander.model.sitefinders.CallSitesFinder.Predicate;
  */
 public final class AllCallSitesFinder {
 
-	private final Set<ModelSite<Call>> sites;
+    private final Set<ModelSite<Call>> sites;
 
-	public AllCallSitesFinder(Model model) {
+    public AllCallSitesFinder(Model model) {
 
-		sites = new CallSitesFinder(model, new Predicate() {
+        sites = new CallSitesFinder(model, new Predicate() {
 
-			public boolean isMatch(ModelSite<Call> callSite) {
-				return true;
-			}
-			
-		}).getSites();
-	}
+            public boolean isMatch(ModelSite<Call> callSite) {
+                return true;
+            }
+            
+        }).getSites();
+    }
 
-	public Set<ModelSite<Call>> getSites() {
-		return Collections.unmodifiableSet(sites);
-	}
+    public Set<ModelSite<Call>> getSites() {
+        return Collections.unmodifiableSet(sites);
+    }
 }

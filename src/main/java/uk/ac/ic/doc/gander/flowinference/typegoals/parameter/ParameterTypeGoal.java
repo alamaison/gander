@@ -16,69 +16,69 @@ import uk.ac.ic.doc.gander.model.name_binding.Variable;
  */
 public final class ParameterTypeGoal implements TypeGoal {
 
-	private final InvokableCodeObject invokable;
-	private final Variable variable;
+    private final InvokableCodeObject invokable;
+    private final Variable variable;
 
-	public ParameterTypeGoal(InvokableCodeObject invokable, Variable variable) {
-		assert variable != null;
-		assert invokable.formalParameters().hasVariableBindingParameter(
-				variable);
+    public ParameterTypeGoal(InvokableCodeObject invokable, Variable variable) {
+        assert variable != null;
+        assert invokable.formalParameters().hasVariableBindingParameter(
+                variable);
 
-		this.invokable = invokable;
-		this.variable = variable;
-	}
+        this.invokable = invokable;
+        this.variable = variable;
+    }
 
-	@Override
-	public Result<PyObject> initialSolution() {
-		return FiniteResult.bottom();
-	}
+    @Override
+    public Result<PyObject> initialSolution() {
+        return FiniteResult.bottom();
+    }
 
-	@Override
-	public Result<PyObject> recalculateSolution(SubgoalManager goalManager) {
-		if (goalManager == null)
-			throw new NullPointerException("Goal manager required");
+    @Override
+    public Result<PyObject> recalculateSolution(SubgoalManager goalManager) {
+        if (goalManager == null)
+            throw new NullPointerException("Goal manager required");
 
-		return new ParameterTypeGoalSolver(invokable, variable, goalManager)
-				.solution();
-	}
+        return new ParameterTypeGoalSolver(invokable, variable, goalManager)
+                .solution();
+    }
 
-	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result
-				+ ((invokable == null) ? 0 : invokable.hashCode());
-		result = prime * result
-				+ ((variable == null) ? 0 : variable.hashCode());
-		return result;
-	}
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result
+                + ((invokable == null) ? 0 : invokable.hashCode());
+        result = prime * result
+                + ((variable == null) ? 0 : variable.hashCode());
+        return result;
+    }
 
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (obj == null)
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
-		ParameterTypeGoal other = (ParameterTypeGoal) obj;
-		if (invokable == null) {
-			if (other.invokable != null)
-				return false;
-		} else if (!invokable.equals(other.invokable))
-			return false;
-		if (variable == null) {
-			if (other.variable != null)
-				return false;
-		} else if (!variable.equals(other.variable))
-			return false;
-		return true;
-	}
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        ParameterTypeGoal other = (ParameterTypeGoal) obj;
+        if (invokable == null) {
+            if (other.invokable != null)
+                return false;
+        } else if (!invokable.equals(other.invokable))
+            return false;
+        if (variable == null) {
+            if (other.variable != null)
+                return false;
+        } else if (!variable.equals(other.variable))
+            return false;
+        return true;
+    }
 
-	@Override
-	public String toString() {
-		return "ParameterTypeGoal [invokable=" + invokable + ", variable="
-				+ variable + "]";
-	}
+    @Override
+    public String toString() {
+        return "ParameterTypeGoal [invokable=" + invokable + ", variable="
+                + variable + "]";
+    }
 
 }

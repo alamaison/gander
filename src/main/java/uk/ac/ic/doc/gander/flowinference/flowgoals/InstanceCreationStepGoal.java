@@ -23,96 +23,96 @@ import uk.ac.ic.doc.gander.model.codeobject.ClassCO;
  */
 final class InstanceCreationStepGoal implements FlowStepGoal {
 
-	private final ClassCO klass;
+    private final ClassCO klass;
 
-	InstanceCreationStepGoal(ClassCO klass) {
-		this.klass = klass;
-	}
+    InstanceCreationStepGoal(ClassCO klass) {
+        this.klass = klass;
+    }
 
-	public Result<FlowPosition> initialSolution() {
-		return FiniteResult.bottom();
-	}
+    public Result<FlowPosition> initialSolution() {
+        return FiniteResult.bottom();
+    }
 
-	/**
-	 * Calls to any of the places the metaclass object flows to result in new
-	 * instances of this class.
-	 */
-	public Result<FlowPosition> recalculateSolution(SubgoalManager goalManager) {
+    /**
+     * Calls to any of the places the metaclass object flows to result in new
+     * instances of this class.
+     */
+    public Result<FlowPosition> recalculateSolution(SubgoalManager goalManager) {
 
-		return new InstanceCreationStepGoalSolver(klass, goalManager)
-				.solution();
-	}
+        return new InstanceCreationStepGoalSolver(klass, goalManager)
+                .solution();
+    }
 
-	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + ((klass == null) ? 0 : klass.hashCode());
-		return result;
-	}
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((klass == null) ? 0 : klass.hashCode());
+        return result;
+    }
 
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (obj == null)
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
-		InstanceCreationStepGoal other = (InstanceCreationStepGoal) obj;
-		if (klass == null) {
-			if (other.klass != null)
-				return false;
-		} else if (!klass.equals(other.klass))
-			return false;
-		return true;
-	}
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        InstanceCreationStepGoal other = (InstanceCreationStepGoal) obj;
+        if (klass == null) {
+            if (other.klass != null)
+                return false;
+        } else if (!klass.equals(other.klass))
+            return false;
+        return true;
+    }
 
-	@Override
-	public String toString() {
-		return "InstanceCreationStepGoal [klass=" + klass + "]";
-	}
+    @Override
+    public String toString() {
+        return "InstanceCreationStepGoal [klass=" + klass + "]";
+    }
 
 }
 
 final class InstanceCreationStepGoalSolver {
 
-	private final Processor<ModelSite<exprType>> processor = new Processor<ModelSite<exprType>>() {
+    private final Processor<ModelSite<exprType>> processor = new Processor<ModelSite<exprType>>() {
 
-		public void processInfiniteResult() {
-			constructors = TopFp.INSTANCE;
-		}
+        public void processInfiniteResult() {
+            constructors = TopFp.INSTANCE;
+        }
 
-		public void processFiniteResult(Set<ModelSite<exprType>> classReferences) {
-			Set<FlowPosition> positions = new HashSet<FlowPosition>();
+        public void processFiniteResult(Set<ModelSite<exprType>> classReferences) {
+            Set<FlowPosition> positions = new HashSet<FlowPosition>();
 
-			for (ModelSite<exprType> classSite : classReferences) {
-				
-				SimpleNode parent = AstParentNodeFinder.findParent(
-						classSite.astNode(), classSite.codeObject().ast());
+            for (ModelSite<exprType> classSite : classReferences) {
+                
+                SimpleNode parent = AstParentNodeFinder.findParent(
+                        classSite.astNode(), classSite.codeObject().ast());
 
-				if (parent instanceof Call) {
-					ModelSite<Call> constructor = new ModelSite<Call>(
-							(Call) parent, classSite.codeObject());
-					positions.add(new ExpressionPosition(constructor));
-				}
-			}
-			constructors = new FiniteResult<FlowPosition>(positions);
-		}
-	};
+                if (parent instanceof Call) {
+                    ModelSite<Call> constructor = new ModelSite<Call>(
+                            (Call) parent, classSite.codeObject());
+                    positions.add(new ExpressionPosition(constructor));
+                }
+            }
+            constructors = new FiniteResult<FlowPosition>(positions);
+        }
+    };
 
-	private Result<FlowPosition> constructors;
+    private Result<FlowPosition> constructors;
 
-	InstanceCreationStepGoalSolver(ClassCO klass, SubgoalManager goalManager) {
+    InstanceCreationStepGoalSolver(ClassCO klass, SubgoalManager goalManager) {
 
-		Result<ModelSite<exprType>> classReferences = goalManager
-				.registerSubgoal(new FlowGoal(new CodeObjectDefinitionPosition(
-						klass)));
+        Result<ModelSite<exprType>> classReferences = goalManager
+                .registerSubgoal(new FlowGoal(new CodeObjectDefinitionPosition(
+                        klass)));
 
-		classReferences.actOnResult(processor);
-	}
+        classReferences.actOnResult(processor);
+    }
 
-	public Result<FlowPosition> solution() {
-		return constructors;
-	}
+    public Result<FlowPosition> solution() {
+        return constructors;
+    }
 }

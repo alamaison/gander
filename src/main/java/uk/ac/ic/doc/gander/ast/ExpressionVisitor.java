@@ -36,93 +36,93 @@ import org.python.pydev.parser.jython.ast.Yield;
  */
 public abstract class ExpressionVisitor extends VisitorBase {
 
-	@Override
-	public abstract Object visitDict(Dict node) throws Exception;
+    @Override
+    public abstract Object visitDict(Dict node) throws Exception;
 
-	@Override
-	public abstract Object visitList(List node) throws Exception;
+    @Override
+    public abstract Object visitList(List node) throws Exception;
 
-	@Override
-	public abstract Object visitNum(Num node) throws Exception;
+    @Override
+    public abstract Object visitNum(Num node) throws Exception;
 
-	@Override
-	public abstract Object visitSet(Set node) throws Exception;
+    @Override
+    public abstract Object visitSet(Set node) throws Exception;
 
-	@Override
-	public abstract Object visitStr(Str node) throws Exception;
+    @Override
+    public abstract Object visitStr(Str node) throws Exception;
 
-	@Override
-	public abstract Object visitAttribute(Attribute node) throws Exception;
+    @Override
+    public abstract Object visitAttribute(Attribute node) throws Exception;
 
-	@Override
-	public abstract Object visitBinOp(BinOp node) throws Exception;
+    @Override
+    public abstract Object visitBinOp(BinOp node) throws Exception;
 
-	@Override
-	public abstract Object visitBoolOp(BoolOp node) throws Exception;
+    @Override
+    public abstract Object visitBoolOp(BoolOp node) throws Exception;
 
-	@Override
-	public abstract Object visitStarred(Starred node) throws Exception;
+    @Override
+    public abstract Object visitStarred(Starred node) throws Exception;
 
-	@Override
-	public abstract Object visitUnaryOp(UnaryOp node) throws Exception;
+    @Override
+    public abstract Object visitUnaryOp(UnaryOp node) throws Exception;
 
-	@Override
-	public abstract Object visitYield(Yield node) throws Exception;
+    @Override
+    public abstract Object visitYield(Yield node) throws Exception;
 
-	@Override
-	public abstract Object visitCall(Call node) throws Exception;
+    @Override
+    public abstract Object visitCall(Call node) throws Exception;
 
-	@Override
-	public abstract Object visitIfExp(IfExp node) throws Exception;
+    @Override
+    public abstract Object visitIfExp(IfExp node) throws Exception;
 
-	@Override
-	public abstract Object visitCompare(Compare node) throws Exception;
+    @Override
+    public abstract Object visitCompare(Compare node) throws Exception;
 
-	@Override
-	public abstract Object visitComprehension(Comprehension node)
-			throws Exception;
+    @Override
+    public abstract Object visitComprehension(Comprehension node)
+            throws Exception;
 
-	@Override
-	public abstract Object visitDictComp(DictComp node) throws Exception;
+    @Override
+    public abstract Object visitDictComp(DictComp node) throws Exception;
 
-	@Override
-	public abstract Object visitExtSlice(ExtSlice node) throws Exception;
+    @Override
+    public abstract Object visitExtSlice(ExtSlice node) throws Exception;
 
-	@Override
-	public abstract Object visitGeneratorExp(GeneratorExp node)
-			throws Exception;
+    @Override
+    public abstract Object visitGeneratorExp(GeneratorExp node)
+            throws Exception;
 
-	@Override
-	public abstract Object visitIndex(Index node) throws Exception;
+    @Override
+    public abstract Object visitIndex(Index node) throws Exception;
 
-	@Override
-	public abstract Object visitLambda(Lambda node) throws Exception;
+    @Override
+    public abstract Object visitLambda(Lambda node) throws Exception;
 
-	@Override
-	public abstract Object visitListComp(ListComp node) throws Exception;
+    @Override
+    public abstract Object visitListComp(ListComp node) throws Exception;
 
-	@Override
-	public abstract Object visitName(Name node) throws Exception;
+    @Override
+    public abstract Object visitName(Name node) throws Exception;
 
-	@Override
-	public abstract Object visitNonLocal(NonLocal node) throws Exception;
+    @Override
+    public abstract Object visitNonLocal(NonLocal node) throws Exception;
 
-	@Override
-	public abstract Object visitRepr(Repr node) throws Exception;
+    @Override
+    public abstract Object visitRepr(Repr node) throws Exception;
 
-	@Override
-	public abstract Object visitSetComp(SetComp node) throws Exception;
+    @Override
+    public abstract Object visitSetComp(SetComp node) throws Exception;
 
-	@Override
-	public abstract Object visitSlice(Slice node) throws Exception;
+    @Override
+    public abstract Object visitSlice(Slice node) throws Exception;
 
-	@Override
-	public abstract Object visitStrJoin(StrJoin node) throws Exception;
+    @Override
+    public abstract Object visitStrJoin(StrJoin node) throws Exception;
 
-	@Override
-	public abstract Object visitSubscript(Subscript node) throws Exception;
+    @Override
+    public abstract Object visitSubscript(Subscript node) throws Exception;
 
-	@Override
-	public abstract Object visitTuple(Tuple node) throws Exception;
+    @Override
+    public abstract Object visitTuple(Tuple node) throws Exception;
 }
 

@@ -14,28 +14,28 @@ import uk.ac.ic.doc.gander.interfacetype.InterfaceType;
  * Interface type inferred from feature-usage in Python.
  */
 final class DuckType extends AbstractSet<Feature> implements
-		InterfaceType {
+        InterfaceType {
 
-	private final Set<Feature> features;
+    private final Set<Feature> features;
 
-	@Override
-	public Iterator<Feature> iterator() {
-		return features.iterator();
-	}
+    @Override
+    public Iterator<Feature> iterator() {
+        return features.iterator();
+    }
 
-	@Override
-	public int size() {
-		return features.size();
-	}
+    @Override
+    public int size() {
+        return features.size();
+    }
 
-	DuckType(Collection<? extends Feature> methods) {
-		this.features = Collections.unmodifiableSet(new HashSet<Feature>(
-				methods));
-	}
+    DuckType(Collection<? extends Feature> methods) {
+        this.features = Collections.unmodifiableSet(new HashSet<Feature>(
+                methods));
+    }
 
-	@Override
-	public String toString() {
-		return "DuckType [features=" + features + "]";
-	}
+    @Override
+    public String toString() {
+        return "DuckType [features=" + features + "]";
+    }
 
 }

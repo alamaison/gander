@@ -28,98 +28,98 @@ import uk.ac.ic.doc.gander.model.OldNamespace;
 
 public class InterfaceRecoveryTest {
 
-	private InterfaceRecovery analyser;
-	private OldNamespace scope;
-	private Call call;
+    private InterfaceRecovery analyser;
+    private OldNamespace scope;
+    private Call call;
 
-	private void setup(String projectPath) throws Throwable {
-		URL topLevel = getClass().getResource(
-				"python_test_code/call_target_signature");
+    private void setup(String projectPath) throws Throwable {
+        URL topLevel = getClass().getResource(
+                "python_test_code/call_target_signature");
 
-		File topLevelDirectory = new File(new File(topLevel.toURI()),
-				projectPath);
+        File topLevelDirectory = new File(new File(topLevel.toURI()),
+                projectPath);
 
-		Hierarchy hierarchy = HierarchyFactory
-				.createHierarchy(topLevelDirectory);
-		MutableModel model = new DefaultModel(hierarchy);
+        Hierarchy hierarchy = HierarchyFactory
+                .createHierarchy(topLevelDirectory);
+        MutableModel model = new DefaultModel(hierarchy);
 
-		Module start = model.loadModule("start");
+        Module start = model.loadModule("start");
 
-		analyser = new InterfaceRecovery(new TypeResolver(
-				new ZeroCfaTypeEngine()), false);
+        analyser = new InterfaceRecovery(new TypeResolver(
+                new ZeroCfaTypeEngine()), false);
 
-		TaggedCallAndScopeFinder tagFinder = new TaggedCallAndScopeFinder(
-				start, "tag");
-		scope = tagFinder.getCallScope();
-		call = tagFinder.getTaggedCall();
-	}
+        TaggedCallAndScopeFinder tagFinder = new TaggedCallAndScopeFinder(
+                start, "tag");
+        scope = tagFinder.getCallScope();
+        call = tagFinder.getTaggedCall();
+    }
 
-	@Test
-	public void variable() throws Throwable {
-		setup("variable");
-		checkSignature("a", "b", "c");
-	}
+    @Test
+    public void variable() throws Throwable {
+        setup("variable");
+        checkSignature("a", "b", "c");
+    }
 
-	@Test
-	public void attribute() throws Throwable {
-		setup("attribute");
-		checkSignature("b");
-	}
+    @Test
+    public void attribute() throws Throwable {
+        setup("attribute");
+        checkSignature("b");
+    }
 
-	@Test
-	public void attributeDeep() throws Throwable {
-		setup("attribute_deep");
-		checkSignature("b");
-	}
+    @Test
+    public void attributeDeep() throws Throwable {
+        setup("attribute_deep");
+        checkSignature("b");
+    }
 
-	@Test
-	public void callResult() throws Throwable {
-		setup("call_result");
-		checkSignature("b");
-	}
+    @Test
+    public void callResult() throws Throwable {
+        setup("call_result");
+        checkSignature("b");
+    }
 
-	private void checkSignature(String... names) throws Exception {
-		Set<String> expected = new HashSet<String>();
-		for (String name : names)
-			expected.add(name);
+    private void checkSignature(String... names) throws Exception {
+        Set<String> expected = new HashSet<String>();
+        for (String name : names)
+            expected.add(name);
 
-		checkSignature(expected);
-	}
+        checkSignature(expected);
+    }
 
-	private void checkSignature(Set<String> expected) throws Exception {
+    private void checkSignature(Set<String> expected) throws Exception {
 
-		BasicBlock block = findBlockContainingCall(call, scope);
+        BasicBlock block = findBlockContainingCall(call, scope);
 
-		InterfaceType recoveredInterface = analyser.inferDuckType(
-				CallHelper.indirectCallTarget(call), block, scope);
+        InterfaceType recoveredInterface = analyser.inferDuckType(
+                CallHelper.indirectCallTarget(call), block, scope);
 
-		// Test that all expected calls are in the chain and no unexpected calls
-		// are in the chain.
-		// TODO: We consider any call with matching name but ignore arguments
-		Set<String> calledMethods = methodsFromInterface(recoveredInterface);
-		assertEquals("Expected signature doesn't match method found in the "
-				+ "signature produced by the analyser", expected, calledMethods);
-	}
+        // Test that all expected calls are in the chain and no unexpected calls
+        // are in the chain.
+        // TODO: We consider any call with matching name but ignore arguments
+        Set<String> calledMethods = methodsFromInterface(recoveredInterface);
+        assertEquals("Expected signature doesn't match method found in the "
+                + "signature produced by the analyser", expected, calledMethods);
+    }
 
-	private BasicBlock findBlockContainingCall(Call call, OldNamespace scope) {
-		for (BasicBlock block : scope.getCfg().getBlocks()) {
-			for (SimpleNode node : block) {
-				if (node.equals(call))
-					return block;
-			}
-		}
+    private BasicBlock findBlockContainingCall(Call call, OldNamespace scope) {
+        for (BasicBlock block : scope.getCfg().getBlocks()) {
+            for (SimpleNode node : block) {
+                if (node.equals(call))
+                    return block;
+            }
+        }
 
-		fail("No block found containing call - this should be impossible");
-		return null;
-	}
+        fail("No block found containing call - this should be impossible");
+        return null;
+    }
 
-	private Set<String> methodsFromInterface(InterfaceType iface) {
-		Set<String> methods = new HashSet<String>();
-		for (Feature feature : iface) {
-			if (feature instanceof NamedMethodFeature) {
-				methods.add(((NamedMethodFeature) feature).name());
-			}
-		}
-		return methods;
-	}
+    private Set<String> methodsFromInterface(InterfaceType iface) {
+        Set<String> methods = new HashSet<String>();
+        for (Feature feature : iface) {
+            if (feature instanceof NamedMethodFeature) {
+                methods.add(((NamedMethodFeature) feature).name());
+            }
+        }
+        return methods;
+    }
 }

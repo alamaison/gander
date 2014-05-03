@@ -8,5 +8,5 @@ import uk.ac.ic.doc.gander.flowinference.result.Result;
  */
 interface PartialTypeSolution {
 
-	Result<PyObject> partialSolution();
+    Result<PyObject> partialSolution();
 }

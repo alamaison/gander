@@ -43,89 +43,89 @@ import uk.ac.ic.doc.gander.model.name_binding.Variable;
  */
 final class CodeObjectDefinitionFlowStepGoal implements FlowStepGoal {
 
-	private final CodeObject codeObject;
+    private final CodeObject codeObject;
 
-	CodeObjectDefinitionFlowStepGoal(CodeObject codeObject) {
-		this.codeObject = codeObject;
-	}
+    CodeObjectDefinitionFlowStepGoal(CodeObject codeObject) {
+        this.codeObject = codeObject;
+    }
 
-	public Result<FlowPosition> initialSolution() {
-		return FiniteResult.bottom();
-	}
+    public Result<FlowPosition> initialSolution() {
+        return FiniteResult.bottom();
+    }
 
-	public Result<FlowPosition> recalculateSolution(SubgoalManager goalManager) {
+    public Result<FlowPosition> recalculateSolution(SubgoalManager goalManager) {
 
-		/*
-		 * Only code object contained within another can flow their code object
-		 * into a namespace simply by existing. In other words, modules don't
-		 * flow anywhere by default but everything else does.
-		 */
-		if (codeObject instanceof NestedCodeObject) {
+        /*
+         * Only code object contained within another can flow their code object
+         * into a namespace simply by existing. In other words, modules don't
+         * flow anywhere by default but everything else does.
+         */
+        if (codeObject instanceof NestedCodeObject) {
 
-			/*
-			 * First we have to find what scope the code object's name binds in
-			 * when appearing in the code object's parent. This will either be
-			 * the parent's namespace or the global namespace. No other
-			 * namespace are possible when binding a name (though others are
-			 * possible when just reading the name).
-			 */
-			if (codeObject instanceof NamedCodeObject) {
-				/*
-				 * We rely on the declared name of our code object to bind it to
-				 * the same name in the namespace lexically in scope for that
-				 * name
-				 */
-				Variable nameBinding = new Variable(
-						((NamedCodeObject) codeObject).declaredName(),
-						((NestedCodeObject) codeObject).parent());
+            /*
+             * First we have to find what scope the code object's name binds in
+             * when appearing in the code object's parent. This will either be
+             * the parent's namespace or the global namespace. No other
+             * namespace are possible when binding a name (though others are
+             * possible when just reading the name).
+             */
+            if (codeObject instanceof NamedCodeObject) {
+                /*
+                 * We rely on the declared name of our code object to bind it to
+                 * the same name in the namespace lexically in scope for that
+                 * name
+                 */
+                Variable nameBinding = new Variable(
+                        ((NamedCodeObject) codeObject).declaredName(),
+                        ((NestedCodeObject) codeObject).parent());
 
-				BindingLocation bindingLocation = nameBinding.bindingLocation();
-				NamespaceName namespaceName = new NamespaceName(bindingLocation);
+                BindingLocation bindingLocation = nameBinding.bindingLocation();
+                NamespaceName namespaceName = new NamespaceName(bindingLocation);
 
-				return new FiniteResult<FlowPosition>(Collections
-						.singleton(new NamespaceNamePosition(namespaceName)));
-			} else {
-				/*
-				 * TODO: handle lambdas etc which are unnamed code object. These
-				 * will probably have to try to detect their own flow situation
-				 * as they can't just flow to a name in the local namespace.
-				 */
-			}
-		}
+                return new FiniteResult<FlowPosition>(Collections
+                        .singleton(new NamespaceNamePosition(namespaceName)));
+            } else {
+                /*
+                 * TODO: handle lambdas etc which are unnamed code object. These
+                 * will probably have to try to detect their own flow situation
+                 * as they can't just flow to a name in the local namespace.
+                 */
+            }
+        }
 
-		return FiniteResult.bottom();
-	}
+        return FiniteResult.bottom();
+    }
 
-	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result
-				+ ((codeObject == null) ? 0 : codeObject.hashCode());
-		return result;
-	}
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result
+                + ((codeObject == null) ? 0 : codeObject.hashCode());
+        return result;
+    }
 
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (obj == null)
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
-		CodeObjectDefinitionFlowStepGoal other = (CodeObjectDefinitionFlowStepGoal) obj;
-		if (codeObject == null) {
-			if (other.codeObject != null)
-				return false;
-		} else if (!codeObject.equals(other.codeObject))
-			return false;
-		return true;
-	}
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        CodeObjectDefinitionFlowStepGoal other = (CodeObjectDefinitionFlowStepGoal) obj;
+        if (codeObject == null) {
+            if (other.codeObject != null)
+                return false;
+        } else if (!codeObject.equals(other.codeObject))
+            return false;
+        return true;
+    }
 
-	@Override
-	public String toString() {
-		return "CodeObjectDefinitionFlowStepGoal [codeObject=" + codeObject
-				+ "]";
-	}
+    @Override
+    public String toString() {
+        return "CodeObjectDefinitionFlowStepGoal [codeObject=" + codeObject
+                + "]";
+    }
 
 }

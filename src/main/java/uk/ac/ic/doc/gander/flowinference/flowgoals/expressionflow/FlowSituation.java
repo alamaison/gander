@@ -13,10 +13,10 @@ import uk.ac.ic.doc.gander.flowinference.result.Result;
  */
 interface FlowSituation {
 
-	/**
-	 * Returns the flow positions that the expression can flow to in a single
-	 * execution step.
-	 */
-	Result<FlowPosition> nextFlowPositions(SubgoalManager goalManager);
+    /**
+     * Returns the flow positions that the expression can flow to in a single
+     * execution step.
+     */
+    Result<FlowPosition> nextFlowPositions(SubgoalManager goalManager);
 
 }

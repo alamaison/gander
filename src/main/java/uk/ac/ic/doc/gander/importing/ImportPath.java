@@ -17,57 +17,57 @@ import uk.ac.ic.doc.gander.DottedName;
  */
 public final class ImportPath extends AbstractList<String> {
 
-	private final List<String> path;
+    private final List<String> path;
 
-	public static ImportPath fromDottedName(String dottedName) {
-		if (dottedName == null)
-			throw new NullPointerException("Path not optional");
+    public static ImportPath fromDottedName(String dottedName) {
+        if (dottedName == null)
+            throw new NullPointerException("Path not optional");
 
-		return fromTokens(DottedName.toImportTokens(dottedName));
-	}
+        return fromTokens(DottedName.toImportTokens(dottedName));
+    }
 
-	public static ImportPath fromTokens(List<String> tokens) {
-		if (tokens == null)
-			throw new NullPointerException("Path not optional");
+    public static ImportPath fromTokens(List<String> tokens) {
+        if (tokens == null)
+            throw new NullPointerException("Path not optional");
 
-		return new ImportPath(tokens);
-	}
+        return new ImportPath(tokens);
+    }
 
-	public static final ImportPath EMPTY_PATH = fromTokens(Collections
-			.<String> emptyList());
+    public static final ImportPath EMPTY_PATH = fromTokens(Collections
+            .<String> emptyList());
 
-	public ImportPath append(String itemName) {
-		List<String> newTokens = new ArrayList<String>(this);
-		newTokens.add(itemName);
-		return fromTokens(newTokens);
-	}
+    public ImportPath append(String itemName) {
+        List<String> newTokens = new ArrayList<String>(this);
+        newTokens.add(itemName);
+        return fromTokens(newTokens);
+    }
 
-	public ImportPath subPath(int fromIndex, int toIndex) {
-		List<String> subList = subList(fromIndex, toIndex);
-		return fromTokens(subList);
-	}
+    public ImportPath subPath(int fromIndex, int toIndex) {
+        List<String> subList = subList(fromIndex, toIndex);
+        return fromTokens(subList);
+    }
 
-	public String dottedName() {
-		return DottedName.toDottedName(path);
-	}
+    public String dottedName() {
+        return DottedName.toDottedName(path);
+    }
 
-	private ImportPath(List<String> path) {
-		this.path = Collections.unmodifiableList(path);
-	}
+    private ImportPath(List<String> path) {
+        this.path = Collections.unmodifiableList(path);
+    }
 
-	@Override
-	public String get(int index) {
-		return path.get(index);
-	}
+    @Override
+    public String get(int index) {
+        return path.get(index);
+    }
 
-	@Override
-	public int size() {
-		return path.size();
-	}
+    @Override
+    public int size() {
+        return path.size();
+    }
 
-	@Override
-	public String toString() {
-		return dottedName();
-	}
+    @Override
+    public String toString() {
+        return dottedName();
+    }
 
 }

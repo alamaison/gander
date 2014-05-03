@@ -9,26 +9,26 @@ import uk.ac.ic.doc.gander.cfg.scope.FunctionDefScope;
 
 public class Cfg {
 
-	private FunctionDefScope scope;
+    private FunctionDefScope scope;
 
-	public Cfg(SimpleNode ast) {
-		scope = new FunctionDefScope((FunctionDef) ast);
-		scope.process();
-	}
+    public Cfg(SimpleNode ast) {
+        scope = new FunctionDefScope((FunctionDef) ast);
+        scope.process();
+    }
 
-	public BasicBlock getStart() {
-		return scope.getStart();
-	}
+    public BasicBlock getStart() {
+        return scope.getStart();
+    }
 
-	public BasicBlock getEnd() {
-		return scope.getEnd();
-	}
+    public BasicBlock getEnd() {
+        return scope.getEnd();
+    }
 
-	public BasicBlock getException() {
-		return scope.getException();
-	}
+    public BasicBlock getException() {
+        return scope.getException();
+    }
 
-	public Set<BasicBlock> getBlocks() {
-		return scope.getBlocks();
-	}
+    public Set<BasicBlock> getBlocks() {
+        return scope.getBlocks();
+    }
 }

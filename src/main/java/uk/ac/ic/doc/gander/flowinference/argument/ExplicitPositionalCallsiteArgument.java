@@ -15,67 +15,67 @@ import uk.ac.ic.doc.gander.model.ModelSite;
  * such as {@code f(*iterable)}.
  */
 final class ExplicitPositionalCallsiteArgument implements
-		PositionalCallsiteArgument {
+        PositionalCallsiteArgument {
 
-	private final ModelSite<exprType> argument;
-	private final int position;
+    private final ModelSite<exprType> argument;
+    private final int position;
 
-	ExplicitPositionalCallsiteArgument(ModelSite<exprType> argument,
-			int position) {
-		assert argument != null;
-		assert position >= 0;
+    ExplicitPositionalCallsiteArgument(ModelSite<exprType> argument,
+            int position) {
+        assert argument != null;
+        assert position >= 0;
 
-		this.argument = argument;
-		this.position = position;
-	}
+        this.argument = argument;
+        this.position = position;
+    }
 
-	/**
-	 * {@inheritDoc}
-	 * 
-	 * The returned actual explicit positional argument may have a different
-	 * position to reflect the real position they occupy in the call frame.
-	 */
-	@Override
-	public Argument mapToActualArgument(ArgumentPassingStrategy argumentMapper) {
+    /**
+     * {@inheritDoc}
+     * 
+     * The returned actual explicit positional argument may have a different
+     * position to reflect the real position they occupy in the call frame.
+     */
+    @Override
+    public Argument mapToActualArgument(ArgumentPassingStrategy argumentMapper) {
 
-		return new ExplicitPositionalArgument(argument,
-				argumentMapper.realPosition(position));
-	}
+        return new ExplicitPositionalArgument(argument,
+                argumentMapper.realPosition(position));
+    }
 
-	int position() {
-		return position;
-	}
+    int position() {
+        return position;
+    }
 
-	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result
-				+ ((argument == null) ? 0 : argument.hashCode());
-		return result;
-	}
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result
+                + ((argument == null) ? 0 : argument.hashCode());
+        return result;
+    }
 
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (obj == null)
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
-		ExplicitPositionalCallsiteArgument other = (ExplicitPositionalCallsiteArgument) obj;
-		if (argument == null) {
-			if (other.argument != null)
-				return false;
-		} else if (!argument.equals(other.argument))
-			return false;
-		return true;
-	}
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        ExplicitPositionalCallsiteArgument other = (ExplicitPositionalCallsiteArgument) obj;
+        if (argument == null) {
+            if (other.argument != null)
+                return false;
+        } else if (!argument.equals(other.argument))
+            return false;
+        return true;
+    }
 
-	@Override
-	public String toString() {
-		return "ExplicitPositionalCallsiteArgument [argument=" + argument
-				+ ", position=" + position + "]";
-	}
+    @Override
+    public String toString() {
+        return "ExplicitPositionalCallsiteArgument [argument=" + argument
+                + ", position=" + position + "]";
+    }
 
 }

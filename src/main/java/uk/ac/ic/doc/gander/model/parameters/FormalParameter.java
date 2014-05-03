@@ -13,28 +13,28 @@ import uk.ac.ic.doc.gander.model.name_binding.Variable;
 
 public interface FormalParameter {
 
-	InvokableCodeObject codeObject();
+    InvokableCodeObject codeObject();
 
-	ArgumentDestination passage(Argument argument);
+    ArgumentDestination passage(Argument argument);
 
-	Set<Variable> boundVariables();
+    Set<Variable> boundVariables();
 
-	Set<Argument> argumentsPassedAtCall(StackFrame<Argument> callsite,
-			SubgoalManager goalManager);
+    Set<Argument> argumentsPassedAtCall(StackFrame<Argument> callsite,
+            SubgoalManager goalManager);
 
-	/**
-	 * When an argument is passed at a call-site explicitly using the given
-	 * position, will this parameter accept it?
-	 */
-	boolean acceptsArgumentByPosition(int position);
+    /**
+     * When an argument is passed at a call-site explicitly using the given
+     * position, will this parameter accept it?
+     */
+    boolean acceptsArgumentByPosition(int position);
 
-	/**
-	 * When an argument is passed at a call-site explicitly using the given
-	 * keyword, will this parameter accept it?
-	 */
-	boolean acceptsArgumentByKeyword(String keyword);
+    /**
+     * When an argument is passed at a call-site explicitly using the given
+     * keyword, will this parameter accept it?
+     */
+    boolean acceptsArgumentByKeyword(String keyword);
 
-	Result<PyObject> objectsPassedAtCall(StackFrame<Argument> stackFrame,
-			Variable variable, SubgoalManager goalManager);
+    Result<PyObject> objectsPassedAtCall(StackFrame<Argument> stackFrame,
+            Variable variable, SubgoalManager goalManager);
 
 }

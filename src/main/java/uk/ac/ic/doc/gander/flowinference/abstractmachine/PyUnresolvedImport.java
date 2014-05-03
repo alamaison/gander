@@ -18,113 +18,113 @@ import uk.ac.ic.doc.gander.model.name_binding.Variable;
 
 public class PyUnresolvedImport implements PyCodeObject {
 
-	private final Import<?, ?> importInstance;
+    private final Import<?, ?> importInstance;
 
-	public PyUnresolvedImport(Import<?, ?> importInstance) {
-		// if (importInstance == null)
-		// throw new NullPointerException("Failed import not optional");
-		this.importInstance = importInstance;
-	}
+    public PyUnresolvedImport(Import<?, ?> importInstance) {
+        // if (importInstance == null)
+        // throw new NullPointerException("Failed import not optional");
+        this.importInstance = importInstance;
+    }
 
-	@Override
-	public CodeObject codeObject() {
-		return null;
-	}
+    @Override
+    public CodeObject codeObject() {
+        return null;
+    }
 
-	@Override
-	public String getName() {
-		return "<unresolved import: '" + importInstance + "'>";
-	}
+    @Override
+    public String getName() {
+        return "<unresolved import: '" + importInstance + "'>";
+    }
 
-	/**
-	 * {@inheritDoc}
-	 * 
-	 * Members on an unresolved import cannot be accurately typed so we
-	 * approximate it conservatively as Top.
-	 */
-	@Override
-	public Result<PyObject> memberType(String memberName, SubgoalManager goalManager) {
-		return TopT.INSTANCE;
-	}
+    /**
+     * {@inheritDoc}
+     * 
+     * Members on an unresolved import cannot be accurately typed so we
+     * approximate it conservatively as Top.
+     */
+    @Override
+    public Result<PyObject> memberType(String memberName, SubgoalManager goalManager) {
+        return TopT.INSTANCE;
+    }
 
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
-	public Set<Namespace> memberReadableNamespaces() {
-		return Collections.<Namespace> singleton(dummyNamespace());
-	}
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Set<Namespace> memberReadableNamespaces() {
+        return Collections.<Namespace> singleton(dummyNamespace());
+    }
 
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
-	public Namespace memberWriteableNamespace() {
-		return dummyNamespace();
-	}
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Namespace memberWriteableNamespace() {
+        return dummyNamespace();
+    }
 
-	@Override
-	public String toString() {
-		return "TUnresolvedImport [importInstance=" + importInstance + "]";
-	}
+    @Override
+    public String toString() {
+        return "TUnresolvedImport [importInstance=" + importInstance + "]";
+    }
 
-	private static final Namespace DUMMY_NAMESPACE = new Namespace() {
+    private static final Namespace DUMMY_NAMESPACE = new Namespace() {
 
-		@Override
-		public Result<ModelSite<exprType>> references(SubgoalManager goalManager) {
-			return TopF.INSTANCE;
-		}
+        @Override
+        public Result<ModelSite<exprType>> references(SubgoalManager goalManager) {
+            return TopF.INSTANCE;
+        }
 
-		@Override
-		public Result<ModelSite<exprType>> writeableReferences(
-				SubgoalManager goalManager) {
-			return TopF.INSTANCE;
-		}
+        @Override
+        public Result<ModelSite<exprType>> writeableReferences(
+                SubgoalManager goalManager) {
+            return TopF.INSTANCE;
+        }
 
-		@Override
-		public Set<Variable> variablesInScope(String name) {
-			return Collections.emptySet();
-		}
+        @Override
+        public Set<Variable> variablesInScope(String name) {
+            return Collections.emptySet();
+        }
 
-		@Override
-		public Set<Variable> variablesWriteableInScope(String name) {
-			return Collections.emptySet();
-		}
+        @Override
+        public Set<Variable> variablesWriteableInScope(String name) {
+            return Collections.emptySet();
+        }
 
-		@Override
-		public Model model() {
-			return null;
-		}
-	};
+        @Override
+        public Model model() {
+            return null;
+        }
+    };
 
-	private static Namespace dummyNamespace() {
-		return DUMMY_NAMESPACE;
-	}
+    private static Namespace dummyNamespace() {
+        return DUMMY_NAMESPACE;
+    }
 
-	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result
-				+ ((importInstance == null) ? 0 : importInstance.hashCode());
-		return result;
-	}
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result
+                + ((importInstance == null) ? 0 : importInstance.hashCode());
+        return result;
+    }
 
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (obj == null)
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
-		PyUnresolvedImport other = (PyUnresolvedImport) obj;
-		if (importInstance == null) {
-			if (other.importInstance != null)
-				return false;
-		} else if (!importInstance.equals(other.importInstance))
-			return false;
-		return true;
-	}
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        PyUnresolvedImport other = (PyUnresolvedImport) obj;
+        if (importInstance == null) {
+            if (other.importInstance != null)
+                return false;
+        } else if (!importInstance.equals(other.importInstance))
+            return false;
+        return true;
+    }
 
 }

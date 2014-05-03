@@ -5,7 +5,7 @@
  * degrees:
  * <ul>
  * <li>
- * 	 Flow analysis - no lies (if there are some minor ones we should add
+ *      Flow analysis - no lies (if there are some minor ones we should add
  *   them here)
  * </li>
  * <li>

@@ -14,5 +14,5 @@ import uk.ac.ic.doc.gander.model.parameters.FormalParameter;
  */
 public interface ArgumentDestination {
 
-	public Result<FlowPosition> nextFlowPositions();
+    public Result<FlowPosition> nextFlowPositions();
 }

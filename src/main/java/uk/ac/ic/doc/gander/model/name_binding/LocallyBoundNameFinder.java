@@ -16,23 +16,23 @@ import org.python.pydev.parser.jython.ast.VisitorBase;
  */
 public abstract class LocallyBoundNameFinder extends VisitorBase {
 
-	protected abstract void onNameBound(String name);
+    protected abstract void onNameBound(String name);
 
-	@Override
-	public void traverse(SimpleNode node) throws Exception {
-		// Do not traverse. We delegate visiting the tree to the inner
-		// BoundNameVisitor
-	}
+    @Override
+    public void traverse(SimpleNode node) throws Exception {
+        // Do not traverse. We delegate visiting the tree to the inner
+        // BoundNameVisitor
+    }
 
-	@Override
-	protected Object unhandled_node(SimpleNode node) throws Exception {
-		return node.accept(new BoundNameVisitor() {
+    @Override
+    protected Object unhandled_node(SimpleNode node) throws Exception {
+        return node.accept(new BoundNameVisitor() {
 
-			@Override
-			protected void onNameBound(String name) {
-				LocallyBoundNameFinder.this.onNameBound(name);
-			}
-		});
-	}
+            @Override
+            protected void onNameBound(String name) {
+                LocallyBoundNameFinder.this.onNameBound(name);
+            }
+        });
+    }
 
 }

@@ -13,21 +13,21 @@ import uk.ac.ic.doc.gander.model.MutableModel;
  * location on disk.
  */
 public final class RelativeTestModelCreator {
-	private final MutableModel model;
+    private final MutableModel model;
 
-	public RelativeTestModelCreator(String relativePath, Object klass) {
-		try {
-			final URL topLevel = klass.getClass().getResource(relativePath);
-			final Hierarchy hierarchy = HierarchyFactory
-					.createHierarchy(new File(topLevel.toURI()));
-			model = new DefaultModel(hierarchy);
-		} catch (Exception e) {
-			throw new RuntimeException("Exception while creating test model", e);
-		}
-	}
+    public RelativeTestModelCreator(String relativePath, Object klass) {
+        try {
+            final URL topLevel = klass.getClass().getResource(relativePath);
+            final Hierarchy hierarchy = HierarchyFactory
+                    .createHierarchy(new File(topLevel.toURI()));
+            model = new DefaultModel(hierarchy);
+        } catch (Exception e) {
+            throw new RuntimeException("Exception while creating test model", e);
+        }
+    }
 
-	public MutableModel getModel() {
-		return model;
-	}
+    public MutableModel getModel() {
+        return model;
+    }
 
 }

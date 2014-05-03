@@ -13,26 +13,26 @@ import uk.ac.ic.doc.gander.flowinference.result.Result.Transformer;
  * Turns formal parameters into flow positions.
  */
 public final class ReceivingParameterPositioner implements
-		Transformer<ArgumentDestination, Result<FlowPosition>> {
+        Transformer<ArgumentDestination, Result<FlowPosition>> {
 
-	@Override
-	public Result<FlowPosition> transformFiniteResult(
-			Set<ArgumentDestination> receivingParameters) {
+    @Override
+    public Result<FlowPosition> transformFiniteResult(
+            Set<ArgumentDestination> receivingParameters) {
 
-		RedundancyEliminator<FlowPosition> parameterPositions = new RedundancyEliminator<FlowPosition>();
+        RedundancyEliminator<FlowPosition> parameterPositions = new RedundancyEliminator<FlowPosition>();
 
-		for (ArgumentDestination parameter : receivingParameters) {
-			parameterPositions.add(parameter.nextFlowPositions());
-			if (parameterPositions.isFinished()) {
-				break;
-			}
-		}
+        for (ArgumentDestination parameter : receivingParameters) {
+            parameterPositions.add(parameter.nextFlowPositions());
+            if (parameterPositions.isFinished()) {
+                break;
+            }
+        }
 
-		return parameterPositions.result();
-	}
+        return parameterPositions.result();
+    }
 
-	@Override
-	public Result<FlowPosition> transformInfiniteResult() {
-		return TopFp.INSTANCE;
-	}
+    @Override
+    public Result<FlowPosition> transformInfiniteResult() {
+        return TopFp.INSTANCE;
+    }
 }

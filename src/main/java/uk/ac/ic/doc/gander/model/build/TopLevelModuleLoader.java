@@ -14,28 +14,28 @@ import uk.ac.ic.doc.gander.model.codeobject.ModuleCO;
 
 public final class TopLevelModuleLoader {
 
-	public static Module load(MutableModel model) throws ParseException,
-			IOException {
+    public static Module load(MutableModel model) throws ParseException,
+            IOException {
 
-		URL builtins = TopLevelModuleLoader.class
-				.getResource("dummy_builtins.py");
-		File moduleFile;
-		try {
-			moduleFile = new File(builtins.toURI());
-		} catch (URISyntaxException e) {
-			throw new RuntimeException("builtins definitions not found", e);
-		}
+        URL builtins = TopLevelModuleLoader.class
+                .getResource("dummy_builtins.py");
+        File moduleFile;
+        try {
+            moduleFile = new File(builtins.toURI());
+        } catch (URISyntaxException e) {
+            throw new RuntimeException("builtins definitions not found", e);
+        }
 
-		FileParser parser = new FileParser(moduleFile);
-		ModuleCO codeObject = new ModuleCO("", parser.getAst());
-		ModuleNamespace module = new ModuleNamespace(codeObject, null, model, true);
-		codeObject.setNamespace(module);
-		module.addNestedCodeObjects();
-		
-		return module;
-	}
+        FileParser parser = new FileParser(moduleFile);
+        ModuleCO codeObject = new ModuleCO("", parser.getAst());
+        ModuleNamespace module = new ModuleNamespace(codeObject, null, model, true);
+        codeObject.setNamespace(module);
+        module.addNestedCodeObjects();
+        
+        return module;
+    }
 
-	private TopLevelModuleLoader() {
-		throw new AssertionError();
-	}
+    private TopLevelModuleLoader() {
+        throw new AssertionError();
+    }
 }

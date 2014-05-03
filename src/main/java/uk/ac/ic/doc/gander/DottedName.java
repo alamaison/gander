@@ -7,22 +7,22 @@ import java.util.List;
 
 public class DottedName {
 
-	public static List<String> toImportTokens(String importPath) {
-		if ("".equals(importPath))
-			return Collections.emptyList();
-		return Arrays.asList(importPath.split("\\.", -1));
-	}
+    public static List<String> toImportTokens(String importPath) {
+        if ("".equals(importPath))
+            return Collections.emptyList();
+        return Arrays.asList(importPath.split("\\.", -1));
+    }
 
-	public static String toDottedName(List<String> importTokens) {
+    public static String toDottedName(List<String> importTokens) {
 
-		StringBuilder builder = new StringBuilder();
-		Iterator<String> iter = importTokens.iterator();
-		while (iter.hasNext()) {
-			builder.append(iter.next());
+        StringBuilder builder = new StringBuilder();
+        Iterator<String> iter = importTokens.iterator();
+        while (iter.hasNext()) {
+            builder.append(iter.next());
 
-			if (iter.hasNext())
-				builder.append(".");
-		}
-		return builder.toString();
-	}
+            if (iter.hasNext())
+                builder.append(".");
+        }
+        return builder.toString();
+    }
 }

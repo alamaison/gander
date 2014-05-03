@@ -19,87 +19,87 @@ import org.python.pydev.parser.jython.ast.WithItem;
 
 public abstract class BasicBlockVisitor extends VisitorBase {
 
-	private Object forbidden() {
-		// If you get an error here you may have traversed into a nested,
-		// FunctionDef, ClassDef or Lambda. These can appear in a basic block
-		// but they must not be traversed as their bodies (which may can contain
-		// control-flow statements) aren't executed as part of the basic block.
-		throw new Error(
-				"Control-flow changing statements not allowed in a basic block");
-	}
+    private Object forbidden() {
+        // If you get an error here you may have traversed into a nested,
+        // FunctionDef, ClassDef or Lambda. These can appear in a basic block
+        // but they must not be traversed as their bodies (which may can contain
+        // control-flow statements) aren't executed as part of the basic block.
+        throw new Error(
+                "Control-flow changing statements not allowed in a basic block");
+    }
 
-	@Override
-	public Object visitModule(Module node) throws Exception {
-		return forbidden();
-	}
+    @Override
+    public Object visitModule(Module node) throws Exception {
+        return forbidden();
+    }
 
-	@Override
-	public Object visitInteractive(Interactive node) throws Exception {
-		return forbidden();
-	}
+    @Override
+    public Object visitInteractive(Interactive node) throws Exception {
+        return forbidden();
+    }
 
-	@Override
-	public Object visitWithItem(WithItem node) throws Exception {
-		return forbidden();
-	}
+    @Override
+    public Object visitWithItem(WithItem node) throws Exception {
+        return forbidden();
+    }
 
-	@Override
-	public Object visitReturn(Return node) throws Exception {
-		return forbidden();
-	}
+    @Override
+    public Object visitReturn(Return node) throws Exception {
+        return forbidden();
+    }
 
-	@Override
-	public Object visitFor(For node) throws Exception {
-		return forbidden();
-	}
+    @Override
+    public Object visitFor(For node) throws Exception {
+        return forbidden();
+    }
 
-	@Override
-	public Object visitWhile(While node) throws Exception {
-		return forbidden();
-	}
+    @Override
+    public Object visitWhile(While node) throws Exception {
+        return forbidden();
+    }
 
-	@Override
-	public Object visitIf(If node) throws Exception {
-		return forbidden();
-	}
+    @Override
+    public Object visitIf(If node) throws Exception {
+        return forbidden();
+    }
 
-	@Override
-	public Object visitWith(With node) throws Exception {
-		return forbidden();
-	}
+    @Override
+    public Object visitWith(With node) throws Exception {
+        return forbidden();
+    }
 
-	@Override
-	public Object visitRaise(Raise node) throws Exception {
-		return forbidden();
-	}
+    @Override
+    public Object visitRaise(Raise node) throws Exception {
+        return forbidden();
+    }
 
-	@Override
-	public Object visitTryExcept(TryExcept node) throws Exception {
-		return forbidden();
-	}
+    @Override
+    public Object visitTryExcept(TryExcept node) throws Exception {
+        return forbidden();
+    }
 
-	@Override
-	public Object visitTryFinally(TryFinally node) throws Exception {
-		return forbidden();
-	}
+    @Override
+    public Object visitTryFinally(TryFinally node) throws Exception {
+        return forbidden();
+    }
 
-	@Override
-	public Object visitExec(Exec node) throws Exception {
-		return forbidden();
-	}
+    @Override
+    public Object visitExec(Exec node) throws Exception {
+        return forbidden();
+    }
 
-	@Override
-	public Object visitBreak(Break node) throws Exception {
-		return forbidden();
-	}
+    @Override
+    public Object visitBreak(Break node) throws Exception {
+        return forbidden();
+    }
 
-	@Override
-	public Object visitContinue(Continue node) throws Exception {
-		return forbidden();
-	}
+    @Override
+    public Object visitContinue(Continue node) throws Exception {
+        return forbidden();
+    }
 
-	@Override
-	public Object visitIfExp(IfExp node) throws Exception {
-		return forbidden();
-	}
+    @Override
+    public Object visitIfExp(IfExp node) throws Exception {
+        return forbidden();
+    }
 }

@@ -7,9 +7,9 @@ import uk.ac.ic.doc.gander.model.ModelSite;
 
 public interface InterfaceTypeSystem {
 
-	/**
-	 * Infer the interface type of the expression.
-	 */
-	public InterfaceType typeOf(ModelSite<? extends exprType> expression, BasicBlock containingBlock);
-	
+    /**
+     * Infer the interface type of the expression.
+     */
+    public InterfaceType typeOf(ModelSite<? extends exprType> expression, BasicBlock containingBlock);
+    
 }

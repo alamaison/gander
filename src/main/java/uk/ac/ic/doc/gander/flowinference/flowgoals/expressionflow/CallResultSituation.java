@@ -26,72 +26,72 @@ import uk.ac.ic.doc.gander.model.ModelSite;
  */
 final class CallResultSituation implements FlowSituation {
 
-	private final ModelSite<Call> expression;
+    private final ModelSite<Call> expression;
 
-	CallResultSituation(ModelSite<Call> expression) {
-		this.expression = expression;
-	}
+    CallResultSituation(ModelSite<Call> expression) {
+        this.expression = expression;
+    }
 
-	@Override
-	public Result<FlowPosition> nextFlowPositions(SubgoalManager goalManager) {
-		return new CallResultSituationSolver(expression, goalManager)
-				.solution();
-	}
+    @Override
+    public Result<FlowPosition> nextFlowPositions(SubgoalManager goalManager) {
+        return new CallResultSituationSolver(expression, goalManager)
+                .solution();
+    }
 
-	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result
-				+ ((expression == null) ? 0 : expression.hashCode());
-		return result;
-	}
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result
+                + ((expression == null) ? 0 : expression.hashCode());
+        return result;
+    }
 
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (obj == null)
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
-		CallResultSituation other = (CallResultSituation) obj;
-		if (expression == null) {
-			if (other.expression != null)
-				return false;
-		} else if (!expression.equals(other.expression))
-			return false;
-		return true;
-	}
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        CallResultSituation other = (CallResultSituation) obj;
+        if (expression == null) {
+            if (other.expression != null)
+                return false;
+        } else if (!expression.equals(other.expression))
+            return false;
+        return true;
+    }
 
-	@Override
-	public String toString() {
-		return "CallResultSituation [expression=" + expression + "]";
-	}
+    @Override
+    public String toString() {
+        return "CallResultSituation [expression=" + expression + "]";
+    }
 
 }
 
 final class CallResultSituationSolver {
 
-	private final Result<FlowPosition> solution;
+    private final Result<FlowPosition> solution;
 
-	CallResultSituationSolver(ModelSite<Call> expression,
-			SubgoalManager goalManager) {
+    CallResultSituationSolver(ModelSite<Call> expression,
+            SubgoalManager goalManager) {
 
-		Result<PyObject> types = goalManager
-				.registerSubgoal(new ExpressionTypeGoal(
-						new ModelSite<exprType>(expression.astNode().func,
-								expression.codeObject())));
+        Result<PyObject> types = goalManager
+                .registerSubgoal(new ExpressionTypeGoal(
+                        new ModelSite<exprType>(expression.astNode().func,
+                                expression.codeObject())));
 
-		Concentrator<PyObject, FlowPosition> action = Concentrator.newInstance(
-				new CallResultFlower(goalManager, expression), TopFp.INSTANCE);
-		types.actOnResult(action);
-		solution = action.result();
-	}
+        Concentrator<PyObject, FlowPosition> action = Concentrator.newInstance(
+                new CallResultFlower(goalManager, expression), TopFp.INSTANCE);
+        types.actOnResult(action);
+        solution = action.result();
+    }
 
-	public Result<FlowPosition> solution() {
-		return solution;
-	}
+    public Result<FlowPosition> solution() {
+        return solution;
+    }
 }
 
 /**
@@ -99,26 +99,26 @@ final class CallResultSituationSolver {
  */
 final class CallResultFlower implements DatumProcessor<PyObject, FlowPosition> {
 
-	private final SubgoalManager goalManager;
-	private final ModelSite<Call> syntacticCallSite;
+    private final SubgoalManager goalManager;
+    private final ModelSite<Call> syntacticCallSite;
 
-	CallResultFlower(SubgoalManager goalManager,
-			ModelSite<Call> syntacticCallSite) {
-		this.goalManager = goalManager;
-		this.syntacticCallSite = syntacticCallSite;
-	}
+    CallResultFlower(SubgoalManager goalManager,
+            ModelSite<Call> syntacticCallSite) {
+        this.goalManager = goalManager;
+        this.syntacticCallSite = syntacticCallSite;
+    }
 
-	@Override
-	public Result<FlowPosition> process(PyObject object) {
+    @Override
+    public Result<FlowPosition> process(PyObject object) {
 
-		if (object instanceof PyCallable) {
-			PyCallable callable = ((PyCallable) object);
-			return callable.flowPositionsCausedByCalling(syntacticCallSite,
-					goalManager);
-		} else {
-			System.err.println("May call uncallable object:" + object);
-			return FiniteResult.bottom();
-		}
+        if (object instanceof PyCallable) {
+            PyCallable callable = ((PyCallable) object);
+            return callable.flowPositionsCausedByCalling(syntacticCallSite,
+                    goalManager);
+        } else {
+            System.err.println("May call uncallable object:" + object);
+            return FiniteResult.bottom();
+        }
 
-	}
+    }
 }

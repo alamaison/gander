@@ -31,124 +31,124 @@ import uk.ac.ic.doc.gander.model.codeobject.FunctionCO;
  */
 public class PyFunction implements PyCodeObject, PyCallable {
 
-	private final FunctionCO functionObject;
+    private final FunctionCO functionObject;
 
-	public PyFunction(FunctionCO functionInstance) {
-		if (functionInstance == null) {
-			throw new NullPointerException("Code object required");
-		}
+    public PyFunction(FunctionCO functionInstance) {
+        if (functionInstance == null) {
+            throw new NullPointerException("Code object required");
+        }
 
-		this.functionObject = functionInstance;
-	}
+        this.functionObject = functionInstance;
+    }
 
-	@Override
-	public FunctionCO codeObject() {
-		return functionObject;
-	}
+    @Override
+    public FunctionCO codeObject() {
+        return functionObject;
+    }
 
-	@Deprecated
-	public PyFunction(Function functionInstance) {
-		this(functionInstance.codeObject());
-	}
+    @Deprecated
+    public PyFunction(Function functionInstance) {
+        this(functionInstance.codeObject());
+    }
 
-	@Deprecated
-	public Function getFunctionInstance() {
-		return functionObject.oldStyleConflatedNamespace();
-	}
+    @Deprecated
+    public Function getFunctionInstance() {
+        return functionObject.oldStyleConflatedNamespace();
+    }
 
-	@Override
-	public String getName() {
-		return getFunctionInstance().getFullName();
-	}
+    @Override
+    public String getName() {
+        return getFunctionInstance().getFullName();
+    }
 
-	@Override
-	public Result<PyObject> returnType(SubgoalManager goalManager) {
-		return new FunctionReturnTypeSolver(goalManager, functionObject)
-				.solution();
-	}
+    @Override
+    public Result<PyObject> returnType(SubgoalManager goalManager) {
+        return new FunctionReturnTypeSolver(goalManager, functionObject)
+                .solution();
+    }
 
-	/**
-	 * {@inheritDoc}
-	 * 
-	 * Members on a function are returned directly from the function object's
-	 * namespace.
-	 */
-	@Override
-	public Result<PyObject> memberType(String memberName, SubgoalManager goalManager) {
+    /**
+     * {@inheritDoc}
+     * 
+     * Members on a function are returned directly from the function object's
+     * namespace.
+     */
+    @Override
+    public Result<PyObject> memberType(String memberName, SubgoalManager goalManager) {
 
-		NamespaceName member = new NamespaceName(memberName,
-				functionObject.fullyQualifiedNamespace());
-		return goalManager.registerSubgoal(new NamespaceNameTypeGoal(member));
-	}
+        NamespaceName member = new NamespaceName(memberName,
+                functionObject.fullyQualifiedNamespace());
+        return goalManager.registerSubgoal(new NamespaceNameTypeGoal(member));
+    }
 
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
-	public Set<Namespace> memberReadableNamespaces() {
-		return Collections.<Namespace> singleton(functionObject
-				.fullyQualifiedNamespace());
-	}
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Set<Namespace> memberReadableNamespaces() {
+        return Collections.<Namespace> singleton(functionObject
+                .fullyQualifiedNamespace());
+    }
 
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
-	public Namespace memberWriteableNamespace() {
-		return functionObject.fullyQualifiedNamespace();
-	}
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Namespace memberWriteableNamespace() {
+        return functionObject.fullyQualifiedNamespace();
+    }
 
-	@Override
-	public Result<CallDispatch> dispatches(StackFrame<Argument> callFrame,
-			SubgoalManager goalManager) {
+    @Override
+    public Result<CallDispatch> dispatches(StackFrame<Argument> callFrame,
+            SubgoalManager goalManager) {
 
-		StackFrame<Argument> functionCall = new StrategyBasedStackFrame(
-				callFrame, FunctionStylePassingStrategy.INSTANCE);
+        StackFrame<Argument> functionCall = new StrategyBasedStackFrame(
+                callFrame, FunctionStylePassingStrategy.INSTANCE);
 
-		return new FiniteResult<CallDispatch>(
-				Collections.singleton(new DefaultCallDispatch(functionObject,
-						functionCall)));
-	}
+        return new FiniteResult<CallDispatch>(
+                Collections.singleton(new DefaultCallDispatch(functionObject,
+                        functionCall)));
+    }
 
-	@Override
-	public Result<FlowPosition> flowPositionsCausedByCalling(
-			ModelSite<Call> syntacticCallSite, SubgoalManager goalManager) {
-		return FiniteResult.bottom();
-	}
+    @Override
+    public Result<FlowPosition> flowPositionsCausedByCalling(
+            ModelSite<Call> syntacticCallSite, SubgoalManager goalManager) {
+        return FiniteResult.bottom();
+    }
 
-	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result
-				+ ((functionObject == null) ? 0 : functionObject.hashCode());
-		return result;
-	}
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result
+                + ((functionObject == null) ? 0 : functionObject.hashCode());
+        return result;
+    }
 
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (obj == null)
-			return false;
-		if (!(obj instanceof PyFunction))
-			return false;
-		PyFunction other = (PyFunction) obj;
-		if (functionObject == null) {
-			if (other.functionObject != null)
-				return false;
-		} else if (!functionObject.equals(other.functionObject))
-			return false;
-		return true;
-	}
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (!(obj instanceof PyFunction))
+            return false;
+        PyFunction other = (PyFunction) obj;
+        if (functionObject == null) {
+            if (other.functionObject != null)
+                return false;
+        } else if (!functionObject.equals(other.functionObject))
+            return false;
+        return true;
+    }
 
-	@Override
-	public String toString() {
-		return "TFunction [" + getName() + "]";
-	}
+    @Override
+    public String toString() {
+        return "TFunction [" + getName() + "]";
+    }
 
-	@Override
-	public Argument selfArgument() {
-		return NullArgument.INSTANCE;
-	}
+    @Override
+    public Argument selfArgument() {
+        return NullArgument.INSTANCE;
+    }
 }

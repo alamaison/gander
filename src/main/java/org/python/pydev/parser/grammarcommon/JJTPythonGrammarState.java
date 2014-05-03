@@ -79,12 +79,12 @@ public final class JJTPythonGrammarState implements IJJTPythonGrammarState{
     private void pushNode(Node n, SimpleNode created, int line, int col) {
         nodes.push(created);
         
-		if(created.beginLine == 0)
-		    created.beginLine = line;
-		
-		if(created.beginColumn == 0)
-		    created.beginColumn = col;
-		
+        if(created.beginLine == 0)
+            created.beginLine = line;
+        
+        if(created.beginColumn == 0)
+            created.beginColumn = col;
+        
 
         ++sp;
     }
@@ -127,11 +127,11 @@ public final class JJTPythonGrammarState implements IJJTPythonGrammarState{
      * Note that the popNode may still be called after this method.
      */
     public void clearNodeScope(Node n) {
-    	if (DEBUG) {
-    		debugLevel -= 1;
-    		System.out.println(new FastStringBuffer().appendN(' ', debugLevel*4)+""+debugLevel+" clearing scope:" + n);
-    	}
-    	
+        if (DEBUG) {
+            debugLevel -= 1;
+            System.out.println(new FastStringBuffer().appendN(' ', debugLevel*4)+""+debugLevel+" clearing scope:" + n);
+        }
+        
         while (sp > mk) {
             popNode();
         }
@@ -146,16 +146,16 @@ public final class JJTPythonGrammarState implements IJJTPythonGrammarState{
      * Open a new scope (which may result in a new SimpleNode if the close is properly called later on).
      */
     public void openNodeScope(Node n) {
-    	Token t = this.grammar.getToken(1);
+        Token t = this.grammar.getToken(1);
 
         if (DEBUG) {
-        	System.out.println(new FastStringBuffer().appendN(' ', debugLevel*4)+""+debugLevel+" opening scope:" + n+"tok: "+t+" line: "+t.beginLine);
-        	debugLevel += 1;
+            System.out.println(new FastStringBuffer().appendN(' ', debugLevel*4)+""+debugLevel+" opening scope:" + n+"tok: "+t+" line: "+t.beginLine);
+            debugLevel += 1;
         }
         lines.push(t.beginLine);
-		columns.push(t.beginColumn);
+        columns.push(t.beginColumn);
 
-    	
+        
         marks.push(mk);
         mk = sp;
     }
@@ -167,15 +167,15 @@ public final class JJTPythonGrammarState implements IJJTPythonGrammarState{
        made the children of the definite node.  Then the definite node
        is pushed on to the stack. */
     public void closeNodeScope(final Node n, int num) throws ParseException {
-    	if (DEBUG) {
-    		debugLevel -= 1;
-    		System.out.print(new FastStringBuffer().appendN(' ', debugLevel*4)+""+debugLevel+" closing scope:" + n);
-    	}
-    	int line = lines.pop();
-    	int col = columns.pop();
-    	if (DEBUG) {
-    		System.out.println(" line: "+line);
-    	}
+        if (DEBUG) {
+            debugLevel -= 1;
+            System.out.print(new FastStringBuffer().appendN(' ', debugLevel*4)+""+debugLevel+" closing scope:" + n);
+        }
+        int line = lines.pop();
+        int col = columns.pop();
+        if (DEBUG) {
+            System.out.println(" line: "+line);
+        }
 
         SimpleNode sn = (SimpleNode) n;
         clearMark();
@@ -194,7 +194,7 @@ public final class JJTPythonGrammarState implements IJJTPythonGrammarState{
         if (newNode == null) {
             throw new ParseException("Internal AST builder error");
         }
-    	
+        
         pushNode(n, newNode, line, col);
         node_created = true;
     }
@@ -207,16 +207,16 @@ public final class JJTPythonGrammarState implements IJJTPythonGrammarState{
     on to the stack.  If the condition is false the node is not
     constructed and they are left on the stack. */
     public void closeNodeScope(final Node n, boolean condition) throws ParseException {
-    	if (DEBUG) {
-    		debugLevel -= 1;
-    		System.out.print(new FastStringBuffer().appendN(' ', debugLevel*4)+""+debugLevel+" closing scope:" + n);
-    	}
-    	int line = lines.pop();
-    	int col = columns.pop();
-    	if (DEBUG) {
-    		System.out.println(" line: "+line);
-    	}
-    	
+        if (DEBUG) {
+            debugLevel -= 1;
+            System.out.print(new FastStringBuffer().appendN(' ', debugLevel*4)+""+debugLevel+" closing scope:" + n);
+        }
+        int line = lines.pop();
+        int col = columns.pop();
+        if (DEBUG) {
+            System.out.println(" line: "+line);
+        }
+        
         SimpleNode sn = (SimpleNode) n;
         if (condition) {
             SimpleNode newNode = null;

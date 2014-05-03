@@ -4,24 +4,24 @@ import uk.ac.ic.doc.gander.cfg.BasicBlock;
 
 class EmptyScope extends ScopeWithParent {
 
-	private BasicBlock block;
+    private BasicBlock block;
 
-	protected EmptyScope(Scope parent, BasicBlock block) {
-		super(parent, null, null, true);
-		this.block = block;
-	}
+    protected EmptyScope(Scope parent, BasicBlock block) {
+        super(parent, null, null, true);
+        this.block = block;
+    }
 
-	@Override
-	protected final Statement process() {
-		return doProcess();
-	}
+    @Override
+    protected final Statement process() {
+        return doProcess();
+    }
 
-	@Override
-	protected Statement doProcess() {
-		Statement exits = new Statement();
-		exits.fallthrough(block);
-		exits.inlink(block);
-		return exits;
-	}
+    @Override
+    protected Statement doProcess() {
+        Statement exits = new Statement();
+        exits.fallthrough(block);
+        exits.inlink(block);
+        return exits;
+    }
 
 }

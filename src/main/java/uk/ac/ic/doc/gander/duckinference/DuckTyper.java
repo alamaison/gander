@@ -32,87 +32,87 @@ import uk.ac.ic.doc.gander.model.codeobject.ClassCO;
  * This is a very odd cookie. We probably shouldn't be using it much.
  */
 public class DuckTyper {
-	private final LoadedTypeDefinitions definitions;
-	private final TypeResolver resolver;
-	private long duckTimeSheet = 0;
-	private final boolean excludeCurrentFeature;
+    private final LoadedTypeDefinitions definitions;
+    private final TypeResolver resolver;
+    private long duckTimeSheet = 0;
+    private final boolean excludeCurrentFeature;
 
-	public DuckTyper(Model model, TypeResolver resolver,
-			boolean excludeCurrentFeature) {
-		this.resolver = resolver;
-		this.excludeCurrentFeature = excludeCurrentFeature;
-		definitions = new LoadedTypeDefinitions(model);
-	}
+    public DuckTyper(Model model, TypeResolver resolver,
+            boolean excludeCurrentFeature) {
+        this.resolver = resolver;
+        this.excludeCurrentFeature = excludeCurrentFeature;
+        definitions = new LoadedTypeDefinitions(model);
+    }
 
-	/**
-	 * Render a type judgement for a method call's target.
-	 * 
-	 * TODO: Really the {@link DuckTyper} should only do the hierarchy search
-	 * part. The dependents method name lookup should be done elsewhere so that
-	 * it's not limited to call targets and can be used on variables in general.
-	 * 
-	 * @param call
-	 *            The call whose target we want to infer a type for.
-	 * @param containingBlock
-	 *            The basic block containing the call in question.
-	 * @param scope
-	 *            The Python scope in which the call occurs.
-	 * @return A type judgement as a set of {@link PyObject}s.
-	 */
-	public Result<PyObject> typeOf(exprType expression, BasicBlock containingBlock,
-			OldNamespace scope) {
+    /**
+     * Render a type judgement for a method call's target.
+     * 
+     * TODO: Really the {@link DuckTyper} should only do the hierarchy search
+     * part. The dependents method name lookup should be done elsewhere so that
+     * it's not limited to call targets and can be used on variables in general.
+     * 
+     * @param call
+     *            The call whose target we want to infer a type for.
+     * @param containingBlock
+     *            The basic block containing the call in question.
+     * @param scope
+     *            The Python scope in which the call occurs.
+     * @return A type judgement as a set of {@link PyObject}s.
+     */
+    public Result<PyObject> typeOf(exprType expression, BasicBlock containingBlock,
+            OldNamespace scope) {
 
-		long oldFlowCost = resolver.flowCost();
+        long oldFlowCost = resolver.flowCost();
 
-		long start = System.currentTimeMillis();
+        long start = System.currentTimeMillis();
 
-		InterfaceRecovery inferenceEngine = new InterfaceRecovery(resolver,
-				excludeCurrentFeature);
-		InterfaceType recoveredInterface = inferenceEngine.inferDuckType(
-				expression, containingBlock, scope);
+        InterfaceRecovery inferenceEngine = new InterfaceRecovery(resolver,
+                excludeCurrentFeature);
+        InterfaceType recoveredInterface = inferenceEngine.inferDuckType(
+                expression, containingBlock, scope);
 
-		Set<String> methods = new HashSet<String>();
-		for (Feature feature : recoveredInterface) {
-			if (feature instanceof NamedMethodFeature) {
-				methods.add(((NamedMethodFeature) feature).name());
-			}
-		}
+        Set<String> methods = new HashSet<String>();
+        for (Feature feature : recoveredInterface) {
+            if (feature instanceof NamedMethodFeature) {
+                methods.add(((NamedMethodFeature) feature).name());
+            }
+        }
 
-		Result<PyObject> result;
-		if (methods.isEmpty()) {
-			result = TopT.INSTANCE;
+        Result<PyObject> result;
+        if (methods.isEmpty()) {
+            result = TopT.INSTANCE;
 
-		} else {
+        } else {
 
-			Set<PyObject> type = new HashSet<PyObject>();
+            Set<PyObject> type = new HashSet<PyObject>();
 
-			for (ClassCO klass : definitions.getDefinitions()) {
-				InheritedMethods inheritance = new InheritedMethods(
-						new CachingInheritanceTree(
-								klass.oldStyleConflatedNamespace(), resolver));
+            for (ClassCO klass : definitions.getDefinitions()) {
+                InheritedMethods inheritance = new InheritedMethods(
+                        new CachingInheritanceTree(
+                                klass.oldStyleConflatedNamespace(), resolver));
 
-				// TODO: We only compare by name. Matching parameter numbers etc
-				// will require more complex logic.
-				if (inheritance.methodsInTree().containsAll(methods)) {
-					type.add(new PyInstance(klass));
-					/*
-					 * TODO: without look at the parameters, can't tell class
-					 * and instance apart
-					 */
-					type.add(new PyClass(klass));
-				}
-			}
+                // TODO: We only compare by name. Matching parameter numbers etc
+                // will require more complex logic.
+                if (inheritance.methodsInTree().containsAll(methods)) {
+                    type.add(new PyInstance(klass));
+                    /*
+                     * TODO: without look at the parameters, can't tell class
+                     * and instance apart
+                     */
+                    type.add(new PyClass(klass));
+                }
+            }
 
-			result = new FiniteResult<PyObject>(type);
-		}
+            result = new FiniteResult<PyObject>(type);
+        }
 
-		long now = System.currentTimeMillis();
-		duckTimeSheet += (now - start) - (resolver.flowCost() - oldFlowCost);
+        long now = System.currentTimeMillis();
+        duckTimeSheet += (now - start) - (resolver.flowCost() - oldFlowCost);
 
-		return result;
-	}
+        return result;
+    }
 
-	public long duckCost() {
-		return duckTimeSheet;
-	}
+    public long duckCost() {
+        return duckTimeSheet;
+    }
 }

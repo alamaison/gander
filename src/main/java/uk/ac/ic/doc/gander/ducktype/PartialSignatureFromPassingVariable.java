@@ -32,171 +32,171 @@ import uk.ac.ic.doc.gander.model.OldNamespace;
  */
 final class PartialSignatureFromPassingVariable {
 
-	private final Stack<OldNamespace> enclosingScopes = new Stack<OldNamespace>();
+    private final Stack<OldNamespace> enclosingScopes = new Stack<OldNamespace>();
 
-	/**
-	 * Return the signature produced by passing the given variable as a
-	 * parameter to other calls.
-	 * 
-	 * Only calls occurring in the given basic blocks, {@code blocksToSearch},
-	 * are analysed to generate the signature. The idea is that these are some
-	 * set of control-dependent blocks with respect to a location of interest in
-	 * the program.
-	 * 
-	 * Any uses of the variable in the called functions, as well as any uses
-	 * from passing the variable to further functions, are included in the
-	 * signature.
-	 * 
-	 * @param variable
-	 *            Name of the variable whose uses are being analysed. This is
-	 *            the name of the variable within the enclosing function,
-	 *            {@code enclosingFunction}, as the name may be something
-	 *            completely different when mapped to the parameter in the
-	 *            function being called.
-	 * @param blocksToSearch
-	 *            Control-dependent blocks within the enclosing function,
-	 *            {@code enclosingFunction}, that are searched for calls to
-	 *            which {@code variable} is passed as a parameter.
-	 * @param enclosingScope
-	 *            Function being searched for uses of {@code variable} as a
-	 *            function parameter.
-	 * @param includeFstr
-	 * @param includeRequiredFeatures
-	 * @param model
-	 *            Runtime model of the system needed to resolve function names
-	 *            to function implementations.
-	 * @return Partial signature of 'uses' as a set of method calls.
-	 */
-	Set<Call> buildSignature(String variable, Set<SimpleNode> nodesToSearch,
-			OldNamespace enclosingScope, TypeResolver resolver) {
-		enclosingScopes.push(enclosingScope);
+    /**
+     * Return the signature produced by passing the given variable as a
+     * parameter to other calls.
+     * 
+     * Only calls occurring in the given basic blocks, {@code blocksToSearch},
+     * are analysed to generate the signature. The idea is that these are some
+     * set of control-dependent blocks with respect to a location of interest in
+     * the program.
+     * 
+     * Any uses of the variable in the called functions, as well as any uses
+     * from passing the variable to further functions, are included in the
+     * signature.
+     * 
+     * @param variable
+     *            Name of the variable whose uses are being analysed. This is
+     *            the name of the variable within the enclosing function,
+     *            {@code enclosingFunction}, as the name may be something
+     *            completely different when mapped to the parameter in the
+     *            function being called.
+     * @param blocksToSearch
+     *            Control-dependent blocks within the enclosing function,
+     *            {@code enclosingFunction}, that are searched for calls to
+     *            which {@code variable} is passed as a parameter.
+     * @param enclosingScope
+     *            Function being searched for uses of {@code variable} as a
+     *            function parameter.
+     * @param includeFstr
+     * @param includeRequiredFeatures
+     * @param model
+     *            Runtime model of the system needed to resolve function names
+     *            to function implementations.
+     * @return Partial signature of 'uses' as a set of method calls.
+     */
+    Set<Call> buildSignature(String variable, Set<SimpleNode> nodesToSearch,
+            OldNamespace enclosingScope, TypeResolver resolver) {
+        enclosingScopes.push(enclosingScope);
 
-		Set<Call> calls = new HashSet<Call>();
+        Set<Call> calls = new HashSet<Call>();
 
-		Set<PassedVar> passes = new PassedVariableFinder(variable,
-				nodesToSearch).passes();
-		for (PassedVar pass : passes) {
-			Call call = pass.getCall();
-			Function function = resolveFunction(resolver, enclosingScope, call);
-			if (function != null) {
-				// Must stop if we have already processed a call to the
-				// resolved function
-				// FIXME: should only really stop if the parameter was
-				// passed at the same position too.
-				if (!enclosingScopes.contains(function)) {
-					calls.addAll(calculateSignatureForPassedVariable(pass,
-							function, resolver));
-				}
-			}
-		}
+        Set<PassedVar> passes = new PassedVariableFinder(variable,
+                nodesToSearch).passes();
+        for (PassedVar pass : passes) {
+            Call call = pass.getCall();
+            Function function = resolveFunction(resolver, enclosingScope, call);
+            if (function != null) {
+                // Must stop if we have already processed a call to the
+                // resolved function
+                // FIXME: should only really stop if the parameter was
+                // passed at the same position too.
+                if (!enclosingScopes.contains(function)) {
+                    calls.addAll(calculateSignatureForPassedVariable(pass,
+                            function, resolver));
+                }
+            }
+        }
 
-		return calls;
-	}
+        return calls;
+    }
 
-	/**
-	 * With respect to a given parameter in a function, return the set of
-	 * methods calls on the parameter that are always executed if the function
-	 * is called.
-	 * 
-	 * This is the set of calls that postdominate the entry node of the
-	 * function.
-	 */
-	private Set<Call> buildSignatureForFunctionParameter(Name param,
-			Function function, TypeResolver resolver) {
-		Set<SimpleNode> nodes = inevitableStatements(function);
+    /**
+     * With respect to a given parameter in a function, return the set of
+     * methods calls on the parameter that are always executed if the function
+     * is called.
+     * 
+     * This is the set of calls that postdominate the entry node of the
+     * function.
+     */
+    private Set<Call> buildSignatureForFunctionParameter(Name param,
+            Function function, TypeResolver resolver) {
+        Set<SimpleNode> nodes = inevitableStatements(function);
 
-		Set<Call> calls = new PartialSignatureFromUsingVariable()
-				.buildSignature(param, nodes, function.getCfg());
+        Set<Call> calls = new PartialSignatureFromUsingVariable()
+                .buildSignature(param, nodes, function.getCfg());
 
-		calls.addAll(buildSignature(param.id, nodes, function, resolver));
-		return calls;
-	}
+        calls.addAll(buildSignature(param.id, nodes, function, resolver));
+        return calls;
+    }
 
-	/**
-	 * Return signature implied by passing variable to call.
-	 */
-	private Set<Call> calculateSignatureForPassedVariable(PassedVar pass,
-			Function function, TypeResolver resolver) {
+    /**
+     * Return signature implied by passing variable to call.
+     */
+    private Set<Call> calculateSignatureForPassedVariable(PassedVar pass,
+            Function function, TypeResolver resolver) {
 
-		Set<Call> calls = new HashSet<Call>();
+        Set<Call> calls = new HashSet<Call>();
 
-		for (Name param : resolveParameterNames(pass, function.getAst())) {
-			calls.addAll(buildSignatureForFunctionParameter(param, function,
-					resolver));
-		}
+        for (Name param : resolveParameterNames(pass, function.getAst())) {
+            calls.addAll(buildSignatureForFunctionParameter(param, function,
+                    resolver));
+        }
 
-		return calls;
-	}
+        return calls;
+    }
 
-	private static Function resolveFunction(TypeResolver resolver,
-			OldNamespace enclosingScope, Call call) {
-		Function function = new FunctionResolver(call, enclosingScope, resolver)
-				.getFunction();
+    private static Function resolveFunction(TypeResolver resolver,
+            OldNamespace enclosingScope, Call call) {
+        Function function = new FunctionResolver(call, enclosingScope, resolver)
+                .getFunction();
 
-		if (function == null)
-			System.err.println("Warning: unable to resolve function: "
-					+ call.func);
+        if (function == null)
+            System.err.println("Warning: unable to resolve function: "
+                    + call.func);
 
-		return function;
-	}
+        return function;
+    }
 
-	/**
-	 * Map passing specification to the parameter names they correspond to in
-	 * the function being called.
-	 */
-	private static Set<Name> resolveParameterNames(PassedVar pass,
-			FunctionDef function) {
-		Set<Name> names = new HashSet<Name>();
+    /**
+     * Map passing specification to the parameter names they correspond to in
+     * the function being called.
+     */
+    private static Set<Name> resolveParameterNames(PassedVar pass,
+            FunctionDef function) {
+        Set<Name> names = new HashSet<Name>();
 
-		for (Integer pos : pass.getPositions()) {
-			// The passing specification may indicate that more parameters
-			// are passed than there are parameters in the function being
-			// called. This can happen if the called function has a stararg
-			// parameter. E.g. def func(*args) being called as func(1,2).
-			if (pos < function.args.args.length)
-				names.add((Name) function.args.args[pos]);
-		}
+        for (Integer pos : pass.getPositions()) {
+            // The passing specification may indicate that more parameters
+            // are passed than there are parameters in the function being
+            // called. This can happen if the called function has a stararg
+            // parameter. E.g. def func(*args) being called as func(1,2).
+            if (pos < function.args.args.length)
+                names.add((Name) function.args.args[pos]);
+        }
 
-		for (String keyword : pass.getKeywords()) {
-			Name name = findParamNameNode(keyword, function);
-			if (name == null)
-				System.err.println("PROGRAM ERROR: Function called with "
-						+ "incorrect keyword");
-			else
-				names.add(name);
-		}
+        for (String keyword : pass.getKeywords()) {
+            Name name = findParamNameNode(keyword, function);
+            if (name == null)
+                System.err.println("PROGRAM ERROR: Function called with "
+                        + "incorrect keyword");
+            else
+                names.add(name);
+        }
 
-		return names;
-	}
+        return names;
+    }
 
-	private static Name findParamNameNode(String name, FunctionDef function) {
-		for (exprType expr : function.args.args) {
-			Name candidate = ((Name) expr);
-			if (candidate.id.equals(name))
-				return candidate;
-		}
-		return null;
-	}
+    private static Name findParamNameNode(String name, FunctionDef function) {
+        for (exprType expr : function.args.args) {
+            Name candidate = ((Name) expr);
+            if (candidate.id.equals(name))
+                return candidate;
+        }
+        return null;
+    }
 
-	/**
-	 * Return the statements which will always execute when a function executes.
-	 * 
-	 * This is all blocks that post-dominate the start node. Nothing can
-	 * dominate the start node so dominator analysis is not needed to calculate
-	 * control-dependent blocks.
-	 */
-	private static Set<SimpleNode> inevitableStatements(Function function) {
-		Cfg graph = function.getCfg();
+    /**
+     * Return the statements which will always execute when a function executes.
+     * 
+     * This is all blocks that post-dominate the start node. Nothing can
+     * dominate the start node so dominator analysis is not needed to calculate
+     * control-dependent blocks.
+     */
+    private static Set<SimpleNode> inevitableStatements(Function function) {
+        Cfg graph = function.getCfg();
 
-		Set<SimpleNode> statements = new HashSet<SimpleNode>();
+        Set<SimpleNode> statements = new HashSet<SimpleNode>();
 
-		statements.addAll(graph.getStart());
+        statements.addAll(graph.getStart());
 
-		Postdomination postdom = new Postdomination(graph);
-		for (BasicBlock inevitableBlock : postdom.dominators(graph.getStart())) {
-			statements.addAll(inevitableBlock);
-		}
+        Postdomination postdom = new Postdomination(graph);
+        for (BasicBlock inevitableBlock : postdom.dominators(graph.getStart())) {
+            statements.addAll(inevitableBlock);
+        }
 
-		return statements;
-	}
+        return statements;
+    }
 }

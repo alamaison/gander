@@ -6,17 +6,17 @@ import uk.ac.ic.doc.gander.cfg.scope.Statement.Exit;
 
 public class PrintScope extends ScopeWithParent {
 
-	private Print node;
+    private Print node;
 
-	public PrintScope(Print node, Statement previousStatement, Exit trajectory,
-			boolean startInNewBlock, Scope parent) {
-		super(parent, previousStatement, trajectory, startInNewBlock);
-		this.node = node;
-	}
+    public PrintScope(Print node, Statement previousStatement, Exit trajectory,
+            boolean startInNewBlock, Scope parent) {
+        super(parent, previousStatement, trajectory, startInNewBlock);
+        this.node = node;
+    }
 
-	@Override
-	protected Statement doProcess() {
-		return delegate(node.values);
-	}
+    @Override
+    protected Statement doProcess() {
+        return delegate(node.values);
+    }
 
 }

@@ -16,54 +16,54 @@ import org.python.pydev.parser.jython.ast.stmtType;
 
 public class FileParser {
 
-	private Module module;
+    private Module module;
 
-	public FileParser(File module) throws ParseException, IOException {
+    public FileParser(File module) throws ParseException, IOException {
 
-		try {
-			if (module.length() > 0) {
-				CharStream stream = new FastCharStream(fileToString(module)
-						.toCharArray());
-				IGrammar grammar = new PythonGrammar26(stream);
-				this.module = (org.python.pydev.parser.jython.ast.Module) grammar
-						.file_input();
-			} else {
-				this.module = new org.python.pydev.parser.jython.ast.Module(
-						null);
-				this.module.body = new stmtType[] {};
-			}
-		} catch (TokenMgrError e) {
-			System.err.println("PARSING FAILED: " + module);
-			throw new ParseException(e.toString(), e.errorLine, e.errorColumn);
-		} catch (Error e) {
-			System.err.println("PARSING FAILED: " + module);
-			throw e;
-		} catch (ParseException e) {
-			System.err.println("PARSING FAILED: " + module);
-			throw e;
-		}
-	}
+        try {
+            if (module.length() > 0) {
+                CharStream stream = new FastCharStream(fileToString(module)
+                        .toCharArray());
+                IGrammar grammar = new PythonGrammar26(stream);
+                this.module = (org.python.pydev.parser.jython.ast.Module) grammar
+                        .file_input();
+            } else {
+                this.module = new org.python.pydev.parser.jython.ast.Module(
+                        null);
+                this.module.body = new stmtType[] {};
+            }
+        } catch (TokenMgrError e) {
+            System.err.println("PARSING FAILED: " + module);
+            throw new ParseException(e.toString(), e.errorLine, e.errorColumn);
+        } catch (Error e) {
+            System.err.println("PARSING FAILED: " + module);
+            throw e;
+        } catch (ParseException e) {
+            System.err.println("PARSING FAILED: " + module);
+            throw e;
+        }
+    }
 
-	public Module getAst() {
-		return module;
-	}
+    public Module getAst() {
+        return module;
+    }
 
-	/**
-	 * Read file contents into a String.
-	 */
-	private static String fileToString(File file) throws IOException {
-		byte[] buffer = new byte[(int) file.length()];
-		BufferedInputStream f = null;
-		try {
-			f = new BufferedInputStream(new FileInputStream(file));
-			f.read(buffer);
-		} finally {
-			if (f != null)
-				try {
-					f.close();
-				} catch (IOException ignored) {
-				}
-		}
-		return new String(buffer);
-	}
+    /**
+     * Read file contents into a String.
+     */
+    private static String fileToString(File file) throws IOException {
+        byte[] buffer = new byte[(int) file.length()];
+        BufferedInputStream f = null;
+        try {
+            f = new BufferedInputStream(new FileInputStream(file));
+            f.read(buffer);
+        } finally {
+            if (f != null)
+                try {
+                    f.close();
+                } catch (IOException ignored) {
+                }
+        }
+        return new String(buffer);
+    }
 }

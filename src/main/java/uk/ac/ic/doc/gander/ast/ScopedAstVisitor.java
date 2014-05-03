@@ -19,62 +19,62 @@ import org.python.pydev.parser.jython.ast.VisitorBase;
  */
 public abstract class ScopedAstVisitor<T> extends VisitorBase {
 
-	private Stack<T> scopes = new Stack<T>();
+    private Stack<T> scopes = new Stack<T>();
 
-	/**
-	 * Construct with no initial scope.
-	 * 
-	 * This is equivalent to constructing with a {@code null} initial scope as
-	 * calling {@code getScope()} will return {@code null} in either case.
-	 */
-	public ScopedAstVisitor() {
-	}
+    /**
+     * Construct with no initial scope.
+     * 
+     * This is equivalent to constructing with a {@code null} initial scope as
+     * calling {@code getScope()} will return {@code null} in either case.
+     */
+    public ScopedAstVisitor() {
+    }
 
-	/**
-	 * Construct with an initial scope already set up on the stack.
-	 * 
-	 * @param initialScope
-	 *            First scope on the stack.
-	 */
-	public ScopedAstVisitor(T initialScope) {
-		scopes.push(initialScope);
-	}
+    /**
+     * Construct with an initial scope already set up on the stack.
+     * 
+     * @param initialScope
+     *            First scope on the stack.
+     */
+    public ScopedAstVisitor(T initialScope) {
+        scopes.push(initialScope);
+    }
 
-	/**
-	 * Return parent scope of last namespace created.
-	 */
-	protected T getScope() {
-		return (!scopes.empty()) ? scopes.peek() : null;
-	}
+    /**
+     * Return parent scope of last namespace created.
+     */
+    protected T getScope() {
+        return (!scopes.empty()) ? scopes.peek() : null;
+    }
 
-	protected abstract T atScope(Module node);
+    protected abstract T atScope(Module node);
 
-	protected abstract T atScope(FunctionDef node);
+    protected abstract T atScope(FunctionDef node);
 
-	protected abstract T atScope(ClassDef node);
+    protected abstract T atScope(ClassDef node);
 
-	@Override
-	public final Object visitModule(
-			org.python.pydev.parser.jython.ast.Module node) throws Exception {
-		traverseScope(atScope(node), node);
-		return null;
-	}
+    @Override
+    public final Object visitModule(
+            org.python.pydev.parser.jython.ast.Module node) throws Exception {
+        traverseScope(atScope(node), node);
+        return null;
+    }
 
-	@Override
-	public final Object visitClassDef(ClassDef node) throws Exception {
-		traverseScope(atScope(node), node);
-		return null;
-	}
+    @Override
+    public final Object visitClassDef(ClassDef node) throws Exception {
+        traverseScope(atScope(node), node);
+        return null;
+    }
 
-	@Override
-	public final Object visitFunctionDef(FunctionDef node) throws Exception {
-		traverseScope(atScope(node), node);
-		return null;
-	}
+    @Override
+    public final Object visitFunctionDef(FunctionDef node) throws Exception {
+        traverseScope(atScope(node), node);
+        return null;
+    }
 
-	private void traverseScope(T scope, SimpleNode node) throws Exception {
-		scopes.push(scope);
-		node.traverse(this);
-		scopes.pop();
-	}
+    private void traverseScope(T scope, SimpleNode node) throws Exception {
+        scopes.push(scope);
+        node.traverse(this);
+        scopes.pop();
+    }
 }

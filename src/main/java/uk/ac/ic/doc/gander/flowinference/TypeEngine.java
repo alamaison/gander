@@ -9,12 +9,12 @@ import uk.ac.ic.doc.gander.model.codeobject.CodeObject;
 
 public interface TypeEngine {
 
-	/**
-	 * Infer the type of the expression.
-	 */
-	public Result<PyObject> typeOf(ModelSite<? extends exprType> expression);
+    /**
+     * Infer the type of the expression.
+     */
+    public Result<PyObject> typeOf(ModelSite<? extends exprType> expression);
 
-	@Deprecated
-	public Result<PyObject> typeOf(exprType expression, CodeObject scope);
+    @Deprecated
+    public Result<PyObject> typeOf(exprType expression, CodeObject scope);
 
 }

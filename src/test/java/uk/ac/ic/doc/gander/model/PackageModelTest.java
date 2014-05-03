@@ -10,40 +10,40 @@ import org.junit.Test;
  */
 public class PackageModelTest extends AbstractModelTest {
 
-	@Before
-	public void setup() throws Throwable {
-		createTestModel(PACKAGE_STRUCTURE_PROJ);
-	}
+    @Before
+    public void setup() throws Throwable {
+        createTestModel(PACKAGE_STRUCTURE_PROJ);
+    }
 
-	@Test
-	public void classes() throws Throwable {
-		Module pkg = getModel().loadPackage("my_package");
-		Map<String, Class> classes = pkg.getClasses();
+    @Test
+    public void classes() throws Throwable {
+        Module pkg = getModel().loadPackage("my_package");
+        Map<String, Class> classes = pkg.getClasses();
 
-		assertKeys(classes, "PackageClass");
-	}
+        assertKeys(classes, "PackageClass");
+    }
 
-	@Test
-	public void functions() throws Throwable {
-		Module pkg = getModel().loadPackage("my_package");
-		Map<String, Function> functions = pkg.getFunctions();
+    @Test
+    public void functions() throws Throwable {
+        Module pkg = getModel().loadPackage("my_package");
+        Map<String, Function> functions = pkg.getFunctions();
 
-		assertKeys(functions, "package_function");
-	}
+        assertKeys(functions, "package_function");
+    }
 
-	@Test
-	public void submoduleFunctions() throws Throwable {
-		Module loadedModule = getModel().loadModule("my_package.my_submodule");
-		Map<String, Function> functions = loadedModule.getFunctions();
+    @Test
+    public void submoduleFunctions() throws Throwable {
+        Module loadedModule = getModel().loadModule("my_package.my_submodule");
+        Map<String, Function> functions = loadedModule.getFunctions();
 
-		assertKeys(functions, "submodule_function");
-	}
+        assertKeys(functions, "submodule_function");
+    }
 
-	@Test
-	public void submoduleClasses() throws Throwable {
-		Module loadedModule = getModel().loadModule("my_package.my_submodule");
-		Map<String, Class> classes = loadedModule.getClasses();
+    @Test
+    public void submoduleClasses() throws Throwable {
+        Module loadedModule = getModel().loadModule("my_package.my_submodule");
+        Map<String, Class> classes = loadedModule.getClasses();
 
-		assertKeys(classes, "SubmoduleClass");
-	}
+        assertKeys(classes, "SubmoduleClass");
+    }
 }

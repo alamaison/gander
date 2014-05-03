@@ -32,35 +32,35 @@ import org.python.pydev.parser.jython.ast.VisitorBase;
  */
 public abstract class BindingStatementVisitor extends VisitorBase {
 
-	/**
-	 * This is triggered when a function is defined.
-	 * 
-	 * e.g:
-	 * 
-	 * <pre>
-	 * def fun(x):
-	 *     pass
-	 * </pre>
-	 */
-	@Override
-	public abstract Object visitFunctionDef(FunctionDef node) throws Exception;
+    /**
+     * This is triggered when a function is defined.
+     * 
+     * e.g:
+     * 
+     * <pre>
+     * def fun(x):
+     *     pass
+     * </pre>
+     */
+    @Override
+    public abstract Object visitFunctionDef(FunctionDef node) throws Exception;
 
-	@Override
-	public abstract Object visitAssign(Assign node) throws Exception;
+    @Override
+    public abstract Object visitAssign(Assign node) throws Exception;
 
-	@Override
-	public abstract Object visitClassDef(ClassDef node) throws Exception;
+    @Override
+    public abstract Object visitClassDef(ClassDef node) throws Exception;
 
-	@Override
-	public abstract Object visitFor(For node) throws Exception;
+    @Override
+    public abstract Object visitFor(For node) throws Exception;
 
-	@Override
-	public abstract Object visitImport(Import node) throws Exception;
+    @Override
+    public abstract Object visitImport(Import node) throws Exception;
 
-	@Override
-	public abstract Object visitImportFrom(ImportFrom node) throws Exception;
+    @Override
+    public abstract Object visitImportFrom(ImportFrom node) throws Exception;
 
-	@Override
-	public abstract Object visitTryExcept(TryExcept node) throws Exception;
+    @Override
+    public abstract Object visitTryExcept(TryExcept node) throws Exception;
 
 }

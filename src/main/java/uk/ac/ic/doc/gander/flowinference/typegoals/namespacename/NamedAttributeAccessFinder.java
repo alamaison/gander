@@ -16,31 +16,31 @@ import uk.ac.ic.doc.gander.model.ModelSite;
  */
 final class NamedAttributeAccessFinder {
 
-	private final String attributeName;
-	private final Set<ModelSite<Attribute>> matchingAttributes = new HashSet<ModelSite<Attribute>>();
+    private final String attributeName;
+    private final Set<ModelSite<Attribute>> matchingAttributes = new HashSet<ModelSite<Attribute>>();
 
-	NamedAttributeAccessFinder(
-			Set<? extends ModelSite<? extends exprType>> namespacePositions,
-			String attributeName) {
-		assert namespacePositions != null;
-		
-		this.attributeName = attributeName;
-		new AttributeAccessFinder(namespacePositions,
-				new AttributeNameMatcher());
-	}
+    NamedAttributeAccessFinder(
+            Set<? extends ModelSite<? extends exprType>> namespacePositions,
+            String attributeName) {
+        assert namespacePositions != null;
+        
+        this.attributeName = attributeName;
+        new AttributeAccessFinder(namespacePositions,
+                new AttributeNameMatcher());
+    }
 
-	Set<ModelSite<Attribute>> accesses() {
-		return matchingAttributes;
-	}
+    Set<ModelSite<Attribute>> accesses() {
+        return matchingAttributes;
+    }
 
-	private class AttributeNameMatcher implements AttributeAccessFinder.Event {
+    private class AttributeNameMatcher implements AttributeAccessFinder.Event {
 
-		public boolean attributeAccess(ModelSite<Attribute> access) {
-			if (((NameTok) access.astNode().attr).id.equals(attributeName)) {
-				matchingAttributes.add(access);
-			}
-			return false;
-		}
+        public boolean attributeAccess(ModelSite<Attribute> access) {
+            if (((NameTok) access.astNode().attr).id.equals(attributeName)) {
+                matchingAttributes.add(access);
+            }
+            return false;
+        }
 
-	}
+    }
 }

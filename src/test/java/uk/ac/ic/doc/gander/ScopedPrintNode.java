@@ -19,69 +19,69 @@ import uk.ac.ic.doc.gander.model.codeobject.ModuleCO;
  */
 public final class ScopedPrintNode {
 
-	private ScopedAstNode node;
-	private Module module;
+    private ScopedAstNode node;
+    private Module module;
 
-	public static ScopedPrintNode findPrintNode(MutableModel model,
-			String moduleName, String tag) throws Exception {
-		return new ScopedPrintNode(model, moduleName, tag);
-	}
+    public static ScopedPrintNode findPrintNode(MutableModel model,
+            String moduleName, String tag) throws Exception {
+        return new ScopedPrintNode(model, moduleName, tag);
+    }
 
-	public CodeObject getScope() {
-		return node.getScope();
-	}
+    public CodeObject getScope() {
+        return node.getScope();
+    }
 
-	public OldNamespace getGlobalNamespace() {
-		return module;
-	}
+    public OldNamespace getGlobalNamespace() {
+        return module;
+    }
 
-	public ModuleCO enclosingModule() {
-		return module.codeObject();
-	}
+    public ModuleCO enclosingModule() {
+        return module.codeObject();
+    }
 
-	/**
-	 * Expression being printed.
-	 */
-	public exprType getExpression() {
-		if (node != null) {
-			return ((Print) node.getNode()).values[0];
-		} else {
-			return null;
-		}
-	}
+    /**
+     * Expression being printed.
+     */
+    public exprType getExpression() {
+        if (node != null) {
+            return ((Print) node.getNode()).values[0];
+        } else {
+            return null;
+        }
+    }
 
-	public ModelSite<exprType> site() {
-		if (getExpression() != null) {
-			return new ModelSite<exprType>(getExpression(), getScope());
-		} else {
-			return null;
-		}
-	}
+    public ModelSite<exprType> site() {
+        if (getExpression() != null) {
+            return new ModelSite<exprType>(getExpression(), getScope());
+        } else {
+            return null;
+        }
+    }
 
-	/**
-	 * Expression being printed as a String if it's a simple variable.
-	 */
-	public String getExpressionName() {
-		return ((Name) getExpression()).id;
-	}
+    /**
+     * Expression being printed as a String if it's a simple variable.
+     */
+    public String getExpressionName() {
+        return ((Name) getExpression()).id;
+    }
 
-	private ScopedPrintNode(MutableModel model, String moduleName, String tag)
-			throws Exception {
+    private ScopedPrintNode(MutableModel model, String moduleName, String tag)
+            throws Exception {
 
-		module = model.loadModule(moduleName);
-		assertTrue("Test error: Module '" + moduleName + "' not found",
-				module != null);
-		node = findNode(module.codeObject(), tag);
-	}
+        module = model.loadModule(moduleName);
+        assertTrue("Test error: Module '" + moduleName + "' not found",
+                module != null);
+        node = findNode(module.codeObject(), tag);
+    }
 
-	private static ScopedAstNode findNode(ModuleCO module, String tag)
-			throws Exception {
-		assertTrue("Module not found", module != null);
-		ScopedAstNode node = new TaggedNodeAndScopeFinder(module, tag)
-				.getTaggedNode();
-		assertTrue("Unable to find node tagged with '" + tag + "'",
-				node != null);
-		return node;
-	}
+    private static ScopedAstNode findNode(ModuleCO module, String tag)
+            throws Exception {
+        assertTrue("Module not found", module != null);
+        ScopedAstNode node = new TaggedNodeAndScopeFinder(module, tag)
+                .getTaggedNode();
+        assertTrue("Unable to find node tagged with '" + tag + "'",
+                node != null);
+        return node;
+    }
 
 }

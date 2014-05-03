@@ -19,102 +19,102 @@ import uk.ac.ic.doc.gander.flowinference.result.Top;
  */
 public final class GoalSolver<T> {
 
-	private final WorkList workList = new DequeBasedWorkList();
-	private final KnowledgeBase knowledgebase;
-	private final Goal<T> rootGoal;
-	private File debugTrigger;
+    private final WorkList workList = new DequeBasedWorkList();
+    private final KnowledgeBase knowledgebase;
+    private final Goal<T> rootGoal;
+    private File debugTrigger;
 
-	public static <R> GoalSolver<R> newInstance(Goal<R> goal,
-			KnowledgeBase knowledgebase) {
-		return new GoalSolver<R>(goal, knowledgebase);
-	}
+    public static <R> GoalSolver<R> newInstance(Goal<R> goal,
+            KnowledgeBase knowledgebase) {
+        return new GoalSolver<R>(goal, knowledgebase);
+    }
 
-	private GoalSolver(Goal<T> goal, KnowledgeBase knowledgebase) {
-		rootGoal = goal;
-		this.knowledgebase = knowledgebase;
-		workList.add(goal);
-		this.knowledgebase.addGoal(goal);
+    private GoalSolver(Goal<T> goal, KnowledgeBase knowledgebase) {
+        rootGoal = goal;
+        this.knowledgebase = knowledgebase;
+        workList.add(goal);
+        this.knowledgebase.addGoal(goal);
 
-		debugTrigger = new File("dodebug");
-	}
+        debugTrigger = new File("dodebug");
+    }
 
-	public T solve() {
-		while (!workList.isEmpty()) {
-			iterate();
-		}
+    public T solve() {
+        while (!workList.isEmpty()) {
+            iterate();
+        }
 
-		return (T) knowledgebase.getLastSolution(rootGoal);
-	}
+        return (T) knowledgebase.getLastSolution(rootGoal);
+    }
 
-	private void iterate() {
-		Goal<?> workItem = workList.nextWorkItem();
-		boolean changed = update(workItem);
-		if (changed) {
-			workList.addAll(goalsDependentOnThisOne(workItem));
-		}
-	}
+    private void iterate() {
+        Goal<?> workItem = workList.nextWorkItem();
+        boolean changed = update(workItem);
+        if (changed) {
+            workList.addAll(goalsDependentOnThisOne(workItem));
+        }
+    }
 
-	private Collection<? extends Goal<?>> goalsDependentOnThisOne(Goal<?> goal) {
-		return knowledgebase.dependents(goal);
-	}
+    private Collection<? extends Goal<?>> goalsDependentOnThisOne(Goal<?> goal) {
+        return knowledgebase.dependents(goal);
+    }
 
-	private boolean update(final Goal<?> goal) {
-		Object oldSolution = knowledgebase.getLastSolution(goal);
-		Object newSolution = goal.recalculateSolution(new SubgoalManager() {
+    private boolean update(final Goal<?> goal) {
+        Object oldSolution = knowledgebase.getLastSolution(goal);
+        Object newSolution = goal.recalculateSolution(new SubgoalManager() {
 
-			private Object currentSolutionOfGoal(Goal<?> subgoal) {
-				return knowledgebase.getLastSolution(subgoal);
-			}
+            private Object currentSolutionOfGoal(Goal<?> subgoal) {
+                return knowledgebase.getLastSolution(subgoal);
+            }
 
-			@Override
-			public <R> R registerSubgoal(Goal<R> newSubgoal) {
-				/*
-				 * Only add the subgoal to the worklist if it hasn't been seen
-				 * before. If it already existed, the parent already had access
-				 * to the most up-to-date answer for the goal and adding it to
-				 * the worklist will cause the subgoal to be recalculated even
-				 * when the solution has stabilised preventing the process from
-				 * terminating.
-				 */
-				if (knowledgebase.addGoal(newSubgoal, goal)) {
-					workList.add(newSubgoal);
-				}
+            @Override
+            public <R> R registerSubgoal(Goal<R> newSubgoal) {
+                /*
+                 * Only add the subgoal to the worklist if it hasn't been seen
+                 * before. If it already existed, the parent already had access
+                 * to the most up-to-date answer for the goal and adding it to
+                 * the worklist will cause the subgoal to be recalculated even
+                 * when the solution has stabilised preventing the process from
+                 * terminating.
+                 */
+                if (knowledgebase.addGoal(newSubgoal, goal)) {
+                    workList.add(newSubgoal);
+                }
 
-				return (R) currentSolutionOfGoal(newSubgoal);
-			}
-		});
+                return (R) currentSolutionOfGoal(newSubgoal);
+            }
+        });
 
-		if (debugTrigger.exists()) {
-			System.out.println("-" + goal + ":");
+        if (debugTrigger.exists()) {
+            System.out.println("-" + goal + ":");
 
-			if (oldSolution instanceof Top<?>) {
-				if (!(newSolution instanceof Top<?>)) {
-					throw new AssertionError("Non-monotonic behaviour detected");
-				}
-			}
+            if (oldSolution instanceof Top<?>) {
+                if (!(newSolution instanceof Top<?>)) {
+                    throw new AssertionError("Non-monotonic behaviour detected");
+                }
+            }
 
-			if (newSolution instanceof FiniteResult<?>) {
-				if (((FiniteResult<?>) newSolution).isEmpty()) {
-					System.out.println("\t\tBOTTOM");
-				} else {
-					for (Object result : ((FiniteResult<?>) newSolution)) {
-						System.out.println("\t\t" + result);
-					}
-				}
-			} else {
+            if (newSolution instanceof FiniteResult<?>) {
+                if (((FiniteResult<?>) newSolution).isEmpty()) {
+                    System.out.println("\t\tBOTTOM");
+                } else {
+                    for (Object result : ((FiniteResult<?>) newSolution)) {
+                        System.out.println("\t\t" + result);
+                    }
+                }
+            } else {
 
-				System.out.println("\t\t" + newSolution);
-			}
-		}
+                System.out.println("\t\t" + newSolution);
+            }
+        }
 
-		knowledgebase.updateSolution(goal, newSolution);
+        knowledgebase.updateSolution(goal, newSolution);
 
-		if (newSolution == null) {
-			return oldSolution != null;
-		} else {
-			return !newSolution.equals(oldSolution);
-		}
-	}
+        if (newSolution == null) {
+            return oldSolution != null;
+        } else {
+            return !newSolution.equals(oldSolution);
+        }
+    }
 }
 
 /**
@@ -125,13 +125,13 @@ public final class GoalSolver<T> {
  */
 interface WorkList {
 
-	boolean isEmpty();
+    boolean isEmpty();
 
-	void add(Goal<?> goal);
+    void add(Goal<?> goal);
 
-	void addAll(Collection<? extends Goal<?>> goals);
+    void addAll(Collection<? extends Goal<?>> goals);
 
-	Goal<?> nextWorkItem();
+    Goal<?> nextWorkItem();
 }
 
 /**
@@ -143,58 +143,58 @@ interface WorkList {
  * added instead.
  */
 final class StackBasedWorkList implements WorkList {
-	Stack<Goal<?>> workList = new Stack<Goal<?>>();
+    Stack<Goal<?>> workList = new Stack<Goal<?>>();
 
-	@Override
-	public boolean isEmpty() {
-		return workList.isEmpty();
-	}
+    @Override
+    public boolean isEmpty() {
+        return workList.isEmpty();
+    }
 
-	@Override
-	public void add(Goal<?> goal) {
-		if (!workList.contains(goal))
-			workList.push(goal);
-	}
+    @Override
+    public void add(Goal<?> goal) {
+        if (!workList.contains(goal))
+            workList.push(goal);
+    }
 
-	@Override
-	public void addAll(Collection<? extends Goal<?>> goals) {
-		for (Goal<?> goal : goals) {
-			add(goal);
-		}
-	}
+    @Override
+    public void addAll(Collection<? extends Goal<?>> goals) {
+        for (Goal<?> goal : goals) {
+            add(goal);
+        }
+    }
 
-	@Override
-	public Goal<?> nextWorkItem() {
-		return workList.pop();
-	}
+    @Override
+    public Goal<?> nextWorkItem() {
+        return workList.pop();
+    }
 }
 
 /**
  * Worklist implementation based on a deque.
  */
 final class DequeBasedWorkList implements WorkList {
-	Deque<Goal<?>> workList = new ArrayDeque<Goal<?>>();
+    Deque<Goal<?>> workList = new ArrayDeque<Goal<?>>();
 
-	@Override
-	public boolean isEmpty() {
-		return workList.isEmpty();
-	}
+    @Override
+    public boolean isEmpty() {
+        return workList.isEmpty();
+    }
 
-	@Override
-	public void add(Goal<?> goal) {
-		if (!workList.contains(goal))
-			workList.push(goal);
-	}
+    @Override
+    public void add(Goal<?> goal) {
+        if (!workList.contains(goal))
+            workList.push(goal);
+    }
 
-	@Override
-	public void addAll(Collection<? extends Goal<?>> goals) {
-		for (Goal<?> goal : goals) {
-			workList.addFirst(goal);
-		}
-	}
+    @Override
+    public void addAll(Collection<? extends Goal<?>> goals) {
+        for (Goal<?> goal : goals) {
+            workList.addFirst(goal);
+        }
+    }
 
-	@Override
-	public Goal<?> nextWorkItem() {
-		return workList.pop();
-	}
+    @Override
+    public Goal<?> nextWorkItem() {
+        return workList.pop();
+    }
 }

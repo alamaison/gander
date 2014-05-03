@@ -7,34 +7,34 @@ import uk.ac.ic.doc.gander.model.codeobject.ModuleCO;
 
 public interface Module extends OldNamespace {
 
-	@Deprecated
-	Map<String, Class> getClasses();
+    @Deprecated
+    Map<String, Class> getClasses();
 
-	String getFullName();
+    String getFullName();
 
-	@Deprecated
-	Map<String, Function> getFunctions();
+    @Deprecated
+    Map<String, Function> getFunctions();
 
-	@Deprecated
-	Map<String, Module> getModules();
+    @Deprecated
+    Map<String, Module> getModules();
 
-	String getName();
+    String getName();
 
-	boolean isSystem();
+    boolean isSystem();
 
-	boolean isTopLevel();
+    boolean isTopLevel();
 
-	@Deprecated
-	Module lookup(List<String> importNameTokens);
+    @Deprecated
+    Module lookup(List<String> importNameTokens);
 
-	@Deprecated
-	Member lookupMember(String memberName);
+    @Deprecated
+    Member lookupMember(String memberName);
 
-	Model model();
+    Model model();
 
-	ModuleCO codeObject();
+    ModuleCO codeObject();
 
-	public Module getParent();
+    public Module getParent();
 
-	public org.python.pydev.parser.jython.ast.Module getAst();
+    public org.python.pydev.parser.jython.ast.Module getAst();
 }

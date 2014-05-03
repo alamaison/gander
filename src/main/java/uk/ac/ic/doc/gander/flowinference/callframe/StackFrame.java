@@ -15,32 +15,32 @@ import java.util.Map;
  */
 public interface StackFrame<Value> {
 
-	/**
-	 * Returns the values that are passed by position and whose position is
-	 * known.
-	 * 
-	 * @return a list containing the values; the indices in the list are the
-	 *         positions that the value is passed at; note: this means known
-	 *         positions are contiguous just like in Python
-	 */
-	List<Value> knownPositions();
+    /**
+     * Returns the values that are passed by position and whose position is
+     * known.
+     * 
+     * @return a list containing the values; the indices in the list are the
+     *         positions that the value is passed at; note: this means known
+     *         positions are contiguous just like in Python
+     */
+    List<Value> knownPositions();
 
-	/**
-	 * Returns the values that are passed by keyword and whose keyword is known.
-	 * 
-	 * @return a mapping from keywords to values
-	 */
-	Map<String, Value> knownKeywords();
+    /**
+     * Returns the values that are passed by keyword and whose keyword is known.
+     * 
+     * @return a mapping from keywords to values
+     */
+    Map<String, Value> knownKeywords();
 
-	/**
-	 * Returns whether the call includes arguments passed by position but whose
-	 * exact position cannot be determined statically.
-	 */
-	boolean includesUnknownPositions();
+    /**
+     * Returns whether the call includes arguments passed by position but whose
+     * exact position cannot be determined statically.
+     */
+    boolean includesUnknownPositions();
 
-	/**
-	 * Returns whether the call includes arguments passed by keyword but whose
-	 * exact keyword cannot be determined statically.
-	 */
-	boolean includesUnknownKeywords();
+    /**
+     * Returns whether the call includes arguments passed by keyword but whose
+     * exact keyword cannot be determined statically.
+     */
+    boolean includesUnknownKeywords();
 }

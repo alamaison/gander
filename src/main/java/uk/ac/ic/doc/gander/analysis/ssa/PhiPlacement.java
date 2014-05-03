@@ -16,54 +16,54 @@ import uk.ac.ic.doc.gander.cfg.Cfg;
 
 public class PhiPlacement {
 
-	private GlobalsAndDefsFinder finder;
-	private Map<BasicBlock, DomInfo> domInfo;
-	private Map<BasicBlock, Set<String>> phis = new HashMap<BasicBlock, Set<String>>();
+    private GlobalsAndDefsFinder finder;
+    private Map<BasicBlock, DomInfo> domInfo;
+    private Map<BasicBlock, Set<String>> phis = new HashMap<BasicBlock, Set<String>>();
 
-	public PhiPlacement(Cfg graph) {
-		finder = new GlobalsAndDefsFinder(graph);
-		domInfo = new DomFront(new DomMethod(graph)).run();
+    public PhiPlacement(Cfg graph) {
+        finder = new GlobalsAndDefsFinder(graph);
+        domInfo = new DomFront(new DomMethod(graph)).run();
 
-		for (String name : finder.globals()) {
-			Collection<BasicBlock> definingLocations = finder
-					.definingLocations(name);
+        for (String name : finder.globals()) {
+            Collection<BasicBlock> definingLocations = finder
+                    .definingLocations(name);
 
-			// Variables can be global (used in multiple blocks) yet never
-			// defined. This most likely indicates a true global in the Python
-			// sense of the word or a function name that has been imported (also
-			// a Python global really).
-			if (definingLocations == null)
-				continue;
+            // Variables can be global (used in multiple blocks) yet never
+            // defined. This most likely indicates a true global in the Python
+            // sense of the word or a function name that has been imported (also
+            // a Python global really).
+            if (definingLocations == null)
+                continue;
 
-			Queue<BasicBlock> worklist = new LinkedList<BasicBlock>(
-					definingLocations);
-			Set<BasicBlock> doneList = new HashSet<BasicBlock>();
-			while (!worklist.isEmpty()) {
-				BasicBlock workItem = worklist.remove();
-				doneList.add(workItem);
+            Queue<BasicBlock> worklist = new LinkedList<BasicBlock>(
+                    definingLocations);
+            Set<BasicBlock> doneList = new HashSet<BasicBlock>();
+            while (!worklist.isEmpty()) {
+                BasicBlock workItem = worklist.remove();
+                doneList.add(workItem);
 
-				for (BasicBlock frontierBlock : domInfo.get(workItem).dominanceFrontiers) {
+                for (BasicBlock frontierBlock : domInfo.get(workItem).dominanceFrontiers) {
 
-					Set<String> phiTargetsAtLocation = phis.get(frontierBlock);
-					if (phiTargetsAtLocation == null) {
-						phiTargetsAtLocation = new HashSet<String>();
-						phis.put(frontierBlock, phiTargetsAtLocation);
-					}
+                    Set<String> phiTargetsAtLocation = phis.get(frontierBlock);
+                    if (phiTargetsAtLocation == null) {
+                        phiTargetsAtLocation = new HashSet<String>();
+                        phis.put(frontierBlock, phiTargetsAtLocation);
+                    }
 
-					phiTargetsAtLocation.add(name);
+                    phiTargetsAtLocation.add(name);
 
-					if (!doneList.contains(frontierBlock))
-						worklist.add(frontierBlock);
-				}
-			}
-		}
-	}
+                    if (!doneList.contains(frontierBlock))
+                        worklist.add(frontierBlock);
+                }
+            }
+        }
+    }
 
-	public Iterable<String> phiTargets(BasicBlock location) {
-		return phis.get(location);
-	}
+    public Iterable<String> phiTargets(BasicBlock location) {
+        return phis.get(location);
+    }
 
-	public Map<BasicBlock, DomInfo> getDomInfo() {
-		return domInfo;
-	}
+    public Map<BasicBlock, DomInfo> getDomInfo() {
+        return domInfo;
+    }
 }

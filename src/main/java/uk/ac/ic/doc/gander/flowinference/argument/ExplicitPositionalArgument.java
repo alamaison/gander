@@ -19,81 +19,81 @@ import uk.ac.ic.doc.gander.model.parameters.FormalParameters;
  */
 final class ExplicitPositionalArgument implements PositionalArgument {
 
-	private final int position;
-	private final ModelSite<? extends exprType> value;
+    private final int position;
+    private final ModelSite<? extends exprType> value;
 
-	ExplicitPositionalArgument(ModelSite<? extends exprType> value, int position) {
-		assert value != null;
-		assert position >= 0;
+    ExplicitPositionalArgument(ModelSite<? extends exprType> value, int position) {
+        assert value != null;
+        assert position >= 0;
 
-		this.value = value;
-		this.position = position;
-	}
+        this.value = value;
+        this.position = position;
+    }
 
-	/**
-	 * Pass argument to parameters once position has been adjusted for
-	 * particular calling mechanism.
-	 */
-	@Override
-	public ArgumentDestination passArgumentAtCall(
-			final InvokableCodeObject receiver) {
+    /**
+     * Pass argument to parameters once position has been adjusted for
+     * particular calling mechanism.
+     */
+    @Override
+    public ArgumentDestination passArgumentAtCall(
+            final InvokableCodeObject receiver) {
 
-		FormalParameters parameters = receiver.formalParameters();
+        FormalParameters parameters = receiver.formalParameters();
 
-		if (parameters.hasParameterForPosition(position)) {
+        if (parameters.hasParameterForPosition(position)) {
 
-			FormalParameter parameter = parameters.passByPosition(position);
-			return parameter.passage(this);
+            FormalParameter parameter = parameters.passByPosition(position);
+            return parameter.passage(this);
 
-		} else {
-			return new UntypableArgumentDestination() {
+        } else {
+            return new UntypableArgumentDestination() {
 
-				@Override
-				public Result<FlowPosition> nextFlowPositions() {
-					System.err.println("UNTYPABLE: " + receiver
-							+ " has no parameter that accepts an argument "
-							+ "at position " + position);
+                @Override
+                public Result<FlowPosition> nextFlowPositions() {
+                    System.err.println("UNTYPABLE: " + receiver
+                            + " has no parameter that accepts an argument "
+                            + "at position " + position);
 
-					return FiniteResult.bottom();
-				}
-			};
-		}
-	}
+                    return FiniteResult.bottom();
+                }
+            };
+        }
+    }
 
-	@Override
-	public Result<PyObject> type(SubgoalManager goalManager) {
-		return goalManager.registerSubgoal(new ExpressionTypeGoal(value));
-	}
+    @Override
+    public Result<PyObject> type(SubgoalManager goalManager) {
+        return goalManager.registerSubgoal(new ExpressionTypeGoal(value));
+    }
 
-	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + ((value == null) ? 0 : value.hashCode());
-		return result;
-	}
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((value == null) ? 0 : value.hashCode());
+        return result;
+    }
 
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (obj == null)
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
-		ExplicitPositionalArgument other = (ExplicitPositionalArgument) obj;
-		if (value == null) {
-			if (other.value != null)
-				return false;
-		} else if (!value.equals(other.value))
-			return false;
-		return true;
-	}
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        ExplicitPositionalArgument other = (ExplicitPositionalArgument) obj;
+        if (value == null) {
+            if (other.value != null)
+                return false;
+        } else if (!value.equals(other.value))
+            return false;
+        return true;
+    }
 
-	@Override
-	public String toString() {
-		return "ExplicitPositionalArgument [position=" + position + ", value="
-				+ value + "]";
-	}
+    @Override
+    public String toString() {
+        return "ExplicitPositionalArgument [position=" + position + ", value="
+                + value + "]";
+    }
 
 }

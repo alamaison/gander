@@ -20,33 +20,33 @@ import uk.ac.ic.doc.gander.model.codeobject.ModuleCO;
  */
 public final class WholeModelImportSimulation {
 
-	private final Binder<NamespaceName, Namespace, CodeObject, ModuleCO> callback;
-	private final Model model;
+    private final Binder<NamespaceName, Namespace, CodeObject, ModuleCO> callback;
+    private final Model model;
 
-	public WholeModelImportSimulation(Model model,
-			Binder<NamespaceName, Namespace, CodeObject, ModuleCO> callback) {
-		this.model = model;
-		this.callback = callback;
-		walkModel();
-	}
+    public WholeModelImportSimulation(Model model,
+            Binder<NamespaceName, Namespace, CodeObject, ModuleCO> callback) {
+        this.model = model;
+        this.callback = callback;
+        walkModel();
+    }
 
-	private void walkModel() {
+    private void walkModel() {
 
-		ImportHandler<CodeObject, ModuleCO> handler = new ImportHandler<CodeObject, ModuleCO>() {
+        ImportHandler<CodeObject, ModuleCO> handler = new ImportHandler<CodeObject, ModuleCO>() {
 
-			@Override
-			public void onImport(Import<CodeObject, ModuleCO> importInstance) {
-				newImportSimulator().simulateImport(importInstance);
-			}
+            @Override
+            public void onImport(Import<CodeObject, ModuleCO> importInstance) {
+                newImportSimulator().simulateImport(importInstance);
+            }
 
-		};
+        };
 
-		new WholeModelImportVisitation(model, handler);
+        new WholeModelImportVisitation(model, handler);
 
-	}
+    }
 
-	private ImportSimulator<NamespaceName, Namespace, CodeObject, ModuleCO> newImportSimulator() {
-		return ImportSimulator.newInstance(callback, new NamespaceNameLoader(
-				model));
-	}
+    private ImportSimulator<NamespaceName, Namespace, CodeObject, ModuleCO> newImportSimulator() {
+        return ImportSimulator.newInstance(callback, new NamespaceNameLoader(
+                model));
+    }
 }

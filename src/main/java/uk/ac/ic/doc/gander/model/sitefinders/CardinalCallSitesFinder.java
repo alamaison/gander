@@ -16,20 +16,20 @@ import uk.ac.ic.doc.gander.model.sitefinders.CallSitesFinder.Predicate;
  */
 public final class CardinalCallSitesFinder {
 
-	private final Set<ModelSite<Call>> sites;
+    private final Set<ModelSite<Call>> sites;
 
-	public CardinalCallSitesFinder(Model model, final int cardinality) {
+    public CardinalCallSitesFinder(Model model, final int cardinality) {
 
-		sites = new CallSitesFinder(model, new Predicate() {
+        sites = new CallSitesFinder(model, new Predicate() {
 
-			public boolean isMatch(ModelSite<Call> callSite) {
-				return callSite.astNode().args.length == cardinality;
-			}
+            public boolean isMatch(ModelSite<Call> callSite) {
+                return callSite.astNode().args.length == cardinality;
+            }
 
-		}).getSites();
-	}
+        }).getSites();
+    }
 
-	public Set<ModelSite<Call>> getSites() {
-		return Collections.unmodifiableSet(sites);
-	}
+    public Set<ModelSite<Call>> getSites() {
+        return Collections.unmodifiableSet(sites);
+    }
 }

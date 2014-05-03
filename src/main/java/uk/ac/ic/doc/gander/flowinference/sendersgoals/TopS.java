@@ -13,14 +13,14 @@ import uk.ac.ic.doc.gander.model.ModelSite;
  */
 final class TopS extends Top<ModelSite<Call>> {
 
-	static final TopS INSTANCE = new TopS();
+    static final TopS INSTANCE = new TopS();
 
-	@Override
-	public String toString() {
-		return "⊤s";
-	}
+    @Override
+    public String toString() {
+        return "⊤s";
+    }
 
-	private TopS() {
-	}
+    private TopS() {
+    }
 
 }

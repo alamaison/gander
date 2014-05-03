@@ -28,36 +28,36 @@ import uk.ac.ic.doc.gander.model.OldNamespace;
  */
 public final class InterfaceRecovery implements InterfaceTypeSystem {
 
-	private final TypeResolver resolver;
-	private boolean excludeCurrentFeature;
+    private final TypeResolver resolver;
+    private boolean excludeCurrentFeature;
 
-	public InterfaceRecovery(TypeResolver resolver,
-			boolean excludeCurrentFeature) {
-		this.resolver = resolver;
-		this.excludeCurrentFeature = excludeCurrentFeature;
-	}
+    public InterfaceRecovery(TypeResolver resolver,
+            boolean excludeCurrentFeature) {
+        this.resolver = resolver;
+        this.excludeCurrentFeature = excludeCurrentFeature;
+    }
 
-	public InterfaceType inferDuckType(exprType expression,
-			BasicBlock containingBlock, OldNamespace scope) {
+    public InterfaceType inferDuckType(exprType expression,
+            BasicBlock containingBlock, OldNamespace scope) {
 
-		Set<Call> dependentCalls = new CallTargetSignatureBuilder()
-				.interfaceType(expression, containingBlock, scope, resolver,
-						excludeCurrentFeature);
+        Set<Call> dependentCalls = new CallTargetSignatureBuilder()
+                .interfaceType(expression, containingBlock, scope, resolver,
+                        excludeCurrentFeature);
 
-		Set<Feature> features = new HashSet<Feature>();
-		for (Call call : dependentCalls) {
-			features.add(new NamedMethodFeature(CallHelper
-					.indirectCallName(call)));
-		}
+        Set<Feature> features = new HashSet<Feature>();
+        for (Call call : dependentCalls) {
+            features.add(new NamedMethodFeature(CallHelper
+                    .indirectCallName(call)));
+        }
 
-		return new DuckType(features);
-	}
+        return new DuckType(features);
+    }
 
-	@Override
-	public InterfaceType typeOf(ModelSite<? extends exprType> expression,
-			BasicBlock containingBlock) {
+    @Override
+    public InterfaceType typeOf(ModelSite<? extends exprType> expression,
+            BasicBlock containingBlock) {
 
-		return inferDuckType(expression.astNode(), containingBlock, expression
-				.codeObject().oldStyleConflatedNamespace());
-	}
+        return inferDuckType(expression.astNode(), containingBlock, expression
+                .codeObject().oldStyleConflatedNamespace());
+    }
 }

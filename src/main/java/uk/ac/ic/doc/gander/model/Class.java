@@ -26,246 +26,246 @@ import uk.ac.ic.doc.gander.model.name_binding.Variable;
 
 public final class Class implements OldNamespace, Namespace {
 
-	private final Map<String, Function> methods = new HashMap<String, Function>();
-	private final Map<String, Class> classes = new HashMap<String, Class>();
+    private final Map<String, Function> methods = new HashMap<String, Function>();
+    private final Map<String, Class> classes = new HashMap<String, Class>();
 
-	private final ClassCO codeObject;
-	private final Model model;
+    private final ClassCO codeObject;
+    private final Model model;
 
-	public Class(ClassCO codeObject, Model model) {
-		this.model = model;
-		this.codeObject = codeObject;
-	}
+    public Class(ClassCO codeObject, Model model) {
+        this.model = model;
+        this.codeObject = codeObject;
+    }
 
-	public void addNestedCodeObjects() {
-		for (CodeObject nestedCodeObject : codeObject.nestedCodeObjects()) {
-			if (nestedCodeObject instanceof ClassCO) {
-				addClass(((ClassCO) nestedCodeObject)
-						.oldStyleConflatedNamespace());
-			} else if (nestedCodeObject instanceof FunctionCO) {
-				addFunction(((FunctionCO) nestedCodeObject)
-						.oldStyleConflatedNamespace());
-			}
-		}
-	}
+    public void addNestedCodeObjects() {
+        for (CodeObject nestedCodeObject : codeObject.nestedCodeObjects()) {
+            if (nestedCodeObject instanceof ClassCO) {
+                addClass(((ClassCO) nestedCodeObject)
+                        .oldStyleConflatedNamespace());
+            } else if (nestedCodeObject instanceof FunctionCO) {
+                addFunction(((FunctionCO) nestedCodeObject)
+                        .oldStyleConflatedNamespace());
+            }
+        }
+    }
 
-	/**
-	 * {@inheritDoc}
-	 * 
-	 * A class's execution namespace is readable by attribute access on any
-	 * expression that the class code object can reach as well as any expression
-	 * that can result in an instance of the class.
-	 */
-	public Result<ModelSite<exprType>> references(SubgoalManager goalManager) {
+    /**
+     * {@inheritDoc}
+     * 
+     * A class's execution namespace is readable by attribute access on any
+     * expression that the class code object can reach as well as any expression
+     * that can result in an instance of the class.
+     */
+    public Result<ModelSite<exprType>> references(SubgoalManager goalManager) {
 
-		RedundancyEliminator<ModelSite<exprType>> references = new RedundancyEliminator<ModelSite<exprType>>();
+        RedundancyEliminator<ModelSite<exprType>> references = new RedundancyEliminator<ModelSite<exprType>>();
 
-		references.add(goalManager.registerSubgoal(new FlowGoal(
-				new CodeObjectDefinitionPosition(codeObject))));
+        references.add(goalManager.registerSubgoal(new FlowGoal(
+                new CodeObjectDefinitionPosition(codeObject))));
 
-		if (!references.isFinished()) {
-			references.add(goalManager.registerSubgoal(new FlowGoal(
-					new InstanceCreationPosition(codeObject))));
-		}
+        if (!references.isFinished()) {
+            references.add(goalManager.registerSubgoal(new FlowGoal(
+                    new InstanceCreationPosition(codeObject))));
+        }
 
-		return references.result();
-	}
+        return references.result();
+    }
 
-	/**
-	 * {@inheritDoc}
-	 * 
-	 * Only attribute accesses on the class object itself can modify the class
-	 * object's namespace.
-	 */
-	public Result<ModelSite<exprType>> writeableReferences(
-			SubgoalManager goalManager) {
+    /**
+     * {@inheritDoc}
+     * 
+     * Only attribute accesses on the class object itself can modify the class
+     * object's namespace.
+     */
+    public Result<ModelSite<exprType>> writeableReferences(
+            SubgoalManager goalManager) {
 
-		if (getParentScope().getName().isEmpty()) {
-			// builtin types do not have a writable namespace
-			return FiniteResult.bottom();
-		} else {
+        if (getParentScope().getName().isEmpty()) {
+            // builtin types do not have a writable namespace
+            return FiniteResult.bottom();
+        } else {
 
-			return goalManager.registerSubgoal(new FlowGoal(
-					new CodeObjectDefinitionPosition(codeObject)));
-		}
-	}
+            return goalManager.registerSubgoal(new FlowGoal(
+                    new CodeObjectDefinitionPosition(codeObject)));
+        }
+    }
 
-	public Set<Variable> variablesInScope(String name) {
-		return new InScopeVariableFinder(codeObject, name).variables();
-	}
+    public Set<Variable> variablesInScope(String name) {
+        return new InScopeVariableFinder(codeObject, name).variables();
+    }
 
-	/**
-	 * {@inheritDoc}
-	 * 
-	 * Legally, only global names (i.e. ones whose binding location is their
-	 * containing module) can be written to inside a nested code object so this
-	 * will return at most one variable.
-	 */
-	public Set<Variable> variablesWriteableInScope(String name) {
+    /**
+     * {@inheritDoc}
+     * 
+     * Legally, only global names (i.e. ones whose binding location is their
+     * containing module) can be written to inside a nested code object so this
+     * will return at most one variable.
+     */
+    public Set<Variable> variablesWriteableInScope(String name) {
 
-		Variable localVariable = new Variable(name, codeObject);
+        Variable localVariable = new Variable(name, codeObject);
 
-		if (localVariable.bindingLocation().codeObject().equals(codeObject)) {
-			return Collections.singleton(localVariable);
-		} else {
-			return Collections.emptySet();
-		}
-	}
+        if (localVariable.bindingLocation().codeObject().equals(codeObject)) {
+            return Collections.singleton(localVariable);
+        } else {
+            return Collections.emptySet();
+        }
+    }
 
-	public exprType[] inheritsFrom() {
-		return codeObject.ast().bases;
-	}
+    public exprType[] inheritsFrom() {
+        return codeObject.ast().bases;
+    }
 
-	@Override
-	public String getName() {
-		return codeObject.declaredName();
-	}
+    @Override
+    public String getName() {
+        return codeObject.declaredName();
+    }
 
-	@Override
-	public String getFullName() {
-		String parentName = getParentScope().getFullName();
-		if (parentName.isEmpty())
-			return getName();
-		else
-			return parentName + "." + getName();
-	}
+    @Override
+    public String getFullName() {
+        String parentName = getParentScope().getFullName();
+        if (parentName.isEmpty())
+            return getName();
+        else
+            return parentName + "." + getName();
+    }
 
-	@Override
-	public OldNamespace getParentScope() {
-		CodeObject codeObjectParent = codeObject.parent();
-		if (codeObjectParent != null) {
-			return codeObjectParent.oldStyleConflatedNamespace();
-		} else {
-			return null;
-		}
-	}
+    @Override
+    public OldNamespace getParentScope() {
+        CodeObject codeObjectParent = codeObject.parent();
+        if (codeObjectParent != null) {
+            return codeObjectParent.oldStyleConflatedNamespace();
+        } else {
+            return null;
+        }
+    }
 
-	@Override
-	@Deprecated
-	public Map<String, Module> getModules() {
-		return Collections.emptyMap();
-	}
+    @Override
+    @Deprecated
+    public Map<String, Module> getModules() {
+        return Collections.emptyMap();
+    }
 
-	@Override
-	@Deprecated
-	public Map<String, Class> getClasses() {
-		return classes;
-		// return Collections.unmodifiableMap(classes);
-	}
+    @Override
+    @Deprecated
+    public Map<String, Class> getClasses() {
+        return classes;
+        // return Collections.unmodifiableMap(classes);
+    }
 
-	@Override
-	@Deprecated
-	public Map<String, Function> getFunctions() {
-		return methods;
-		// return Collections.unmodifiableMap(methods);
-	}
+    @Override
+    @Deprecated
+    public Map<String, Function> getFunctions() {
+        return methods;
+        // return Collections.unmodifiableMap(methods);
+    }
 
-	@Override
-	@Deprecated
-	public void addModule(Module module) {
-		throw new Error("A class cannot contain a package");
-	}
+    @Override
+    @Deprecated
+    public void addModule(Module module) {
+        throw new Error("A class cannot contain a package");
+    }
 
-	@Override
-	@Deprecated
-	public void addClass(Class klass) {
-		classes.put(klass.getName(), klass);
-	}
+    @Override
+    @Deprecated
+    public void addClass(Class klass) {
+        classes.put(klass.getName(), klass);
+    }
 
-	@Override
-	@Deprecated
-	public void addFunction(Function function) {
-		methods.put(function.getName(), function);
-	}
+    @Override
+    @Deprecated
+    public void addFunction(Function function) {
+        methods.put(function.getName(), function);
+    }
 
-	@Override
-	public String toString() {
-		return "Class[" + getFullName() + "]";
-	}
+    @Override
+    public String toString() {
+        return "Class[" + getFullName() + "]";
+    }
 
-	/**
-	 * Classes inherit their systemness from their parent.
-	 * 
-	 * It isn't possible for a class to be system if it's containing module
-	 * isn't a system module. In other words, the resolution of systemness is at
-	 * the module level and all namespaces below that, inherit from their
-	 * parent.
-	 * 
-	 * XXX: Another way to look at this is that systemness is a property of the
-	 * associated <b>hierarchy</b> element so perhaps we should link model
-	 * element to their hierarchy parent. However, some model elements don't
-	 * have a hierarchy element. For example the dummy_builtin module.
-	 */
-	@Override
-	public boolean isSystem() {
-		return getParentScope().isSystem();
-	}
+    /**
+     * Classes inherit their systemness from their parent.
+     * 
+     * It isn't possible for a class to be system if it's containing module
+     * isn't a system module. In other words, the resolution of systemness is at
+     * the module level and all namespaces below that, inherit from their
+     * parent.
+     * 
+     * XXX: Another way to look at this is that systemness is a property of the
+     * associated <b>hierarchy</b> element so perhaps we should link model
+     * element to their hierarchy parent. However, some model elements don't
+     * have a hierarchy element. For example the dummy_builtin module.
+     */
+    @Override
+    public boolean isSystem() {
+        return getParentScope().isSystem();
+    }
 
-	@Override
-	public ClassDef getAst() {
-		return codeObject.ast();
-	}
+    @Override
+    public ClassDef getAst() {
+        return codeObject.ast();
+    }
 
-	@Override
-	public Cfg getCfg() {
-		throw new Error("Not implemented yet");
-	}
+    @Override
+    public Cfg getCfg() {
+        throw new Error("Not implemented yet");
+    }
 
-	@Override
-	@Deprecated
-	public Member lookupMember(String memberName) {
-		if (classes.containsKey(memberName))
-			return classes.get(memberName);
-		else if (methods.containsKey(memberName))
-			return methods.get(memberName);
+    @Override
+    @Deprecated
+    public Member lookupMember(String memberName) {
+        if (classes.containsKey(memberName))
+            return classes.get(memberName);
+        else if (methods.containsKey(memberName))
+            return methods.get(memberName);
 
-		return null;
-	}
+        return null;
+    }
 
-	@Override
-	public CodeBlock asCodeBlock() {
-		return codeObject.codeBlock();
-	}
+    @Override
+    public CodeBlock asCodeBlock() {
+        return codeObject.codeBlock();
+    }
 
-	@Override
-	public Module getGlobalNamespace() {
-		return getParentScope().getGlobalNamespace();
-	}
+    @Override
+    public Module getGlobalNamespace() {
+        return getParentScope().getGlobalNamespace();
+    }
 
-	@Override
-	public Model model() {
-		return model;
-	}
+    @Override
+    public Model model() {
+        return model;
+    }
 
-	@Override
-	public ClassCO codeObject() {
-		return codeObject;
-	}
+    @Override
+    public ClassCO codeObject() {
+        return codeObject;
+    }
 
-	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result
-				+ ((codeObject == null) ? 0 : codeObject.hashCode());
-		return result;
-	}
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result
+                + ((codeObject == null) ? 0 : codeObject.hashCode());
+        return result;
+    }
 
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (obj == null)
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
-		Class other = (Class) obj;
-		if (codeObject == null) {
-			if (other.codeObject != null)
-				return false;
-		} else if (!codeObject.equals(other.codeObject))
-			return false;
-		return true;
-	}
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        Class other = (Class) obj;
+        if (codeObject == null) {
+            if (other.codeObject != null)
+                return false;
+        } else if (!codeObject.equals(other.codeObject))
+            return false;
+        return true;
+    }
 
 }

@@ -8,9 +8,9 @@ import org.python.pydev.parser.jython.SimpleNode;
 
 class Parser {
 
-	static SimpleNode parse(CharStream stream) throws ParseException {
-		IGrammar grammar = new PythonGrammar26(stream);
-		return grammar.file_input();
-	}
+    static SimpleNode parse(CharStream stream) throws ParseException {
+        IGrammar grammar = new PythonGrammar26(stream);
+        return grammar.file_input();
+    }
 
 }

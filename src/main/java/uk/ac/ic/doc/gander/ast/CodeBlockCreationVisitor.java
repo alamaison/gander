@@ -9,17 +9,17 @@ import org.python.pydev.parser.jython.ast.VisitorBase;
  */
 public abstract class CodeBlockCreationVisitor extends VisitorBase {
 
-	@Override
-	public abstract Object visitClassDef(ClassDef node) throws Exception;
+    @Override
+    public abstract Object visitClassDef(ClassDef node) throws Exception;
 
-	@Override
-	public abstract Object visitFunctionDef(FunctionDef node) throws Exception;
+    @Override
+    public abstract Object visitFunctionDef(FunctionDef node) throws Exception;
 
-	@Override
-	public abstract Object visitModule(
-			org.python.pydev.parser.jython.ast.Module node) throws Exception;
+    @Override
+    public abstract Object visitModule(
+            org.python.pydev.parser.jython.ast.Module node) throws Exception;
 
-	// TODO: Investigate if lambdas belong here
+    // TODO: Investigate if lambdas belong here
 
 }
 

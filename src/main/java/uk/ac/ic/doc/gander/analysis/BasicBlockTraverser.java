@@ -23,44 +23,44 @@ import org.python.pydev.parser.jython.ast.NameTok;
  */
 public abstract class BasicBlockTraverser extends BasicBlockVisitor {
 
-	@Override
-	public Object visitFunctionDef(FunctionDef node) throws Exception {
-		// A nested function def just assigns a callable object to a variable
-		// with the same name as the function def. We don't want to traverse
-		// into the function body as it isn't being executed as part of the
-		// basic block. Instead we treat it as a Name;
-		NameTok name = (NameTok) node.name;
-		visitName(new Name(name.id, Name.Store, false, name));
-		return null;
-	}
+    @Override
+    public Object visitFunctionDef(FunctionDef node) throws Exception {
+        // A nested function def just assigns a callable object to a variable
+        // with the same name as the function def. We don't want to traverse
+        // into the function body as it isn't being executed as part of the
+        // basic block. Instead we treat it as a Name;
+        NameTok name = (NameTok) node.name;
+        visitName(new Name(name.id, Name.Store, false, name));
+        return null;
+    }
 
-	@Override
-	public Object visitLambda(Lambda node) throws Exception {
-		// A lambda is just a callable object. We don't want to traverse
-		// into the lambda body as it isn't being executed as part of the
-		// basic block.
-		return null;
-	}
+    @Override
+    public Object visitLambda(Lambda node) throws Exception {
+        // A lambda is just a callable object. We don't want to traverse
+        // into the lambda body as it isn't being executed as part of the
+        // basic block.
+        return null;
+    }
 
-	@Override
-	public Object visitClassDef(ClassDef node) throws Exception {
-		// A nested class def just assigns a class object to a variable
-		// with the same name as the class def. We don't want to traverse
-		// into the class implementation as no part of it is being executed
-		// in the basic block. Instead we treat it as a Name.
-		NameTok name = (NameTok) node.name;
-		visitName(new Name(name.id, Name.Store, false, name));
-		return null;
-	}
+    @Override
+    public Object visitClassDef(ClassDef node) throws Exception {
+        // A nested class def just assigns a class object to a variable
+        // with the same name as the class def. We don't want to traverse
+        // into the class implementation as no part of it is being executed
+        // in the basic block. Instead we treat it as a Name.
+        NameTok name = (NameTok) node.name;
+        visitName(new Name(name.id, Name.Store, false, name));
+        return null;
+    }
 
-	@Override
-	public void traverse(SimpleNode node) throws Exception {
-		node.traverse(this);
-	}
+    @Override
+    public void traverse(SimpleNode node) throws Exception {
+        node.traverse(this);
+    }
 
-	@Override
-	protected Object unhandled_node(SimpleNode node) throws Exception {
-		return null;
-	}
+    @Override
+    protected Object unhandled_node(SimpleNode node) throws Exception {
+        return null;
+    }
 
 }

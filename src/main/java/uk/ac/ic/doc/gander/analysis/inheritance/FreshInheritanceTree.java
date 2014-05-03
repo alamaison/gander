@@ -4,14 +4,14 @@ import uk.ac.ic.doc.gander.flowinference.TypeResolver;
 import uk.ac.ic.doc.gander.model.Class;
 
 public class FreshInheritanceTree implements InheritanceTree {
-	private Node root;
+    private Node root;
 
-	public FreshInheritanceTree(Class klass, TypeResolver resolver) {
-		root = new Node(klass, resolver);
-	}
+    public FreshInheritanceTree(Class klass, TypeResolver resolver) {
+        root = new Node(klass, resolver);
+    }
 
-	public Node getTree() {
-		return root;
-	}
+    public Node getTree() {
+        return root;
+    }
 
 }

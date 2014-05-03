@@ -10,18 +10,18 @@ import uk.ac.ic.doc.gander.model.codeobject.InvokableCodeObject;
 
 enum DefaultStarargsArgument implements Argument {
 
-	INSTANCE;
+    INSTANCE;
 
-	@Override
-	public ArgumentDestination passArgumentAtCall(InvokableCodeObject receiver) {
-		// TODO Auto-generated method stub
-		return null;
-	}
+    @Override
+    public ArgumentDestination passArgumentAtCall(InvokableCodeObject receiver) {
+        // TODO Auto-generated method stub
+        return null;
+    }
 
-	@Override
-	public Result<PyObject> type(SubgoalManager goalManager) {
-		// TODO: return builtin tuple
-		return TopT.INSTANCE;
-	}
+    @Override
+    public Result<PyObject> type(SubgoalManager goalManager) {
+        // TODO: return builtin tuple
+        return TopT.INSTANCE;
+    }
 
 }

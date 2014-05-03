@@ -28,196 +28,196 @@ import uk.ac.ic.doc.gander.model.codeobject.NestedCodeObjects;
 
 final class TestModule {
 
-	private final String moduleName;
-	private final MutableModel model;
-	private final ModuleCO module;
+    private final String moduleName;
+    private final MutableModel model;
+    private final ModuleCO module;
 
-	TestModule(String name, MutableModel model) throws Throwable {
-		this.moduleName = name;
-		this.model = model;
+    TestModule(String name, MutableModel model) throws Throwable {
+        this.moduleName = name;
+        this.model = model;
 
-		Module module = model.load(moduleName);
-		if (module == null) {
-			throw new RuntimeException("Test module not found: " + moduleName);
-		} else {
-			this.module = module.codeObject();
-		}
-	}
+        Module module = model.load(moduleName);
+        if (module == null) {
+            throw new RuntimeException("Test module not found: " + moduleName);
+        } else {
+            this.module = module.codeObject();
+        }
+    }
 
-	ScopedPrintNode printNode(String tag) throws Throwable {
-		return ScopedPrintNode.findPrintNode(model, moduleName, tag);
-	}
+    ScopedPrintNode printNode(String tag) throws Throwable {
+        return ScopedPrintNode.findPrintNode(model, moduleName, tag);
+    }
 
-	ModelSite<exprType> taggedExpression(String tag) throws Throwable {
-		ScopedAstNode node = new TaggedNodeAndScopeFinder(codeObject(), tag)
-				.getTaggedNode();
-		assertTrue("Unable to find node tagged with '" + tag + "'",
-				node != null);
-		return new ModelSite<exprType>((exprType) node.getNode(),
-				node.getScope());
-	}
+    ModelSite<exprType> taggedExpression(String tag) throws Throwable {
+        ScopedAstNode node = new TaggedNodeAndScopeFinder(codeObject(), tag)
+                .getTaggedNode();
+        assertTrue("Unable to find node tagged with '" + tag + "'",
+                node != null);
+        return new ModelSite<exprType>((exprType) node.getNode(),
+                node.getScope());
+    }
 
-	ScopedAstNode taggedNode(String tag) throws Throwable {
-		ScopedAstNode node = new TaggedNodeAndScopeFinder(codeObject(), tag)
-				.getTaggedNode();
-		assertTrue("Unable to find node tagged with '" + tag + "'",
-				node != null);
-		return node;
-	}
+    ScopedAstNode taggedNode(String tag) throws Throwable {
+        ScopedAstNode node = new TaggedNodeAndScopeFinder(codeObject(), tag)
+                .getTaggedNode();
+        assertTrue("Unable to find node tagged with '" + tag + "'",
+                node != null);
+        return node;
+    }
 
-	Set<ModelSite<exprType>> printables(String... expressionTags)
-			throws Throwable {
+    Set<ModelSite<exprType>> printables(String... expressionTags)
+            throws Throwable {
 
-		Set<ModelSite<exprType>> expressions = new HashSet<ModelSite<exprType>>();
+        Set<ModelSite<exprType>> expressions = new HashSet<ModelSite<exprType>>();
 
-		for (String tag : expressionTags) {
-			expressions.add(printNode(tag).site());
-		}
+        for (String tag : expressionTags) {
+            expressions.add(printNode(tag).site());
+        }
 
-		return expressions;
-	}
+        return expressions;
+    }
 
-	Set<ModelSite<exprType>> expressions(String... expressionTags)
-			throws Throwable {
+    Set<ModelSite<exprType>> expressions(String... expressionTags)
+            throws Throwable {
 
-		Set<ModelSite<exprType>> expressions = new HashSet<ModelSite<exprType>>();
+        Set<ModelSite<exprType>> expressions = new HashSet<ModelSite<exprType>>();
 
-		for (String tag : expressionTags) {
-			expressions.add(taggedExpression(tag));
-		}
+        for (String tag : expressionTags) {
+            expressions.add(taggedExpression(tag));
+        }
 
-		return expressions;
-	}
+        return expressions;
+    }
 
-	ClassCO builtinClass(String name) {
-		return nestedClass(model.getTopLevel().codeObject(), name);
-	}
+    ClassCO builtinClass(String name) {
+        return nestedClass(model.getTopLevel().codeObject(), name);
+    }
 
-	FunctionCO builtinFunction(String name) {
-		return nestedFunction(model.getTopLevel().codeObject(), name);
-	}
+    FunctionCO builtinFunction(String name) {
+        return nestedFunction(model.getTopLevel().codeObject(), name);
+    }
 
-	ClassCO moduleLevelClass(String name) throws Throwable {
-		return nestedClass(codeObject(), name);
-	}
+    ClassCO moduleLevelClass(String name) throws Throwable {
+        return nestedClass(codeObject(), name);
+    }
 
-	FunctionCO moduleLevelFunction(String name) throws Throwable {
-		return nestedFunction(codeObject(), name);
-	}
+    FunctionCO moduleLevelFunction(String name) throws Throwable {
+        return nestedFunction(codeObject(), name);
+    }
 
-	static <U extends exprType> void assertResultIsTop(final String message,
-			Result<ModelSite<U>> result) {
+    static <U extends exprType> void assertResultIsTop(final String message,
+            Result<ModelSite<U>> result) {
 
-		result.actOnResult(new Processor<ModelSite<U>>() {
+        result.actOnResult(new Processor<ModelSite<U>>() {
 
-			@Override
-			public void processInfiniteResult() {
-			}
+            @Override
+            public void processInfiniteResult() {
+            }
 
-			@Override
-			public void processFiniteResult(Set<ModelSite<U>> result) {
-				fail(message + ". Result is not Top: " + result);
-			}
-		});
-	}
+            @Override
+            public void processFiniteResult(Set<ModelSite<U>> result) {
+                fail(message + ". Result is not Top: " + result);
+            }
+        });
+    }
 
-	static <U extends exprType> void assertResultIsNotTop(final String message,
-			Result<ModelSite<U>> result) {
+    static <U extends exprType> void assertResultIsNotTop(final String message,
+            Result<ModelSite<U>> result) {
 
-		result.actOnResult(new Processor<ModelSite<U>>() {
+        result.actOnResult(new Processor<ModelSite<U>>() {
 
-			@Override
-			public void processInfiniteResult() {
-				fail(message + ". Result is Top.");
-			}
+            @Override
+            public void processInfiniteResult() {
+                fail(message + ". Result is Top.");
+            }
 
-			@Override
-			public void processFiniteResult(Set<ModelSite<U>> result) {
-			}
-		});
-	}
+            @Override
+            public void processFiniteResult(Set<ModelSite<U>> result) {
+            }
+        });
+    }
 
-	static <T extends exprType, U extends exprType> void assertResultIncludes(
-			final String message, final Set<ModelSite<T>> expressions,
-			Result<ModelSite<U>> result) {
+    static <T extends exprType, U extends exprType> void assertResultIncludes(
+            final String message, final Set<ModelSite<T>> expressions,
+            Result<ModelSite<U>> result) {
 
-		result.actOnResult(new Processor<ModelSite<U>>() {
+        result.actOnResult(new Processor<ModelSite<U>>() {
 
-			@Override
-			public void processInfiniteResult() {
-				fail(message + ". Result is Top.");
-			}
+            @Override
+            public void processInfiniteResult() {
+                fail(message + ". Result is Top.");
+            }
 
-			@Override
-			public void processFiniteResult(Set<ModelSite<U>> result) {
-				Set<ModelSite<T>> missing = new HashSet<ModelSite<T>>(
-						expressions);
-				missing.removeAll(result);
-				assertTrue(message
-						+ " Not all expected expressions are present "
-						+ "in the result. Missing: " + missing + ". Actual: "
-						+ result + ".", missing.isEmpty());
-			}
-		});
-	}
+            @Override
+            public void processFiniteResult(Set<ModelSite<U>> result) {
+                Set<ModelSite<T>> missing = new HashSet<ModelSite<T>>(
+                        expressions);
+                missing.removeAll(result);
+                assertTrue(message
+                        + " Not all expected expressions are present "
+                        + "in the result. Missing: " + missing + ". Actual: "
+                        + result + ".", missing.isEmpty());
+            }
+        });
+    }
 
-	static <T extends exprType, U extends exprType> void assertResultExcludes(
-			String message, final Set<ModelSite<T>> expressions,
-			Result<ModelSite<U>> result) {
-		assertTrue(
-				message,
-				result.transformResult(
-						new Transformer<ModelSite<U>, Boolean>() {
+    static <T extends exprType, U extends exprType> void assertResultExcludes(
+            String message, final Set<ModelSite<T>> expressions,
+            Result<ModelSite<U>> result) {
+        assertTrue(
+                message,
+                result.transformResult(
+                        new Transformer<ModelSite<U>, Boolean>() {
 
-							@Override
-							public Boolean transformFiniteResult(
-									Set<ModelSite<U>> result) {
-								Set<ModelSite<U>> intersection = new HashSet<ModelSite<U>>(
-										result);
-								intersection.retainAll(expressions);
+                            @Override
+                            public Boolean transformFiniteResult(
+                                    Set<ModelSite<U>> result) {
+                                Set<ModelSite<U>> intersection = new HashSet<ModelSite<U>>(
+                                        result);
+                                intersection.retainAll(expressions);
 
-								return intersection.isEmpty();
-							}
+                                return intersection.isEmpty();
+                            }
 
-							@Override
-							public Boolean transformInfiniteResult() {
-								return false;
-							}
-						}).booleanValue());
-	}
+                            @Override
+                            public Boolean transformInfiniteResult() {
+                                return false;
+                            }
+                        }).booleanValue());
+    }
 
-	private ModuleCO codeObject() throws Throwable {
-		return module;
-	}
+    private ModuleCO codeObject() throws Throwable {
+        return module;
+    }
 
-	private static FunctionCO nestedFunction(CodeObject parent, String name) {
-		CodeObject codeObject = nestedObjectHelper(parent, name, "function");
-		assertTrue("Found a top-level declaration called '" + name
-				+ "' but it's the wrong type.",
-				codeObject instanceof FunctionCO);
+    private static FunctionCO nestedFunction(CodeObject parent, String name) {
+        CodeObject codeObject = nestedObjectHelper(parent, name, "function");
+        assertTrue("Found a top-level declaration called '" + name
+                + "' but it's the wrong type.",
+                codeObject instanceof FunctionCO);
 
-		return (FunctionCO) codeObject;
-	}
+        return (FunctionCO) codeObject;
+    }
 
-	private static ClassCO nestedClass(CodeObject parent, String name) {
-		CodeObject codeObject = nestedObjectHelper(parent, name, "class");
-		assertTrue("Found a top-level declaration called '" + name
-				+ "' but it's the wrong type.", codeObject instanceof ClassCO);
+    private static ClassCO nestedClass(CodeObject parent, String name) {
+        CodeObject codeObject = nestedObjectHelper(parent, name, "class");
+        assertTrue("Found a top-level declaration called '" + name
+                + "' but it's the wrong type.", codeObject instanceof ClassCO);
 
-		return (ClassCO) codeObject;
-	}
+        return (ClassCO) codeObject;
+    }
 
-	private static NestedCodeObject nestedObjectHelper(CodeObject parent,
-			String name, String lookupType) {
+    private static NestedCodeObject nestedObjectHelper(CodeObject parent,
+            String name, String lookupType) {
 
-		NestedCodeObjects codeObjects = parent.nestedCodeObjects()
-				.namedCodeObjectsDeclaredAs(name);
-		assertFalse("No object declared as '" + name + "'.",
-				codeObjects.isEmpty());
-		assertEquals("Test error: assuming a unique " + lookupType
-				+ " declared as '" + name + "' but there are several.", 1,
-				codeObjects.size());
+        NestedCodeObjects codeObjects = parent.nestedCodeObjects()
+                .namedCodeObjectsDeclaredAs(name);
+        assertFalse("No object declared as '" + name + "'.",
+                codeObjects.isEmpty());
+        assertEquals("Test error: assuming a unique " + lookupType
+                + " declared as '" + name + "' but there are several.", 1,
+                codeObjects.size());
 
-		return codeObjects.iterator().next();
-	}
+        return codeObjects.iterator().next();
+    }
 }

@@ -19,30 +19,30 @@ import uk.ac.ic.doc.gander.model.codeobject.CodeObject;
  */
 public final class CallSitesFinder {
 
-	public interface Predicate {
-		boolean isMatch(ModelSite<Call> callSite);
-	}
+    public interface Predicate {
+        boolean isMatch(ModelSite<Call> callSite);
+    }
 
-	private final Set<ModelSite<Call>> sites = new HashSet<ModelSite<Call>>();
+    private final Set<ModelSite<Call>> sites = new HashSet<ModelSite<Call>>();
 
-	public CallSitesFinder(final Model model, final Predicate predicate) {
+    public CallSitesFinder(final Model model, final Predicate predicate) {
 
-		new CallSitesWalker(model, new EventHandler() {
+        new CallSitesWalker(model, new EventHandler() {
 
-			public void encounteredCallSite(Call call, CodeObject codeObject) {
+            public void encounteredCallSite(Call call, CodeObject codeObject) {
 
-				ModelSite<Call> callSite = new ModelSite<Call>(call, codeObject);
-				
-				if (predicate.isMatch(callSite)) {
-					sites.add(callSite);
-				}
-			}
+                ModelSite<Call> callSite = new ModelSite<Call>(call, codeObject);
+                
+                if (predicate.isMatch(callSite)) {
+                    sites.add(callSite);
+                }
+            }
 
-		});
+        });
 
-	}
+    }
 
-	public Set<ModelSite<Call>> getSites() {
-		return Collections.unmodifiableSet(sites);
-	}
+    public Set<ModelSite<Call>> getSites() {
+        return Collections.unmodifiableSet(sites);
+    }
 }

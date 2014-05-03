@@ -12,14 +12,14 @@ import uk.ac.ic.doc.gander.implementation.Implementation;
  */
 public final class TopC extends Top<Implementation> implements ConcreteType {
 
-	public static final TopC INSTANCE = new TopC();
+    public static final TopC INSTANCE = new TopC();
 
-	@Override
-	public String toString() {
-		return "\u22A4c";
-	}
+    @Override
+    public String toString() {
+        return "\u22A4c";
+    }
 
-	private TopC() {
-	}
+    private TopC() {
+    }
 
 }

@@ -14,28 +14,28 @@ import uk.ac.ic.doc.gander.model.OldNamespace;
  */
 public class ClassResolver {
 
-	private OldNamespace enclosingScope;
-	private Class klass;
-	private final TypeResolver types;
+    private OldNamespace enclosingScope;
+    private Class klass;
+    private final TypeResolver types;
 
-	public ClassResolver(exprType expr, OldNamespace enclosingScope,
-			TypeResolver types) {
-		this.enclosingScope = enclosingScope;
-		this.types = types;
-		klass = resolveClass(expr);
-	}
+    public ClassResolver(exprType expr, OldNamespace enclosingScope,
+            TypeResolver types) {
+        this.enclosingScope = enclosingScope;
+        this.types = types;
+        klass = resolveClass(expr);
+    }
 
-	private Class resolveClass(exprType expr) {
-		PyObject type = types.typeOf(new ModelSite<exprType>(expr, enclosingScope
-				.codeObject()));
-		if (type != null && type instanceof PyClass) {
-			return ((PyClass) type).getClassInstance();
-		}
+    private Class resolveClass(exprType expr) {
+        PyObject type = types.typeOf(new ModelSite<exprType>(expr, enclosingScope
+                .codeObject()));
+        if (type != null && type instanceof PyClass) {
+            return ((PyClass) type).getClassInstance();
+        }
 
-		return null;
-	}
+        return null;
+    }
 
-	public Class getResolvedClass() {
-		return klass;
-	}
+    public Class getResolvedClass() {
+        return klass;
+    }
 }

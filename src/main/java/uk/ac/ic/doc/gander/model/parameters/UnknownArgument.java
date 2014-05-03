@@ -11,21 +11,21 @@ import uk.ac.ic.doc.gander.flowinference.typegoals.TopT;
 import uk.ac.ic.doc.gander.model.codeobject.InvokableCodeObject;
 
 enum UnknownArgument implements Argument {
-	INSTANCE;
+    INSTANCE;
 
-	@Override
-	public Result<PyObject> type(SubgoalManager goalManager) {
-		return TopT.INSTANCE;
-	}
+    @Override
+    public Result<PyObject> type(SubgoalManager goalManager) {
+        return TopT.INSTANCE;
+    }
 
-	@Override
-	public ArgumentDestination passArgumentAtCall(InvokableCodeObject receiver) {
-		return new ArgumentDestination() {
+    @Override
+    public ArgumentDestination passArgumentAtCall(InvokableCodeObject receiver) {
+        return new ArgumentDestination() {
 
-			@Override
-			public Result<FlowPosition> nextFlowPositions() {
-				return FiniteResult.bottom();
-			}
-		};
-	}
+            @Override
+            public Result<FlowPosition> nextFlowPositions() {
+                return FiniteResult.bottom();
+            }
+        };
+    }
 }

@@ -14,23 +14,23 @@ import uk.ac.ic.doc.gander.model.name_binding.LocallyDeclaredGlobalFinder;
  */
 final class CodeBlockGlobalsFinder {
 
-	static Set<String> globals(CodeBlock codeBlock) {
-		assert codeBlock != null;
+    static Set<String> globals(CodeBlock codeBlock) {
+        assert codeBlock != null;
 
-		final Set<String> globals = new HashSet<String>();
-		try {
-			codeBlock.accept(new LocallyDeclaredGlobalFinder() {
+        final Set<String> globals = new HashSet<String>();
+        try {
+            codeBlock.accept(new LocallyDeclaredGlobalFinder() {
 
-				@Override
-				protected boolean onGlobalDeclared(String name) {
-					globals.add(name);
-					return false;
-				}
-			});
-		} catch (Exception e) {
-			throw new RuntimeException(e);
-		}
-		return globals;
-	}
+                @Override
+                protected boolean onGlobalDeclared(String name) {
+                    globals.add(name);
+                    return false;
+                }
+            });
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+        return globals;
+    }
 
 }

@@ -15,67 +15,67 @@ import uk.ac.ic.doc.gander.model.MutableModel;
 
 public abstract class AbstractTaggedCallTest {
 
-	protected Cfg graph;
-	protected TaggedBlockFinder tagFinder;
-	private final File projectDirectory;
-	protected MutableModel model;
-	protected Module module;
-	protected Function function;
+    protected Cfg graph;
+    protected TaggedBlockFinder tagFinder;
+    private final File projectDirectory;
+    protected MutableModel model;
+    protected Module module;
+    protected Function function;
 
-	public AbstractTaggedCallTest(File projectDirectory) {
-		this.projectDirectory = projectDirectory;
-	}
+    public AbstractTaggedCallTest(File projectDirectory) {
+        this.projectDirectory = projectDirectory;
+    }
 
-	protected void initialise(String caseName) throws Throwable {
+    protected void initialise(String caseName) throws Throwable {
 
-		Hierarchy hierarchy = HierarchyFactory
-				.createHierarchy(projectDirectory);
-		model = new DefaultModel(hierarchy);
-		module = model.loadModule(moduleToLoad());
-		function = module.getFunctions().get(caseName);
-		graph = function.getCfg();
+        Hierarchy hierarchy = HierarchyFactory
+                .createHierarchy(projectDirectory);
+        model = new DefaultModel(hierarchy);
+        module = model.loadModule(moduleToLoad());
+        function = module.getFunctions().get(caseName);
+        graph = function.getCfg();
 
-		tagFinder = new TaggedBlockFinder(graph);
-	}
+        tagFinder = new TaggedBlockFinder(graph);
+    }
 
-	protected String moduleToLoad() {
-		return "case";
-	}
+    protected String moduleToLoad() {
+        return "case";
+    }
 
-	protected void initialise(String caseName, int expectedBlockCount)
-			throws Throwable {
-		initialise(caseName);
-		checkBlockCount(expectedBlockCount);
-	}
+    protected void initialise(String caseName, int expectedBlockCount)
+            throws Throwable {
+        initialise(caseName);
+        checkBlockCount(expectedBlockCount);
+    }
 
-	protected Statement findTaggedStatement(String taggedCall) throws Exception {
-		return tagFinder.findTaggedStatement(taggedCall);
-	}
+    protected Statement findTaggedStatement(String taggedCall) throws Exception {
+        return tagFinder.findTaggedStatement(taggedCall);
+    }
 
-	protected BasicBlock findTaggedBlock(String taggedCall) throws Exception {
-		return findTaggedStatement(taggedCall).getBlock();
-	}
+    protected BasicBlock findTaggedBlock(String taggedCall) throws Exception {
+        return findTaggedStatement(taggedCall).getBlock();
+    }
 
-	/**
-	 * Test number of blocks in graph.
-	 * 
-	 * @param expected
-	 *            Number of <b>operative</b> blocks, i.e., excluding START, END
-	 *            and EXCEPTION.
-	 */
-	private void checkBlockCount(int expected) {
-		assertEquals(expected, graph.getBlocks().size() - 3);
-	}
+    /**
+     * Test number of blocks in graph.
+     * 
+     * @param expected
+     *            Number of <b>operative</b> blocks, i.e., excluding START, END
+     *            and EXCEPTION.
+     */
+    private void checkBlockCount(int expected) {
+        assertEquals(expected, graph.getBlocks().size() - 3);
+    }
 
-	protected String variableFromTag(String taggedCall) {
-		return tagFinder.variableFromTag(taggedCall);
-	}
+    protected String variableFromTag(String taggedCall) {
+        return tagFinder.variableFromTag(taggedCall);
+    }
 
-	protected String methodFromTag(String taggedCall) {
-		return tagFinder.methodFromTag(taggedCall);
-	}
+    protected String methodFromTag(String taggedCall) {
+        return tagFinder.methodFromTag(taggedCall);
+    }
 
-	protected String tagFromTag(String taggedCall) {
-		return tagFinder.tagFromTag(taggedCall);
-	}
+    protected String tagFromTag(String taggedCall) {
+        return tagFinder.tagFromTag(taggedCall);
+    }
 }

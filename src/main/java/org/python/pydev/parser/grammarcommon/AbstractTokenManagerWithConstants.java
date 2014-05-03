@@ -8,11 +8,11 @@ import java.lang.reflect.Field;
  */
 public abstract class AbstractTokenManagerWithConstants {
 
-	@SuppressWarnings("rawtypes")
+    @SuppressWarnings("rawtypes")
     protected abstract Class getConstantsClass();
     
     @SuppressWarnings("rawtypes")
-	protected final int getFromConstants(String constant){
+    protected final int getFromConstants(String constant){
         try {
             Class c = getConstantsClass();
             Field declaredField = c.getDeclaredField(constant);

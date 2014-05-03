@@ -4,17 +4,17 @@ import org.python.pydev.parser.jython.ast.Continue;
 
 class ContinueScope extends ScopeWithParent {
 
-	protected ContinueScope(Continue node, Statement previousStatement,
-			Statement.Exit trajectory, boolean startInNewBlock, Scope parent) {
-		super(parent, previousStatement, trajectory, startInNewBlock);
-	}
+    protected ContinueScope(Continue node, Statement previousStatement,
+            Statement.Exit trajectory, boolean startInNewBlock, Scope parent) {
+        super(parent, previousStatement, trajectory, startInNewBlock);
+    }
 
-	@Override
-	protected Statement doProcess() {
-		Statement statement = new Statement();
-		statement.inlinks().inherit(trajectory());
-		statement.continues().inherit(trajectory());
-		return statement;
-	}
+    @Override
+    protected Statement doProcess() {
+        Statement statement = new Statement();
+        statement.inlinks().inherit(trajectory());
+        statement.continues().inherit(trajectory());
+        return statement;
+    }
 
 }

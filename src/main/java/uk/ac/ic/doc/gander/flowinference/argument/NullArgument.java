@@ -12,24 +12,24 @@ import uk.ac.ic.doc.gander.model.codeobject.InvokableCodeObject;
  */
 public enum NullArgument implements Argument {
 
-	INSTANCE;
+    INSTANCE;
 
-	@Override
-	public ArgumentDestination passArgumentAtCall(InvokableCodeObject receiver) {
+    @Override
+    public ArgumentDestination passArgumentAtCall(InvokableCodeObject receiver) {
 
-		return new ArgumentDestination() {
+        return new ArgumentDestination() {
 
-			@Override
-			public Result<FlowPosition> nextFlowPositions() {
-				return FiniteResult.bottom();
-			}
-		};
+            @Override
+            public Result<FlowPosition> nextFlowPositions() {
+                return FiniteResult.bottom();
+            }
+        };
 
-	}
+    }
 
-	@Override
-	public Result<PyObject> type(SubgoalManager goalManager) {
-		return FiniteResult.bottom();
-	}
+    @Override
+    public Result<PyObject> type(SubgoalManager goalManager) {
+        return FiniteResult.bottom();
+    }
 
 }

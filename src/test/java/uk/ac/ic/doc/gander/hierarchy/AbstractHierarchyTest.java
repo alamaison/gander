@@ -14,34 +14,34 @@ import org.junit.Before;
 
 public abstract class AbstractHierarchyTest {
 
-	private Hierarchy hierarchy = null;
+    private Hierarchy hierarchy = null;
 
-	protected Hierarchy getHierarchy() {
-		return hierarchy;
-	}
+    protected Hierarchy getHierarchy() {
+        return hierarchy;
+    }
 
-	protected static final String TEST_PROJ = "python_test_code";
-	protected static final String STDLIB_PROJ = "dummy_standard_lib";
+    protected static final String TEST_PROJ = "python_test_code";
+    protected static final String STDLIB_PROJ = "dummy_standard_lib";
 
-	@Before
-	public void createTestModel() throws Throwable {
-		URL topLevel = getClass().getResource(TEST_PROJ);
-		URL stdLib = getClass().getResource(STDLIB_PROJ);
+    @Before
+    public void createTestModel() throws Throwable {
+        URL topLevel = getClass().getResource(TEST_PROJ);
+        URL stdLib = getClass().getResource(STDLIB_PROJ);
 
-		File topLevelDirectory = new File(topLevel.toURI());
-		File stdlib = new File(stdLib.toURI());
+        File topLevelDirectory = new File(topLevel.toURI());
+        File stdlib = new File(stdLib.toURI());
 
-		List<File> dirs = new ArrayList<File>();
-		dirs.add(topLevelDirectory);
-		
-		List<File> stdLibDirs = new ArrayList<File>();
-		stdLibDirs.add(stdlib);
-		stdLibDirs.add(new File("nonexistentdir"));
-		hierarchy = HierarchyFactory.createHierarchy(dirs, stdLibDirs);
-	}
+        List<File> dirs = new ArrayList<File>();
+        dirs.add(topLevelDirectory);
+        
+        List<File> stdLibDirs = new ArrayList<File>();
+        stdLibDirs.add(stdlib);
+        stdLibDirs.add(new File("nonexistentdir"));
+        hierarchy = HierarchyFactory.createHierarchy(dirs, stdLibDirs);
+    }
 
-	protected static <T> void assertKeys(Map<String, T> keys, String... expected) {
-		assertEquals(new HashSet<String>(Arrays.asList(expected)), keys
-				.keySet());
-	}
+    protected static <T> void assertKeys(Map<String, T> keys, String... expected) {
+        assertEquals(new HashSet<String>(Arrays.asList(expected)), keys
+                .keySet());
+    }
 }

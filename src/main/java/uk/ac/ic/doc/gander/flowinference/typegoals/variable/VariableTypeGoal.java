@@ -18,55 +18,55 @@ import uk.ac.ic.doc.gander.model.name_binding.Variable;
  */
 public final class VariableTypeGoal implements TypeGoal {
 
-	private final Variable variable;
+    private final Variable variable;
 
-	public VariableTypeGoal(Variable variable) {
-		this.variable = variable;
-	}
+    public VariableTypeGoal(Variable variable) {
+        this.variable = variable;
+    }
 
-	public Result<PyObject> initialSolution() {
-		return FiniteResult.bottom();
-	}
+    public Result<PyObject> initialSolution() {
+        return FiniteResult.bottom();
+    }
 
-	/**
-	 * Resolves the variable to the namespace in which it binds and delegates
-	 * the type inference to a type goal for that namespace name.
-	 */
-	public Result<PyObject> recalculateSolution(SubgoalManager goalManager) {
+    /**
+     * Resolves the variable to the namespace in which it binds and delegates
+     * the type inference to a type goal for that namespace name.
+     */
+    public Result<PyObject> recalculateSolution(SubgoalManager goalManager) {
 
-		return goalManager.registerSubgoal(new NamespaceNameTypeGoal(
-				new NamespaceName(variable.bindingLocation())));
-	}
+        return goalManager.registerSubgoal(new NamespaceNameTypeGoal(
+                new NamespaceName(variable.bindingLocation())));
+    }
 
-	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result
-				+ ((variable == null) ? 0 : variable.hashCode());
-		return result;
-	}
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result
+                + ((variable == null) ? 0 : variable.hashCode());
+        return result;
+    }
 
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (obj == null)
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
-		VariableTypeGoal other = (VariableTypeGoal) obj;
-		if (variable == null) {
-			if (other.variable != null)
-				return false;
-		} else if (!variable.equals(other.variable))
-			return false;
-		return true;
-	}
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        VariableTypeGoal other = (VariableTypeGoal) obj;
+        if (variable == null) {
+            if (other.variable != null)
+                return false;
+        } else if (!variable.equals(other.variable))
+            return false;
+        return true;
+    }
 
-	@Override
-	public String toString() {
-		return "VariableTypeGoal [variable=" + variable + "]";
-	}
+    @Override
+    public String toString() {
+        return "VariableTypeGoal [variable=" + variable + "]";
+    }
 
 }

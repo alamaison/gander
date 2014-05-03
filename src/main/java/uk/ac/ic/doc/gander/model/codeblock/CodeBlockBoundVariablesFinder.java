@@ -18,31 +18,31 @@ import uk.ac.ic.doc.gander.model.parameters.FormalParameter;
  */
 final class CodeBlockBoundVariablesFinder {
 
-	static Set<String> boundVariables(DefaultCodeBlock codeBlock) {
-		assert codeBlock != null;
+    static Set<String> boundVariables(DefaultCodeBlock codeBlock) {
+        assert codeBlock != null;
 
-		final Set<String> boundNames = new HashSet<String>();
+        final Set<String> boundNames = new HashSet<String>();
 
-		List<FormalParameter> bindingParameters = codeBlock.formalParameters().parameters();
-		for (FormalParameter parameter : bindingParameters) {
-			for (Variable variable : parameter.boundVariables()) {
-				boundNames.add(variable.name());
-			}
-		}
+        List<FormalParameter> bindingParameters = codeBlock.formalParameters().parameters();
+        for (FormalParameter parameter : bindingParameters) {
+            for (Variable variable : parameter.boundVariables()) {
+                boundNames.add(variable.name());
+            }
+        }
 
-		try {
-			codeBlock.accept(new LocallyBoundNameFinder() {
+        try {
+            codeBlock.accept(new LocallyBoundNameFinder() {
 
-				@Override
-				protected void onNameBound(String name) {
-					boundNames.add(name);
-				}
-			});
-		} catch (Exception e) {
-			throw new RuntimeException(e);
-		}
+                @Override
+                protected void onNameBound(String name) {
+                    boundNames.add(name);
+                }
+            });
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
 
-		return boundNames;
-	}
+        return boundNames;
+    }
 
 }

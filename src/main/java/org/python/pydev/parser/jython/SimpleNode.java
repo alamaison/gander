@@ -270,9 +270,9 @@ public class SimpleNode implements Node, ISimpleNode{
     }
 
     protected String dumpThis(int i, String[] names) {
-    	if(i >= names.length || i < 0){
-    		return "Unknown (out of bounds)";
-    	}
+        if(i >= names.length || i < 0){
+            return "Unknown (out of bounds)";
+        }
         return names[i];
     }
 

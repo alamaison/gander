@@ -15,40 +15,40 @@ import uk.ac.ic.doc.gander.model.ModelSite;
 
 final class ReturnTypeGoalSolver {
 
-	private final SubgoalManager goalManager;
-	private final Result<PyObject> solution;
+    private final SubgoalManager goalManager;
+    private final Result<PyObject> solution;
 
-	public ReturnTypeGoalSolver(SubgoalManager goalManager,
-			ModelSite<Call> callSite) {
-		this.goalManager = goalManager;
+    public ReturnTypeGoalSolver(SubgoalManager goalManager,
+            ModelSite<Call> callSite) {
+        this.goalManager = goalManager;
 
-		ModelSite<exprType> callable = new ModelSite<exprType>(
-				callSite.astNode().func, callSite.codeObject());
+        ModelSite<exprType> callable = new ModelSite<exprType>(
+                callSite.astNode().func, callSite.codeObject());
 
-		ExpressionTypeGoal callableTyper = new ExpressionTypeGoal(callable);
-		Result<PyObject> callableTypes = goalManager.registerSubgoal(callableTyper);
+        ExpressionTypeGoal callableTyper = new ExpressionTypeGoal(callable);
+        Result<PyObject> callableTypes = goalManager.registerSubgoal(callableTyper);
 
-		Concentrator<PyObject, PyObject> action = Concentrator.newInstance(
-				new ReturnTypeProcessor(), TopT.INSTANCE);
-		callableTypes.actOnResult(action);
+        Concentrator<PyObject, PyObject> action = Concentrator.newInstance(
+                new ReturnTypeProcessor(), TopT.INSTANCE);
+        callableTypes.actOnResult(action);
 
-		solution = action.result();
-	}
+        solution = action.result();
+    }
 
-	private class ReturnTypeProcessor implements DatumProcessor<PyObject, PyObject> {
+    private class ReturnTypeProcessor implements DatumProcessor<PyObject, PyObject> {
 
-		@Override
-		public Result<PyObject> process(PyObject callableType) {
-			if (callableType instanceof PyCallable) {
-				return ((PyCallable) callableType).returnType(goalManager);
-			} else {
-				return TopT.INSTANCE;
-			}
-		}
-	}
+        @Override
+        public Result<PyObject> process(PyObject callableType) {
+            if (callableType instanceof PyCallable) {
+                return ((PyCallable) callableType).returnType(goalManager);
+            } else {
+                return TopT.INSTANCE;
+            }
+        }
+    }
 
-	Result<PyObject> solution() {
-		return solution;
-	}
+    Result<PyObject> solution() {
+        return solution;
+    }
 
 }

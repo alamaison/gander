@@ -17,80 +17,80 @@ import uk.ac.ic.doc.gander.model.name_binding.Variable;
 
 final class FunctionReturnTypeSolver {
 
-	private final SubgoalManager goalManager;
-	private final InvokableCodeObject codeObject;
-	private final RedundancyEliminator<PyObject> returnTypes = new RedundancyEliminator<PyObject>();
+    private final SubgoalManager goalManager;
+    private final InvokableCodeObject codeObject;
+    private final RedundancyEliminator<PyObject> returnTypes = new RedundancyEliminator<PyObject>();
 
-	private boolean seenReturnStatement = false;
+    private boolean seenReturnStatement = false;
 
-	FunctionReturnTypeSolver(SubgoalManager goalManager,
-			InvokableCodeObject function) {
-		this.goalManager = goalManager;
-		this.codeObject = function;
+    FunctionReturnTypeSolver(SubgoalManager goalManager,
+            InvokableCodeObject function) {
+        this.goalManager = goalManager;
+        this.codeObject = function;
 
-		try {
-			function.codeBlock().accept(returnStatementSearcher());
-		} catch (Exception e) {
-			throw new RuntimeException(e);
-		}
+        try {
+            function.codeBlock().accept(returnStatementSearcher());
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
 
-		if (!returnTypes.isFinished() && !seenReturnStatement) {
-			/*
-			 * A missing 'return' statement means that the code object returns
-			 * builtin None.
-			 */
-			returnTypes.add(noneType(goalManager));
-		}
-	}
+        if (!returnTypes.isFinished() && !seenReturnStatement) {
+            /*
+             * A missing 'return' statement means that the code object returns
+             * builtin None.
+             */
+            returnTypes.add(noneType(goalManager));
+        }
+    }
 
-	Result<PyObject> solution() {
+    Result<PyObject> solution() {
 
-		return returnTypes.result();
-	}
+        return returnTypes.result();
+    }
 
-	private VisitorIF returnStatementSearcher() {
-		return new LocalCodeBlockVisitor() {
+    private VisitorIF returnStatementSearcher() {
+        return new LocalCodeBlockVisitor() {
 
-			@Override
-			public Object visitReturn(Return node) throws Exception {
-				if (returnTypes.isFinished())
-					return null;
+            @Override
+            public Object visitReturn(Return node) throws Exception {
+                if (returnTypes.isFinished())
+                    return null;
 
-				seenReturnStatement = true;
+                seenReturnStatement = true;
 
-				if (node.value != null) {
-					ModelSite<exprType> returnValue = new ModelSite<exprType>(
-							node.value, codeObject);
-					ExpressionTypeGoal typer = new ExpressionTypeGoal(
-							returnValue);
-					returnTypes.add(goalManager.registerSubgoal(typer));
-				} else {
-					/*
-					 * A bare 'return' statement means that the code object
-					 * returns builtin None.
-					 */
-					returnTypes.add(noneType(goalManager));
-				}
-				return null;
-			}
+                if (node.value != null) {
+                    ModelSite<exprType> returnValue = new ModelSite<exprType>(
+                            node.value, codeObject);
+                    ExpressionTypeGoal typer = new ExpressionTypeGoal(
+                            returnValue);
+                    returnTypes.add(goalManager.registerSubgoal(typer));
+                } else {
+                    /*
+                     * A bare 'return' statement means that the code object
+                     * returns builtin None.
+                     */
+                    returnTypes.add(noneType(goalManager));
+                }
+                return null;
+            }
 
-			@Override
-			protected Object unhandled_node(SimpleNode node) throws Exception {
-				return null;
-			}
+            @Override
+            protected Object unhandled_node(SimpleNode node) throws Exception {
+                return null;
+            }
 
-			@Override
-			public void traverse(SimpleNode node) throws Exception {
-				// want all 'return' statements in code block
-				if (!returnTypes.isFinished())
-					node.traverse(this);
-			}
-		};
-	}
+            @Override
+            public void traverse(SimpleNode node) throws Exception {
+                // want all 'return' statements in code block
+                if (!returnTypes.isFinished())
+                    node.traverse(this);
+            }
+        };
+    }
 
-	private Result<PyObject> noneType(SubgoalManager goalManager) {
-		VariableTypeGoal typer = new VariableTypeGoal(new Variable("None",
-				codeObject));
-		return goalManager.registerSubgoal(typer);
-	}
+    private Result<PyObject> noneType(SubgoalManager goalManager) {
+        VariableTypeGoal typer = new VariableTypeGoal(new Variable("None",
+                codeObject));
+        return goalManager.registerSubgoal(typer);
+    }
 }

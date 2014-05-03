@@ -25,127 +25,127 @@ import uk.ac.ic.doc.gander.model.ModelSite;
 
 final class CallArgumentSituation implements FlowSituation {
 
-	private final ModelSite<Call> callSite;
-	private final CallsiteArgument argument;
-	private final StackFrame<Argument> stackFrame;
+    private final ModelSite<Call> callSite;
+    private final CallsiteArgument argument;
+    private final StackFrame<Argument> stackFrame;
 
-	public CallArgumentSituation(ModelSite<Call> callSite,
-			CallsiteArgument argument) {
-		this.callSite = callSite;
-		this.argument = argument;
+    public CallArgumentSituation(ModelSite<Call> callSite,
+            CallsiteArgument argument) {
+        this.callSite = callSite;
+        this.argument = argument;
 
-		stackFrame = new CallSiteStackFrame(callSite);
-	}
+        stackFrame = new CallSiteStackFrame(callSite);
+    }
 
-	@Override
-	public Result<FlowPosition> nextFlowPositions(
-			final SubgoalManager goalManager) {
-		Result<PyObject> receivers = goalManager
-				.registerSubgoal(new ExpressionTypeGoal(
-						new ModelSite<exprType>(callSite.astNode().func,
-								callSite.codeObject())));
+    @Override
+    public Result<FlowPosition> nextFlowPositions(
+            final SubgoalManager goalManager) {
+        Result<PyObject> receivers = goalManager
+                .registerSubgoal(new ExpressionTypeGoal(
+                        new ModelSite<exprType>(callSite.astNode().func,
+                                callSite.codeObject())));
 
-		return receivers
-				.transformResult(new Transformer<PyObject, Result<FlowPosition>>() {
+        return receivers
+                .transformResult(new Transformer<PyObject, Result<FlowPosition>>() {
 
-					@Override
-					public Result<FlowPosition> transformFiniteResult(
-							Set<PyObject> receiverTypes) {
-						return nextPositions(receiverTypes, goalManager);
-					}
+                    @Override
+                    public Result<FlowPosition> transformFiniteResult(
+                            Set<PyObject> receiverTypes) {
+                        return nextPositions(receiverTypes, goalManager);
+                    }
 
-					@Override
-					public Result<FlowPosition> transformInfiniteResult() {
-						/*
-						 * We've lost track of where the argument flows to so no
-						 * choice but to surrender.
-						 */
-						return TopFp.INSTANCE;
-					}
-				});
-	}
+                    @Override
+                    public Result<FlowPosition> transformInfiniteResult() {
+                        /*
+                         * We've lost track of where the argument flows to so no
+                         * choice but to surrender.
+                         */
+                        return TopFp.INSTANCE;
+                    }
+                });
+    }
 
-	private Result<FlowPosition> nextPositions(Set<PyObject> receiverTypes,
-			SubgoalManager goalManager) {
-		RedundancyEliminator<FlowPosition> nextPositions = new RedundancyEliminator<FlowPosition>();
+    private Result<FlowPosition> nextPositions(Set<PyObject> receiverTypes,
+            SubgoalManager goalManager) {
+        RedundancyEliminator<FlowPosition> nextPositions = new RedundancyEliminator<FlowPosition>();
 
-		for (PyObject receiver : receiverTypes) {
-			nextPositions.add(parametersOf(receiver, goalManager));
-			if (nextPositions.isFinished())
-				break;
-		}
+        for (PyObject receiver : receiverTypes) {
+            nextPositions.add(parametersOf(receiver, goalManager));
+            if (nextPositions.isFinished())
+                break;
+        }
 
-		return nextPositions.result();
-	}
+        return nextPositions.result();
+    }
 
-	/**
-	 * Finds the flow positions that the argument might flow when invoking a
-	 * particular receiver.
-	 */
-	private Result<FlowPosition> parametersOf(PyObject receiver,
-			SubgoalManager goalManager) {
+    /**
+     * Finds the flow positions that the argument might flow when invoking a
+     * particular receiver.
+     */
+    private Result<FlowPosition> parametersOf(PyObject receiver,
+            SubgoalManager goalManager) {
 
-		if (receiver instanceof PyCallable) {
+        if (receiver instanceof PyCallable) {
 
-			Result<CallDispatch> calls = ((PyCallable) receiver).dispatches(
-					stackFrame, goalManager);
+            Result<CallDispatch> calls = ((PyCallable) receiver).dispatches(
+                    stackFrame, goalManager);
 
-			return calls.transformResult(new ArgumentFlower(argument(),
-					goalManager));
+            return calls.transformResult(new ArgumentFlower(argument(),
+                    goalManager));
 
-		} else {
-			/*
-			 * XXX: just because the analysis thinks this might be happening,
-			 * doesn't mean that it will. Code might be correct in practice.
-			 */
-			System.err
-					.println("UNTYPABLE: Can't call non-callable code object");
-			return FiniteResult.bottom();
-		}
-	}
+        } else {
+            /*
+             * XXX: just because the analysis thinks this might be happening,
+             * doesn't mean that it will. Code might be correct in practice.
+             */
+            System.err
+                    .println("UNTYPABLE: Can't call non-callable code object");
+            return FiniteResult.bottom();
+        }
+    }
 
-	private Argument argument() {
-		return argument
-				.mapToActualArgument(FunctionStylePassingStrategy.INSTANCE);
-	}
+    private Argument argument() {
+        return argument
+                .mapToActualArgument(FunctionStylePassingStrategy.INSTANCE);
+    }
 
-	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result
-				+ ((argument == null) ? 0 : argument.hashCode());
-		result = prime * result
-				+ ((callSite == null) ? 0 : callSite.hashCode());
-		return result;
-	}
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result
+                + ((argument == null) ? 0 : argument.hashCode());
+        result = prime * result
+                + ((callSite == null) ? 0 : callSite.hashCode());
+        return result;
+    }
 
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (obj == null)
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
-		CallArgumentSituation other = (CallArgumentSituation) obj;
-		if (argument == null) {
-			if (other.argument != null)
-				return false;
-		} else if (!argument.equals(other.argument))
-			return false;
-		if (callSite == null) {
-			if (other.callSite != null)
-				return false;
-		} else if (!callSite.equals(other.callSite))
-			return false;
-		return true;
-	}
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        CallArgumentSituation other = (CallArgumentSituation) obj;
+        if (argument == null) {
+            if (other.argument != null)
+                return false;
+        } else if (!argument.equals(other.argument))
+            return false;
+        if (callSite == null) {
+            if (other.callSite != null)
+                return false;
+        } else if (!callSite.equals(other.callSite))
+            return false;
+        return true;
+    }
 
-	@Override
-	public String toString() {
-		return "CallArgumentSituation [argument=" + argument + ", callSite="
-				+ callSite + "]";
-	}
+    @Override
+    public String toString() {
+        return "CallArgumentSituation [argument=" + argument + ", callSite="
+                + callSite + "]";
+    }
 
 }

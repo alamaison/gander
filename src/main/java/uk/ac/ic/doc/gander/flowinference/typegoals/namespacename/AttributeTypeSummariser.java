@@ -23,70 +23,70 @@ import uk.ac.ic.doc.gander.model.ModelSite;
  */
 final class AttributeTypeSummariser {
 
-	private final RedundancyEliminator<PyObject> typeSummary = new RedundancyEliminator<PyObject>();
-	private final SubgoalManager goalManager;
-	private final String attributeName;
+    private final RedundancyEliminator<PyObject> typeSummary = new RedundancyEliminator<PyObject>();
+    private final SubgoalManager goalManager;
+    private final String attributeName;
 
-	AttributeTypeSummariser(Result<ModelSite<exprType>> namespaceReferences,
-			String attributeName, SubgoalManager goalManager) {
-		assert namespaceReferences != null;
-		assert !attributeName.isEmpty();
-		assert goalManager != null;
+    AttributeTypeSummariser(Result<ModelSite<exprType>> namespaceReferences,
+            String attributeName, SubgoalManager goalManager) {
+        assert namespaceReferences != null;
+        assert !attributeName.isEmpty();
+        assert goalManager != null;
 
-		this.attributeName = attributeName;
-		this.goalManager = goalManager;
+        this.attributeName = attributeName;
+        this.goalManager = goalManager;
 
-		namespaceReferences.actOnResult(new ReferenceProcessor());
-	}
+        namespaceReferences.actOnResult(new ReferenceProcessor());
+    }
 
-	Result<PyObject> type() {
-		return typeSummary.result();
-	}
+    Result<PyObject> type() {
+        return typeSummary.result();
+    }
 
-	private class ReferenceProcessor implements Processor<ModelSite<exprType>> {
+    private class ReferenceProcessor implements Processor<ModelSite<exprType>> {
 
-		public void processInfiniteResult() {
-			/*
-			 * We have no idea where the namespace flowed to so we can't say
-			 * what type the attribute might have.
-			 */
-			typeSummary.add(TopT.INSTANCE);
-		}
+        public void processInfiniteResult() {
+            /*
+             * We have no idea where the namespace flowed to so we can't say
+             * what type the attribute might have.
+             */
+            typeSummary.add(TopT.INSTANCE);
+        }
 
-		public void processFiniteResult(
-				Set<ModelSite<exprType>> namespaceReferences) {
+        public void processFiniteResult(
+                Set<ModelSite<exprType>> namespaceReferences) {
 
-			/*
-			 * Collect the expressions that access our named attribute on an
-			 * object whose attribute accesses access our code object's
-			 * namespace.
-			 */
+            /*
+             * Collect the expressions that access our named attribute on an
+             * object whose attribute accesses access our code object's
+             * namespace.
+             */
 
-			/*
-			 * XXX: We only look at attributes referenced using a matching name.
-			 * is this enough? What about fields of modules, for instance (yes I
-			 * realise these never get here because NamespaceNameTypeGoal
-			 * handles them but they are technically objects).
-			 */
+            /*
+             * XXX: We only look at attributes referenced using a matching name.
+             * is this enough? What about fields of modules, for instance (yes I
+             * realise these never get here because NamespaceNameTypeGoal
+             * handles them but they are technically objects).
+             */
 
-			Set<ModelSite<Attribute>> attributes = new NamedAttributeAccessFinder(
-					namespaceReferences, attributeName).accesses();
+            Set<ModelSite<Attribute>> attributes = new NamedAttributeAccessFinder(
+                    namespaceReferences, attributeName).accesses();
 
-			new AttributeDefinitionFinder(attributes, new DefinitionTyper());
-		}
-	}
+            new AttributeDefinitionFinder(attributes, new DefinitionTyper());
+        }
+    }
 
-	private class DefinitionTyper implements AttributeDefinitionFinder.Event {
-		public boolean attributeDefined(ModelSite<Attribute> attribute,
-				ModelSite<exprType> value) {
+    private class DefinitionTyper implements AttributeDefinitionFinder.Event {
+        public boolean attributeDefined(ModelSite<Attribute> attribute,
+                ModelSite<exprType> value) {
 
-			Result<PyObject> valueType = goalManager
-					.registerSubgoal(new ExpressionTypeGoal(value));
+            Result<PyObject> valueType = goalManager
+                    .registerSubgoal(new ExpressionTypeGoal(value));
 
-			typeSummary.add(valueType);
+            typeSummary.add(valueType);
 
-			return typeSummary.isFinished();
-		}
-	}
+            return typeSummary.isFinished();
+        }
+    }
 
 }

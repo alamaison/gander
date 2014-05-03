@@ -15,57 +15,57 @@ import uk.ac.ic.doc.gander.flowinference.result.Result.Processor;
  */
 public final class RedundancyEliminator<T> {
 
-	private Result<T> compoundResult = new FiniteResult<T>(Collections
-			.<T> emptySet());
+    private Result<T> compoundResult = new FiniteResult<T>(Collections
+            .<T> emptySet());
 
-	public void add(final Result<T> result) {
-		assert result != null;
+    public void add(final Result<T> result) {
+        assert result != null;
 
-		if (isFinished()) {
-			return;
-		} else {
+        if (isFinished()) {
+            return;
+        } else {
 
-			result.actOnResult(new Processor<T>() {
+            result.actOnResult(new Processor<T>() {
 
-				public void processFiniteResult(Set<T> results) {
-					// cast is safe because we checked that we weren't finished
-					Set<T> union = new HashSet<T>(
-							(FiniteResult<T>) compoundResult);
-					union.addAll(results);
-					compoundResult = new FiniteResult<T>(union);
-				}
+                public void processFiniteResult(Set<T> results) {
+                    // cast is safe because we checked that we weren't finished
+                    Set<T> union = new HashSet<T>(
+                            (FiniteResult<T>) compoundResult);
+                    union.addAll(results);
+                    compoundResult = new FiniteResult<T>(union);
+                }
 
-				public void processInfiniteResult() {
-					compoundResult = result;
-				}
-			});
-		}
-	}
+                public void processInfiniteResult() {
+                    compoundResult = result;
+                }
+            });
+        }
+    }
 
-	public Result<T> result() {
-		return compoundResult;
-	}
+    public Result<T> result() {
+        return compoundResult;
+    }
 
-	public boolean isFinished() {
-		final boolean isFinished[] = { false };
+    public boolean isFinished() {
+        final boolean isFinished[] = { false };
 
-		compoundResult.actOnResult(new Processor<T>() {
+        compoundResult.actOnResult(new Processor<T>() {
 
-			public void processFiniteResult(Set<T> result) {
-				isFinished[0] = false;
-			}
+            public void processFiniteResult(Set<T> result) {
+                isFinished[0] = false;
+            }
 
-			public void processInfiniteResult() {
-				isFinished[0] = true;
-			}
-		});
+            public void processInfiniteResult() {
+                isFinished[0] = true;
+            }
+        });
 
-		return isFinished[0];
-	}
+        return isFinished[0];
+    }
 
-	@Override
-	public String toString() {
-		return "RedundancyEliminator[" + compoundResult + "]";
-	}
+    @Override
+    public String toString() {
+        return "RedundancyEliminator[" + compoundResult + "]";
+    }
 
 }

@@ -9,19 +9,19 @@ import uk.ac.ic.doc.gander.model.codeobject.CodeObject;
  */
 public abstract class CodeObjectWalker {
 
-	public final void walk(CodeObject root) {
-		visitCodeObject(root);
-		walkThroughNestedCodeObjects(root);
-	}
+    public final void walk(CodeObject root) {
+        visitCodeObject(root);
+        walkThroughNestedCodeObjects(root);
+    }
 
-	private void walkThroughNestedCodeObjects(CodeObject codeObject) {
-		for (CodeObject module : codeObject.nestedCodeObjects()) {
-			walk(module);
-		}
-	}
+    private void walkThroughNestedCodeObjects(CodeObject codeObject) {
+        for (CodeObject module : codeObject.nestedCodeObjects()) {
+            walk(module);
+        }
+    }
 
-	/**
-	 * Triggered on encountering an enclosed code object element.
-	 */
-	protected abstract void visitCodeObject(CodeObject codeObject);
+    /**
+     * Triggered on encountering an enclosed code object element.
+     */
+    protected abstract void visitCodeObject(CodeObject codeObject);
 }

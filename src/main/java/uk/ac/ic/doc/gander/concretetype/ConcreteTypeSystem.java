@@ -7,6 +7,6 @@ import uk.ac.ic.doc.gander.model.ModelSite;
 
 public interface ConcreteTypeSystem {
 
-	public ConcreteType typeOf(ModelSite<? extends exprType> expression,
-			BasicBlock containingBlock);
+    public ConcreteType typeOf(ModelSite<? extends exprType> expression,
+            BasicBlock containingBlock);
 }

@@ -12,10 +12,10 @@ import org.python.pydev.parser.jython.SimpleNode;
 @Deprecated
 public interface Member {
 
-	public abstract String getName();
+    public abstract String getName();
 
-	public abstract OldNamespace getParentScope();
+    public abstract OldNamespace getParentScope();
 
-	public abstract SimpleNode getAst();
+    public abstract SimpleNode getAst();
 
 }

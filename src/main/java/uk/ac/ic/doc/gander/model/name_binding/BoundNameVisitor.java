@@ -27,147 +27,147 @@ import uk.ac.ic.doc.gander.ast.BindingStatementVisitor;
  */
 abstract class BoundNameVisitor extends BindingStatementVisitor {
 
-	protected abstract void onNameBound(String name);
+    protected abstract void onNameBound(String name);
 
-	/*
-	 * After extracting the bound names at each node we traverse the node
-	 * because, if they have a body like a for-loop, they may nest other
-	 * definitions.
-	 */
+    /*
+     * After extracting the bound names at each node we traverse the node
+     * because, if they have a body like a for-loop, they may nest other
+     * definitions.
+     */
 
-	/*
-	 * It might be possible to do this just by overriding visitName and
-	 * visitNameTok and looking at their contexts to decide if they are being
-	 * used in a binding context but, for the moment, we do it the long way
-	 */
+    /*
+     * It might be possible to do this just by overriding visitName and
+     * visitNameTok and looking at their contexts to decide if they are being
+     * used in a binding context but, for the moment, we do it the long way
+     */
 
-	@Override
-	public Object visitTryExcept(TryExcept node) throws Exception {
-		for (excepthandlerType handler : node.handlers) {
-			if (handler.name instanceof Name) {
-				onNameBound(((Name) handler.name).id);
-			} else {
-				// XXX: No idea what happens here. How could the
-				// name of the exception object _not_ be a name?
-			}
-		}
+    @Override
+    public Object visitTryExcept(TryExcept node) throws Exception {
+        for (excepthandlerType handler : node.handlers) {
+            if (handler.name instanceof Name) {
+                onNameBound(((Name) handler.name).id);
+            } else {
+                // XXX: No idea what happens here. How could the
+                // name of the exception object _not_ be a name?
+            }
+        }
 
-		node.traverse(this);
-		return null;
-	}
+        node.traverse(this);
+        return null;
+    }
 
-	@Override
-	public Object visitImportFrom(ImportFrom node) throws Exception {
+    @Override
+    public Object visitImportFrom(ImportFrom node) throws Exception {
 
-		for (aliasType alias : node.names) {
-			NameTokType name;
-			if (alias.asname != null) {
-				name = alias.asname;
-			} else {
-				name = alias.name;
-			}
+        for (aliasType alias : node.names) {
+            NameTokType name;
+            if (alias.asname != null) {
+                name = alias.asname;
+            } else {
+                name = alias.name;
+            }
 
-			if (name instanceof NameTok) {
-				onNameBound(((NameTok) name).id);
-			} else {
-				// TODO: No idea what happens here. How could the
-				// name of the imported item _not_ be a name?
-			}
-		}
-		
-		node.traverse(this);
-		return null;
-	}
+            if (name instanceof NameTok) {
+                onNameBound(((NameTok) name).id);
+            } else {
+                // TODO: No idea what happens here. How could the
+                // name of the imported item _not_ be a name?
+            }
+        }
+        
+        node.traverse(this);
+        return null;
+    }
 
-	@Override
-	public Object visitImport(Import node) throws Exception {
+    @Override
+    public Object visitImport(Import node) throws Exception {
 
-		for (aliasType alias : node.names) {
-			NameTokType name;
-			if (alias.asname != null) {
-				name = alias.asname;
-			} else {
-				name = alias.name;
-			}
+        for (aliasType alias : node.names) {
+            NameTokType name;
+            if (alias.asname != null) {
+                name = alias.asname;
+            } else {
+                name = alias.name;
+            }
 
-			if (name instanceof NameTok) {
-				onNameBound(((NameTok) name).id);
-			} else {
-				// TODO: No idea what happens here. How could the
-				// name of the imported module _not_ be a name?
-			}
-		}
-		
-		node.traverse(this);
-		return null;
-	}
+            if (name instanceof NameTok) {
+                onNameBound(((NameTok) name).id);
+            } else {
+                // TODO: No idea what happens here. How could the
+                // name of the imported module _not_ be a name?
+            }
+        }
+        
+        node.traverse(this);
+        return null;
+    }
 
-	@Override
-	public Object visitFunctionDef(FunctionDef node) throws Exception {
+    @Override
+    public Object visitFunctionDef(FunctionDef node) throws Exception {
 
-		onNameBound(((NameTok) node.name).id);
+        onNameBound(((NameTok) node.name).id);
 
-		/*
-		 * Do NOT recurse into the FunctionDef body. Despite appearances, it is
-		 * not part of this code block. It is a declaration of the nested
-		 * function's code block. Another way to think about it: the nested
-		 * function's body is not being 'executed' now whereas this code block's
-		 * body is.
-		 */
+        /*
+         * Do NOT recurse into the FunctionDef body. Despite appearances, it is
+         * not part of this code block. It is a declaration of the nested
+         * function's code block. Another way to think about it: the nested
+         * function's body is not being 'executed' now whereas this code block's
+         * body is.
+         */
 
-		return null;
-	}
+        return null;
+    }
 
-	@Override
-	public Object visitFor(For node) throws Exception {
-		if (node.target instanceof Name) {
-			onNameBound(((Name) node.target).id);
-		} else {
-			// XXX: No idea what happens here. How could the
-			// for-loop variable _not_ be a name?
-		}
+    @Override
+    public Object visitFor(For node) throws Exception {
+        if (node.target instanceof Name) {
+            onNameBound(((Name) node.target).id);
+        } else {
+            // XXX: No idea what happens here. How could the
+            // for-loop variable _not_ be a name?
+        }
 
-		node.traverse(this);
-		return null;
-	}
+        node.traverse(this);
+        return null;
+    }
 
-	@Override
-	public Object visitClassDef(ClassDef node) throws Exception {
+    @Override
+    public Object visitClassDef(ClassDef node) throws Exception {
 
-		onNameBound(((NameTok) node.name).id);
+        onNameBound(((NameTok) node.name).id);
 
-		/*
-		 * Do NOT recurse into the ClassDef body. Despite appearances, it is not
-		 * part of this code block. It is a declaration of the nested class's
-		 * code block. Another way to think about it: the nested class's body is
-		 * not being 'executed' now whereas this code block's body is.
-		 */
+        /*
+         * Do NOT recurse into the ClassDef body. Despite appearances, it is not
+         * part of this code block. It is a declaration of the nested class's
+         * code block. Another way to think about it: the nested class's body is
+         * not being 'executed' now whereas this code block's body is.
+         */
 
-		return null;
-	}
+        return null;
+    }
 
-	@Override
-	public Object visitAssign(Assign node) throws Exception {
-		for (exprType lhsExpression : node.targets) {
-			if (lhsExpression instanceof Name) {
-				onNameBound(((Name) lhsExpression).id);
-			}
-		}
+    @Override
+    public Object visitAssign(Assign node) throws Exception {
+        for (exprType lhsExpression : node.targets) {
+            if (lhsExpression instanceof Name) {
+                onNameBound(((Name) lhsExpression).id);
+            }
+        }
 
-		node.traverse(this);
-		return null;
-	}
+        node.traverse(this);
+        return null;
+    }
 
-	@Override
-	public void traverse(SimpleNode node) throws Exception {
-		// Traverse by default so that we catch all bindings even
-		// if they are nested
-		node.traverse(this);
-	}
+    @Override
+    public void traverse(SimpleNode node) throws Exception {
+        // Traverse by default so that we catch all bindings even
+        // if they are nested
+        node.traverse(this);
+    }
 
-	@Override
-	protected Object unhandled_node(SimpleNode node) throws Exception {
-		return null;
-	}
+    @Override
+    protected Object unhandled_node(SimpleNode node) throws Exception {
+        return null;
+    }
 
 }

@@ -31,125 +31,125 @@ import uk.ac.ic.doc.gander.cfg.BasicBlock;
  * transliterated to Java.
  */
 public class DomFront {
-	/** local debug flag */
-	private static boolean DEBUG = false;
+    /** local debug flag */
+    private static boolean DEBUG = false;
 
-	/** {@code non-null;} method being processed */
-	private final DomMethod meth;
+    /** {@code non-null;} method being processed */
+    private final DomMethod meth;
 
-	private final Iterable<BasicBlock> nodes;
+    private final Iterable<BasicBlock> nodes;
 
-	private final Map<BasicBlock, DomInfo> domInfos;
+    private final Map<BasicBlock, DomInfo> domInfos;
 
-	/**
-	 * Dominance-frontier information for a single basic block.
-	 */
-	public static class DomInfo {
-		/**
-		 * {@code null-ok;} the dominance frontier set indexed by block index
-		 */
-		public Set<BasicBlock> dominanceFrontiers;
+    /**
+     * Dominance-frontier information for a single basic block.
+     */
+    public static class DomInfo {
+        /**
+         * {@code null-ok;} the dominance frontier set indexed by block index
+         */
+        public Set<BasicBlock> dominanceFrontiers;
 
-		/** {@code >= 0 after run();} the index of the immediate dominator */
-		public BasicBlock idom = null;
+        /** {@code >= 0 after run();} the index of the immediate dominator */
+        public BasicBlock idom = null;
 
-		@Override
-		public String toString() {
-			return dominanceFrontiers.toString();
-		}
-	}
+        @Override
+        public String toString() {
+            return dominanceFrontiers.toString();
+        }
+    }
 
-	/**
-	 * Constructs instance. Call {@link DomFront#run} to process.
-	 * 
-	 * @param meth
-	 *            {@code non-null;} method to process
-	 */
-	public DomFront(DomMethod meth) {
-		this.meth = meth;
-		nodes = meth.getBlocks();
+    /**
+     * Constructs instance. Call {@link DomFront#run} to process.
+     * 
+     * @param meth
+     *            {@code non-null;} method to process
+     */
+    public DomFront(DomMethod meth) {
+        this.meth = meth;
+        nodes = meth.getBlocks();
 
-		domInfos = new HashMap<BasicBlock, DomInfo>();
+        domInfos = new HashMap<BasicBlock, DomInfo>();
 
-		for (BasicBlock block : nodes) {
-			domInfos.put(block, new DomInfo());
-		}
-	}
+        for (BasicBlock block : nodes) {
+            domInfos.put(block, new DomInfo());
+        }
+    }
 
-	/**
-	 * Calculates the dominance frontier information for the method.
-	 * 
-	 * @return {@code non-null;} an array of DomInfo structures
-	 */
-	public Map<BasicBlock, DomInfo> run() {
+    /**
+     * Calculates the dominance frontier information for the method.
+     * 
+     * @return {@code non-null;} an array of DomInfo structures
+     */
+    public Map<BasicBlock, DomInfo> run() {
 
-		if (DEBUG) {
-			for (BasicBlock block : nodes) {
-				System.out.println("pred[" + block + "]: "
-						+ block.getPredecessors());
-			}
-		}
+        if (DEBUG) {
+            for (BasicBlock block : nodes) {
+                System.out.println("pred[" + block + "]: "
+                        + block.getPredecessors());
+            }
+        }
 
-		Dominators methDom = Dominators.make(meth, domInfos, false);
+        Dominators methDom = Dominators.make(meth, domInfos, false);
 
-		if (DEBUG) {
-			for (BasicBlock block : nodes) {
-				DomInfo info = domInfos.get(block);
-				System.out.println("idom[" + block + "]: " + info.idom);
-			}
-		}
+        if (DEBUG) {
+            for (BasicBlock block : nodes) {
+                DomInfo info = domInfos.get(block);
+                System.out.println("idom[" + block + "]: " + info.idom);
+            }
+        }
 
-		for (BasicBlock block : nodes) {
-			domInfos.get(block).dominanceFrontiers = new HashSet<BasicBlock>();
-			// = SetFactory.makeDomFrontSet(szNodes);
-		}
+        for (BasicBlock block : nodes) {
+            domInfos.get(block).dominanceFrontiers = new HashSet<BasicBlock>();
+            // = SetFactory.makeDomFrontSet(szNodes);
+        }
 
-		calcDomFronts();
+        calcDomFronts();
 
-		if (DEBUG) {
-			for (BasicBlock block : nodes) {
-				System.out.println("df[" + block + "]: "
-						+ domInfos.get(block).dominanceFrontiers);
-			}
-		}
+        if (DEBUG) {
+            for (BasicBlock block : nodes) {
+                System.out.println("df[" + block + "]: "
+                        + domInfos.get(block).dominanceFrontiers);
+            }
+        }
 
-		return domInfos;
-	}
+        return domInfos;
+    }
 
-	/**
-	 * Calculates the dominance-frontier set. from
-	 * "A Simple, Fast Dominance Algorithm" by Cooper, Harvey, and Kennedy;
-	 * transliterated to Java.
-	 */
-	private void calcDomFronts() {
-		for (BasicBlock nb : nodes) {
-			DomInfo nbInfo = domInfos.get(nb);
-			Collection<BasicBlock> pred = nb.getPredecessors();
+    /**
+     * Calculates the dominance-frontier set. from
+     * "A Simple, Fast Dominance Algorithm" by Cooper, Harvey, and Kennedy;
+     * transliterated to Java.
+     */
+    private void calcDomFronts() {
+        for (BasicBlock nb : nodes) {
+            DomInfo nbInfo = domInfos.get(nb);
+            Collection<BasicBlock> pred = nb.getPredecessors();
 
-			if (pred.size() > 1) {
-				for (BasicBlock runner : pred) {
+            if (pred.size() > 1) {
+                for (BasicBlock runner : pred) {
 
-					while (runner != nbInfo.idom) {
-						/*
-						 * We can stop if we hit a block we already added label
-						 * to, since we must be at a part of the dom tree we
-						 * have seen before.
-						 */
-						if (runner == null)
-							break;
+                    while (runner != nbInfo.idom) {
+                        /*
+                         * We can stop if we hit a block we already added label
+                         * to, since we must be at a part of the dom tree we
+                         * have seen before.
+                         */
+                        if (runner == null)
+                            break;
 
-						DomInfo runnerInfo = domInfos.get(runner);
+                        DomInfo runnerInfo = domInfos.get(runner);
 
-						if (runnerInfo.dominanceFrontiers.contains(nb)) {
-							break;
-						}
+                        if (runnerInfo.dominanceFrontiers.contains(nb)) {
+                            break;
+                        }
 
-						// Add b to runner's dominance frontier set.
-						runnerInfo.dominanceFrontiers.add(nb);
-						runner = runnerInfo.idom;
-					}
-				}
-			}
-		}
-	}
+                        // Add b to runner's dominance frontier set.
+                        runnerInfo.dominanceFrontiers.add(nb);
+                        runner = runnerInfo.idom;
+                    }
+                }
+            }
+        }
+    }
 }

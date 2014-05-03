@@ -31,97 +31,97 @@ import uk.ac.ic.doc.gander.model.OldNamespace;
  */
 final class CallTargetSignatureBuilder {
 
-	public Set<Call> signatureOfTarget(Call call, BasicBlock containingBlock,
-			OldNamespace scope, TypeResolver resolver,
-			boolean excludeCurrentFeature) {
-		if (!CallHelper.isIndirectCall(call)) {
+    public Set<Call> signatureOfTarget(Call call, BasicBlock containingBlock,
+            OldNamespace scope, TypeResolver resolver,
+            boolean excludeCurrentFeature) {
+        if (!CallHelper.isIndirectCall(call)) {
 
-			return Collections.emptySet();
-		} else {
+            return Collections.emptySet();
+        } else {
 
-			return interfaceType(CallHelper.indirectCallTarget(call),
-					containingBlock, scope, resolver, excludeCurrentFeature);
-		}
-	}
+            return interfaceType(CallHelper.indirectCallTarget(call),
+                    containingBlock, scope, resolver, excludeCurrentFeature);
+        }
+    }
 
-	public Set<Call> signatureOfTarget(Call call, BasicBlock containingBlock,
-			OldNamespace scope, TypeResolver resolver) {
-		return signatureOfTarget(call, containingBlock, scope, resolver, false);
-	}
+    public Set<Call> signatureOfTarget(Call call, BasicBlock containingBlock,
+            OldNamespace scope, TypeResolver resolver) {
+        return signatureOfTarget(call, containingBlock, scope, resolver, false);
+    }
 
-	public Set<Call> interfaceType(exprType expression,
-			BasicBlock containingBlock, OldNamespace scope,
-			TypeResolver resolver, boolean excludeCurrentFeature) {
+    public Set<Call> interfaceType(exprType expression,
+            BasicBlock containingBlock, OldNamespace scope,
+            TypeResolver resolver, boolean excludeCurrentFeature) {
 
-		try {
-			return (Set<Call>) expression.accept(new SignatureMapper(
-					containingBlock, scope, resolver, true, true,
-					excludeCurrentFeature));
-		} catch (Exception e) {
-			throw new RuntimeException(e);
-		}
-	}
+        try {
+            return (Set<Call>) expression.accept(new SignatureMapper(
+                    containingBlock, scope, resolver, true, true,
+                    excludeCurrentFeature));
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
 
-	private class SignatureMapper extends VisitorBase {
+    private class SignatureMapper extends VisitorBase {
 
-		private final OldNamespace scope;
-		private final BasicBlock containingBlock;
-		private final TypeResolver resolver;
-		private final boolean includeRequiredFeatures;
-		private final boolean includeFstr;
-		private final boolean excludeCurrentFeature;
+        private final OldNamespace scope;
+        private final BasicBlock containingBlock;
+        private final TypeResolver resolver;
+        private final boolean includeRequiredFeatures;
+        private final boolean includeFstr;
+        private final boolean excludeCurrentFeature;
 
-		SignatureMapper(BasicBlock containingBlock, OldNamespace scope,
-				TypeResolver resolver, boolean includeRequiredFeatures,
-				boolean includeFstr, boolean excludeCurrentFeature) {
-			this.containingBlock = containingBlock;
-			this.scope = scope;
-			this.resolver = resolver;
-			this.includeRequiredFeatures = includeRequiredFeatures;
-			this.includeFstr = includeFstr;
-			this.excludeCurrentFeature = excludeCurrentFeature;
-		}
+        SignatureMapper(BasicBlock containingBlock, OldNamespace scope,
+                TypeResolver resolver, boolean includeRequiredFeatures,
+                boolean includeFstr, boolean excludeCurrentFeature) {
+            this.containingBlock = containingBlock;
+            this.scope = scope;
+            this.resolver = resolver;
+            this.includeRequiredFeatures = includeRequiredFeatures;
+            this.includeFstr = includeFstr;
+            this.excludeCurrentFeature = excludeCurrentFeature;
+        }
 
-		@Override
-		public Object visitName(Name node) throws Exception {
-			SignatureBuilder builder = new SignatureBuilder();
-			return builder
-					.signature(node, containingBlock, scope, resolver,
-							includeRequiredFeatures, includeFstr,
-							excludeCurrentFeature);
-		}
+        @Override
+        public Object visitName(Name node) throws Exception {
+            SignatureBuilder builder = new SignatureBuilder();
+            return builder
+                    .signature(node, containingBlock, scope, resolver,
+                            includeRequiredFeatures, includeFstr,
+                            excludeCurrentFeature);
+        }
 
-		@Override
-		protected Object unhandled_node(SimpleNode node) throws Exception {
+        @Override
+        protected Object unhandled_node(SimpleNode node) throws Exception {
 
-			if (includeRequiredFeatures) {
-				/*
-				 * if the call target isn't a simple variable name, we can still
-				 * use the name of the method being called as a single-item
-				 * signature (but not for FSTR as that wouldn't be a dominating
-				 * method call).
-				 */
-				SimpleNode parent = AstParentNodeFinder.findParent(node,
-						scope.getAst());
-				if (parent instanceof Call) {
-					/* TODO: support direct-callability as a constraint */
-				} else if (parent instanceof Attribute) {
+            if (includeRequiredFeatures) {
+                /*
+                 * if the call target isn't a simple variable name, we can still
+                 * use the name of the method being called as a single-item
+                 * signature (but not for FSTR as that wouldn't be a dominating
+                 * method call).
+                 */
+                SimpleNode parent = AstParentNodeFinder.findParent(node,
+                        scope.getAst());
+                if (parent instanceof Call) {
+                    /* TODO: support direct-callability as a constraint */
+                } else if (parent instanceof Attribute) {
 
-					SimpleNode grandparent = AstParentNodeFinder.findParent(
-							parent, scope.getAst());
-					if (grandparent instanceof Call) {
-						return Collections.singleton((Call) grandparent);
-					}
-				}
-			}
+                    SimpleNode grandparent = AstParentNodeFinder.findParent(
+                            parent, scope.getAst());
+                    if (grandparent instanceof Call) {
+                        return Collections.singleton((Call) grandparent);
+                    }
+                }
+            }
 
-			return Collections.<Call> emptySet();
-		}
+            return Collections.<Call> emptySet();
+        }
 
-		@Override
-		public void traverse(SimpleNode node) throws Exception {
-			/* No traversal */
-		}
+        @Override
+        public void traverse(SimpleNode node) throws Exception {
+            /* No traversal */
+        }
 
-	}
+    }
 }

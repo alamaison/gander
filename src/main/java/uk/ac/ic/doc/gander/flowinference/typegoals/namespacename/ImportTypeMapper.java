@@ -21,113 +21,113 @@ import uk.ac.ic.doc.gander.model.name_binding.Variable;
 
 final class ImportTypeMapper {
 
-	private final SubgoalManager goalManager;
+    private final SubgoalManager goalManager;
 
-	ImportTypeMapper(SubgoalManager goalManager) {
-		this.goalManager = goalManager;
-	}
+    ImportTypeMapper(SubgoalManager goalManager) {
+        this.goalManager = goalManager;
+    }
 
-	Result<PyObject> typeImport(Variable variable,
-			Import<CodeObject, ModuleCO> importInstance) {
-		LocalTypeBinder typingBinder = new LocalTypeBinder(variable);
+    Result<PyObject> typeImport(Variable variable,
+            Import<CodeObject, ModuleCO> importInstance) {
+        LocalTypeBinder typingBinder = new LocalTypeBinder(variable);
 
-		ImportSimulator<NamespaceName, Namespace, CodeObject, ModuleCO> simulator = ImportSimulator
-				.newInstance(typingBinder, new NamespaceNameLoader(variable
-						.codeObject().model()));
-		simulator.simulateImport(importInstance);
+        ImportSimulator<NamespaceName, Namespace, CodeObject, ModuleCO> simulator = ImportSimulator
+                .newInstance(typingBinder, new NamespaceNameLoader(variable
+                        .codeObject().model()));
+        simulator.simulateImport(importInstance);
 
-		return typingBinder.partialVariableType.result();
-	}
+        return typingBinder.partialVariableType.result();
+    }
 
-	private final class LocalTypeBinder implements
-			Binder<NamespaceName, Namespace, CodeObject, ModuleCO> {
+    private final class LocalTypeBinder implements
+            Binder<NamespaceName, Namespace, CodeObject, ModuleCO> {
 
-		private final Variable variable;
-		private final RedundancyEliminator<PyObject> partialVariableType = new RedundancyEliminator<PyObject>();
+        private final Variable variable;
+        private final RedundancyEliminator<PyObject> partialVariableType = new RedundancyEliminator<PyObject>();
 
-		public LocalTypeBinder(Variable variable) {
-			this.variable = variable;
-		}
+        public LocalTypeBinder(Variable variable) {
+            this.variable = variable;
+        }
 
-		@Override
-		public void bindModuleToLocalName(ModuleCO loadedModule, String name,
-				CodeObject container) {
-			// FIXME: triggers incorrectly due to nasty 'top-level' module
-			// assert container.equals(variable.codeObject()) : "Container: "
-			// + container + " Variable: " + variable;
+        @Override
+        public void bindModuleToLocalName(ModuleCO loadedModule, String name,
+                CodeObject container) {
+            // FIXME: triggers incorrectly due to nasty 'top-level' module
+            // assert container.equals(variable.codeObject()) : "Container: "
+            // + container + " Variable: " + variable;
 
-			if (!partialVariableType.isFinished()
-					&& name.equals(variable.name())) {
+            if (!partialVariableType.isFinished()
+                    && name.equals(variable.name())) {
 
-				partialVariableType.add(new FiniteResult<PyObject>(Collections
-						.singleton(new PyModule(loadedModule))));
-			}
-		}
+                partialVariableType.add(new FiniteResult<PyObject>(Collections
+                        .singleton(new PyModule(loadedModule))));
+            }
+        }
 
-		@Override
-		public void bindObjectToLocalName(NamespaceName importedObject,
-				String name, CodeObject container) {
-			// FIXME: triggers incorrectly due to nasty 'top-level' module
-			// assert container.equals(variable.codeObject()) : "Container: "
-			// + container + " Variable: " + variable;
+        @Override
+        public void bindObjectToLocalName(NamespaceName importedObject,
+                String name, CodeObject container) {
+            // FIXME: triggers incorrectly due to nasty 'top-level' module
+            // assert container.equals(variable.codeObject()) : "Container: "
+            // + container + " Variable: " + variable;
 
-			if (!partialVariableType.isFinished()
-					&& name.equals(variable.name())) {
+            if (!partialVariableType.isFinished()
+                    && name.equals(variable.name())) {
 
-				partialVariableType.add(goalManager
-						.registerSubgoal(new NamespaceNameTypeGoal(
-								importedObject)));
-			}
-		}
+                partialVariableType.add(goalManager
+                        .registerSubgoal(new NamespaceNameTypeGoal(
+                                importedObject)));
+            }
+        }
 
-		@Override
-		public void bindModuleToName(ModuleCO loadedModule, String name,
-				ModuleCO receivingModule) {
-			// assert !receivingModule.equals(variable.codeObject());
-		}
+        @Override
+        public void bindModuleToName(ModuleCO loadedModule, String name,
+                ModuleCO receivingModule) {
+            // assert !receivingModule.equals(variable.codeObject());
+        }
 
-		@Override
-		public void bindObjectToName(NamespaceName importedObject, String name,
-				ModuleCO receivingModule) {
-			assert !receivingModule.equals(variable.codeObject()) : "Receiving module: "
-					+ receivingModule + " Variable: " + variable;
-		}
+        @Override
+        public void bindObjectToName(NamespaceName importedObject, String name,
+                ModuleCO receivingModule) {
+            assert !receivingModule.equals(variable.codeObject()) : "Receiving module: "
+                    + receivingModule + " Variable: " + variable;
+        }
 
-		@Override
-		public void bindAllNamespaceMembers(Namespace allMembers,
-				CodeObject container) {
-			assert container.equals(variable.codeObject());
+        @Override
+        public void bindAllNamespaceMembers(Namespace allMembers,
+                CodeObject container) {
+            assert container.equals(variable.codeObject());
 
-			/*
-			 * event though all names are imported, we are interested in a
-			 * specific name so can issue a query for it
-			 */
-			if (!partialVariableType.isFinished()) {
-				partialVariableType
-						.add(goalManager
-								.registerSubgoal(new NamespaceNameTypeGoal(
-										new NamespaceName(variable.name(),
-												allMembers))));
-			}
-		}
+            /*
+             * event though all names are imported, we are interested in a
+             * specific name so can issue a query for it
+             */
+            if (!partialVariableType.isFinished()) {
+                partialVariableType
+                        .add(goalManager
+                                .registerSubgoal(new NamespaceNameTypeGoal(
+                                        new NamespaceName(variable.name(),
+                                                allMembers))));
+            }
+        }
 
-		@Override
-		public void onUnresolvedImport(
-				Import<CodeObject, ModuleCO> importInstance, String name,
-				ModuleCO receivingModule) {
-			// assert !receivingModule.equals(variable.codeObject()) :
-			// "Receiving module: "
-			// + receivingModule + " Variable: " + variable;
-		}
+        @Override
+        public void onUnresolvedImport(
+                Import<CodeObject, ModuleCO> importInstance, String name,
+                ModuleCO receivingModule) {
+            // assert !receivingModule.equals(variable.codeObject()) :
+            // "Receiving module: "
+            // + receivingModule + " Variable: " + variable;
+        }
 
-		@Override
-		public void onUnresolvedLocalImport(
-				Import<CodeObject, ModuleCO> importInstance, String name) {
+        @Override
+        public void onUnresolvedLocalImport(
+                Import<CodeObject, ModuleCO> importInstance, String name) {
 
-			if (name.equals(variable.name())) {
-				partialVariableType.add(new FiniteResult<PyObject>(Collections
-						.singleton(new PyUnresolvedImport(importInstance))));
-			}
-		}
-	}
+            if (name.equals(variable.name())) {
+                partialVariableType.add(new FiniteResult<PyObject>(Collections
+                        .singleton(new PyUnresolvedImport(importInstance))));
+            }
+        }
+    }
 }

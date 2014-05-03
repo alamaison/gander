@@ -16,36 +16,36 @@ import uk.ac.ic.doc.gander.model.codeobject.CodeObject;
  */
 public final class AttributeSearch {
 
-	public interface EventHandler {
-		public void encounteredAttribute(Attribute attribute,
-				CodeObject codeObject);
-	}
+    public interface EventHandler {
+        public void encounteredAttribute(Attribute attribute,
+                CodeObject codeObject);
+    }
 
-	public AttributeSearch(final CodeObject codeObject,
-			final EventHandler eventHandler) {
+    public AttributeSearch(final CodeObject codeObject,
+            final EventHandler eventHandler) {
 
-		try {
-			codeObject.codeBlock().accept(new LocalCodeBlockVisitor() {
+        try {
+            codeObject.codeBlock().accept(new LocalCodeBlockVisitor() {
 
-				@Override
-				public Object visitAttribute(Attribute node) throws Exception {
-					eventHandler.encounteredAttribute(node, codeObject);
-					return null;
-				}
+                @Override
+                public Object visitAttribute(Attribute node) throws Exception {
+                    eventHandler.encounteredAttribute(node, codeObject);
+                    return null;
+                }
 
-				@Override
-				protected Object unhandled_node(SimpleNode node)
-						throws Exception {
-					return null;
-				}
+                @Override
+                protected Object unhandled_node(SimpleNode node)
+                        throws Exception {
+                    return null;
+                }
 
-				@Override
-				public void traverse(SimpleNode node) throws Exception {
-					node.traverse(this);
-				}
-			});
-		} catch (Exception e) {
-			throw new RuntimeException(e);
-		}
-	}
+                @Override
+                public void traverse(SimpleNode node) throws Exception {
+                    node.traverse(this);
+                }
+            });
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
 }

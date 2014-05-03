@@ -18,34 +18,34 @@ import uk.ac.ic.doc.gander.model.name_binding.Variable;
  * engine.
  */
 public final class ZeroCfaTypeEngine implements TypeEngine {
-	private final KnowledgeBase blackboard = new KnowledgeBase();
+    private final KnowledgeBase blackboard = new KnowledgeBase();
 
-	public ZeroCfaTypeEngine() {
-	}
+    public ZeroCfaTypeEngine() {
+    }
 
-	@Override
-	public Result<PyObject> typeOf(ModelSite<? extends exprType> expression) {
-		Goal<Result<PyObject>> rootGoal = new ExpressionTypeGoal(expression);
-		// System.out.print("Inferring type of " + expression);
-		GoalSolver<Result<PyObject>> solver = GoalSolver.newInstance(rootGoal,
-				blackboard);
-		Result<PyObject> j = solver.solve();
-		// System.out.println(" as " + j);
-		return j;
-	}
+    @Override
+    public Result<PyObject> typeOf(ModelSite<? extends exprType> expression) {
+        Goal<Result<PyObject>> rootGoal = new ExpressionTypeGoal(expression);
+        // System.out.print("Inferring type of " + expression);
+        GoalSolver<Result<PyObject>> solver = GoalSolver.newInstance(rootGoal,
+                blackboard);
+        Result<PyObject> j = solver.solve();
+        // System.out.println(" as " + j);
+        return j;
+    }
 
-	public Result<PyObject> typeOf(Variable variable) {
-		Goal<Result<PyObject>> rootGoal = new VariableTypeGoal(variable);
-		// System.out.print("Inferring type of " + variable);
-		GoalSolver<Result<PyObject>> solver = GoalSolver.newInstance(rootGoal,
-				blackboard);
-		Result<PyObject> j = solver.solve();
-		// System.out.println(" as " + j);
-		return j;
-	}
+    public Result<PyObject> typeOf(Variable variable) {
+        Goal<Result<PyObject>> rootGoal = new VariableTypeGoal(variable);
+        // System.out.print("Inferring type of " + variable);
+        GoalSolver<Result<PyObject>> solver = GoalSolver.newInstance(rootGoal,
+                blackboard);
+        Result<PyObject> j = solver.solve();
+        // System.out.println(" as " + j);
+        return j;
+    }
 
-	@Override
-	public Result<PyObject> typeOf(exprType expression, CodeObject scope) {
-		return typeOf(new ModelSite<exprType>(expression, scope));
-	}
+    @Override
+    public Result<PyObject> typeOf(exprType expression, CodeObject scope) {
+        return typeOf(new ModelSite<exprType>(expression, scope));
+    }
 }

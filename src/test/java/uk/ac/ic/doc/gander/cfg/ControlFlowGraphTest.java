@@ -9,22 +9,22 @@ import uk.ac.ic.doc.gander.cfg.Cfg;
 
 class ControlFlowGraphTest extends AbstractTaggedGraphTest {
 
-	public ControlFlowGraphTest(String[][] links, Cfg graph) {
-		super(links, graph, "Control-flow");
-	}
+    public ControlFlowGraphTest(String[][] links, Cfg graph) {
+        super(links, graph, "Control-flow");
+    }
 
-	@Override
-	protected boolean areLinked(BasicBlock source, BasicBlock target) {
-		return source.getSuccessors().contains(target);
-	}
+    @Override
+    protected boolean areLinked(BasicBlock source, BasicBlock target) {
+        return source.getSuccessors().contains(target);
+    }
 
-	@Override
-	protected boolean selfLinkRequired() {
-		return false;
-	}
+    @Override
+    protected boolean selfLinkRequired() {
+        return false;
+    }
 
-	@Override
-	protected Set<BasicBlock> getLinkToAllBlocks() {
-		return new HashSet<BasicBlock>();
-	}
+    @Override
+    protected Set<BasicBlock> getLinkToAllBlocks() {
+        return new HashSet<BasicBlock>();
+    }
 }

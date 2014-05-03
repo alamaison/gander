@@ -19,29 +19,29 @@ import uk.ac.ic.doc.gander.model.NamespaceName;
  * to the name by unqualified reference.
  */
 final class QualifiedNameDefinitionsPartialSolution implements
-		PartialTypeSolution {
+        PartialTypeSolution {
 
-	private final Result<PyObject> inferredType;
+    private final Result<PyObject> inferredType;
 
-	public Result<PyObject> partialSolution() {
-		return inferredType;
-	}
+    public Result<PyObject> partialSolution() {
+        return inferredType;
+    }
 
-	QualifiedNameDefinitionsPartialSolution(SubgoalManager goalManager,
-			final NamespaceName name) {
-		assert goalManager != null;
-		assert name != null;
+    QualifiedNameDefinitionsPartialSolution(SubgoalManager goalManager,
+            final NamespaceName name) {
+        assert goalManager != null;
+        assert name != null;
 
-		/*
-		 * FIXME: The AttributeTypeSummariser may end up using other namespaces
-		 * that differ in their external accessibility
-		 */
+        /*
+         * FIXME: The AttributeTypeSummariser may end up using other namespaces
+         * that differ in their external accessibility
+         */
 
-		Result<ModelSite<exprType>> namespaceReferences = name
-				.namespace().writeableReferences(goalManager);
+        Result<ModelSite<exprType>> namespaceReferences = name
+                .namespace().writeableReferences(goalManager);
 
-		inferredType = new AttributeTypeSummariser(namespaceReferences, name
-				.name(), goalManager).type();
-	}
+        inferredType = new AttributeTypeSummariser(namespaceReferences, name
+                .name(), goalManager).type();
+    }
 
 }

@@ -522,7 +522,7 @@ public class StringUtils {
      * Same as Python join: Go through all the paths in the string and join them with the passed delimiter,
      * but start at the passed initial location in the splitted array.
      */
-	public static String join(String delimiter, String[] splitted, int startAtSegment, int endAtSegment) {
+    public static String join(String delimiter, String[] splitted, int startAtSegment, int endAtSegment) {
         FastStringBuffer buf = new FastStringBuffer(splitted.length*100);
         for (int i=startAtSegment;i<splitted.length && i < endAtSegment;i++) {
             if(buf.length() > 0){
@@ -530,7 +530,7 @@ public class StringUtils {
             }
             buf.append(splitted[i]);
         }
-        return buf.toString();	
+        return buf.toString();    
     }
 
     
@@ -564,13 +564,13 @@ public class StringUtils {
     
     }
     
-	public static String[] addString(String[] c, String toAdd) {
-		String[] c1 = new String[c.length + 1];
-		
-		System.arraycopy(c, 0, c1, 0, c.length);
-		c1[c.length] = toAdd;
-		return c1;
-	}
+    public static String[] addString(String[] c, String toAdd) {
+        String[] c1 = new String[c.length + 1];
+        
+        System.arraycopy(c, 0, c1, 0, c.length);
+        c1[c.length] = toAdd;
+        return c1;
+    }
 
 
     public static String replaceNewLines(String message, String string) {
@@ -665,104 +665,104 @@ public class StringUtils {
         return string;
     }
 
-	public static boolean endsWith(FastStringBuffer str, char c) {
-	    if(str.length() == 0){
-	        return false;
-	    }
-	    if(str.charAt(str.length()-1) == c){
-	        return true;
-	    }
-	    return false;
-	}
+    public static boolean endsWith(FastStringBuffer str, char c) {
+        if(str.length() == 0){
+            return false;
+        }
+        if(str.charAt(str.length()-1) == c){
+            return true;
+        }
+        return false;
+    }
 
-	public static boolean endsWith(String str, char c) {
-	    if(str.length() == 0){
-	        return false;
-	    }
-	    if(str.charAt(str.length()-1) == c){
-	        return true;
-	    }
-	    return false;
-	}
+    public static boolean endsWith(String str, char c) {
+        if(str.length() == 0){
+            return false;
+        }
+        if(str.charAt(str.length()-1) == c){
+            return true;
+        }
+        return false;
+    }
 
-	public static boolean endsWith(StringBuffer str, char c) {
-	    if(str.length() == 0){
-	        return false;
-	    }
-	    if(str.charAt(str.length()-1) == c){
-	        return true;
-	    }
-	    return false;
-	}
+    public static boolean endsWith(StringBuffer str, char c) {
+        if(str.length() == 0){
+            return false;
+        }
+        if(str.charAt(str.length()-1) == c){
+            return true;
+        }
+        return false;
+    }
 
-	/**
-	 * Tests whether each character in the given
-	 * string is a letter.
-	 *
-	 * @param str
-	 * @return <code>true</code> if the given string is a word
-	 */
-	public static boolean isWord(String str) {
-	    if (str == null || str.length() == 0)
-	        return false;
-	
-	    for (int i= 0; i < str.length(); i++) {
-	        if (!Character.isJavaIdentifierPart(str.charAt(i)))
-	            return false;
-	    }
-	    return true;
-	}
+    /**
+     * Tests whether each character in the given
+     * string is a letter.
+     *
+     * @param str
+     * @return <code>true</code> if the given string is a word
+     */
+    public static boolean isWord(String str) {
+        if (str == null || str.length() == 0)
+            return false;
+    
+        for (int i= 0; i < str.length(); i++) {
+            if (!Character.isJavaIdentifierPart(str.charAt(i)))
+                return false;
+        }
+        return true;
+    }
 
-	/**
-	 * An array of Python pairs of characters that you will find in any Python code.
-	 * 
-	 * Currently, the set contains:
-	 * <ul>
-	 * <ol>left and right brackets: [, ]</ol>
-	 * <ol>right and right parentheses: (, )
-	 * </ul>
-	 */
-	public static final char[] BRACKETS = { '{', '}', '(', ')', '[', ']' };
+    /**
+     * An array of Python pairs of characters that you will find in any Python code.
+     * 
+     * Currently, the set contains:
+     * <ul>
+     * <ol>left and right brackets: [, ]</ol>
+     * <ol>right and right parentheses: (, )
+     * </ul>
+     */
+    public static final char[] BRACKETS = { '{', '}', '(', ')', '[', ']' };
 
-	public static boolean isOpeningPeer(char lastChar) {
-		return lastChar == '(' || lastChar == '[' || lastChar == '{';
-	}
-	
-	public static boolean isClosingPeer(char lastChar) {
-	    return lastChar == ')' || lastChar == ']' || lastChar == '}';
-	}
+    public static boolean isOpeningPeer(char lastChar) {
+        return lastChar == '(' || lastChar == '[' || lastChar == '{';
+    }
+    
+    public static boolean isClosingPeer(char lastChar) {
+        return lastChar == ')' || lastChar == ']' || lastChar == '}';
+    }
 
-	public static boolean hasOpeningBracket(String trimmedLine) {
-	    return trimmedLine.indexOf('{') != -1 || trimmedLine.indexOf('(') != -1 || trimmedLine.indexOf('[') != -1;
-	}
+    public static boolean hasOpeningBracket(String trimmedLine) {
+        return trimmedLine.indexOf('{') != -1 || trimmedLine.indexOf('(') != -1 || trimmedLine.indexOf('[') != -1;
+    }
 
-	public static boolean hasClosingBracket(String trimmedLine) {
-	    return trimmedLine.indexOf('}') != -1 || trimmedLine.indexOf(')') != -1 || trimmedLine.indexOf(']') != -1;
-	}
+    public static boolean hasClosingBracket(String trimmedLine) {
+        return trimmedLine.indexOf('}') != -1 || trimmedLine.indexOf(')') != -1 || trimmedLine.indexOf(']') != -1;
+    }
 
 
-	public static int count(String name, char c) {
-		int count=0;
-		int len = name.length();
-		for(int i=0;i<len;i++){
-			if(name.charAt(i) == c){
-				count++;
-			}
-		}
-		return count;
-	}
+    public static int count(String name, char c) {
+        int count=0;
+        int len = name.length();
+        for(int i=0;i<len;i++){
+            if(name.charAt(i) == c){
+                count++;
+            }
+        }
+        return count;
+    }
 
-	public static String urlEncodeKeyValuePair(String key, String value) {
-		String result = null;
+    public static String urlEncodeKeyValuePair(String key, String value) {
+        String result = null;
 
-		try {
-			result = URLEncoder.encode(key, "UTF-8") + "=" + URLEncoder.encode(value, "UTF-8");
-		} catch (UnsupportedEncodingException e) {
-			Log.log(e);
-		}
+        try {
+            result = URLEncoder.encode(key, "UTF-8") + "=" + URLEncoder.encode(value, "UTF-8");
+        } catch (UnsupportedEncodingException e) {
+            Log.log(e);
+        }
 
-		return result;
-	}
+        return result;
+    }
 
     public static boolean containsWhitespace(String name) {
         for(int i=0;i<name.length();i++){

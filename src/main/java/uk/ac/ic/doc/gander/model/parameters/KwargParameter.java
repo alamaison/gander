@@ -31,104 +31,104 @@ import uk.ac.ic.doc.gander.model.name_binding.Variable;
  */
 final class KwargParameter implements FormalParameter {
 
-	private final ModelSite<argumentsType> argsNode;
+    private final ModelSite<argumentsType> argsNode;
 
-	KwargParameter(ModelSite<argumentsType> argsNode) {
-		assert argsNode != null;
-		this.argsNode = argsNode;
-	}
+    KwargParameter(ModelSite<argumentsType> argsNode) {
+        assert argsNode != null;
+        this.argsNode = argsNode;
+    }
 
-	@Override
-	public InvokableCodeObject codeObject() {
-		return (InvokableCodeObject) argsNode.codeObject();
-	}
+    @Override
+    public InvokableCodeObject codeObject() {
+        return (InvokableCodeObject) argsNode.codeObject();
+    }
 
-	@Override
-	public ArgumentDestination passage(Argument argument) {
+    @Override
+    public ArgumentDestination passage(Argument argument) {
 
-		return new ArgumentDestination() {
+        return new ArgumentDestination() {
 
-			@Override
-			public Result<FlowPosition> nextFlowPositions() {
-				return TopFp.INSTANCE;
-			}
-		};
-	}
+            @Override
+            public Result<FlowPosition> nextFlowPositions() {
+                return TopFp.INSTANCE;
+            }
+        };
+    }
 
-	@Override
-	public Set<Variable> boundVariables() {
-		Variable variable = new Variable(
-				((NameTok) argsNode.astNode().kwarg).id, codeObject());
-		return Collections.singleton(variable);
-	}
+    @Override
+    public Set<Variable> boundVariables() {
+        Variable variable = new Variable(
+                ((NameTok) argsNode.astNode().kwarg).id, codeObject());
+        return Collections.singleton(variable);
+    }
 
-	@Override
-	public Set<Argument> argumentsPassedAtCall(StackFrame<Argument> callFrame,
-			SubgoalManager goalManager) {
-		return Collections.emptySet();
-	}
+    @Override
+    public Set<Argument> argumentsPassedAtCall(StackFrame<Argument> callFrame,
+            SubgoalManager goalManager) {
+        return Collections.emptySet();
+    }
 
-	@Override
-	public Result<PyObject> objectsPassedAtCall(StackFrame<Argument> stackFrame,
-			Variable variable, SubgoalManager goalManager) {
-		if (variable == null)
-			throw new NullPointerException("Variable required");
+    @Override
+    public Result<PyObject> objectsPassedAtCall(StackFrame<Argument> stackFrame,
+            Variable variable, SubgoalManager goalManager) {
+        if (variable == null)
+            throw new NullPointerException("Variable required");
 
-		/*
-		 * Regardless of what may be passed to the kwvarargs parameter (even if
-		 * it's nothing) it will always bind a dictionary to its variable.
-		 */
-		if (boundVariables().contains(variable)) {
+        /*
+         * Regardless of what may be passed to the kwvarargs parameter (even if
+         * it's nothing) it will always bind a dictionary to its variable.
+         */
+        if (boundVariables().contains(variable)) {
 
-			PyObject tuple = new PyInstance(variable.codeObject().model()
-					.builtinDictionary());
+            PyObject tuple = new PyInstance(variable.codeObject().model()
+                    .builtinDictionary());
 
-			return new FiniteResult<PyObject>(Collections.singleton(tuple));
-		} else {
-			return FiniteResult.bottom();
-		}
-	}
+            return new FiniteResult<PyObject>(Collections.singleton(tuple));
+        } else {
+            return FiniteResult.bottom();
+        }
+    }
 
-	@Override
-	public boolean acceptsArgumentByPosition(int position) {
-		return false;
-	}
+    @Override
+    public boolean acceptsArgumentByPosition(int position) {
+        return false;
+    }
 
-	@Override
-	public boolean acceptsArgumentByKeyword(String keyword) {
-		/* The kwarg parameter accepts all leftover keyword parameters */
-		return true;
-	}
+    @Override
+    public boolean acceptsArgumentByKeyword(String keyword) {
+        /* The kwarg parameter accepts all leftover keyword parameters */
+        return true;
+    }
 
-	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result
-				+ ((argsNode == null) ? 0 : argsNode.hashCode());
-		return result;
-	}
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result
+                + ((argsNode == null) ? 0 : argsNode.hashCode());
+        return result;
+    }
 
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (obj == null)
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
-		KwargParameter other = (KwargParameter) obj;
-		if (argsNode == null) {
-			if (other.argsNode != null)
-				return false;
-		} else if (!argsNode.equals(other.argsNode))
-			return false;
-		return true;
-	}
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        KwargParameter other = (KwargParameter) obj;
+        if (argsNode == null) {
+            if (other.argsNode != null)
+                return false;
+        } else if (!argsNode.equals(other.argsNode))
+            return false;
+        return true;
+    }
 
-	@Override
-	public String toString() {
-		return "KwargParameter [argsNode=" + argsNode + "]";
-	}
+    @Override
+    public String toString() {
+        return "KwargParameter [argsNode=" + argsNode + "]";
+    }
 
 }

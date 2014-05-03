@@ -11,48 +11,48 @@ import uk.ac.ic.doc.gander.model.ModelSite;
  */
 public final class ExpressionPosition implements FlowPosition {
 
-	private final ModelSite<? extends exprType> site;
+    private final ModelSite<? extends exprType> site;
 
-	public ExpressionPosition(ModelSite<? extends exprType> site) {
-		this.site = site;
-	}
+    public ExpressionPosition(ModelSite<? extends exprType> site) {
+        this.site = site;
+    }
 
-	public ModelSite<? extends exprType> getSite() {
-		return site;
-	}
+    public ModelSite<? extends exprType> getSite() {
+        return site;
+    }
 
-	public FlowStepGoal nextStepGoal() {
-		return new ExpressionFlowStepGoal(site);
-	}
+    public FlowStepGoal nextStepGoal() {
+        return new ExpressionFlowStepGoal(site);
+    }
 
-	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + ((site == null) ? 0 : site.hashCode());
-		return result;
-	}
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((site == null) ? 0 : site.hashCode());
+        return result;
+    }
 
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (obj == null)
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
-		ExpressionPosition other = (ExpressionPosition) obj;
-		if (site == null) {
-			if (other.site != null)
-				return false;
-		} else if (!site.equals(other.site))
-			return false;
-		return true;
-	}
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        ExpressionPosition other = (ExpressionPosition) obj;
+        if (site == null) {
+            if (other.site != null)
+                return false;
+        } else if (!site.equals(other.site))
+            return false;
+        return true;
+    }
 
-	@Override
-	public String toString() {
-		return "ExpressionPosition [site=" + site + "]";
-	}
+    @Override
+    public String toString() {
+        return "ExpressionPosition [site=" + site + "]";
+    }
 
 }

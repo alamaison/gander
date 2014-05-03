@@ -11,14 +11,14 @@ import uk.ac.ic.doc.gander.flowinference.result.Top;
  */
 public final class TopP extends Top<ArgumentDestination> {
 
-	public static final TopP INSTANCE = new TopP();
+    public static final TopP INSTANCE = new TopP();
 
-	@Override
-	public String toString() {
-		return "⊤p";
-	}
+    @Override
+    public String toString() {
+        return "⊤p";
+    }
 
-	private TopP() {
-	}
+    private TopP() {
+    }
 
 }

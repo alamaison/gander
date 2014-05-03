@@ -15,45 +15,45 @@ import uk.ac.ic.doc.gander.model.codeobject.CodeObject;
  */
 public final class CodeObjectDefinitionPosition implements FlowPosition {
 
-	private final CodeObject codeObject;
+    private final CodeObject codeObject;
 
-	public CodeObjectDefinitionPosition(CodeObject codeObject) {
-		this.codeObject = codeObject;
-	}
+    public CodeObjectDefinitionPosition(CodeObject codeObject) {
+        this.codeObject = codeObject;
+    }
 
-	public FlowStepGoal nextStepGoal() {
-		return new CodeObjectDefinitionFlowStepGoal(codeObject);
-	}
+    public FlowStepGoal nextStepGoal() {
+        return new CodeObjectDefinitionFlowStepGoal(codeObject);
+    }
 
-	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result
-				+ ((codeObject == null) ? 0 : codeObject.hashCode());
-		return result;
-	}
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result
+                + ((codeObject == null) ? 0 : codeObject.hashCode());
+        return result;
+    }
 
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (obj == null)
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
-		CodeObjectDefinitionPosition other = (CodeObjectDefinitionPosition) obj;
-		if (codeObject == null) {
-			if (other.codeObject != null)
-				return false;
-		} else if (!codeObject.equals(other.codeObject))
-			return false;
-		return true;
-	}
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        CodeObjectDefinitionPosition other = (CodeObjectDefinitionPosition) obj;
+        if (codeObject == null) {
+            if (other.codeObject != null)
+                return false;
+        } else if (!codeObject.equals(other.codeObject))
+            return false;
+        return true;
+    }
 
-	@Override
-	public String toString() {
-		return "CodeObjectDefinitionPosition [codeObject=" + codeObject + "]";
-	}
+    @Override
+    public String toString() {
+        return "CodeObjectDefinitionPosition [codeObject=" + codeObject + "]";
+    }
 
 }

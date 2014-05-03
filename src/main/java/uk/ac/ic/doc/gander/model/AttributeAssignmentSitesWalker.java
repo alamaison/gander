@@ -20,52 +20,52 @@ import uk.ac.ic.doc.gander.model.codeobject.CodeObject;
  */
 public final class AttributeAssignmentSitesWalker {
 
-	public interface EventHandler {
-		public void encounteredAttributeAssignment(Assign write,
-				Attribute attribute, CodeObject codeObject);
-	}
+    public interface EventHandler {
+        public void encounteredAttributeAssignment(Assign write,
+                Attribute attribute, CodeObject codeObject);
+    }
 
-	private final EventHandler eventHandler;
+    private final EventHandler eventHandler;
 
-	public AttributeAssignmentSitesWalker(Model model, EventHandler eventHandler) {
-		this.eventHandler = eventHandler;
+    public AttributeAssignmentSitesWalker(Model model, EventHandler eventHandler) {
+        this.eventHandler = eventHandler;
 
-		new CodeObjectWalker() {
-			@Override
-			protected void visitCodeObject(CodeObject codeObject) {
-				processAttributeWritesInCodeBlock(codeObject);
-			}
-		}.walk(model.getTopLevel().codeObject());
-	}
+        new CodeObjectWalker() {
+            @Override
+            protected void visitCodeObject(CodeObject codeObject) {
+                processAttributeWritesInCodeBlock(codeObject);
+            }
+        }.walk(model.getTopLevel().codeObject());
+    }
 
-	private void processAttributeWritesInCodeBlock(final CodeObject codeObject) {
-		try {
-			codeObject.codeBlock().accept(new LocalCodeBlockVisitor() {
+    private void processAttributeWritesInCodeBlock(final CodeObject codeObject) {
+        try {
+            codeObject.codeBlock().accept(new LocalCodeBlockVisitor() {
 
-				@Override
-				public Object visitAssign(Assign node) throws Exception {
-					for (exprType target : node.targets) {
-						if (target instanceof Attribute) {
-							eventHandler.encounteredAttributeAssignment(node,
-									(Attribute) target, codeObject);
-						}
-					}
-					return null;
-				}
+                @Override
+                public Object visitAssign(Assign node) throws Exception {
+                    for (exprType target : node.targets) {
+                        if (target instanceof Attribute) {
+                            eventHandler.encounteredAttributeAssignment(node,
+                                    (Attribute) target, codeObject);
+                        }
+                    }
+                    return null;
+                }
 
-				@Override
-				protected Object unhandled_node(SimpleNode node)
-						throws Exception {
-					return null;
-				}
+                @Override
+                protected Object unhandled_node(SimpleNode node)
+                        throws Exception {
+                    return null;
+                }
 
-				@Override
-				public void traverse(SimpleNode node) throws Exception {
-					node.traverse(this);
-				}
-			});
-		} catch (Exception e) {
-			throw new RuntimeException(e);
-		}
-	}
+                @Override
+                public void traverse(SimpleNode node) throws Exception {
+                    node.traverse(this);
+                }
+            });
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
 }

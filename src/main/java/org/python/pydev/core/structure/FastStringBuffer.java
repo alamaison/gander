@@ -404,15 +404,15 @@ public final class FastStringBuffer{
     }
 
     public FastStringBuffer appendN(String val, int n){
-    	int min = count + (n*val.length());
-		if (min > value.length) {
-    		resizeForMinimum(min);
-    	}
+        int min = count + (n*val.length());
+        if (min > value.length) {
+            resizeForMinimum(min);
+        }
         
-		int strLen = val.length();
-    	while (n-- > 0){
-    		val.getChars(0, strLen, value, this.count);
-    		this.count += strLen;
+        int strLen = val.length();
+        while (n-- > 0){
+            val.getChars(0, strLen, value, this.count);
+            this.count += strLen;
         }
         return this;
     }
@@ -423,8 +423,8 @@ public final class FastStringBuffer{
         }
         
         while (n-- > 0){
-	        value[count] = val;
-	        count++;
+            value[count] = val;
+            count++;
         }
         return this;
     }

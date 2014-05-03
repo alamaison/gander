@@ -15,28 +15,28 @@ import uk.ac.ic.doc.gander.model.OldNamespace;
  */
 public class FunctionResolver {
 
-	private Function function;
-	private OldNamespace enclosingFunction;
-	private TypeResolver types;
+    private Function function;
+    private OldNamespace enclosingFunction;
+    private TypeResolver types;
 
-	public FunctionResolver(Call call, OldNamespace enclosingScope,
-			TypeResolver types) {
-		this.enclosingFunction = enclosingScope;
-		this.types = types;
-		function = resolveCall(call);
-	}
+    public FunctionResolver(Call call, OldNamespace enclosingScope,
+            TypeResolver types) {
+        this.enclosingFunction = enclosingScope;
+        this.types = types;
+        function = resolveCall(call);
+    }
 
-	private Function resolveCall(Call call) {
-		PyObject type = types.typeOf(new ModelSite<exprType>(call.func,
-				enclosingFunction.codeObject()));
-		if (type != null && type instanceof PyFunction) {
-			return ((PyFunction) type).getFunctionInstance();
-		}
+    private Function resolveCall(Call call) {
+        PyObject type = types.typeOf(new ModelSite<exprType>(call.func,
+                enclosingFunction.codeObject()));
+        if (type != null && type instanceof PyFunction) {
+            return ((PyFunction) type).getFunctionInstance();
+        }
 
-		return null;
-	}
+        return null;
+    }
 
-	public Function getFunction() {
-		return function;
-	}
+    public Function getFunction() {
+        return function;
+    }
 }

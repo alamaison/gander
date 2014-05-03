@@ -28,42 +28,42 @@ import uk.ac.ic.doc.gander.model.name_binding.Variable;
  * frame, or allocated object.
  */
 final class UnqualifiedNameDefinitionsPartialSolution implements
-		PartialTypeSolution {
+        PartialTypeSolution {
 
-	private final RedundancyEliminator<PyObject> inferredType = new RedundancyEliminator<PyObject>();
+    private final RedundancyEliminator<PyObject> inferredType = new RedundancyEliminator<PyObject>();
 
-	@Override
-	public Result<PyObject> partialSolution() {
-		return inferredType.result();
-	}
+    @Override
+    public Result<PyObject> partialSolution() {
+        return inferredType.result();
+    }
 
-	UnqualifiedNameDefinitionsPartialSolution(SubgoalManager goalManager,
-			NamespaceName name) {
-		assert goalManager != null;
-		assert name != null;
+    UnqualifiedNameDefinitionsPartialSolution(SubgoalManager goalManager,
+            NamespaceName name) {
+        assert goalManager != null;
+        assert name != null;
 
-		for (Variable variable : name.namespace().variablesWriteableInScope(
-				name.name())) {
+        for (Variable variable : name.namespace().variablesWriteableInScope(
+                name.name())) {
 
-			/*
-			 * We're sure that the name in this code object is talking about the
-			 * same namespace location that we are interested in. So now we want
-			 * to know what this code object binds to it
-			 */
-			/*
-			 * FIXME: Assertion doesn't work because variablesWriteableInScope
-			 * may return variables in the builtin module. It shouldn't.
-			 */
-			// assert new
-			// NamespaceName(variable.bindingLocation()).equals(name);
+            /*
+             * We're sure that the name in this code object is talking about the
+             * same namespace location that we are interested in. So now we want
+             * to know what this code object binds to it
+             */
+            /*
+             * FIXME: Assertion doesn't work because variablesWriteableInScope
+             * may return variables in the builtin module. It shouldn't.
+             */
+            // assert new
+            // NamespaceName(variable.bindingLocation()).equals(name);
 
-			VariableTypeSummariser df = new VariableTypeSummariser(variable,
-					goalManager);
-			inferredType.add(df.solution());
+            VariableTypeSummariser df = new VariableTypeSummariser(variable,
+                    goalManager);
+            inferredType.add(df.solution());
 
-			if (inferredType.isFinished())
-				return;
-		}
-	}
+            if (inferredType.isFinished())
+                return;
+        }
+    }
 
 }

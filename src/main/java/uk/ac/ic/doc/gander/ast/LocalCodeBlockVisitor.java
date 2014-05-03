@@ -19,38 +19,38 @@ import org.python.pydev.parser.jython.ast.FunctionDef;
  */
 public abstract class LocalCodeBlockVisitor extends CodeBlockCreationVisitor {
 
-	protected Object seenNestedClassDef(ClassDef node) throws Exception {
-		return null;
-	}
+    protected Object seenNestedClassDef(ClassDef node) throws Exception {
+        return null;
+    }
 
-	protected Object seenNestedFunctionDef(FunctionDef node) throws Exception {
-		return null;
-	}
+    protected Object seenNestedFunctionDef(FunctionDef node) throws Exception {
+        return null;
+    }
 
-	// TODO: Add similar for Lambda and generator expressions
+    // TODO: Add similar for Lambda and generator expressions
 
-	@Override
-	public final Object visitClassDef(ClassDef node) throws Exception {
-		return seenNestedClassDef(node);
-		/*
-		 * Note existence for name binding purposes but do not traverse into
-		 * foreign code block
-		 */
-	}
+    @Override
+    public final Object visitClassDef(ClassDef node) throws Exception {
+        return seenNestedClassDef(node);
+        /*
+         * Note existence for name binding purposes but do not traverse into
+         * foreign code block
+         */
+    }
 
-	@Override
-	public final Object visitFunctionDef(FunctionDef node) throws Exception {
-		return seenNestedFunctionDef(node);
-		/*
-		 * Note existence for name binding purposes but do not traverse into
-		 * foreign code block
-		 */
-	}
+    @Override
+    public final Object visitFunctionDef(FunctionDef node) throws Exception {
+        return seenNestedFunctionDef(node);
+        /*
+         * Note existence for name binding purposes but do not traverse into
+         * foreign code block
+         */
+    }
 
-	@Override
-	public final Object visitModule(
-			org.python.pydev.parser.jython.ast.Module node) throws Exception {
-		return null;
-	}
+    @Override
+    public final Object visitModule(
+            org.python.pydev.parser.jython.ast.Module node) throws Exception {
+        return null;
+    }
 
 }

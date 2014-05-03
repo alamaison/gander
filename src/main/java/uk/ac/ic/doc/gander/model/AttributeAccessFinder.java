@@ -13,24 +13,24 @@ import uk.ac.ic.doc.gander.ast.AstParentNodeFinder;
  */
 public final class AttributeAccessFinder {
 
-	public interface Event {
-		boolean attributeAccess(ModelSite<Attribute> access);
-	}
+    public interface Event {
+        boolean attributeAccess(ModelSite<Attribute> access);
+    }
 
-	public AttributeAccessFinder(
-			Set<? extends ModelSite<? extends exprType>> objectPositions,
-			Event eventHandler) {
-		assert objectPositions != null;
+    public AttributeAccessFinder(
+            Set<? extends ModelSite<? extends exprType>> objectPositions,
+            Event eventHandler) {
+        assert objectPositions != null;
 
-		for (ModelSite<? extends exprType> object : objectPositions) {
+        for (ModelSite<? extends exprType> object : objectPositions) {
 
-			SimpleNode parent = AstParentNodeFinder.findParent(
-					object.astNode(), object.codeObject().ast());
-			if (parent instanceof Attribute) {
-				eventHandler.attributeAccess(new ModelSite<Attribute>(
-						(Attribute) parent, object.codeObject()));
-			}
+            SimpleNode parent = AstParentNodeFinder.findParent(
+                    object.astNode(), object.codeObject().ast());
+            if (parent instanceof Attribute) {
+                eventHandler.attributeAccess(new ModelSite<Attribute>(
+                        (Attribute) parent, object.codeObject()));
+            }
 
-		}
-	}
+        }
+    }
 }

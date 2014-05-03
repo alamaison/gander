@@ -24,63 +24,63 @@ import uk.ac.ic.doc.gander.ast.LocalCodeBlockVisitor;
  */
 public abstract class LocallyDeclaredGlobalFinder extends VisitorBase {
 
-	private boolean finished = false;
+    private boolean finished = false;
 
-	/**
-	 * Implement to handle appearance of a 'global' declaration in the local
-	 * code block.
-	 * 
-	 * The implementation can end the search prematurely by returning {@code
-	 * true}. We can't return prematurely from the visitor so we use a flag to
-	 * know we're finished and short-cut the visitor's work.
-	 * 
-	 * @param name
-	 *            Name of declared global.
-	 * @return Whether the search is finished.
-	 */
-	protected abstract boolean onGlobalDeclared(String name);
+    /**
+     * Implement to handle appearance of a 'global' declaration in the local
+     * code block.
+     * 
+     * The implementation can end the search prematurely by returning {@code
+     * true}. We can't return prematurely from the visitor so we use a flag to
+     * know we're finished and short-cut the visitor's work.
+     * 
+     * @param name
+     *            Name of declared global.
+     * @return Whether the search is finished.
+     */
+    protected abstract boolean onGlobalDeclared(String name);
 
-	@Override
-	public final void traverse(SimpleNode node) throws Exception {
-		// Do not traverse. We delegate visiting the tree to the inner visitor
-	}
+    @Override
+    public final void traverse(SimpleNode node) throws Exception {
+        // Do not traverse. We delegate visiting the tree to the inner visitor
+    }
 
-	@Override
-	protected final Object unhandled_node(SimpleNode node) throws Exception {
+    @Override
+    protected final Object unhandled_node(SimpleNode node) throws Exception {
 
-		/*
-		 * Using a LocalCodeBlock visitor as a global statement in a nested
-		 * class or function doesn't affect the enclosing scope's binding
-		 */
-		return node.accept(new LocalCodeBlockVisitor() {
+        /*
+         * Using a LocalCodeBlock visitor as a global statement in a nested
+         * class or function doesn't affect the enclosing scope's binding
+         */
+        return node.accept(new LocalCodeBlockVisitor() {
 
-			@Override
-			public Object visitGlobal(Global node) throws Exception {
-				if (!finished) {
-					for (NameTokType tok : node.names) {
-						finished = onGlobalDeclared(((NameTok) tok).id);
-						if (finished)
-							break;
-					}
-				}
-				return null;
-			}
+            @Override
+            public Object visitGlobal(Global node) throws Exception {
+                if (!finished) {
+                    for (NameTokType tok : node.names) {
+                        finished = onGlobalDeclared(((NameTok) tok).id);
+                        if (finished)
+                            break;
+                    }
+                }
+                return null;
+            }
 
-			@Override
-			public void traverse(SimpleNode node) throws Exception {
-				/*
-				 * traverse by default because the 'global' statement might be
-				 * nested, for instance, in a loop or conditional
-				 */
-				if (!finished) {
-					node.traverse(this);
-				}
-			}
+            @Override
+            public void traverse(SimpleNode node) throws Exception {
+                /*
+                 * traverse by default because the 'global' statement might be
+                 * nested, for instance, in a loop or conditional
+                 */
+                if (!finished) {
+                    node.traverse(this);
+                }
+            }
 
-			@Override
-			protected Object unhandled_node(SimpleNode node) throws Exception {
-				return null;
-			}
-		});
-	}
+            @Override
+            protected Object unhandled_node(SimpleNode node) throws Exception {
+                return null;
+            }
+        });
+    }
 }

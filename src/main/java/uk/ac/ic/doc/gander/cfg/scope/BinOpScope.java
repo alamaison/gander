@@ -7,17 +7,17 @@ import uk.ac.ic.doc.gander.cfg.scope.Statement.Exit;
 
 public class BinOpScope extends ScopeWithParent {
 
-	private BinOp node;
+    private BinOp node;
 
-	public BinOpScope(BinOp node, Statement previousStatement,
-			Exit trajectory, boolean startInNewBlock, Scope parent) {
-		super(parent, previousStatement, trajectory, startInNewBlock);
-		this.node = node;
-	}
+    public BinOpScope(BinOp node, Statement previousStatement,
+            Exit trajectory, boolean startInNewBlock, Scope parent) {
+        super(parent, previousStatement, trajectory, startInNewBlock);
+        this.node = node;
+    }
 
-	@Override
-	protected Statement doProcess() {
-		return delegate(new SimpleNode[]{ node.left, node.right });
-	}
+    @Override
+    protected Statement doProcess() {
+        return delegate(new SimpleNode[]{ node.left, node.right });
+    }
 
 }

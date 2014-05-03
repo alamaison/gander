@@ -20,25 +20,25 @@ import uk.ac.ic.doc.gander.model.codeobject.CodeObject;
  */
 public final class AttributeAssignmentSitesFinder {
 
-	private final Set<AssignmentSite<Attribute>> sites = new HashSet<AssignmentSite<Attribute>>();
+    private final Set<AssignmentSite<Attribute>> sites = new HashSet<AssignmentSite<Attribute>>();
 
-	public AttributeAssignmentSitesFinder(Model model,
-			final String attributeName) {
+    public AttributeAssignmentSitesFinder(Model model,
+            final String attributeName) {
 
-		new AttributeAssignmentSitesWalker(model, new EventHandler() {
+        new AttributeAssignmentSitesWalker(model, new EventHandler() {
 
-			public void encounteredAttributeAssignment(Assign assignment,
-					Attribute attribute, CodeObject codeObject) {
-				if (((NameTok) attribute.attr).id.equals(attributeName)) {
-					sites.add(new AssignmentSite<Attribute>(assignment,
-							attribute, codeObject));
-				}
-			}
-		});
-	}
+            public void encounteredAttributeAssignment(Assign assignment,
+                    Attribute attribute, CodeObject codeObject) {
+                if (((NameTok) attribute.attr).id.equals(attributeName)) {
+                    sites.add(new AssignmentSite<Attribute>(assignment,
+                            attribute, codeObject));
+                }
+            }
+        });
+    }
 
-	public Set<AssignmentSite<Attribute>> getSites() {
-		return Collections.unmodifiableSet(sites);
-	}
+    public Set<AssignmentSite<Attribute>> getSites() {
+        return Collections.unmodifiableSet(sites);
+    }
 
 }

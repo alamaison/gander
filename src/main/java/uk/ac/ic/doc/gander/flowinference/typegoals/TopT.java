@@ -12,14 +12,14 @@ import uk.ac.ic.doc.gander.flowinference.result.Top;
  */
 public final class TopT extends Top<PyObject> {
 
-	public static final TopT INSTANCE = new TopT();
+    public static final TopT INSTANCE = new TopT();
 
-	@Override
-	public String toString() {
-		return "⊤t";
-	}
+    @Override
+    public String toString() {
+        return "⊤t";
+    }
 
-	private TopT() {
-	}
+    private TopT() {
+    }
 
 }

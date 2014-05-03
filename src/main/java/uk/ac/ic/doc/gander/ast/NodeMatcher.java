@@ -12,26 +12,26 @@ import org.python.pydev.parser.jython.ast.VisitorBase;
  */
 final class NodeMatcher extends VisitorBase {
 
-	private final SimpleNode subjectNode;
-	private boolean foundNode = false;
+    private final SimpleNode subjectNode;
+    private boolean foundNode = false;
 
-	NodeMatcher(SimpleNode subjectNode) {
-		this.subjectNode = subjectNode;
-	}
+    NodeMatcher(SimpleNode subjectNode) {
+        this.subjectNode = subjectNode;
+    }
 
-	boolean nodeWasFoundDuringVisit() {
-		return foundNode;
-	}
+    boolean nodeWasFoundDuringVisit() {
+        return foundNode;
+    }
 
-	@Override
-	protected Object unhandled_node(SimpleNode node) throws Exception {
-		if (node.equals(subjectNode))
-			foundNode = true;
-		return null;
-	}
+    @Override
+    protected Object unhandled_node(SimpleNode node) throws Exception {
+        if (node.equals(subjectNode))
+            foundNode = true;
+        return null;
+    }
 
-	@Override
-	public void traverse(SimpleNode node) throws Exception {
-		// Don't traverse because we only want direct matches
-	}
+    @Override
+    public void traverse(SimpleNode node) throws Exception {
+        // Don't traverse because we only want direct matches
+    }
 }

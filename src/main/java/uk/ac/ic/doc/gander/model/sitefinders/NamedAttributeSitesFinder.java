@@ -14,24 +14,24 @@ import uk.ac.ic.doc.gander.model.codeobject.CodeObject;
 
 public final class NamedAttributeSitesFinder {
 
-	private final Set<ModelSite<Attribute>> sites = new HashSet<ModelSite<Attribute>>();
+    private final Set<ModelSite<Attribute>> sites = new HashSet<ModelSite<Attribute>>();
 
-	public NamedAttributeSitesFinder(final CodeObject codeObject,
-			final String attributeName) {
+    public NamedAttributeSitesFinder(final CodeObject codeObject,
+            final String attributeName) {
 
-		new AttributeSearch(codeObject, new EventHandler() {
+        new AttributeSearch(codeObject, new EventHandler() {
 
-			public void encounteredAttribute(Attribute attribute,
-					CodeObject codeObject) {
-				if (((NameTok) attribute.attr).id.equals(attributeName)) {
-					sites.add(new ModelSite<Attribute>(attribute, codeObject));
-				}
-			}
-		});
-	}
+            public void encounteredAttribute(Attribute attribute,
+                    CodeObject codeObject) {
+                if (((NameTok) attribute.attr).id.equals(attributeName)) {
+                    sites.add(new ModelSite<Attribute>(attribute, codeObject));
+                }
+            }
+        });
+    }
 
-	public Set<ModelSite<Attribute>> getSites() {
-		return Collections.unmodifiableSet(sites);
-	}
+    public Set<ModelSite<Attribute>> getSites() {
+        return Collections.unmodifiableSet(sites);
+    }
 
 }

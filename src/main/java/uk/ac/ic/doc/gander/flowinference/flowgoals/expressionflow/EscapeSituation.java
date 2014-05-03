@@ -7,14 +7,14 @@ import uk.ac.ic.doc.gander.flowinference.result.Result;
 
 final class EscapeSituation implements FlowSituation {
 
-	public static final EscapeSituation INSTANCE = new EscapeSituation();
+    public static final EscapeSituation INSTANCE = new EscapeSituation();
 
-	private EscapeSituation() {
-	}
+    private EscapeSituation() {
+    }
 
-	@Override
-	public Result<FlowPosition> nextFlowPositions(SubgoalManager goalManager) {
-		return TopFp.INSTANCE;
-	}
+    @Override
+    public Result<FlowPosition> nextFlowPositions(SubgoalManager goalManager) {
+        return TopFp.INSTANCE;
+    }
 
 }

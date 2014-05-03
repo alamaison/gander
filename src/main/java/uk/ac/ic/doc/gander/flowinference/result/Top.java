@@ -11,15 +11,15 @@ package uk.ac.ic.doc.gander.flowinference.result;
  */
 public abstract class Top<T> implements Result<T> {
 
-	public final void actOnResult(Result.Processor<T> action) {
-		action.processInfiniteResult();
-	}
+    public final void actOnResult(Result.Processor<T> action) {
+        action.processInfiniteResult();
+    }
 
-	public final <R> R transformResult(Result.Transformer<T, R> action) {
-		return action.transformInfiniteResult();
-	}
+    public final <R> R transformResult(Result.Transformer<T, R> action) {
+        return action.transformInfiniteResult();
+    }
 
-	@Override
-	public abstract String toString();
+    @Override
+    public abstract String toString();
 
 }
